@@ -1,0 +1,29 @@
+from building import *
+
+cwd  = GetCurrentDir()
+
+src = []
+src += ["bk_aware.c"]
+
+path = []
+path += [cwd + '/']
+
+sys_config = os.path.join(cwd, '..', '..', '..', 'config', 'sys_config.h')
+options = LocalOptions(sys_config)
+
+bk_aware_lib_name = 'bk_aware'
+
+libs = [bk_aware_lib_name]
+libpath = [cwd + '/']
+
+
+if (GetLocalDepend(options, 'CFG_BK_AWARE') == 1):
+    print 'using bk_ware: lib' + bk_aware_lib_name + '.a'
+    group_use_lib = DefineGroup('bk_aware_lib', [], depend = [''], CPPPATH = path, LIBS = libs, LIBPATH = libpath)
+    group_build_lib = DefineGroup('bk_aware', src, depend = ['BUILD_LIB'], CPPPATH = path, LIBS = libs, LIBPATH = libpath, LIBNAME = 'lib' + bk_aware_lib_name + '.a')
+    group = group_use_lib + group_build_lib
+else:
+    group = []
+
+
+Return('group')

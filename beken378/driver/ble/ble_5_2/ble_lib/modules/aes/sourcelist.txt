@@ -1,0 +1,42 @@
+ #***************************************************************************************
+ # @file sourcelist.txt
+ #
+ # @brief This file lists up all the source code that will be
+ #        compiled and built for AES crypto modules:
+ #           - AES
+ #           - AES_CMAC
+ #
+ # Copyright (C) RivieraWaves 2009-2017
+ #
+ #***************************************************************************************
+
+
+# aes
+    aes.c
+    aes_cmac.c
+    
+    aes_h6.c
+    aes_h7.c
+    aes_h8.c
+    aes_h9.c
+
+#if (env['BLE_EMB_PRESENT'] == "on") or (env['BLE_HOST_PRESENT'] == "on")
+    aes_rpa.c
+#endif // (env['BLE_EMB_PRESENT'] == "on") or (env['BLE_HOST_PRESENT'] == "on")
+    
+#if env['BLE_HOST_PRESENT'] == "on"
+    aes_c1.c
+    aes_f4.c
+    aes_f5.c
+    aes_f6.c
+    aes_g2.c
+#endif // env['BLE_HOST_PRESENT'] == "on"
+    
+#if env['MESH'] == "on"
+    aes_ccm.c
+    aes_s1.c
+    aes_k1.c
+    aes_k2.c
+    aes_k3.c
+    aes_k4.c
+#endif // env['MESH'] == "on"

@@ -1,0 +1,188 @@
+#!/usr/bin/env python
+#usage:
+# python beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE)
+
+import os
+import sys
+import json
+import shutil
+import argparse
+
+out_json_1M = {
+    "magic": "RT-Thread",
+    "version": "0.1",
+    "count": 2,
+    "section": [
+        {
+            "firmware": "bootloader_bk7231n_uart2_v1.0.12.bin",
+            "version": "1M.1220",
+            "partition": "bootloader",
+            "start_addr": "0x00000000",
+            "size": "65280"
+        },
+        {
+            "firmware": "../../out/bk7231_bsp.bin",
+            "version": "1M.1220",
+            "partition": "app",
+            "start_addr": "0x00011000",
+            "size": "816K"
+        }
+    ]
+}
+
+out_json_2M = {
+    "magic": "RT-Thread",
+    "version": "0.1",
+    "count": 2,
+    "section": [
+        {
+            "firmware": "bootloader_bk7231n_uart2_v1.0.12.bin",
+            "version": "2M.1220",
+            "partition": "bootloader",
+            "start_addr": "0x00000000",
+            "size": "65280"
+        },
+        {
+            "firmware": "../../out/bk7231_bsp.bin",
+            "version": "2M.1220",
+            "partition": "app",
+            "start_addr": "0x00011000",
+            "size": "1156K"
+        }
+    ]
+}
+
+out_json_4M = {
+    "magic": "RT-Thread",
+    "version": "0.1",
+    "count": 2,
+    "section": [
+        {
+            "firmware": "bootloader_bk7231n_uart2_v1.0.12.bin",
+            "version": "4M.1220",
+            "partition": "bootloader",
+            "start_addr": "0x00000000",
+            "size": "65280"
+        },
+        {
+            "firmware": "../../out/bk7231_bsp.bin",
+            "version": "4M.1220",
+            "partition": "app",
+            "start_addr": "0x00011000",
+            "size": "2890K"
+        }
+    ]
+}
+
+out_json_8M = {
+    "magic": "RT-Thread",
+    "version": "0.1",
+    "count": 2,
+    "section": [
+        {
+            "firmware": "bootloader_bk7231n_uart2_v1.0.12.bin",
+            "version": "8M.1220",
+            "partition": "bootloader",
+            "start_addr": "0x00000000",
+            "size": "65280"
+        },
+        {
+            "firmware": "../../out/bk7231_bsp.bin",
+            "version": "8M.1220",
+            "partition": "app",
+            "start_addr": "0x00011000",
+            "size": "2076K"
+        }
+    ]
+}
+
+chip_index = {
+    1: 'bk7231',
+    2: 'bk7231u',
+    3: 'bk7251',
+    4: 'bk7271',
+    5: 'bk7231n',
+    6: 'bk7236',
+    7: 'bk7238'
+}
+
+default_info = {
+    'bk7231n': {'boot': 'bootloader_bk7231n_uart1_v1.0.13.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7231u': {'boot': 'bootloader_bk7231u_uart2_v1.0.13.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7231':  {'boot': 'bootloader_bk7231_uart2_v1.0.8.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7251':  {'boot': 'bootloader_bk7251_uart2_v1.0.13.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7271':  {'boot': 'bootloader_bk7271_uart2_v1.0.11.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7236':  {'boot': 'bootloader_bk7236_uart2_v1.0.11.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7238':  {'boot': 'bootloader_bk7238_uart1_v1.0.14.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+}
+
+# parse commandline arguments
+def parse_args():
+    description = '''Beken HID Downloader.'''
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-c', '--chip',
+                        default='bk7231u',
+                        choices=default_info.keys(),
+                        help="chip type, defaults to bk7231u")
+    parser.add_argument('-i', '--index', type=int,
+                        default=-1,
+                        choices=chip_index.keys(),
+                        help="chip index: 1: bk7231, 2: bk7231u, 3: bk7251, 4: bk7271, 5: bk7231n 6:bk7236")
+    parser.add_argument('-b', '--boot',
+                        help='specify boot file')
+    parser.add_argument('-f', '--firmware',
+                        help='specify firmware file')
+    parser.add_argument('-s', '--size',
+                        default='0x200000',
+                        help='specify flash size')
+    args = parser.parse_args()
+
+    return args
+
+args = parse_args()
+chip = chip_index[args.index] if args.index>=0 else args.chip
+bootloader_str = args.boot if args.boot else default_info[chip]['boot']
+firmware_str = args.firmware if args.firmware else default_info[chip]['firmware']
+
+#convert hex string to integer
+if args.size.startswith("0x"):
+    args.size = int(args.size.replace("0x", ""),16)
+else:
+    args.size = int(args.size)
+#select json with flash size
+if args.size >= 0x800000:
+    out_json = out_json_8M
+elif args.size >= 0x400000:
+    out_json = out_json_4M
+elif args.size >= 0x200000:
+    out_json = out_json_2M
+elif args.size >= 0x100000:
+    out_json = out_json_1M
+else:
+    out_json = out_json_2M
+
+out_path = "tmp.json"
+full_image_old = "all_" + out_json["section"][0]["version"] + ".bin"
+uart_image_old = "bk7231_bsp_uart_" + out_json["section"][0]["version"] + ".bin"
+full_image_new = chip_index[args.index] + "_" + out_json["section"][0]["version"] + ".bin"
+uart_image_new = chip_index[args.index] + "_bsp_uart_" + out_json["section"][0]["version"] + ".bin"
+
+out_json["section"][0]["firmware"] = bootloader_str
+out_json["section"][1]["firmware"] = firmware_str
+out_json = json.dumps(out_json, sort_keys=True, indent=4)
+
+#print(out_json)
+
+with open(str(out_path), "w") as f:
+    f.write(out_json)
+
+if os.name == 'nt':
+    os.system("beken_packager {}".format(out_path))
+else:
+    os.system("./beken_packager {}".format(out_path))
+#copy all_2M.1220.bin as default for tools/script/build_include.sh
+shutil.copy(full_image_old, "../../out/" + full_image_old)
+shutil.move(full_image_old, "../../out/" + full_image_new)
+shutil.move(uart_image_old, "../../out/" + uart_image_new)
+shutil.copy(bootloader_str, "../../out/" + bootloader_str)
+os.remove(out_path)

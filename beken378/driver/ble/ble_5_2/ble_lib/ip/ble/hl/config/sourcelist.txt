@@ -1,0 +1,71 @@
+ #***************************************************************************************
+ # @file sourcelist.txt
+ #
+ # @brief This file lists up all the source code that will be
+ #        compiled and built for the RWBLE SW IP. 
+ #
+ # Copyright (C) RivieraWaves 2009-2015
+ #
+ #***************************************************************************************
+    
+# l2cap: 
+    l2cap/l2cap.c
+    l2cap/l2cap_chan.c
+    l2cap/l2cap_coc.c
+    l2cap/l2cap_msg.c
+    l2cap/l2cap_sig.c
+    
+# gatt: generic attribute profile
+    gatt/gatt.c
+    gatt/gatt_user.c
+    gatt/gatt_db.c
+    gatt/gatt_bearer.c
+    gatt/gatt_proc.c
+    gatt/gatt_msg.c
+    gatt/gatt_cli_mtu_exch.c
+    gatt/gatt_cli_read.c
+    gatt/gatt_cli_write.c
+    gatt/gatt_cli_discover.c
+    gatt/gatt_cli_event.c
+    gatt/gatt_srv_mtu_exch.c
+    gatt/gatt_srv_write.c
+    gatt/gatt_srv_read.c
+    gatt/gatt_srv_discover.c
+    gatt/gatt_srv_event.c
+
+# gap: generic access profile
+    gap/gapc/gapc.c
+    gap/gapc/gapc_proc.c
+    gap/gapc/gapc_disconnect.c
+    gap/gapc/gapc_info.c
+    gap/gapc/gapc_task.c
+    gap/gapc/gapc_con_up.c
+    gap/gapc/gapc_phy_up.c
+    gap/gapc/gapc_dle.c
+    gap/gapc/gapc_le_ping.c
+    gap/gapc/gapc_smp.c
+    gap/gapc/gapc_past.c
+    gap/gapc/gapc_cte.c
+    gap/gapc/gapc_svc.c
+    gap/gapc/gapc_cli.c
+    gap/gapc/gapc_sdt.c
+    gap/gapc/gapc_pwr_ctrl.c
+    
+    gap/gapm/gapm.c
+    gap/gapm/gapm_task.c
+    gap/gapm/gapm_cfg.c
+    gap/gapm/gapm_list.c
+    gap/gapm/gapm_smp.c
+    gap/gapm/gapm_actv.c
+    gap/gapm/gapm_adv.c
+    gap/gapm/gapm_scan.c
+    gap/gapm/gapm_init.c
+    gap/gapm/gapm_per_sync.c
+    gap/gapm/gapm_addr.c
+    
+# prf: Profile API
+    prf/prf.c
+    prf/prf_utils.c
+    
+# ble: low energy
+    rwble_hl/rwble_hl.c
