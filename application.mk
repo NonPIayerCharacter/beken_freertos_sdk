@@ -15,6 +15,7 @@ GDB = $(CROSS_COMPILE)gdb
 OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 SIZE = $(CROSS_COMPILE)size
+CXX = $(CROSS_COMPILE)g++
 
 Q := @
 ifeq ($(V),1)
@@ -29,10 +30,16 @@ else ifeq ($(findstring CYGWIN, $(OS)), CYGWIN)
 ENCRYPT = "./tools/crc_binary/encrypt.exe"
 else ifeq ($(findstring Darwin, $(OS)), Darwin) 
 ENCRYPT = "./tools/crc_binary/encrypt.darwin"
-ENCRYPT_ARGS = 0 0 0
+ENCRYPT_ARGS = 0 0 0 0
 else
-ENCRYPT = "./tools/crc_binary/encrypt"
-ENCRYPT_ARGS = 0 0 0
+#ENCRYPT = "./tools/crc_binary/encrypt"
+ENCRYPT = "./tools/crc_binary/encrypt_n"
+endif
+
+ifeq ($(CFG_SOC_NAME), 7)
+ENCRYPT_ARGS = 0 0 0 0 0
+else
+ENCRYPT_ARGS = 510fb093 a3cbeadc 5993a17e c7adeb03 10000
 endif
 
 ifeq ($(ECHO),)
@@ -60,7 +67,7 @@ endif
 
 all: application 
 
-TARGET=out
+TARGET=./out
 
 OBJ_DIR=$(TARGET)
 BIN_DIR=$(TARGET)
@@ -140,6 +147,7 @@ SRC_C =
 DRAM_C =
 SRC_OS =
 SRC_S =
+APP_C =
 
 SRC_MBEDTLS_C =
 SRC_DRV_C =
@@ -148,47 +156,47 @@ SRC_FUNC_C =
 #demo module
 ifeq ("${CFG_SUPPORT_RTOS}", "3")
 ifeq ($(CFG_SUPPORT_MATTER), 0)
-SRC_C += ./demos/application/ap_sta/ap_sta_demo.c
-SRC_C += ./demos/application/light/common/light_commond.c
-SRC_C += ./demos/application/light/common/light_commun_protocol.c
-SRC_C += ./demos/application/light/light_client/light_client_app_demo.c
-SRC_C += ./demos/application/light/light_client/light_client_sockt.c
-SRC_C += ./demos/application/light/light_server/light_server_app.c
-SRC_C += ./demos/application/light/light_server/light_socket.c
-SRC_C += ./demos/application/param_manage/param_manage.c
-SRC_C += ./demos/common/base64/base64_enc.c
-SRC_C += ./demos/common/base64/base64_enc.c
-SRC_C += ./demos/common/json/cJSON.c
-SRC_C += ./demos/common/json/cJsontest.c
-SRC_C += ./demos/helloworld/helloworld.c
-SRC_C += ./demos/net/iperf/iperf.c
-SRC_C += ./demos/net/mqtt/mqtt_echo.c
-SRC_C += ./demos/net/mqtt/mqtt_test.c
-SRC_C += ./demos/net/tcp_client/tcp_client_demo.c
-SRC_C += ./demos/net/tcp_server/tcp_server_demo.c
-SRC_C += ./demos/net/uart1_tcp_server/uart1_tcp_server_demo.c
-SRC_C += ./demos/net/udp/udp_client_demo.c
-SRC_C += ./demos/net/udp/udp_server_demo.c
-SRC_C += ./demos/os/os_mutex/os_mutex.c
-SRC_C += ./demos/os/os_queue/os_queue.c
-SRC_C += ./demos/os/os_sem/os_sem.c
-SRC_C += ./demos/os/os_thread/os_thread.c
-SRC_C += ./demos/os/os_timer/os_timer.c
-SRC_C += ./demos/peripheral/adc/test_adc.c
-SRC_C += ./demos/peripheral/flash/test_flash.c
-SRC_C += ./demos/peripheral/psram/test_psram.c
-SRC_C += ./demos/peripheral/gpio/test_gpio.c
-SRC_C += ./demos/peripheral/pwm/test_pwm.c
-SRC_C += ./demos/peripheral/uart/test_uart.c
-SRC_C += ./demos/wifi/airkiss_station/wifi_Airkiss_station.c
-SRC_C += ./demos/wifi/scan/wifi_scan.c
-SRC_C += ./demos/wifi/softap/wifi_delete_softap.c
-SRC_C += ./demos/wifi/softap/wifi_softap.c
-SRC_C += ./demos/wifi/station/wifi_station.c
-SRC_C += ./demos/wifi/station_power_save/wifi_station_ps_demo.c
-SRC_C += ./demos/bluetooth/eddystone/eddystone.c
-SRC_C += ./demos/bluetooth/eddystone_core/eddystone_core.c
-SRC_C += ./demos/demos_start.c
+#SRC_C += ./demos/application/ap_sta/ap_sta_demo.c
+#SRC_C += ./demos/application/light/common/light_commond.c
+#SRC_C += ./demos/application/light/common/light_commun_protocol.c
+#SRC_C += ./demos/application/light/light_client/light_client_app_demo.c
+#SRC_C += ./demos/application/light/light_client/light_client_sockt.c
+#SRC_C += ./demos/application/light/light_server/light_server_app.c
+#SRC_C += ./demos/application/light/light_server/light_socket.c
+#SRC_C += ./demos/application/param_manage/param_manage.c
+#SRC_C += ./demos/common/base64/base64_enc.c
+#SRC_C += ./demos/common/base64/base64_enc.c
+#SRC_C += ./demos/common/json/cJSON.c
+#SRC_C += ./demos/common/json/cJsontest.c
+#SRC_C += ./demos/helloworld/helloworld.c
+#SRC_C += ./demos/net/iperf/iperf.c
+#SRC_C += ./demos/net/mqtt/mqtt_echo.c
+#SRC_C += ./demos/net/mqtt/mqtt_test.c
+#SRC_C += ./demos/net/tcp_client/tcp_client_demo.c
+#SRC_C += ./demos/net/tcp_server/tcp_server_demo.c
+#SRC_C += ./demos/net/uart1_tcp_server/uart1_tcp_server_demo.c
+#SRC_C += ./demos/net/udp/udp_client_demo.c
+#SRC_C += ./demos/net/udp/udp_server_demo.c
+#SRC_C += ./demos/os/os_mutex/os_mutex.c
+#SRC_C += ./demos/os/os_queue/os_queue.c
+#SRC_C += ./demos/os/os_sem/os_sem.c
+#SRC_C += ./demos/os/os_thread/os_thread.c
+#SRC_C += ./demos/os/os_timer/os_timer.c
+#SRC_C += ./demos/peripheral/adc/test_adc.c
+#SRC_C += ./demos/peripheral/flash/test_flash.c
+#SRC_C += ./demos/peripheral/psram/test_psram.c
+#SRC_C += ./demos/peripheral/gpio/test_gpio.c
+#SRC_C += ./demos/peripheral/pwm/test_pwm.c
+#SRC_C += ./demos/peripheral/uart/test_uart.c
+#SRC_C += ./demos/wifi/airkiss_station/wifi_Airkiss_station.c
+#SRC_C += ./demos/wifi/scan/wifi_scan.c
+#SRC_C += ./demos/wifi/softap/wifi_delete_softap.c
+#SRC_C += ./demos/wifi/softap/wifi_softap.c
+#SRC_C += ./demos/wifi/station/wifi_station.c
+#SRC_C += ./demos/wifi/station_power_save/wifi_station_ps_demo.c
+#SRC_C += ./demos/bluetooth/eddystone/eddystone.c
+#SRC_C += ./demos/bluetooth/eddystone_core/eddystone_core.c
+#SRC_C += ./demos/demos_start.c
 endif
 endif
 
@@ -199,7 +207,7 @@ endif
 
 ifeq ("${CFG_MBEDTLS}", "1")
 ifeq ($(CFG_SUPPORT_MATTER), 0)
-SRC_MBEDTLS_C += ./demos/components/tls_demo/src/tls_demo.c
+#SRC_MBEDTLS_C += ./demos/components/tls_demo/src/tls_demo.c
 endif
 endif
 #SRC_MBEDTLS_C += ./demos/components/mqtt_demo/src/mqtt_demo.c
@@ -297,6 +305,12 @@ endif
 # -------------------------------------------------------------------
 OBJ_LIST = $(SRC_C:%.c=$(OBJ_DIR)/%.o)
 DEPENDENCY_LIST = $(SRC_C:%.c=$(OBJ_DIR)/%.d)
+
+OBJ_APP_LIST = $(APP_C:%.c=$(OBJ_DIR)/%.app.o)
+DEPENDENCY_LIST = $(APP_C:%.c=$(OBJ_DIR)/%.d)
+
+OBJ_CXX_LIST = $(APP_CXX:%.cpp=$(OBJ_DIR)/%.o)
+DEPENDENCY_LIST = $(APP_CXX:%.cpp=$(OBJ_DIR)/%.d)
 
 OBJ_S_LIST = $(SRC_S:%.S=$(OBJ_DIR)/%.O)
 DEPENDENCY_S_LIST = $(SRC_S:%.S=$(OBJ_DIR)/%.d)
@@ -425,18 +439,30 @@ SOC_BSP_LDS = bk72xx_bsp.lds
 # -------------------------------------------------------------------
 
 ifeq ("${CFG_SUPPORT_RTOS}", "3")
-CFLAGS = -DCFG_OS_FREERTOS=1
+CCFLAGS = -DCFG_OS_FREERTOS=1
 else ifeq ("${CFG_SUPPORT_RTOS}", "4")
-CFLAGS = -DCFG_SUPPORT_LITEOS=1
+CCFLAGS = -DCFG_SUPPORT_LITEOS=1
 endif
-CFLAGS += -g -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -std=c99 -ffunction-sections -Wall -Werror -Wno-format -Wno-unknown-pragmas -fsigned-char -fdata-sections -nostdlib -fno-strict-aliasing
-CFLAGS += -DWIFI_BLE_COEXIST
-CFLAGS += -fno-common
+#CFLAGS += -g0 -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -std=c99 -ffunction-sections -Wall -Wno-format -Wno-unknown-pragmas -fsigned-char -fdata-sections -nostdlib -fno-strict-aliasing
+CCFLAGS += -DWIFI_BLE_COEXIST
+CCFLAGS += -fno-common
 ifeq ($(CFG_SUPPORT_MATTER), 1)
-CFLAGS += -Wno-unused-function
-CFLAGS += -Wno-implicit-function-declaration
-CFLAGS += -Wno-discarded-qualifiers
+CCFLAGS += -Wno-unused-function
+CCFLAGS += -Wno-implicit-function-declaration
+CCFLAGS += -Wno-discarded-qualifiers
 endif
+
+CCFLAGS += -DDEBUG_UART_PORT=UART2_PORT
+
+CCFLAGS += -g0 -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os
+CCFLAGS += -ffunction-sections -Wall -Wno-format -Wno-unknown-pragmas -fsigned-char -fdata-sections -nostdlib -fno-strict-aliasing
+
+CXXFLAGS = $(CCFLAGS)
+CXXFLAGS += -std=gnu++11 -MMD -fno-exceptions -fno-rtti -Wno-literal-suffix -Wno-attributes
+CXXFLAGS += -g0 -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -ffunction-sections -Wno-format -fsigned-char -fdata-sections -fno-strict-aliasing
+
+CFLAGS += $(CCFLAGS)
+CFLAGS += -std=c99 -Wunknown-pragmas -nostdlib -Wall
 
 ifeq ("${CFG_MBEDTLS}", "1")
 ifeq ($(CFG_SUPPORT_MATTER), 1)
@@ -458,7 +484,7 @@ SDK_COMMIT := $(shell cd beken378 && git rev-parse --short HEAD)
 CFLAGS += -DSDK_COMMIT_ID=\"$(SDK_COMMIT)\"
 
 COMMIT_ID:=$(shell git rev-parse --short HEAD)
-OSFLAGS += -DOSK_COMMIT_ID=\"$(COMMIT_ID)\"
+OSFLAGS += -DOSK_COMMIT_ID=\"$(COMMIT_ID)\" -flto
 OSFLAGS += -g -marm -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -std=c99 -ffunction-sections -Wall -fsigned-char -fdata-sections -Wunknown-pragmas
 
 ifeq ($(OHOS), 1)
@@ -469,7 +495,7 @@ endif
 ASMFLAGS =
 ASMFLAGS += -g -marm -mthumb-interwork -mcpu=arm968e-s -march=armv5te -x assembler-with-cpp
 
-LFLAGS =
+LFLAGS = -flto
 ifeq ($(CFG_SUPPORT_MATTER), 0)
 LFLAGS += -g -Wl,--gc-sections -marm -mcpu=arm968e-s -mthumb-interwork -nostdlib  -Xlinker -Map=beken.map
 else
@@ -511,6 +537,7 @@ ifeq ($(CFG_SUPPORT_MATTER), 1)
 CHIP_MATTER_LIB = $(CHIP_LIB_PATH)/libMatterApp.a
 endif
 
+APP_LIB = ./libapp.a
 BLE_PUB_LIB  = ./libble_pub.a
 OS_LIB = ./libos.a
 LWIP_LIB = ./liblwip.a
@@ -521,7 +548,7 @@ FUNC_LIB  = ./libfunc.a
 MISC_LIB = ./libmisc.a
 SRC_S_LIB = ./libsrc_s.a
 
-LIBFLAGS =
+LIBFLAGS = -lstdc++
 ifeq ($(CFG_SUPPORT_MATTER), 1)
 LIBFLAGS += -L$(CHIP_LIB_PATH) -lMatterApp -lstdc++
 endif
@@ -531,21 +558,25 @@ LIBFLAGS += -L./beken378/lib -lusb
 LIBFLAGS += -L./beken378/lib -lsensor
 LIBFLAGS += -L./beken378/lib -lbk_aware
 LIBFLAGS += -L./beken378/lib -lble
+#LIBFLAGS += -L./beken378/lib -lble_pub
 LIBFLAGS += -L./beken378/lib -lcal
 LIBFLAGS += -L./beken378/lib -lsupplicant
 LIBFLAGS += -L./beken378/lib -luart_debug
 LIBFLAGS += -L./beken378/lib -lrf_test
 LIBFLAGS += -L./beken378/lib -lrf_use
-LIBFLAGS += -L./ -lble_pub -los -llwip -lwolfssl -lmbedtls -ldriver -lfunc -lmisc -lsrc_s
+LIBFLAGS += -L./ -los -llwip -lwolfssl -lmbedtls -ldriver -lfunc -lmisc -lsrc_s
+
+LIBFLAGS += -lapp
+-include ../../platforms/BK723x/OpenBeken.mk
 
 .PHONY: application
 ifeq  ("${CFG_SUPPORT_RTOS}", "4")
-application: $(WPA_LIB) $(RWNX_LIB) $(USB_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(BLE_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) bksdk
+application: $(APP_LIB) $(WPA_LIB) $(RWNX_LIB) $(USB_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(BLE_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) bksdk
 else
 ifeq  ($(CFG_SUPPORT_MATTER), 1)
-application: $(WPA_LIB) $(RWNX_LIB) $(USB_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(BLE_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB) CHIP
+application: $(APP_LIB) $(WPA_LIB) $(RWNX_LIB) $(USB_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(BLE_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB) CHIP
 else
-application: $(WPA_LIB) $(RWNX_LIB) $(USB_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(BLE_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB)
+application: $(APP_LIB) $(WPA_LIB) $(RWNX_LIB) $(USB_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(BLE_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB)
 endif
 endif
 
@@ -561,7 +592,6 @@ endif
 #	$(OBJDUMP) -d $(BIN_DIR)/$(SOC_NAME_ELF) >> $(BIN_DIR)/bk7231.asm
 #	@$(ECHO) "                                                        "
 	@$(ECHO) "  $(GREEN)CRC  $(BIN_DIR)/$(SOC_NAME_BIN)$(NC)"
-	$(Q)$(ENCRYPT) $(BIN_DIR)/$(SOC_NAME_BIN) 0 $(ENCRYPT_ARGS) > /dev/null
 
 ifeq ($(CFG_SUPPORT_MATTER), 1)
 	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_BSP_ELF) -Wl,--start-group $(LIBFLAGS) -lg_nano -Wl,--end-group -T./build/$(SOC_BSP_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_BSP_MAP)
@@ -569,6 +599,9 @@ else
 	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_BSP_ELF) -Wl,--start-group $(LIBFLAGS) -lg_nano -Wl,--end-group -T./build/$(SOC_BSP_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_BSP_MAP)
 endif
 	$(Q)$(OBJCOPY) -O binary $(BIN_DIR)/$(SOC_NAME_BSP_ELF) $(BIN_DIR)/$(SOC_NAME_BSP_BIN)
+	$(Q)$(ENCRYPT) $(BIN_DIR)/$(SOC_NAME_BSP_BIN) $(ENCRYPT_ARGS)
+	$(Q)mv $(BIN_DIR)/bk7231_bsp.bin $(BIN_DIR)/bsp.bin
+	$(Q)cp $(BIN_DIR)/bk7231_bsp_enc.bin $(BIN_DIR)/bk7231_bsp.bin
 
 	@$(ECHO) ================================================
 	$(SIZE) $(BIN_DIR)/$(SOC_NAME_BSP_ELF)
@@ -586,7 +619,7 @@ BKSDK_OUT_DIR = sdk_libs
 .PHONY: cp_libs
 bksdk: cp_libs
 
-cp_libs : $(BKSDK_LIB) $(WPA_LIB) $(RWNX_LIB) $(USB_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(BLE_LIB) $(BLE_PUB_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB)
+cp_libs : $(BKSDK_LIB) $(APP_LIB) $(WPA_LIB) $(RWNX_LIB) $(USB_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(BLE_LIB) $(BLE_PUB_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB)
 	@echo "  $(GREEN)CP LIBS$(NC)"
 	$(Q)rm -rf $(BKSDK_OUT_DIR)
 	$(Q)mkdir $(BKSDK_OUT_DIR)
@@ -708,6 +741,12 @@ $(MISC_LIB): $(OBJ_LIST)
 	$(Q)$(ECHO) "  $(GREEN)AR   $@$(NC)"
 	$(Q)$(AR) -rcs $@ $^
 
+app: $(APP_LIB)
+
+$(APP_LIB): $(OBJ_APP_LIST) $(OBJ_CXX_LIST)
+	$(Q)$(ECHO) "  $(GREEN)AR   $@$(NC)"
+	$(Q)$(AR) -rcs $@ $^
+
 src_s: $(SRC_S_LIB)
 
 $(SRC_S_LIB): $(OBJ_S_LIST)
@@ -719,6 +758,18 @@ $(OBJ_DIR)/%.o: %.c
 	$(Q)$(ECHO) "  $(GREEN)CC   $<$(NC)"
 	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $< -MM -MT $@ -MF $(patsubst %.o,%.d,$@)
+
+$(OBJ_DIR)/%.app.o: %.c
+	$(Q)if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	$(Q)$(ECHO) "  $(GREEN)CC   $<$(NC)"
+	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $< -MM -MT $@ -MF $(patsubst %.o,%.d,$@)
+
+$(OBJ_DIR)/%.o: %.cpp
+	$(Q)if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	$(Q)$(ECHO) "  $(GREEN)CXX   $<$(NC)"
+	$(Q)$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+	$(Q)$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -MM -MT $@ -MF $(patsubst %.o,%.d,$@)
 
 $(OBJ_DIR)/%.O: %.S
 	$(Q)if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
@@ -747,7 +798,7 @@ clean:
 	$(Q)-rm -f .config
 	$(Q)-rm -f build/$(SOC_BSP_LDS)
 	$(Q)-rm -f build/$(SOC_LDS)
-	$(Q)-rm -rf $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB)
+	$(Q)-rm -rf $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB) $(APP_LIB)
 	$(Q)if [ -e ./beken378/docs/build/html ]; then cd ./beken378/docs/ && make clean; fi
 ifeq  ("${CFG_SUPPORT_RTOS}", "4")
 	$(Q)-rm -rf build/libbk7231_sdk.a
@@ -760,7 +811,7 @@ endif
 
 .PHONY: cleanlib
 cleanlib:
-	$(Q)-rm -rf $(RWNX_LIB) $(WPA_LIB) $(USB_LIB) $(BLE_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB)
+	$(Q)-rm -rf $(APP_LIB) $(RWNX_LIB) $(WPA_LIB) $(USB_LIB) $(BLE_LIB) $(SENSOR_LIB) $(BK_AWARE_LIB) $(CAL_LIB) $(SUPPLICANT_LIB) $(UART_DEBUG_LIB) $(RF_TEST_LIB) $(RF_USE_LIB) $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB)
 	@$(ECHO) "$(GREEN)Done$(NC)"
 
 .PHONY: map

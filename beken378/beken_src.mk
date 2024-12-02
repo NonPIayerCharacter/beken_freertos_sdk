@@ -8,11 +8,7 @@ else
 ATSVR_CFG ?= 0
 endif
 
-ifeq ($(CFG_SUPPORT_MATTER), 1)
-LWIP_VERSION := lwip-2.1.2
-else
-LWIP_VERSION := lwip-2.0.2
-endif
+LWIP_VERSION := lwip-2.1.3
 
 # -------------------------------------------------------------------
 # Include folder list
@@ -100,7 +96,7 @@ INCLUDES += -I$(ROOT_DIR)/beken378/func/$(WPA_VERSION)/src
 INCLUDES += -I$(ROOT_DIR)/beken378/func/$(WPA_VERSION)/src/wps
 INCLUDES += -I$(ROOT_DIR)/beken378/func/$(WPA_VERSION)/wpa_supplicant
 INCLUDES += -I$(ROOT_DIR)/beken378/func/$(WPA_VERSION)/bk_patch
-INCLUDES += -I$(ROOT_DIR)/beken378/func/lwip_intf/lwip-2.0.2/port
+INCLUDES += -I$(ROOT_DIR)/beken378/func/lwip_intf/$(LWIP_VERSION)/port
 INCLUDES += -I$(ROOT_DIR)/beken378/func/lwip_intf/$(LWIP_VERSION)/src
 INCLUDES += -I$(ROOT_DIR)/beken378/func/lwip_intf/$(LWIP_VERSION)/src/include
 INCLUDES += -I$(ROOT_DIR)/beken378/func/lwip_intf/$(LWIP_VERSION)/src/include/netif
@@ -155,12 +151,12 @@ endif # CFG_USE_MBEDTLS
 endif # CFG_WPA3
 
 #paho-mqtt
-INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/client
-INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/client/src
-INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/packet/src
-INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/mqtt_ui
-INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/mqtt_ui/ssl_mqtt
-INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/mqtt_ui/tcp_mqtt
+#INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/client
+#INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/client/src
+#INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/packet/src
+#INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/mqtt_ui
+#INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/mqtt_ui/ssl_mqtt
+#INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/mqtt_ui/tcp_mqtt
 
 ifeq ($(CFG_SUPPORT_BLE),1)
 ifeq ($(CFG_BLE_VERSION),$(BLE_VERSION_4_2))
@@ -356,15 +352,15 @@ SRC_C += ./beken378/app/ate_app.c
 SRC_C += ./beken378/app/config/param_config.c
 SRC_C += ./beken378/app/standalone-ap/sa_ap.c
 SRC_C += ./beken378/app/standalone-station/sa_station.c
-SRC_C += ./beken378/app/video_work/video_transfer_tcp.c
-SRC_C += ./beken378/app/video_work/video_transfer_udp.c
-SRC_C += ./beken378/app/video_work/video_buffer.c
-SRC_C += ./beken378/app/video_work/video_upd_spd.c
-SRC_C += ./beken378/app/video_work/video_upd_spd_pub.c
-SRC_C += ./beken378/app/net_work/video_demo_main.c
-SRC_C += ./beken378/app/net_work/video_demo_station.c
-SRC_C += ./beken378/app/net_work/video_demo_softap.c
-SRC_C += ./beken378/app/net_work/video_demo_p2p.c
+#SRC_C += ./beken378/app/video_work/video_transfer_tcp.c
+#SRC_C += ./beken378/app/video_work/video_transfer_udp.c
+#SRC_C += ./beken378/app/video_work/video_buffer.c
+#SRC_C += ./beken378/app/video_work/video_upd_spd.c
+#SRC_C += ./beken378/app/video_work/video_upd_spd_pub.c
+#SRC_C += ./beken378/app/net_work/video_demo_main.c
+#SRC_C += ./beken378/app/net_work/video_demo_station.c
+#SRC_C += ./beken378/app/net_work/video_demo_softap.c
+#SRC_C += ./beken378/app/net_work/video_demo_p2p.c
 
 
 #demo module
@@ -421,10 +417,10 @@ SRC_FUNC_C += ./beken378/func/func.c
 SRC_FUNC_C += ./beken378/func/usb_plug/usb_plug.c
 SRC_FUNC_C += ./beken378/func/security/security_func.c
 SRC_FUNC_C += ./beken378/func/joint_up/role_launch.c
-SRC_C += ./beken378/app/http/utils_httpc.c
-SRC_C += ./beken378/app/http/utils_net.c
-SRC_C += ./beken378/app/http/utils_timer.c
-SRC_C += ./beken378/app/http/lite-log.c
+#SRC_C += ./beken378/app/http/utils_httpc.c
+#SRC_C += ./beken378/app/http/utils_net.c
+#SRC_C += ./beken378/app/http/utils_timer.c
+#SRC_C += ./beken378/app/http/lite-log.c
 SRC_FUNC_C += ./beken378/func/ntp/ntp.c
 SRC_FUNC_C += ./beken378/func/rtc/rtc.c
 SRC_FUNC_C += ./beken378/func/rtc/soft_rtc.c
@@ -445,10 +441,10 @@ SRC_FUNC_C += ./beken378/func/sdio_intf/sdio_intf.c
 endif
 
 SRC_LWIP_C = 
-SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/port/ethernetif.c
-SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/port/net.c
-SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/port/sys_arch.c
-SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/src/apps/ping/ping.c
+#SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/src/apps/ping/ping.c
+SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/port/sys_arch.c
+SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/port/net.c
+SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/port/ethernetif.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/api/api_lib.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/api/api_msg.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/api/err.c
@@ -462,6 +458,7 @@ SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/dns.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/inet_chksum.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/init.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/ip.c
+#SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/ipv4/acd.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/ipv4/dhcp.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/ipv4/etharp.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/ipv4/icmp.c
@@ -491,6 +488,9 @@ SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/tcp_out.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/timeouts.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/udp.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/netif/ethernet.c
+SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/http/httpd.c
+SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/http/fs.c
+SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/mqtt/mqtt.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/dhcpd/dhcp-server.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/dhcpd/dhcp-server-main.c
 
@@ -668,25 +668,25 @@ SRC_FUNC_C += ./beken378/func/force_sleep/force_mac_ps.c
 SRC_FUNC_C += ./beken378/func/force_sleep/force_mcu_ps.c
 
 #paho-mqtt
-ifeq ("${CFG_SUPPORT_RTOS}", "3")
-SRC_FUNC_C += ./beken378/func/paho-mqtt/client/src/MQTTClient.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/client/src/MQTTFreeRTOS.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/client/paho_mqtt_udp.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTConnectClient.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTConnectServer.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTDeserializePublish.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTFormat.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTPacket.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTSerializePublish.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTSubscribeClient.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTSubscribeServer.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTUnsubscribeClient.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTUnsubscribeServer.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/mqtt_ui/ssl_mqtt/ssl_mqtt_client_port.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/mqtt_ui/tcp_mqtt/tcp_mqtt_client_port.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/mqtt_ui/mqtt_client_core.c
-SRC_FUNC_C += ./beken378/func/paho-mqtt/mqtt_ui/mqtt_client_com_port.c
-endif
+#ifeq ("${CFG_SUPPORT_RTOS}", "3")
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/client/src/MQTTClient.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/client/src/MQTTFreeRTOS.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/client/paho_mqtt_udp.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTConnectClient.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTConnectServer.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTDeserializePublish.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTFormat.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTPacket.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTSerializePublish.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTSubscribeClient.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTSubscribeServer.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTUnsubscribeClient.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/packet/src/MQTTUnsubscribeServer.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/mqtt_ui/ssl_mqtt/ssl_mqtt_client_port.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/mqtt_ui/tcp_mqtt/tcp_mqtt_client_port.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/mqtt_ui/mqtt_client_core.c
+#SRC_FUNC_C += ./beken378/func/paho-mqtt/mqtt_ui/mqtt_client_com_port.c
+#endif
 
 ifeq ("${CFG_MBEDTLS}", "1")
 #MBEDTLS_SRC_DIRS += $(shell find beken378/func/mbedtls/mbedtls/library -type d)
@@ -1020,7 +1020,7 @@ SRC_IP_C =
 -include ./beken378/ip/ip_lib_src.mk
 
 SRC_BLE_C =
-ifeq ($(CFG_SUPPORT_BLE),1)
+#ifeq ($(CFG_SUPPORT_BLE),1)
 ifeq ($(CFG_BLE_VERSION),$(BLE_VERSION_4_2))
 -include ./beken378/driver/ble/ble_4_2/ble_lib_src.mk
 endif
@@ -1030,7 +1030,7 @@ endif
 ifeq ($(CFG_BLE_VERSION),$(BLE_VERSION_5_2))
 -include ./beken378/driver/ble/ble_5_2/ble_lib_src.mk
 endif
-endif
+#endif
 
 SRC_USB_C =
 ifeq ($(CFG_USB),1)

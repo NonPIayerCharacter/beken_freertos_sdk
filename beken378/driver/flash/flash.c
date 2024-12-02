@@ -974,30 +974,66 @@ UINT32 flash_ctrl(UINT32 cmd, void *parm)
         break;
 
     case CMD_FLASH_SET_DPLL:
-        sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_FLASH_DPLL, 0);
-        
+        ret = sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_FLASH_DPLL, 0);
 
-        reg = REG_READ(REG_FLASH_CONF);
-        reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
-        reg = reg | (5 << FLASH_CLK_CONF_POSI);
-        REG_WRITE(REG_FLASH_CONF, reg);
+        //reg = REG_READ(REG_FLASH_CONF);
+        //reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
+        //reg = reg | (5 << FLASH_CLK_CONF_POSI);
+        //REG_WRITE(REG_FLASH_CONF, reg);
+
+        if(ret == DRV_SUCCESS)
+        {
+            reg = REG_READ(REG_FLASH_CONF);
+            reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
+            reg = reg | (5 << FLASH_CLK_CONF_POSI); /*dco--9*/
+            REG_WRITE(REG_FLASH_CONF, reg);
+        }
+        else
+        {
+            ret = FLASH_FAILURE;
+        }
         break;
 
     case CMD_FLASH_SET_DCO:
-        sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_FLASH_DCO, 0);
+        ret = sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_FLASH_DCO, 0);
         
-        reg = REG_READ(REG_FLASH_CONF);
-        reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
-        if (get_ate_mode_state()) {
+//        reg = REG_READ(REG_FLASH_CONF);
+//        reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
+//        if (get_ate_mode_state()) {
+//#if (CFG_SOC_NAME == SOC_BK7238)
+//            reg = reg | (9 << FLASH_CLK_CONF_POSI);
+//#else
+//            reg = reg | (0xB << FLASH_CLK_CONF_POSI);
+//#endif
+//        } else {
+//            reg = reg | (9 << FLASH_CLK_CONF_POSI);
+//        }
+//        REG_WRITE(REG_FLASH_CONF, reg);
+
+        if(ret == DRV_SUCCESS)
+        {
+            reg = REG_READ(REG_FLASH_CONF);
+            reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
+            if(get_ate_mode_state())
+            {
 #if (CFG_SOC_NAME == SOC_BK7238)
-            reg = reg | (9 << FLASH_CLK_CONF_POSI);
+                reg = reg | (9 << FLASH_CLK_CONF_POSI);
 #else
-            reg = reg | (0xB << FLASH_CLK_CONF_POSI);
+                reg = reg | (0xB << FLASH_CLK_CONF_POSI);
 #endif
-        } else {
-            reg = reg | (9 << FLASH_CLK_CONF_POSI);
+            }
+            else
+            {
+                reg = reg | (9 << FLASH_CLK_CONF_POSI);
+            }
+            REG_WRITE(REG_FLASH_CONF, reg);
+
+            REG_WRITE(REG_FLASH_DATA_FLASH_SW, *((volatile UINT32*)0x20000));
         }
-        REG_WRITE(REG_FLASH_CONF, reg);
+        else
+        {
+            ret = FLASH_FAILURE;
+        }
         break;
 
     case CMD_FLASH_WRITE_ENABLE:

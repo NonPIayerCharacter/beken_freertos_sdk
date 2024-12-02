@@ -1224,18 +1224,18 @@ void ping_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **arg
 {
     os_printf("ping_Command\r\n");
 
-    if (argc == 1)
-    {
-        os_printf("Please input: ping <host address>\n");
-    }
-    else
-    {
-        int count = 4;
-        if (argc >= 3)
-            count = atoi(argv[2]);
-            os_printf("ping IP address: %s for %d times\n", argv[1], count);
-            ping(argv[1], count, 0);
-	}
+    //if (argc == 1)
+    //{
+    //    os_printf("Please input: ping <host address>\n");
+    //}
+    //else
+    //{
+    //    int count = 4;
+    //    if (argc >= 3)
+    //        count = atoi(argv[2]);
+    //        os_printf("ping IP address: %s for %d times\n", argv[1], count);
+    //        ping(argv[1], count, 0);
+	//}
 }
 
 void dns_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -4724,7 +4724,9 @@ int cli_get_all_chars_len(void)
     return bk_uart_get_length_in_buffer(cli_uart);
 }
 
+#if (CFG_IPERF_TEST != IPERF_CLOSE)
 extern void iperf(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv);
+#endif
 #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
 extern void cmd_la(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv);
 #endif
@@ -4779,7 +4781,7 @@ static const struct cli_command ate_clis[] =
 #endif // (CFG_IPERF_TEST == IPERF_OPEN_ONLY)
 };
 
-extern int video_demo_register_cmd(void);
+//extern int video_demo_register_cmd(void);
 
 #if CFG_PERIPHERAL_TEST
 void bk_peripheral_cli_init();
@@ -4794,81 +4796,82 @@ int cli_init(void)
 {
   //  int ret;
 
-    if (UART1_PORT == uart_print_port)
-    {
-        cli_uart = BK_UART_1;
-    }
-    else
-    {
-        cli_uart = BK_UART_2;
-    }
-
-    pCli = (struct cli_st *)os_malloc(sizeof(struct cli_st));
-    if (pCli == NULL)
-        return kNoMemoryErr;
-
-    os_memset((void *)pCli, 0, sizeof(struct cli_st));
-    rtos_init_semaphore(&log_rx_interrupt_sema, 10);
-
-    if (cli_register_commands(&built_ins[0],
-                              sizeof(built_ins) / sizeof(struct cli_command)))
-    {
-        goto init_general_err;
-    }
-
-    if(cli_register_commands(user_clis, sizeof(user_clis) / sizeof(struct cli_command))) {
-        goto init_general_err;
-    }
-
-    if (get_ate_mode_state()) {
-         if(cli_register_commands(ate_clis, sizeof(ate_clis) / sizeof(struct cli_command))) {
-             goto init_general_err;
-         }
-    }
-
-    if (video_demo_register_cmd()) {
-        goto init_general_err;
-    }
-
-#if CFG_PERIPHERAL_TEST
-    bk_peripheral_cli_init();
-#endif
-
-#if AT_SERVICE_CFG
-    atsvr_app_init();
-#else
-    int ret;
-    ret = rtos_create_thread(&cli_thread_handle,
-                             BEKEN_DEFAULT_WORKER_PRIORITY,
-                             "cli",
-                             (beken_thread_function_t)cli_main,
-                             #if (1 == CFG_SUPPORT_MATTER)
-                             2048,
-                             #else
-                             4096,
-                             #endif
-                             0);
-    if (ret != kNoErr)
-    {
-        os_printf("Error: Failed to create cli thread: %d\r\n",
-                  ret);
-        goto init_general_err;
-    }
-#endif
-
-    pCli->initialized = 1;
-    pCli->echo_disabled = 0;
-
+//    if (UART1_PORT == uart_print_port)
+//    {
+//        cli_uart = BK_UART_1;
+//    }
+//    else
+//    {
+//        cli_uart = BK_UART_2;
+//    }
+//
+//    pCli = (struct cli_st *)os_malloc(sizeof(struct cli_st));
+//    if (pCli == NULL)
+//        return kNoMemoryErr;
+//
+//    os_memset((void *)pCli, 0, sizeof(struct cli_st));
+//    rtos_init_semaphore(&log_rx_interrupt_sema, 10);
+//
+//    if (cli_register_commands(&built_ins[0],
+//                              sizeof(built_ins) / sizeof(struct cli_command)))
+//    {
+//        goto init_general_err;
+//    }
+//
+//    if(cli_register_commands(user_clis, sizeof(user_clis) / sizeof(struct cli_command))) {
+//        goto init_general_err;
+//    }
+//
+//    if (get_ate_mode_state()) {
+//         if(cli_register_commands(ate_clis, sizeof(ate_clis) / sizeof(struct cli_command))) {
+//             goto init_general_err;
+//         }
+//    }
+//
+//    if (video_demo_register_cmd()) {
+//        goto init_general_err;
+//    }
+//
+//#if CFG_PERIPHERAL_TEST
+//    bk_peripheral_cli_init();
+//#endif
+//
+//#if AT_SERVICE_CFG
+//    atsvr_app_init();
+//#else
+//    int ret;
+//    ret = rtos_create_thread(&cli_thread_handle,
+//                             BEKEN_DEFAULT_WORKER_PRIORITY,
+//                             "cli",
+//                             (beken_thread_function_t)cli_main,
+//                             #if (1 == CFG_SUPPORT_MATTER)
+//                             2048,
+//                             #else
+//                             4096,
+//                             #endif
+//                             0);
+//    if (ret != kNoErr)
+//    {
+//        os_printf("Error: Failed to create cli thread: %d\r\n",
+//                  ret);
+//        goto init_general_err;
+//    }
+//#endif
+//
+//    pCli->initialized = 1;
+//    pCli->echo_disabled = 0;
+//
+//    return kNoErr;
+//
+//init_general_err:
+//    if(pCli)
+//    {
+//        os_free(pCli);
+//        pCli = NULL;
+//    }
+//
+//    return kGeneralErr;
     return kNoErr;
-
-init_general_err:
-    if(pCli)
-    {
-        os_free(pCli);
-        pCli = NULL;
-    }
-
-    return kGeneralErr;
 }
 // eof
 

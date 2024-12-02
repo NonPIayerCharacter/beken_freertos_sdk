@@ -54,8 +54,8 @@
 /*section 2-----function macro config-----*/
 #define CFG_SUPPORT_MATTER                         0
 
-#define CFG_TX_EVM_TEST                            1
-#define CFG_RX_SENSITIVITY_TEST                    1
+#define CFG_TX_EVM_TEST                            0
+#define CFG_RX_SENSITIVITY_TEST                    0
 #define CFG_AP_MONITOR_COEXIST                     0
 #if CFG_AP_MONITOR_COEXIST
 #define CFG_AP_MONITOR_COEXIST_DEMO                0
@@ -185,11 +185,7 @@
 #define IPERF_CLOSE                                0  /* close iperf */
 #define IPERF_OPEN_WITH_ACCEL                      1  /* open iperf and accel */
 #define IPERF_OPEN_ONLY                            2  /* open iperf, but no open accel */
-#if(CFG_SUPPORT_MATTER == 1)
 #define CFG_IPERF_TEST                             IPERF_CLOSE
-#else
-#define CFG_IPERF_TEST                             IPERF_OPEN_ONLY
-#endif
 #if (CFG_IPERF_TEST == IPERF_OPEN_WITH_ACCEL)
 #define CFG_IPERF_TEST_ACCEL                       1
 #define CFG_IPERF_DONT_MALLOC_BUFFER               1
@@ -241,7 +237,7 @@
 #define CFG_USE_DHCPD                              1 // for servicers in ap mode
 
 /*section 11-----temperature detect*/
-#define CFG_USE_TEMPERATURE_DETECT                 1
+#define CFG_USE_TEMPERATURE_DETECT                 0
 #define CFG_USE_VOLTAGE_DETECT                     0
 
 /*section 12-----for SPIDMA interface*/
@@ -261,7 +257,7 @@
 #define CFG_USE_MCU_PS                             1
 
 #define CFG_USE_DEEP_PS                            1
-#define CFG_USE_BLE_PS                             1
+#define CFG_USE_BLE_PS                             0
 #define CFG_USE_AP_IDLE                            0
 #define CFG_USE_FAKERTC_PS                         0
 #define CFG_LOW_VOLTAGE_PS                         1
@@ -294,15 +290,11 @@
 #define CONFIG_APP_MP3PLAYER                       0
 
 /*section 21 ----- support ota*/
-#if( ( CFG_SUPPORT_ALIOS ) || ( CFG_SUPPORT_RTT ) || (CFG_SUPPORT_MATTER == 1))
-#define CFG_SUPPORT_OTA_HTTP                       0
-#else
-#define CFG_SUPPORT_OTA_HTTP                       1
-#endif
 #define CFG_SUPPORT_OTA_TFTP                       0
+#define CFG_SUPPORT_OTA_HTTP                       1
 
 /*section 23 ----- support reduce nomal power*/
-#define CFG_SYS_REDUCE_NORMAL_POWER                0
+#define CFG_SYS_REDUCE_NORMAL_POWER                1
 
 /*section 24 ----- less memery in rwnx*/
 #define CFG_LESS_MEMERY_IN_RWNX                    1
@@ -319,7 +311,7 @@
 /*section 25 ----- use tick time calibrate*/
 #define CFG_USE_TICK_CAL                           1
 
-#define CFG_SUPPORT_BLE                            1
+#define CFG_SUPPORT_BLE                            0
 #define CFG_BLE_USE_CLI                            1
 #define CFG_SUPPORT_BLE_MESH                       0
 #define CFG_USE_PTA                                1
@@ -332,7 +324,7 @@
 #define BLE_VERSION_5_1                            2
 #define BLE_VERSION_5_2                            3
 
-#define CFG_BLE_VERSION                            BLE_VERSION_5_2
+#define CFG_BLE_VERSION                            BLE_VERSION_4_2
 
 #define WIFI_DEFAULT_BLE_REQUEST                   1
 #define BLE_DEFAULT_WIFI_REQUEST                   2
@@ -345,7 +337,7 @@
 #define CFG_BLE_DIAGNOSTIC_PORT                    0
 
 // 0 mean do not support ble master
-#define CFG_BLE_INIT_NUM                           1
+#define CFG_BLE_INIT_NUM                           0
 
 #define CFG_BLE_CONN_NUM                           1
 

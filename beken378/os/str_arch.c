@@ -127,10 +127,10 @@ int os_strncasecmp(const char *s1, const char *s2, size_t n)
     return os_strncmp(s1, s2, n);
 }
 
-char *os_strrchr(const char *s, int c)
-{
-    return strrchr(s, c);
-}
+//char *os_strrchr(const char *s, int c)
+//{
+//    return strrchr(s, c);
+//}
 
 char *os_strstr(const char *haystack, const char *needle)
 {

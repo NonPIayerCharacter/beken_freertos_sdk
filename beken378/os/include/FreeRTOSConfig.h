@@ -131,6 +131,7 @@ to exclude the API function. */
 #define INCLUDE_xTaskAbortDelay				1
 #define INCLUDE_xTaskGetCurrentTaskHandle	1
 #define INCLUDE_xSemaphoreGetMutexHolder	1
+#define INCLUDE_xTimerPendFunctionCall      1
 
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY  191 /* equivalent to 0xb0, or priority 11. */
 

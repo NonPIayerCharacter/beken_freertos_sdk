@@ -1,8 +1,8 @@
 #include "include.h"
-
-#if (CFG_SOC_NAME != SOC_BK7231)
 #include "bk7011_cal_pub.h"
 #include "bk_cal_pub.h"
+
+#if (CFG_SOC_NAME != SOC_BK7231)
 
 /********************************  power table ********************************/
 #if (CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7221U)

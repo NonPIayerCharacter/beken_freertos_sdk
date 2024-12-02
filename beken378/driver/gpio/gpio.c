@@ -589,7 +589,7 @@ static void gpio_enable_second_function(UINT32 func_mode)
         modul_select = GPIO_SD_DMA_MODULE;
         pmask = GPIO_SD_MODULE_MASK;
         break;
-
+#if (CFG_SOC_NAME != SOC_BK7231)
 	/* P34-39 SDIO */
     case GFUNC_MODE_SD1_DMA:
         start_index = 34;
@@ -598,7 +598,7 @@ static void gpio_enable_second_function(UINT32 func_mode)
         modul_select = GPIO_SD1_DMA_MODULE;
         pmask = GPIO_SD_MODULE_MASK;
         break;
-
+#endif
     case GFUNC_MODE_SD_HOST:
         start_index = 14;
         end_index = 19;

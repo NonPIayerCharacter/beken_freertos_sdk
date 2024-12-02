@@ -52,5 +52,8 @@ typedef struct _sys_arch_state_t
 
 /* Message queue constants. */
 #define archMESG_QUEUE_LENGTH	( 32 )
-#endif /* __SYS_RTXC_H__ */
 
+void sys_arch_check_core_locked(void);
+void sys_arch_mark_core(void);
+
+#endif /* __SYS_RTXC_H__ */

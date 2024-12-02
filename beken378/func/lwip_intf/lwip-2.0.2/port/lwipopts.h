@@ -303,7 +303,7 @@
 /**
  * LWIP_STATS==1: Enable statistics collection in lwip_stats.
  */
-#define LWIP_STATS                      0
+#define LWIP_STATS                      1
 
 /**
  * LWIP_STATS_DISPLAY==1: Compile in the statistics output functions.
@@ -484,7 +484,7 @@ The STM32F107 allows computing and verifying the IP, UDP, TCP and ICMP checksums
 
 #define MEM_LIBC_MALLOC                (1)
 
-#define MEMP_MEM_MALLOC (1)
+#define MEMP_MEM_MALLOC (0)
 #define TCP_MSL (TCP_TMR_INTERVAL)
 
 #define LWIP_COMPAT_MUTEX_ALLOWED       (1)

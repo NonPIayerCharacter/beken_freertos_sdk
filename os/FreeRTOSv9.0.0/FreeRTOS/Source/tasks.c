@@ -728,11 +728,11 @@ static void prvAddNewTaskToReadyList( TCB_t *pxNewTCB ) PRIVILEGED_FUNCTION;
 				{
 					/* Store the stack location in the TCB. */
 					pxNewTCB->pxStack = pxStack;
-                    os_printf("[THD]%s:[tcb]%x [stack]%x-%x:%d:%d\r\n", pcName, 
-						pxNewTCB, pxStack,
-						(size_t)pxStack + ( ( ( size_t ) usStackDepth ) * sizeof( StackType_t ) ), 
-						( ( ( size_t ) usStackDepth ) * sizeof( StackType_t ) )
-						, uxPriority);
+					//os_printf("[THD]%s:[tcb]%x [stack]%x-%x:%d:%d\r\n", pcName, 
+					//	pxNewTCB, pxStack,
+					//	(size_t)pxStack + ( ( ( size_t ) usStackDepth ) * sizeof( StackType_t ) ), 
+					//	( ( ( size_t ) usStackDepth ) * sizeof( StackType_t ) )
+					//	, uxPriority);
 				}
 				else
 				{

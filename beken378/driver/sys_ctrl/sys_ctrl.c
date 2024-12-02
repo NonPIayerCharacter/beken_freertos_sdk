@@ -4220,6 +4220,7 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
         ret = (reg >> DIG_VDD_ACTIVE_POSI) & DIG_VDD_ACTIVE_MASK;
         break;
 
+#if (CFG_SOC_NAME != SOC_BK7231)
     case CMD_GET_SCTRL_RETETION:
         *((UINT32 *)param) = REG_READ(SCTRL_SW_RETENTION);
         break;
@@ -4227,6 +4228,7 @@ UINT32 sctrl_ctrl(UINT32 cmd, void *param)
     case CMD_SET_SCTRL_RETETION:
         REG_WRITE(SCTRL_SW_RETENTION, *((UINT32 *)param));
         break;
+#endif
 
 #if (CFG_SOC_NAME == SOC_BK7221U)
     case CMD_SCTRL_UNCONDITIONAL_MAC_DOWN:

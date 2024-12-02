@@ -108,7 +108,13 @@ const bk_logic_partition_t bk7231_partitions_2M[BK_PARTITION_MAX] =
         .partition_owner           = BK_FLASH_EMBEDDED,
         .partition_description     = "ota",
         .partition_start_addr      = 0x132000,
+#if (CFG_SOC_NAME == SOC_BK7231N)
+        .partition_length          = 0xA6000, //664KB
+//#elif (CFG_SOC_NAME == SOC_BK7231)
+//        .partition_length          = 0x96000, //600KB
+#else
         .partition_length          = 0xAE000, //696KB
+#endif
         .partition_options         = PAR_OPT_READ_EN | PAR_OPT_WRITE_DIS,
     },
     [BK_PARTITION_RF_FIRMWARE] =
@@ -117,6 +123,8 @@ const bk_logic_partition_t bk7231_partitions_2M[BK_PARTITION_MAX] =
         .partition_description     = "RF Firmware",
 #if (CFG_SOC_NAME == SOC_BK7221U)
         .partition_start_addr      = 0x1e0000,// bootloader unused space for rf cal+mac related info.
+#elif (CFG_SOC_NAME == SOC_BK7231N)
+        .partition_start_addr      = 0x1d0000,
 #else
         .partition_start_addr      = 0x1e0000,// for rf related info
 #endif
@@ -129,6 +137,8 @@ const bk_logic_partition_t bk7231_partitions_2M[BK_PARTITION_MAX] =
         .partition_description     = "NET info",
 #if (CFG_SOC_NAME == SOC_BK7221U)
         .partition_start_addr      = 0x1FF000,// for net related info
+#elif (CFG_SOC_NAME == SOC_BK7231N)
+        .partition_start_addr      = 0x1d1000,
 #else
         .partition_start_addr      = 0x1e1000,// for net related info
 #endif

@@ -23,11 +23,19 @@
 #define RTOS_FREERTOS                              3
 #define RTOS_LITEOS                                4
 
-#define CFG_SUPPORT_RTOS                           RTOS_LITEOS
+#define CFG_SUPPORT_RTOS                           RTOS_FREERTOS
 
 #define FREERTOS_V9                                1
 #define FREERTOS_V10                               2
 #define CFG_FREERTOS_VER                           FREERTOS_V9
+
+/* watchdog, freertos only */
+#define CFG_INT_WDG_ENABLED                        1
+#define CFG_INT_WDG_PERIOD_MS                      10000
+#define CFG_TASK_WDG_ENABLED                       1
+#define CFG_TASK_WDG_PERIOD_MS                     60000
+#define DUMP_THREAD_WHEN_TASK_WDG_TIGGERED         1
+#define DUMP_STACK_WHEN_TASK_WDG_TIGGERED          1
 
 #define ENC_METHOD_NULL                            1
 #define ENC_METHOD_XOR                             2
@@ -49,8 +57,8 @@
 #define THDD_KEY_SCAN_PRIORITY                     7
 
 /*section 2-----function macro config-----*/
-#define CFG_TX_EVM_TEST                            1
-#define CFG_RX_SENSITIVITY_TEST                    1
+#define CFG_TX_EVM_TEST                            0
+#define CFG_RX_SENSITIVITY_TEST                    0
 #define CFG_AP_MONITOR_COEXIST                     0
 #if CFG_AP_MONITOR_COEXIST
 #define CFG_AP_MONITOR_COEXIST_DEMO                0
@@ -135,7 +143,7 @@
 #define CFG_QUICK_TRACK                            0
 
 /* use mbedtls as wpa crypto functions */
-#define CFG_USE_MBEDTLS                            0
+#define CFG_USE_MBEDTLS                            1
 #if CFG_USE_MBEDTLS
 #define CFG_MBEDTLS                                1
 #endif
@@ -175,7 +183,7 @@
 #define IPERF_CLOSE                                0  /* close iperf */
 #define IPERF_OPEN_WITH_ACCEL                      1  /* open iperf and accel */
 #define IPERF_OPEN_ONLY                            2  /* open iperf, but no open accel */
-#define CFG_IPERF_TEST                             IPERF_OPEN_ONLY
+#define CFG_IPERF_TEST                             IPERF_CLOSE
 #if (CFG_IPERF_TEST == IPERF_OPEN_WITH_ACCEL)
 #define CFG_IPERF_TEST_ACCEL                       1
 #define CFG_IPERF_DONT_MALLOC_BUFFER               1
@@ -298,7 +306,7 @@
 #define WIFI_DEFAULT_BLE_REQUEST                   1
 #define BLE_DEFAULT_WIFI_REQUEST                   2
 #define BLE_WIFI_CO_REQUEST                        3
-#define RF_USE_POLICY                              BLE_DEFAULT_WIFI_REQUEST
+#define RF_USE_POLICY                              WIFI_DEFAULT_BLE_REQUEST
 #endif
 
 #define CFG_XTAL_FREQUENCE_40M                     40000000 //40MHz

@@ -56,7 +56,9 @@ static void saradc_flush(void)
     value = REG_READ(SARADC_ADC_CONFIG);
     while((value & SARADC_ADC_FIFO_EMPTY) == 0) {
         REG_READ(SARADC_ADC_DATA);
+#if (CFG_SOC_NAME != SOC_BK7231)
         REG_READ(SARADC_ADC_DAT_AFTER_STA);
+#endif
         value = REG_READ(SARADC_ADC_CONFIG);
     }
 
@@ -251,7 +253,9 @@ static UINT32 saradc_open(UINT32 op_flag)
     config_value = REG_READ(SARADC_ADC_CONFIG);
     while((config_value & SARADC_ADC_FIFO_EMPTY) == 0) {
         REG_READ(SARADC_ADC_DATA);
+#if (CFG_SOC_NAME != SOC_BK7231)
         REG_READ(SARADC_ADC_DAT_AFTER_STA);
+#endif
         config_value = REG_READ(SARADC_ADC_CONFIG);
     }
     saradc_int_clr();
@@ -327,7 +331,9 @@ static UINT32 saradc_pause()
     value = REG_READ(SARADC_ADC_CONFIG);
     while((value & SARADC_ADC_FIFO_EMPTY) == 0) {
         REG_READ(SARADC_ADC_DATA);
+#if (CFG_SOC_NAME != SOC_BK7231)
         REG_READ(SARADC_ADC_DAT_AFTER_STA);
+#endif
         value = REG_READ(SARADC_ADC_CONFIG);
     }
     saradc_int_clr();
@@ -348,7 +354,9 @@ static UINT32 saradc_resume(void)
     value = REG_READ(SARADC_ADC_CONFIG);
     while((value & SARADC_ADC_FIFO_EMPTY) == 0) {
         REG_READ(SARADC_ADC_DATA);
+#if (CFG_SOC_NAME != SOC_BK7231)
         REG_READ(SARADC_ADC_DAT_AFTER_STA);
+#endif
         value = REG_READ(SARADC_ADC_CONFIG);
     }
 
@@ -400,7 +408,9 @@ static UINT32 saradc_close(void)
     value = REG_READ(SARADC_ADC_CONFIG);
     while((value & SARADC_ADC_FIFO_EMPTY) == 0) {
         REG_READ(SARADC_ADC_DATA);
+#if (CFG_SOC_NAME != SOC_BK7231)
         REG_READ(SARADC_ADC_DAT_AFTER_STA);
+#endif
         value = REG_READ(SARADC_ADC_CONFIG);
     }
     saradc_int_clr();
@@ -637,11 +647,12 @@ void saradc_calculate_step2(void)
 
 UINT32 saradc_check_accuracy(void)
 {
-	UINT32 value;
+	UINT32 value = 0;
 
+#if (CFG_SOC_NAME != SOC_BK7231)
 	value = REG_READ(SARADC_ADC_SATURATION_CFG);
 	value = value & SARADC_ADC_SAT_CTRL_MASK;
-
+#endif
 	return value;
 }
 

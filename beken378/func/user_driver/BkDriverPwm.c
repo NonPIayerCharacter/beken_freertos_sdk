@@ -260,7 +260,7 @@ OSStatus bk_pwm_update_param(bk_pwm_t pwm, uint32_t frequency, uint32_t duty_cyc
 	}
 
 	ret = pwm_update_param(&param);
-	bk_printf("bk_pwm_update_param:duty_cycle1 = %d, ret:%d\r\n", duty_cycle1, ret);
+	//bk_printf("bk_pwm_update_param:duty_cycle1 = %d, ret:%d\r\n", duty_cycle1, ret);
 	if(ret != 0)
 		return kGeneralErr;
 	else
