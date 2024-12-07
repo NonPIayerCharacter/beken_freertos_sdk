@@ -1,6 +1,6 @@
 /**
  * @file
- * MQTT client options
+ * MQTT client (private interface)
  */
 
 /*
@@ -34,70 +34,72 @@
  * Author: Erik Andersson
  *
  */
-#ifndef LWIP_HDR_APPS_MQTT_OPTS_H
-#define LWIP_HDR_APPS_MQTT_OPTS_H
+#ifndef LWIP_HDR_APPS_MQTT_PRIV_H
+#define LWIP_HDR_APPS_MQTT_PRIV_H
 
-#include "lwip/opt.h"
+#include "lwip/apps/mqtt.h"
+#include <FreeRTOS.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @defgroup mqtt_opts Options
- * @ingroup mqtt
- * @{
- */
+/** Pending request item, binds application callback to pending server requests */
+struct mqtt_request_t
+{
+  /** Next item in list, NULL means this is the last in chain,
+      next pointing at itself means request is unallocated */
+  struct mqtt_request_t *next;
+  /** Callback to upper layer */
+  mqtt_request_cb_t cb;
+  void *arg;
+  /** MQTT packet identifier */
+  u16_t pkt_id;
+  /** Expire time relative to element before this  */
+  u16_t timeout_diff;
+};
 
-/**
- * Output ring-buffer size, must be able to fit largest outgoing publish message topic+payloads
- */
-#ifndef MQTT_OUTPUT_RINGBUF_SIZE
-#define MQTT_OUTPUT_RINGBUF_SIZE 4096 
-#endif
+/** Ring buffer */
+struct mqtt_ringbuf_t {
+  SemaphoreHandle_t g_mutex; 
+  u16_t put;
+  u16_t get;
+  u8_t buf[MQTT_OUTPUT_RINGBUF_SIZE];
+};
 
-/**
- * Number of bytes in receive buffer, must be at least the size of the longest incoming topic + 8
- * If one wants to avoid fragmented incoming publish, set length to max incoming topic length + max payload length + 8
- */
-#ifndef MQTT_VAR_HEADER_BUFFER_LEN
-#define MQTT_VAR_HEADER_BUFFER_LEN 1024
-#endif
-
-/**
- * Maximum number of pending subscribe, unsubscribe and publish requests to server .
- */
-#ifndef MQTT_REQ_MAX_IN_FLIGHT
-#define MQTT_REQ_MAX_IN_FLIGHT 24
-#endif
-
-/**
- * Seconds between each cyclic timer call.
- */
-#ifndef MQTT_CYCLIC_TIMER_INTERVAL
-#define MQTT_CYCLIC_TIMER_INTERVAL 5
-#endif
-
-/**
- * Publish, subscribe and unsubscribe request timeout in seconds.
- */
-#ifndef MQTT_REQ_TIMEOUT
-#define MQTT_REQ_TIMEOUT 30
-#endif
-
-/**
- * Seconds for MQTT connect response timeout after sending connect request
- */
-#ifndef MQTT_CONNECT_TIMOUT
-#define MQTT_CONNECT_TIMOUT 100
-#endif
-
-/**
- * @}
- */
+/** MQTT client */
+struct mqtt_client_s
+{
+  /** Timers and timeouts */
+  u16_t cyclic_tick;
+  u16_t keep_alive;
+  u16_t server_watchdog;
+  /** Packet identifier generator*/
+  u16_t pkt_id_seq;
+  /** Packet identifier of pending incoming publish */
+  u16_t inpub_pkt_id;
+  /** Connection state */
+  u8_t conn_state;
+  struct altcp_pcb *conn;
+  /** Connection callback */
+  void *connect_arg;
+  mqtt_connection_cb_t connect_cb;
+  /** Pending requests to server */
+  struct mqtt_request_t *pend_req_queue;
+  struct mqtt_request_t req_list[MQTT_REQ_MAX_IN_FLIGHT];
+  void *inpub_arg;
+  /** Incoming data callback */
+  mqtt_incoming_data_cb_t data_cb;
+  mqtt_incoming_publish_cb_t pub_cb;
+  /** Input */
+  u32_t msg_idx;
+  u8_t rx_buffer[MQTT_VAR_HEADER_BUFFER_LEN];
+  /** Output ring-buffer */
+  struct mqtt_ringbuf_t output;
+};
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* LWIP_HDR_APPS_MQTT_OPTS_H */
+#endif /* LWIP_HDR_APPS_MQTT_PRIV_H */

@@ -558,13 +558,14 @@ LIBFLAGS += -L./beken378/lib -lusb
 LIBFLAGS += -L./beken378/lib -lsensor
 LIBFLAGS += -L./beken378/lib -lbk_aware
 LIBFLAGS += -L./beken378/lib -lble
-#LIBFLAGS += -L./beken378/lib -lble_pub
 LIBFLAGS += -L./beken378/lib -lcal
 LIBFLAGS += -L./beken378/lib -lsupplicant
 LIBFLAGS += -L./beken378/lib -luart_debug
 LIBFLAGS += -L./beken378/lib -lrf_test
 LIBFLAGS += -L./beken378/lib -lrf_use
-LIBFLAGS += -L./ -los -llwip -lwolfssl -lmbedtls -ldriver -lfunc -lmisc -lsrc_s
+#LIBFLAGS += -L./ -lble_pub
+LIBFLAGS += -L./ -lwolfssl
+LIBFLAGS += -L./ -los -llwip -lmbedtls -ldriver -lfunc -lmisc -lsrc_s
 
 LIBFLAGS += -lapp
 -include ../../platforms/BK723x/OpenBeken.mk

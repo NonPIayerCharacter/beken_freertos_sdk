@@ -165,6 +165,9 @@ static void low_level_init(struct netif *netif)
     /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
 	// 2022 - added  | NETIF_FLAG_IGMP; for multicast
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP | NETIF_FLAG_IGMP;
+#ifdef CONFIG_IPV6
+    netif->flags |= NETIF_FLAG_MLD6;
+#endif
     ETH_INTF_PRT("leave low level!\r\n");
 }
 
@@ -236,11 +239,20 @@ ethernetif_input(int iface, struct pbuf *p)
     /* points to packet payload, which starts with an Ethernet header */
     ethhdr = p->payload;
 
+    if((ethhdr->dest.addr[0] & 0x01) /* multicast */ &&
+        !memcmp(ethhdr->src.addr, netif->hwaddr, ETH_HWADDR_LEN))
+    {
+        pbuf_free(p);
+        p = NULL;
+        return;
+    }
+
     switch (htons(ethhdr->type))
     {
         /* IP or ARP packet? */
     case ETHTYPE_IP:
     case ETHTYPE_ARP:
+    case ETHTYPE_IPV6:
 #if PPPOE_SUPPORT
         /* PPPoE packet? */
     case ETHTYPE_PPPOEDISC:
@@ -361,6 +373,9 @@ err_t lwip_netif_uap_init(struct netif *netif)
 	 * is available...) */
 	netif->output = etharp_output;
 	netif->linkoutput = low_level_output;
+#ifdef CONFIG_IPV6
+    netif->output_ip6 = ethip6_output;
+#endif
 
 	/* initialize the hardware */
 	low_level_init(netif);

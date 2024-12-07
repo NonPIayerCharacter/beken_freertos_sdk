@@ -49,18 +49,10 @@
 #define TCPIP_THREAD_STACKSIZE          512
 #endif
 
-#if CFG_OS_FREERTOS
-#define TCPIP_THREAD_PRIO               2
-#else
 #define TCPIP_THREAD_PRIO               7
-#endif
 
 #define DEFAULT_THREAD_STACKSIZE        200
-#if CFG_OS_FREERTOS
-#define DEFAULT_THREAD_PRIO             8
-#else
 #define DEFAULT_THREAD_PRIO             1
-#endif
 
 #define LWIP_NOASSERT			        1
 
@@ -122,9 +114,9 @@
   */
 #define MEM_ALIGNMENT                   4
 
-#define MAX_SOCKETS_TCP 6
+#define MAX_SOCKETS_TCP 12
 #define MAX_LISTENING_SOCKETS_TCP 4
-#define MAX_SOCKETS_UDP 10
+#define MAX_SOCKETS_UDP 22
 #define TCP_SND_BUF_COUNT 5
 
   /* Value of TCP_SND_BUF_COUNT denotes the number of buffers and is set by
@@ -257,6 +249,7 @@
 				* LWIP_RAW==1: Enable application layer to hook into the IP layer itself.
 				*/
 #define LWIP_RAW                        1
+#define LWIP_IPV4                       1
 #if (CFG_SUPPORT_MATTER)
 #define LWIP_IPV6                        1
 #endif

@@ -212,7 +212,7 @@
 
 /*section 4-----DEBUG macro config-----*/
 #define CFG_UART_DEBUG                             0
-#define CFG_SUPPORT_BKREG                          1
+#define CFG_SUPPORT_BKREG                          0
 #define CFG_ENABLE_WPA_LOG                         0
 #define IPERF_CLOSE                                0  /* close iperf */
 #define IPERF_OPEN_WITH_ACCEL                      1  /* open iperf and accel */
@@ -292,11 +292,11 @@
 
 #define CFG_USE_DEEP_PS                            1
 #define CFG_USE_BLE_PS                             0
-#define CFG_USE_AP_IDLE                            0
+#define CFG_USE_AP_IDLE                            1
 #define CFG_USE_FAKERTC_PS                         0
 #define CFG_LOW_VOLTAGE_PS                         0
 #define CFG_LOW_VOLTAGE_PS_32K_DIV                 0
-#define CFG_LOW_VOLTAGE_PS_TEST                    1
+#define CFG_LOW_VOLTAGE_PS_TEST                    0
 
 /*section 17-----support sta power sleep*/
 #define CFG_USE_STA_PS                             1

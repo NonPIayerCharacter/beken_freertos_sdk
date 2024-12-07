@@ -36,7 +36,7 @@
 
 #include "typedef.h"
 #include "uart_pub.h"
-
+#include <sys/time.h>
 
 /*
  *   Typedefs for the types used by lwip -

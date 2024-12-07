@@ -31,6 +31,7 @@ struct ipv4_config uap_ip_settings;
 static int up_iface;
 uint32_t sta_ip_start_flag = 0;
 uint32_t uap_ip_start_flag = 0;
+struct os_reltime sta_start_time;
 
 #ifdef CONFIG_IPV6
 #define IPV6_ADDR_STATE_TENTATIVE       "Tentative"
@@ -375,35 +376,74 @@ void sta_ip_down(void)
 	if(sta_ip_start_flag)
 	{
 		os_printf("sta_ip_down\r\n");
-		
+
 		sta_ip_start_flag = 0;
-		
+
 		netifapi_netif_set_down(&g_mlan.netif);
 		netif_set_status_callback(&g_mlan.netif, NULL);
 		netifapi_dhcp_stop(&g_mlan.netif);
+#if defined(LWIP_IPV6) && LWIP_IPV6
+		struct netif* n = net_get_sta_handle();
+		if(n->flags & NETIF_FLAG_MLD6)
+		{
+			n->flags &= (~NETIF_FLAG_MLD6);
+			ip6_addr_t addr = { 0 };
+			for(int i = 0; i < MAX_IPV6_ADDRESSES; i++)
+			{
+				netif_ip6_addr_set_state(n, i, 0);
+				netif_ip6_addr_set(n, i, &addr);
+			}
+		}
+#endif
 	}
+}
+
+void sta_ip_get_start_time(void)
+{
+	os_get_reltime(&sta_start_time);
 }
 
 void sta_ip_start(void)
 {
-    struct wlan_ip_config address;
+	struct wlan_ip_config address = { 0 };
 
-	memset(&address,0,sizeof(address));
-	
-    if(!sta_ip_start_flag)
-    {
-        os_printf("sta_ip_start\r\n");
-        sta_ip_start_flag = 1;
-        net_configure_address(&sta_ip_settings, net_get_sta_handle());
-        return;
-    }
+	if(!sta_ip_start_flag)
+	{
+		os_printf("sta_ip_start\r\n");
+#if CFG_WLAN_FAST_CONNECT || CFG_WLAN_FAST_CONNECT_WPA3
+		if(os_reltime_initialized(&sta_start_time))
+		{
+			struct os_reltime now, diff;
+			os_get_reltime(&now);
+			os_reltime_sub(&now, &sta_start_time, &diff);
+			sta_start_time.sec = 0;
+			sta_start_time.usec = 0;
+			os_printf("STA completed in %ld.%06ld seconds\r\n",
+				diff.sec, diff.usec);
+		}
+#endif
+		sta_ip_start_flag = 1;
+		net_configure_address(&sta_ip_settings, net_get_sta_handle());
+#if defined(LWIP_IPV6) && LWIP_IPV6
+		struct netif* n = net_get_sta_handle();
+		if(!(n->flags & NETIF_FLAG_MLD6))
+		{
+			netif_create_ip6_linklocal_address(n, 1);
+			netif_set_ip6_autoconfig_enabled(n, 1);
+			n->flags |= NETIF_FLAG_MLD6;
+		}
+#endif
 
-    net_get_if_addr(&address, net_get_sta_handle());
-    if((mhdr_get_station_status() == RW_EVT_STA_CONNECTED)
-    && (0 != address.ipv4.address))
-    {
-        mhdr_set_station_status(RW_EVT_STA_GOT_IP);
-    }
+		return;
+	}
+
+	os_printf("sta_ip_start2:0x%x\r\n", address.ipv4.address);
+	net_get_if_addr(&address, net_get_sta_handle());
+	if((mhdr_get_station_status() == RW_EVT_STA_CONNECTED)
+		&& (0 != address.ipv4.address))
+	{
+		mhdr_set_station_status(RW_EVT_STA_GOT_IP);
+	}
 }
 
 void sta_set_vif_netif(void)

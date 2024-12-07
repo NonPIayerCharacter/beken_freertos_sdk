@@ -1,10 +1,13 @@
 /**
  * @file
- * MQTT client options
+ * Application layered TCP connection API that executes a proxy-connect.
+ *
+ * This file provides a starting layer that executes a proxy-connect e.g. to
+ * set up TLS connections through a http proxy.
  */
 
 /*
- * Copyright (c) 2016 Erik Andersson
+ * Copyright (c) 2018 Simon Goldschmidt
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -31,73 +34,46 @@
  *
  * This file is part of the lwIP TCP/IP stack.
  *
- * Author: Erik Andersson
+ * Author: Simon Goldschmidt <goldsimon@gmx.de>
  *
  */
-#ifndef LWIP_HDR_APPS_MQTT_OPTS_H
-#define LWIP_HDR_APPS_MQTT_OPTS_H
+
+#ifndef LWIP_HDR_APPS_ALTCP_PROXYCONNECT_H
+#define LWIP_HDR_APPS_ALTCP_PROXYCONNECT_H
 
 #include "lwip/opt.h"
+
+#if LWIP_ALTCP /* don't build if not configured for use in lwipopts.h */
+
+#include "lwip/ip_addr.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @defgroup mqtt_opts Options
- * @ingroup mqtt
- * @{
- */
+struct altcp_proxyconnect_config {
+  ip_addr_t proxy_addr;
+  u16_t proxy_port;
+};
 
-/**
- * Output ring-buffer size, must be able to fit largest outgoing publish message topic+payloads
- */
-#ifndef MQTT_OUTPUT_RINGBUF_SIZE
-#define MQTT_OUTPUT_RINGBUF_SIZE 4096 
-#endif
 
-/**
- * Number of bytes in receive buffer, must be at least the size of the longest incoming topic + 8
- * If one wants to avoid fragmented incoming publish, set length to max incoming topic length + max payload length + 8
- */
-#ifndef MQTT_VAR_HEADER_BUFFER_LEN
-#define MQTT_VAR_HEADER_BUFFER_LEN 1024
-#endif
+struct altcp_pcb *altcp_proxyconnect_new(struct altcp_proxyconnect_config *config, struct altcp_pcb *inner_pcb);
+struct altcp_pcb *altcp_proxyconnect_new_tcp(struct altcp_proxyconnect_config *config, u8_t ip_type);
 
-/**
- * Maximum number of pending subscribe, unsubscribe and publish requests to server .
- */
-#ifndef MQTT_REQ_MAX_IN_FLIGHT
-#define MQTT_REQ_MAX_IN_FLIGHT 24
-#endif
+struct altcp_pcb *altcp_proxyconnect_alloc(void *arg, u8_t ip_type);
 
-/**
- * Seconds between each cyclic timer call.
- */
-#ifndef MQTT_CYCLIC_TIMER_INTERVAL
-#define MQTT_CYCLIC_TIMER_INTERVAL 5
-#endif
+#if LWIP_ALTCP_TLS
+struct altcp_proxyconnect_tls_config {
+  struct altcp_proxyconnect_config proxy;
+  struct altcp_tls_config *tls_config;
+};
 
-/**
- * Publish, subscribe and unsubscribe request timeout in seconds.
- */
-#ifndef MQTT_REQ_TIMEOUT
-#define MQTT_REQ_TIMEOUT 30
-#endif
-
-/**
- * Seconds for MQTT connect response timeout after sending connect request
- */
-#ifndef MQTT_CONNECT_TIMOUT
-#define MQTT_CONNECT_TIMOUT 100
-#endif
-
-/**
- * @}
- */
+struct altcp_pcb *altcp_proxyconnect_tls_alloc(void *arg, u8_t ip_type);
+#endif /* LWIP_ALTCP_TLS */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* LWIP_HDR_APPS_MQTT_OPTS_H */
+#endif /* LWIP_ALTCP */
+#endif /* LWIP_HDR_APPS_ALTCP_PROXYCONNECT_H */

@@ -27,7 +27,8 @@
 #include "net.h"
 
 struct ipv4_config sta_ip_settings;
-struct ipv4_config uap_ip_settings; 
+struct ipv4_config uap_ip_settings;
+struct os_reltime sta_start_time;
 static int up_iface;
 uint32_t sta_ip_start_flag = 0;
 uint32_t uap_ip_start_flag = 0;
@@ -355,6 +356,7 @@ void net_interface_down(void *intrfc_handle)
 }
 
 #ifdef CONFIG_IPV6
+extern void netif_set_ipv6_status_callback(struct netif* netif, netif_status_callback_fn status_callback);
 void net_interface_deregister_ipv6_callback(void *intrfc_handle)
 {
 	struct interface *if_handle = (struct interface *)intrfc_handle;
@@ -381,7 +383,25 @@ void sta_ip_down(void)
 		netifapi_netif_set_down(&g_mlan.netif);
 		netif_set_status_callback(&g_mlan.netif, NULL);
 		netifapi_dhcp_stop(&g_mlan.netif);
+#if defined(LWIP_IPV6) && LWIP_IPV6
+		struct netif* n = net_get_sta_handle();
+		if(n->flags & NETIF_FLAG_MLD6)
+		{
+			n->flags &= (~NETIF_FLAG_MLD6);
+			ip6_addr_t addr = { 0 };
+			for(int i = 0; i < MAX_IPV6_ADDRESSES; i++)
+			{
+				netif_ip6_addr_set_state(n, i, 0);
+				netif_ip6_addr_set(n, i, &addr);
+			}
+		}
+#endif
 	}
+}
+
+void sta_ip_get_start_time(void)
+{
+	os_get_reltime(&sta_start_time);
 }
 
 void sta_ip_start(void)
@@ -393,8 +413,29 @@ void sta_ip_start(void)
     if(!sta_ip_start_flag)
     {
         os_printf("sta_ip_start\r\n");
+#if CFG_WLAN_FAST_CONNECT || CFG_WLAN_FAST_CONNECT_WPA3
+		if(os_reltime_initialized(&sta_start_time))
+		{
+			struct os_reltime now, diff;
+			os_get_reltime(&now);
+			os_reltime_sub(&now, &sta_start_time, &diff);
+			sta_start_time.sec = 0;
+			sta_start_time.usec = 0;
+			os_printf("STA completed in %ld.%06ld seconds\r\n",
+				diff.sec, diff.usec);
+		}
+#endif
         sta_ip_start_flag = 1;
         net_configure_address(&sta_ip_settings, net_get_sta_handle());
+#if defined(LWIP_IPV6) && LWIP_IPV6
+		struct netif* n = net_get_sta_handle();
+		if(!(n->flags & NETIF_FLAG_MLD6))
+		{
+			netif_create_ip6_linklocal_address(n, 1);
+			netif_set_ip6_autoconfig_enabled(n, 1);
+			n->flags |= NETIF_FLAG_MLD6;
+		}
+#endif
         return;
     }
 
@@ -674,6 +715,48 @@ int net_get_if_ipv6_pref_addr(struct wlan_ip_config *addr, void *intrfc_handle)
 	}
 	return ret;
 }
+
+int net_get_if_ipv6_addr_valid(struct wlan_ip_config* addr, void* intrfc_handle)
+{
+	int i;
+	int num = 0;
+	struct interface* if_handle = (struct interface*)intrfc_handle;
+	struct netif* netif;
+
+	if(intrfc_handle == NULL)
+	{
+		return 0;
+	}
+	netif = &if_handle->netif;
+
+	for(i = 0; i < MAX_IPV6_ADDRESSES; i++)
+	{
+		if(ip6_addr_isvalid(netif_ip6_addr_state(netif, i)))
+		{
+			if(addr != NULL)
+			{
+				memcpy(&addr->ipv6[num].address,
+					ip_2_ip6(&if_handle->netif.ip6_addr[i])->addr, 16);
+				addr->ipv6[num].addr_state = netif->ip6_addr_state[i];
+			}
+#if 1  ///show ipv6 information
+			u8* ipv6_addr;
+			ipv6_addr = (u8*)ip_2_ip6(&if_handle->netif.ip6_addr[i])->addr;///&addr->ipv6[i].address;
+
+			bk_printf("ipv6_addr[%d] %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\r\n", i,
+				ipv6_addr[0], ipv6_addr[1], ipv6_addr[2], ipv6_addr[3],
+				ipv6_addr[4], ipv6_addr[5], ipv6_addr[6], ipv6_addr[7],
+				ipv6_addr[8], ipv6_addr[9], ipv6_addr[10], ipv6_addr[11],
+				ipv6_addr[12], ipv6_addr[13], ipv6_addr[14], ipv6_addr[15]);
+			bk_printf("ipv6_state[%d] 0x%x\r\n", i, netif->ip6_addr_state[i]);
+#endif
+			num++;
+		}
+	}
+
+	return num;
+}
+
 #endif /* CONFIG_IPV6 */
 
 int net_get_if_ip_addr(uint32_t *ip, void *intrfc_handle)
@@ -790,6 +873,14 @@ void net_wlan_add_netif(void *mac)
     	os_printf("net_wlan_add_netif failed\r\n");
     } else {
         vif_entry->priv = &wlan_if->netif;
+#if LWIP_IPV6
+		if(vif_entry->type == VIF_STA)
+		{
+			netif_create_ip6_linklocal_address(&wlan_if->netif, 1);
+			netif_set_ip6_autoconfig_enabled(&wlan_if->netif, 1);
+			wlan_if->netif.flags |= NETIF_FLAG_MLD6;
+		}
+#endif
     }
 
     os_printf("net_wlan_add_netif done!, vif_idx:%d\r\n", vif_idx);
