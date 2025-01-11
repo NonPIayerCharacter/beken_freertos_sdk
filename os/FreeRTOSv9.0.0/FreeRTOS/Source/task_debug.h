@@ -87,8 +87,9 @@ void arch_parse_stack_backtrace(const char *str_type, uint32_t stack_top, uint32
 	int call_stack_index = 0;
 	uint32_t init_stack_top = stack_top;
 
+#if !((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7251))
 	bk_printf("itcm_begin=%x end=%x flash begin=%x end=%x\n", (uint32_t)&_itcmcode_ram_begin, (uint32_t)&_itcmcode_ram_end, (uint32_t)fiq_handler, (uint32_t)&__flash_txt_end);
-
+#endif
 	bk_printf("top=%x bottom=%x size=%d mode=%d\n", stack_top, stack_bottom, stack_size, thumb_mode);
 
 	for (; stack_top < stack_bottom && (call_stack_index < STACK_CALLBACK_BUF_SIZE); stack_top += sizeof(size_t)) {
@@ -139,7 +140,7 @@ void rtos_dump_backtrace()
 	GLOBAL_INT_RESTORE();
 }
 
-#if !((CONFIG_SOC_BK7231U) || (CONFIG_SOC_BK7251))
+#if !((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7251))
 bool addr_is_in_itcm(uint32_t addr)
 {
 	return ((addr > (uint32_t)&_itcmcode_ram_begin) && (addr < (uint32_t)&_itcmcode_ram_end));
@@ -154,7 +155,7 @@ bool addr_is_in_flash_txt(uint32_t addr)
 
 bool code_addr_is_valid(uint32_t addr)
 {
-#if ((CONFIG_SOC_BK7231U) || (CONFIG_SOC_BK7251))
+#if ((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7251))
 	return (addr_is_in_flash_txt(addr));
 #else
 	return (addr_is_in_itcm(addr) || addr_is_in_flash_txt(addr));

@@ -150,6 +150,10 @@ endif # CFG_WPA_TLS_WOLFSSL
 endif # CFG_USE_MBEDTLS
 endif # CFG_WPA3
 
+ifeq ($(CFG_WPA_TLS_WOLFSSL),1)
+INCLUDES += -I$(ROOT_DIR)/beken378/func/wolfssl
+endif # CFG_WPA_TLS_WOLFSSL
+
 #paho-mqtt
 #INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/client
 #INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/client/src
@@ -545,7 +549,8 @@ endif
 SRC_WOLFSSL_C =
 # For WPA3: wolfssl
 ifeq ($(CFG_WPA3),1)
-ifneq ("${CFG_USE_MBEDTLS}", "1")
+# for bk7231u
+ifeq ($(CFG_WPA_TLS_WOLFSSL),1)
 SRC_WOLFSSL_C += ./beken378/func/wolfssl/wolfcrypt/src/wolfmath.c
 SRC_WOLFSSL_C += ./beken378/func/wolfssl/wolfcrypt/src/memory.c
 SRC_WOLFSSL_C += ./beken378/func/wolfssl/wolfcrypt/src/tfm.c

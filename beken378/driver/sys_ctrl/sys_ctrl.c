@@ -3056,6 +3056,14 @@ RESET_SOURCE_STATUS sctrl_get_deep_sleep_wake_soure(void)
     {
         waked_source = RESET_SOURCE_DEEPPS_RTC;
     }
+#if (CFG_SOC_NAME == SOC_BK7231U)
+    else if(REG_READ(SCTRL_GPIO_WAKEUP_INT_STATUS)
+        || REG_READ(SCTRL_GPIO_WAKEUP_INT_STATUS1)
+        )
+    {
+        waked_source = RESET_SOURCE_DEEPPS_GPIO;
+    }
+#else
     else if(gpio_0_31_status
 #if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238)
     || gpio_32_39_status
@@ -3064,6 +3072,7 @@ RESET_SOURCE_STATUS sctrl_get_deep_sleep_wake_soure(void)
     {
         waked_source = RESET_SOURCE_DEEPPS_GPIO;
     }
+#endif
 #if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238)
     else if(REG_READ(SCTRL_USB_PLUG_WAKEUP) & (USB_PLUG_IN_INT_BIT | USB_PLUG_OUT_INT_BIT))
     {

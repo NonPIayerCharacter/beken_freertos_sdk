@@ -296,6 +296,7 @@ void intc_init(void)
 {
     UINT32 param;
 
+#ifndef SOC_BK7231T
     *((volatile uint32_t *)0x400000) = (uint32_t)&do_irq;
     *((volatile uint32_t *)0x400004) = (uint32_t)&do_fiq;
     *((volatile uint32_t *)0x400008) = (uint32_t)&do_swi;
@@ -303,6 +304,7 @@ void intc_init(void)
     *((volatile uint32_t *)0x400010) = (uint32_t)&do_pabort;
     *((volatile uint32_t *)0x400014) = (uint32_t)&do_dabort;
     *((volatile uint32_t *)0x400018) = (uint32_t)&do_reserved;
+#endif
 
     intc_enable(FIQ_MAC_GENERAL);
     intc_enable(FIQ_MAC_PROT_TRIGGER);

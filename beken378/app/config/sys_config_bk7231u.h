@@ -49,8 +49,8 @@
 #define THDD_KEY_SCAN_PRIORITY                     7
 
 /*section 2-----function macro config-----*/
-#define CFG_TX_EVM_TEST                            1
-#define CFG_RX_SENSITIVITY_TEST                    1
+#define CFG_TX_EVM_TEST                            0
+#define CFG_RX_SENSITIVITY_TEST                    0
 #define CFG_AP_MONITOR_COEXIST                     0
 #if CFG_AP_MONITOR_COEXIST
 #define CFG_AP_MONITOR_COEXIST_DEMO                0
@@ -123,12 +123,12 @@
 #define CFG_IEEE80211W                             1
 #define CFG_OWE                                    1
 /* use wpa2 instead of wpa3-sae if in wpa3 transition mode */
-#define CFG_CFG_WPA2_PREFER_TO_SAE                 0
+#define CFG_CFG_WPA2_PREFER_TO_SAE                 1
 #endif
 #define CFG_WFA_CERT                               0
 #define CFG_ENABLE_BUTTON                          0
 #define CFG_UDISK_MP3                              0
-#define CFG_EASY_FLASH                             1
+#define CFG_EASY_FLASH                             0
 #define CFG_AP_SUPPORT_HT_IE                       0
 #define CFG_SUPPORT_BSSID_CONNECT                  0
 #define CFG_USE_CONV_UTF8                          0
@@ -138,7 +138,9 @@
 #define CFG_QUICK_TRACK                            0
 
 /* use mbedtls as wpa crypto functions */
-#define CFG_USE_MBEDTLS                            0
+#define CFG_USE_MBEDTLS                            1
+// required for bk7231u supplicant lib
+#define CFG_WPA_TLS_WOLFSSL                        1
 #if CFG_USE_MBEDTLS
 #define CFG_MBEDTLS                                1
 #endif
@@ -149,7 +151,7 @@
 /*section 3-----driver macro config-----*/
 #define CFG_MAC_PHY_BAPASS                         1
 #define CFG_SUPPORT_SARADC                         1
-#define CFG_SARADC_INTFACE                         0
+#define CFG_SARADC_INTFACE                         1
 #define CFG_SARADC_CALIBRATE                       0
 
 #define CFG_SDIO                                   0
@@ -164,7 +166,7 @@
 
 #define CFG_USB                                    0
 #define CFG_USE_USB_HOST                           0
-#define CFG_USE_USB_DEVICE                         1
+#define CFG_USE_USB_DEVICE                         0
 #if CFG_USB
 #if (!(CFG_USE_USB_HOST || CFG_USE_USB_DEVICE))
 #error "Must select one USB mode for enabling USB!"
@@ -185,12 +187,12 @@
 
 /*section 4-----DEBUG macro config-----*/
 #define CFG_UART_DEBUG                             0
-#define CFG_SUPPORT_BKREG                          1
+#define CFG_SUPPORT_BKREG                          0
 #define CFG_ENABLE_WPA_LOG                         0
 #define IPERF_CLOSE                                0  /* close iperf */
 #define IPERF_OPEN_WITH_ACCEL                      1  /* open iperf and accel */
 #define IPERF_OPEN_ONLY                            2  /* open iperf, but no open accel */
-#define CFG_IPERF_TEST                             IPERF_OPEN_ONLY
+#define CFG_IPERF_TEST                             IPERF_CLOSE
 #if (CFG_IPERF_TEST == IPERF_OPEN_WITH_ACCEL)
 #define CFG_IPERF_TEST_ACCEL                       1
 #define CFG_IPERF_DONT_MALLOC_BUFFER               1
@@ -262,11 +264,7 @@
 #define CFG_USE_MCU_PS                             1
 
 #define CFG_USE_DEEP_PS                            1
-#if CFG_WIFI_P2P
 #define CFG_USE_BLE_PS                             0
-#else
-#define CFG_USE_BLE_PS                             1
-#endif
 #define CFG_USE_AP_IDLE                            0
 #define CFG_USE_FAKERTC_PS                         0
 #define CFG_LOW_VOLTAGE_PS                         0
@@ -325,7 +323,7 @@
 #if CFG_WIFI_P2P
 #define CFG_SUPPORT_BLE                            0
 #else
-#define CFG_SUPPORT_BLE                            1
+#define CFG_SUPPORT_BLE                            0
 #endif
 #define CFG_BLE_USE_CLI                            1
 #define CFG_SUPPORT_BLE_MESH                       0
@@ -343,7 +341,7 @@
 #define RF_USE_POLICY                              WIFI_DEFAULT_BLE_REQUEST
 
 /*section 26 ----- general spi master/slave */
-#define CFG_USE_SPI                                0
+#define CFG_USE_SPI                                1
 #define CFG_USE_SPI_MASTER                         0
 #define CFG_USE_SPI_MST_FLASH                      0
 #define CFG_USE_SPI_MST_PSRAM                      0
@@ -379,7 +377,11 @@
 #define CFG_INT_WDG_PERIOD_MS                      10000
 #define CFG_TASK_WDG_ENABLED                       1
 #define CFG_TASK_WDG_PERIOD_MS                     60000
+#define DUMP_THREAD_WHEN_TASK_WDG_TIGGERED         1
+#define DUMP_STACK_WHEN_TASK_WDG_TIGGERED          1
 
 #define CFG_USE_FORCE_LOWVOL_PS                    0
+#define CFG_LWIP_MEM_POLICY                        2
+#define CFG_WIFI_TX_KEYDATA_USE_LOWEST_RATE        1
 
 #endif // _SYS_CONFIG_H_

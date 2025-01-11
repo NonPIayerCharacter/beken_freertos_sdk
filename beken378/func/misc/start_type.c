@@ -246,7 +246,7 @@ void bk_misc_update_set_type(RESET_SOURCE_STATUS type)
             }
         }
     }
-#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7231U))
+#if 0//((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7231U))
     else 
     {
         uint32_t value = 0, wakeup_gpio_num = 0;
@@ -256,7 +256,7 @@ void bk_misc_update_set_type(RESET_SOURCE_STATUS type)
         }
         value = CRASH_DEEP_PS_REBOOT_VALUE(wakeup_gpio_num, start_type);
         *((volatile uint32_t *)(START_TYPE_ADDR)) = (uint32_t)value;
-        bk_misc_crash_xat0_reboot();
+        //bk_misc_crash_xat0_reboot();
     }
 #endif
     *((volatile uint32_t *)(START_TYPE_DMEMORY_ADDR)) = (uint32_t)CRASH_XAT0_VALUE;

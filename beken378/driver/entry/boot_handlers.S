@@ -33,7 +33,7 @@
 	.globl bk_trap_dabt
 	.globl bk_trap_resv
 	.globl preempt_delayed_schedule_handler
-    
+
 #include "sys_config.h"
 
 /* ========================================================================
@@ -496,6 +496,8 @@ _sysboot_tcmbss_init:
 #endif
 
 		.align	5 
+
+#ifndef SOC_BK7231T
 do_undefined:
     LDMFD   SP!, {R0-R1}
     PUSH_SVC_REG
@@ -568,11 +570,6 @@ boot_reserved:
 
 
 		.align	5 
-do_swi:
-	LDMFD   SP!, {R0-R1}
-	B vPortYieldProcessor
-
-		.align	5
 boot_swi:
 	STMFD  sp!,{r0-r1}
 	LDR    R1, =0x400008
@@ -580,21 +577,11 @@ boot_swi:
 	BX     r0
 
 		.align	5
-irq_handler:
-	STMFD  sp!,{r0-r1}
-	LDR    R1, =0x400000
-	LDR    r0, [R1]
-	BX     r0
-
+do_swi:
+	LDMFD   SP!, {R0-R1}
+	B vPortYieldProcessor
 
 		.align	5
-fiq_handler:
-	STMFD  sp!,{r0-r1}
-	LDR    R1, =0x400004
-	LDR    r0, [R1]
-	BX     r0
-    
-		.align	5 
 do_irq:
 	LDMFD   SP!, {R0-R1}
 	portSAVE_CONTEXT
@@ -613,6 +600,57 @@ do_fiq:
 	BX R0
 	BLX preempt_delayed_schedule_handler
 	portRESTORE_CONTEXT 
+
+		.align	5 
+irq_handler:
+	STMFD  sp!,{r0-r1}
+	LDR    R1, =0x400000
+	LDR    r0, [R1]
+	BX     r0
+
+		.align	5
+fiq_handler:
+	STMFD  sp!,{r0-r1}
+	LDR    R1, =0x400004
+	LDR    r0, [R1]
+	BX     r0
+    
+#else
+boot_undefined:
+ 	B boot_undefined
+ 
+ 		.align	5
+boot_swi:
+	B vPortYieldProcessor
+
+		.align	5
+boot_pabort:
+	B boot_pabort
+
+		.align  5
+boot_dabort:
+	B boot_dabort
+
+		.align  5
+boot_reserved:
+	B boot_reserved
+
+		.align	5
+irq_handler:
+	portSAVE_CONTEXT
+	LDR R0, =intc_irq
+	MOV LR, PC
+	BX R0
+	portRESTORE_CONTEXT
+
+		.align	5
+fiq_handler:
+	portSAVE_CONTEXT
+	LDR R0, =intc_fiq
+	MOV LR, PC
+	BX R0
+	portRESTORE_CONTEXT
+#endif 
 	
 /*Starting the first task is just a matter of restoring the context that*/
 /*was created by pxPortInitialiseStack().*/
@@ -649,10 +687,11 @@ vPortStartFirstTask:
 
 /*Manual context switch function.  This is the SWI hander.*/
 vPortYieldProcessor:
+#ifndef SOC_BK7231T
 	ADD		LR, LR, #4			//Add 4 to the LR to make the LR appear exactly
 								//as if the context was saved during and IRQ
 								//handler.
-
+#endif
 	portSAVE_CONTEXT			//Save the context of the current task...
 	
 	LDR R0, =vTaskSwitchContext
@@ -686,4 +725,3 @@ arm9_disable_alignfault:
 	MCR p15, 0, R0, c1, c0, 0
 	BX LR
 /*EOF*/
-
