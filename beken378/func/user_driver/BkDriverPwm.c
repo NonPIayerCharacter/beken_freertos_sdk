@@ -118,9 +118,16 @@ bk_err_t bk_pwm_update_param(bk_pwm_t pwm, uint32_t frequency, uint32_t duty_cyc
 	UINT32 ret;
 
 	param.channel         = (uint8_t)pwm;
-	param.duty_cycle	  = duty_cycle;
+	param.cfg.bits.en     = PWM_INT_EN;
+	param.cfg.bits.int_en = PWM_INT_DIS;//PWM_INT_EN;
+	param.cfg.bits.mode   = PWM_PWM_MODE;
+	param.cfg.bits.clk    = PWM_CLK_26M;
+	param.p_Int_Handler   = 0;
+	param.duty_cycle      = duty_cycle;
 	param.end_value       = frequency;
-	ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UPDATE_PARAM, &param);
+
+	ret = sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);
+	ASSERT(PWM_SUCCESS == ret);
 
 	return ret;
 }

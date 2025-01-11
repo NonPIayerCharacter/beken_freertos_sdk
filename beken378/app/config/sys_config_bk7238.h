@@ -124,7 +124,7 @@
 #define CFG_IEEE80211W                             1
 #define CFG_OWE                                    1
 /* use wpa2 instead of wpa3-sae if in wpa3 transition mode */
-#define CFG_CFG_WPA2_PREFER_TO_SAE                 0
+#define CFG_CFG_WPA2_PREFER_TO_SAE                 1
 #endif
 #define CFG_WFA_CERT                               0
 #define CFG_ENABLE_BUTTON                          0
@@ -294,7 +294,7 @@
 #define CFG_SUPPORT_OTA_HTTP                       1
 
 /*section 23 ----- support reduce nomal power*/
-#define CFG_SYS_REDUCE_NORMAL_POWER                1
+#define CFG_SYS_REDUCE_NORMAL_POWER                0
 
 /*section 24 ----- less memery in rwnx*/
 #define CFG_LESS_MEMERY_IN_RWNX                    1
@@ -394,7 +394,7 @@
 #define CFG_USE_I2C1                               0
 #define CFG_USE_I2C2                               0
 
-#define CFG_USE_SPI                                0
+#define CFG_USE_SPI                                1
 #define CFG_USE_SPI_MASTER                         0
 #define CFG_USE_SPI_SLAVE                          0
 #define CFG_USE_SPI_DMA                            0

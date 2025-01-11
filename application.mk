@@ -45,6 +45,12 @@ endif
 
 ifeq ($(CFG_SOC_NAME), 7)
 ENCRYPT_ARGS = 0 0 0 0 0
+else ifeq ($(CFG_SOC_NAME), 2)
+ifeq ($(SOC_BK7231T), 1)
+ENCRYPT_ARGS = 510fb093 a3cbeadc 5993a17e c7adeb03 10000
+else
+ENCRYPT_ARGS = 0 0 0 0 0
+endif
 else
 ENCRYPT_ARGS = 510fb093 a3cbeadc 5993a17e c7adeb03 10000
 endif
@@ -376,22 +382,26 @@ SOC_NAME_BIN = bk7231.bin
 SOC_NAME_MAP = bk7231.map
 SOC_NAME_LDS = bk7231.ld
 SOC_NAME_BSP_LDS = bk7231_bsp.ld
+SOC_NAME_NOEXT = bk7231
 else ifeq ($(CFG_SOC_NAME), 2)
 SOC_NAME_ELF = bk7231u.elf
 SOC_NAME_BIN = bk7231u.bin
 SOC_NAME_MAP = bk7231u.map
 SOC_NAME_LDS = bk7231.ld
 SOC_NAME_BSP_LDS = bk7231_bsp.ld
+SOC_NAME_NOEXT = bk7231u
 else ifeq ($(CFG_SOC_NAME), 3)
 SOC_NAME_ELF = bk7251.elf
 SOC_NAME_BIN = bk7251.bin
 SOC_NAME_MAP = bk7251.map
 SOC_NAME_LDS = bk7231.ld
 SOC_NAME_BSP_LDS = bk7231_bsp.ld
+SOC_NAME_NOEXT = bk7251
 else ifeq ($(CFG_SOC_NAME), 5)
 SOC_NAME_ELF = bk7231n.elf
 SOC_NAME_BIN = bk7231n.bin
 SOC_NAME_MAP = bk7231n.map
+SOC_NAME_NOEXT = bk7231n
 ifeq ("${CFG_SUPPORT_RTOS}", "4")
 SOC_NAME_LDS = bk7231n_ohos.lds
 SOC_NAME_BSP_LDS = bk7231n_bsp_ohos.lds
@@ -410,6 +420,7 @@ else ifeq ($(CFG_SOC_NAME), 7)
 SOC_NAME_ELF = bk7238.elf
 SOC_NAME_BIN = bk7238.bin
 SOC_NAME_MAP = bk7238.map
+SOC_NAME_NOEXT = bk7238
 ifeq ("${CFG_SUPPORT_RTOS}", "4")
 SOC_NAME_LDS = bk7238_ohos.lds
 SOC_NAME_BSP_LDS = bk7238_bsp_ohos.lds
@@ -601,8 +612,11 @@ else
 	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_BSP_ELF) -Wl,--start-group $(LIBFLAGS) -lg_nano -Wl,--end-group -T./build/$(SOC_BSP_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_BSP_MAP)
 endif
 	$(Q)$(OBJCOPY) -O binary $(BIN_DIR)/$(SOC_NAME_BSP_ELF) $(BIN_DIR)/$(SOC_NAME_BSP_BIN)
-	$(Q)$(ENCRYPT) $(BIN_DIR)/$(SOC_NAME_BSP_BIN) $(ENCRYPT_ARGS)
+	$(ENCRYPT) $(BIN_DIR)/$(SOC_NAME_BSP_BIN) $(ENCRYPT_ARGS)
 	$(Q)mv $(BIN_DIR)/bk7231_bsp.bin $(BIN_DIR)/bsp.bin
+ifeq ($(CFG_SOC_NAME), 5)
+	$(ENCRYPT) $(BIN_DIR)/bsp.bin 0 0 0 0 0
+endif
 	$(Q)cp $(BIN_DIR)/bk7231_bsp_enc.bin $(BIN_DIR)/bk7231_bsp.bin
 
 	@$(ECHO) ================================================
@@ -611,7 +625,21 @@ endif
 
 #	$(Q)-rm -rf $(BLE_PUB_LIB) $(OS_LIB) $(LWIP_LIB) $(WOLFSSL_LIB) $(MBEDTLS_LIB) $(DRIVER_LIB) $(FUNC_LIB) $(MISC_LIB) $(SRC_S_LIB)
 
-	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK $(SOC_NAME_BSP_BIN)$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE) > /dev/null; else python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE); fi)
+ifeq ($(SOC_BK7231T), 1)
+	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK $(SOC_NAME_BSP_BIN)$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i 1 -s $(CFG_FLASH_SELECTION_TYPE); else python ./beken_packager_wrapper -i 1 -s $(CFG_FLASH_SELECTION_TYPE); fi)
+	$(Q)mv $(BIN_DIR)/bk7231_2M.1220.bin $(BIN_DIR)/bk7231t_QIO.bin
+	$(Q)mv $(BIN_DIR)/bk7231_bsp_uart_2M.1220.bin $(BIN_DIR)/bk7231t_UA.bin
+else
+	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK $(SOC_NAME_BSP_BIN)$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE); else python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE); fi)
+	$(Q)mv $(BIN_DIR)/$(SOC_NAME_NOEXT)_2M.1220.bin $(BIN_DIR)/$(SOC_NAME_NOEXT)_QIO.bin
+	$(Q)mv $(BIN_DIR)/$(SOC_NAME_NOEXT)_bsp_uart_2M.1220.bin $(BIN_DIR)/$(SOC_NAME_NOEXT)_UA.bin
+endif
+ifeq ($(CFG_SOC_NAME), 5)
+	$(Q)rm $(BIN_DIR)/bk7231_bsp.bin
+	$(Q)cp $(BIN_DIR)/bsp_enc.bin $(BIN_DIR)/bk7231_bsp.bin
+	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK BK7231M$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i 8 -s $(CFG_FLASH_SELECTION_TYPE); else python ./beken_packager_wrapper -i 8 -s $(CFG_FLASH_SELECTION_TYPE); fi)
+	$(Q)mv $(BIN_DIR)/bk7231m_2M.1220.bin $(BIN_DIR)/BK7231M_QIO.bin
+endif
 
 ifeq ("${CFG_SUPPORT_RTOS}", "4")
 # -------------------------------------------------------------------	

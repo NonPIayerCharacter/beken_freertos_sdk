@@ -147,6 +147,9 @@ void entry_main(void)
 #if CFG_TX_EVM_TEST || CFG_RX_SENSITIVITY_TEST
 	ate_app_init();
 #endif
+#ifdef SOC_BK7231T
+	*(volatile uint32_t*)0x00400000 = 1;
+#endif
 #if CFG_USE_DEEP_PS
 	bk_init_deep_wakeup_gpio_status();
 #endif
@@ -165,7 +168,7 @@ void entry_main(void)
        			  
        			  if you do not care the boot time, the function: extended_app_launch shall be invoked 
        			  BEFORE user_main_entry;*/
-	user_main_entry();	
+	user_main_entry();
 
 	/* step 3: init of the most of devices*/
 	extended_app_launch();

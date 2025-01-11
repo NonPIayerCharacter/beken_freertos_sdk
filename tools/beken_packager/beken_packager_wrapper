@@ -103,12 +103,13 @@ chip_index = {
     4: 'bk7271',
     5: 'bk7231n',
     6: 'bk7236',
-    7: 'bk7238'
+    7: 'bk7238',
+    8: 'bk7231m'
 }
 
 default_info = {
     'bk7231n': {'boot': 'bootloader_bk7231n_1.0.1_enc.bin', 'firmware': '../../out/bk7231_bsp.bin'},
-    'bk7231m': {'boot': 'bootloader_bk7231n_zero_keys.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7231m': {'boot': 'bootloader_bk7231n_1.0.1.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7231u': {'boot': 'bootloader_bk7231u_uart2_v1.0.13.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7231':  {'boot': 'bootloader_bk7231_enc.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7251':  {'boot': 'bootloader_bk7251_uart2_v1.0.13.bin', 'firmware': '../../out/bk7231_bsp.bin'},
@@ -128,7 +129,7 @@ def parse_args():
     parser.add_argument('-i', '--index', type=int,
                         default=-1,
                         choices=chip_index.keys(),
-                        help="chip index: 1: bk7231, 2: bk7231u, 3: bk7251, 4: bk7271, 5: bk7231n 6:bk7236")
+                        help="chip index: 1: bk7231, 2: bk7231u, 3: bk7251, 4: bk7271, 5: bk7231n 6:bk7236 7:bk7238 8:bk7231m")
     parser.add_argument('-b', '--boot',
                         help='specify boot file')
     parser.add_argument('-f', '--firmware',

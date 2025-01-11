@@ -119,21 +119,21 @@
 #undef CFG_ROLE_LAUNCH
 #define CFG_ROLE_LAUNCH                            0
 #endif
-#define CFG_WPA3                                   0
+#define CFG_WPA3                                   1
 #if CFG_WPA3
 #undef CFG_USE_WPA_29
 #define CFG_USE_WPA_29                             1
 #undef CFG_IEEE80211W
 #define CFG_IEEE80211W                             1
-#define CFG_OWE                                    0
+#define CFG_OWE                                    1
 /* use wpa2 instead of wpa3-sae if in wpa3 transition mode */
-#define CFG_CFG_WPA2_PREFER_TO_SAE                 0
+#define CFG_CFG_WPA2_PREFER_TO_SAE                 1
 #endif
 
 #define CFG_WFA_CERT                               0
 #define CFG_ENABLE_BUTTON                          0
 #define CFG_UDISK_MP3                              0
-#define CFG_EASY_FLASH                             1
+#define CFG_EASY_FLASH                             0
 #define CFG_AP_SUPPORT_HT_IE                       0
 #define CFG_SUPPORT_BSSID_CONNECT                  0
 #define CFG_USE_CONV_UTF8                          0
@@ -153,6 +153,8 @@
 
 /*section 3-----driver macro config-----*/
 #define CFG_MAC_PHY_BAPASS                         1
+#define CFG_SUPPORT_SARADC                         1
+#define CFG_SARADC_INTFACE                         1
 
 #define CFG_SDIO                                   0
 #define CFG_SDIO_TRANS                             0
@@ -178,7 +180,7 @@
 
 /*section 4-----DEBUG macro config-----*/
 #define CFG_UART_DEBUG                             0
-#define CFG_SUPPORT_BKREG                          1
+#define CFG_SUPPORT_BKREG                          0
 #define CFG_ENABLE_WPA_LOG                         0
 #define IPERF_CLOSE                                0  /* close iperf */
 #define IPERF_OPEN_WITH_ACCEL                      1  /* open iperf and accel */
@@ -206,7 +208,8 @@
 #define SOC_BK7231U                                2
 #define SOC_BK7221U                                3
 #define SOC_BK7231N                                5
-#define CFG_SOC_NAME                               SOC_BK7231
+#define CFG_SOC_NAME                               SOC_BK7231U
+#define SOC_BK7231T                                1
 
 /*section 7-----calibration*/
 #if (CFG_RUNNING_PLATFORM == FPGA_PLATFORM)
@@ -224,6 +227,7 @@
 
 /*section 9-----for DHCP servicers and client*/
 #define CFG_USE_DHCP                               1
+#define CFG_USE_DHCPD                              1 // for servicers in ap mode
 
 /*section 10-----patch*/
 
@@ -287,7 +291,7 @@
 #define CFG_SYS_REDUCE_NORMAL_POWER                0
 
 /*section 24 ----- less memery in rwnx*/
-#define CFG_LESS_MEMERY_IN_RWNX                    0
+#define CFG_LESS_MEMERY_IN_RWNX                    1
 
 /*section 25 ----- use audio*/
 #define CFG_USE_AUDIO                              0
@@ -295,7 +299,7 @@
 #define CFG_USE_AUD_ADC                            0
 
 /*section 25 ----- use tick time calibrate*/
-#define CFG_USE_TICK_CAL                           0
+#define CFG_USE_TICK_CAL                           1
 
 #if (SOC_BK7231 == CFG_SOC_NAME)
 #define CFG_SUPPORT_BLE                            0
@@ -318,5 +322,14 @@
 #endif
 
 #define CFG_USE_FORCE_LOWVOL_PS                    0
+
+#define FLASH_SELECTION_TYPE_DYNAMIC               0 //select with flashID runtime
+#define FLASH_SELECTION_TYPE_2M                    0x200000 //2MBytes
+#define FLASH_SELECTION_TYPE_4M                    0x400000 //4MBytes
+#define FLASH_SELECTION_TYPE_8M                    0x800000 //8MBytes
+#define CFG_FLASH_SELECTION_TYPE                   FLASH_SELECTION_TYPE_2M
+
+#define CFG_LWIP_MEM_POLICY                        2
+#define CFG_WIFI_TX_KEYDATA_USE_LOWEST_RATE        1
 
 #endif // _SYS_CONFIG_H_
