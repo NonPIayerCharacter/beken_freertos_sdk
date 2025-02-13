@@ -36,17 +36,18 @@ else
 ENCRYPT = "./tools/crc_binary/encrypt_n"
 endif
 
-ifeq ($(CFG_SOC_NAME), 7)
-ENCRYPT_ARGS = 0 0 0 0 0
-else
-ENCRYPT_ARGS = 510fb093 a3cbeadc 5993a17e c7adeb03 10000
-endif
 
 ifeq ($(ECHO),)
 ECHO=echo
 endif
 
 -include .config
+
+ifeq ($(CFG_SOC_NAME), 7)
+ENCRYPT_ARGS = 0 0 0 0 0
+else
+ENCRYPT_ARGS = 510fb093 a3cbeadc 5993a17e c7adeb03 10000
+endif
 
 CFG_SUPPORT_MATTER ?= 0
 ifeq ($(CFG_SUPPORT_MATTER), 1)

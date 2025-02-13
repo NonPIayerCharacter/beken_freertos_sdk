@@ -122,6 +122,7 @@ SECTIONS
 	    *(.gnu.warning)
 	    *(.gnu.linkonce.t*)
 	    *(.glue_7t) *(.glue_7)
+	    __flash_txt_end = .;
 	} > flash	
 
 /* read only data.for example: const int rom_data[3]={1,2,3}; */
