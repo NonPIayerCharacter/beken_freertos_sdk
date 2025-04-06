@@ -38,3 +38,8 @@ uint8_t __attribute__((weak)) if_ble_sleep(void)
 {
 	return 0;
 }
+
+void __attribute__((weak)) temp_detect_change_configuration(UINT32 intval, UINT32 thre, UINT32 dist)
+{
+
+}

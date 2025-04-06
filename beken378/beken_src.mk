@@ -492,8 +492,13 @@ SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/tcp_out.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/timeouts.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/core/udp.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/netif/ethernet.c
+ifeq ($(LWIP_VERSION), lwip-2.0.2)
+SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/httpd/httpd.c
+SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/httpd/fs.c
+else
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/http/httpd.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/http/fs.c
+endif
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/mqtt/mqtt.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/dhcpd/dhcp-server.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/dhcpd/dhcp-server-main.c

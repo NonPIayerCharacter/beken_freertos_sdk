@@ -3488,6 +3488,7 @@ static void get_wifi_snr_Command(char *pcWriteBuffer, int xWriteBufferLen, int a
 }
 #endif
 
+#if 0
 #if (CFG_SUPPORT_MATTER == 0)
 static const struct cli_command built_ins[] =
 {
@@ -3685,6 +3686,10 @@ static const struct cli_command built_ins[] =
 #endif
     {"bk_erase_all_test", "bk_erase_all_test ", bk_erase_all_test},
 };
+#endif
+#else
+static const struct cli_command built_ins[] =
+{};
 #endif
 
 /* Built-in "help" command: prints all registered commands and their help

@@ -271,7 +271,7 @@
 #define CFG_USE_DHCPD                              1 // for servicers in ap mode
 
 /*section 11-----temperature detect*/
-#define CFG_USE_TEMPERATURE_DETECT                 1
+#define CFG_USE_TEMPERATURE_DETECT                 0
 #define CFG_USE_VOLTAGE_DETECT                     0
 
 /*section 12-----for SPIDMA interface*/
@@ -333,7 +333,7 @@
 #define CFG_USE_TICK_CAL                           1
 
 #define CFG_SUPPORT_BLE                            0
-#define CFG_BLE_USE_CLI                            1
+#define CFG_BLE_USE_CLI                            0
 #define CFG_SUPPORT_BLE_MESH                       0
 #define CFG_USE_PTA                                0
 
@@ -436,7 +436,7 @@
 
 #define AT_SERVICE_CFG                             0
 
-#define CFG_USE_FORCE_LOWVOL_PS                    1
+#define CFG_USE_FORCE_LOWVOL_PS                    0
 
 #define CFG_BK_NX_GET_WIFI_SNR                     0
 

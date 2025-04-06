@@ -51,6 +51,8 @@ ENCRYPT_ARGS = 510fb093 a3cbeadc 5993a17e c7adeb03 10000
 else
 ENCRYPT_ARGS = 0 0 0 0 0
 endif
+else ifeq ($(CFG_SOC_NAME), 3)
+ENCRYPT_ARGS = 0 0 0 0 0
 else
 ENCRYPT_ARGS = 510fb093 a3cbeadc 5993a17e c7adeb03 10000
 endif
