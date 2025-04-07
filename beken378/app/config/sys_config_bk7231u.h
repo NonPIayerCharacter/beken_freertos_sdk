@@ -44,7 +44,7 @@
 #define THD_RECONNECT_PRIORITY                     4
 #define THD_MEDIA_PRIORITY                         4
 #define THD_WPAS_PRIORITY                          5
-#define THD_EXTENDED_APP_PRIORITY                  5
+#define THD_EXTENDED_APP_PRIORITY                  6
 #define THD_HOSTAPD_PRIORITY                       5
 #define THDD_KEY_SCAN_PRIORITY                     7
 
@@ -216,6 +216,7 @@
 #define SOC_BK7221U                                3
 #define SOC_BK7231N                                5
 #define CFG_SOC_NAME                               SOC_BK7231U
+#define CFG_SOC_NAME_STR                           "bk7231u"
 
 /*section 7-----calibration*/
 #if (CFG_RUNNING_PLATFORM == FPGA_PLATFORM)

@@ -6,7 +6,6 @@
 /* uart2 for debug, and generally, uart1 is used for communication.
    what is more, uart1 maybe is not bound out*/
 #define CFG_USE_UART1                              1
-#define CFG_USE_UART2                              1
 #define CFG_JTAG_ENABLE                            0
 #define OSMALLOC_STATISTICAL                       0
 
@@ -41,7 +40,7 @@
 #define THD_RECONNECT_PRIORITY                     4
 #define THD_MEDIA_PRIORITY                         4
 #define THD_WPAS_PRIORITY                          5
-#define THD_EXTENDED_APP_PRIORITY                  5
+#define THD_EXTENDED_APP_PRIORITY                  6
 #define THD_HOSTAPD_PRIORITY                       5
 #define THDD_KEY_SCAN_PRIORITY                     7
 
@@ -49,6 +48,11 @@
 #define CFG_TX_EVM_TEST                            0
 #define CFG_RX_SENSITIVITY_TEST                    0
 #define CFG_AP_MONITOR_COEXIST                     0
+#if CFG_AP_MONITOR_COEXIST
+#define CFG_AP_MONITOR_COEXIST_DEMO                0
+/*AP will switch to ori channel when tbtt arrive*/
+#define CFG_AP_MONITOR_COEXIST_TBTT                0
+#endif
 #define CFG_ROLE_LAUNCH                            0
 #define CFG_USE_WPA_29                             1
 #define CFG_WPA_CTRL_IFACE                         1
@@ -108,7 +112,7 @@
 #define CFG_RC_STATS                               1
 #endif
 
-/* PMF */
+ /* PMF */
 #define CFG_IEEE80211W                             0
 #if CFG_WPA_CTRL_IFACE
 #undef CFG_ROLE_LAUNCH
@@ -120,18 +124,36 @@
 #define CFG_USE_WPA_29                             1
 #undef CFG_IEEE80211W
 #define CFG_IEEE80211W                             1
-#define CFG_SME                                    0
+#define CFG_OWE                                    1
+/* use wpa2 instead of wpa3-sae if in wpa3 transition mode */
+#define CFG_CFG_WPA2_PREFER_TO_SAE                 1
 #endif
-//#define CFG_MESH                                 0
 #define CFG_WFA_CERT                               0
 #define CFG_ENABLE_BUTTON                          0
 #define CFG_UDISK_MP3                              0
 #define CFG_EASY_FLASH                             0
 #define CFG_AP_SUPPORT_HT_IE                       0
 #define CFG_SUPPORT_BSSID_CONNECT                  0
+#define CFG_USE_CONV_UTF8                          0
+#define CFG_BK_AWARE                               0
+#define CFG_BK_AWARE_OUI                           "\xC8\x47\x8C"
+#define CFG_RESTORE_CONNECT                        0
+#define CFG_QUICK_TRACK                            0
+
+/* use mbedtls as wpa crypto functions */
+#define CFG_USE_MBEDTLS                            1
+#if CFG_USE_MBEDTLS
+#define CFG_MBEDTLS                                1
+#endif
+#if CFG_QUICK_TRACK
+#define _DUT_                                      1
+#endif
 
 /*section 3-----driver macro config-----*/
 #define CFG_MAC_PHY_BAPASS                         1
+#define CFG_SUPPORT_SARADC                         1
+#define CFG_SARADC_INTFACE                         0
+#define CFG_SARADC_CALIBRATE                       0
 
 #define CFG_SDIO                                   0
 #define CFG_SDIO_TRANS                             0
@@ -142,8 +164,6 @@
 
 #define CFG_MSDU_RESV_HEAD_LEN                    96
 #define CFG_MSDU_RESV_TAIL_LEN                    16
-
-#define CFG_PCM_RESAMPLER                          1
 
 #define CFG_USB                                    0
 #define CFG_USE_USB_HOST                           0
@@ -225,18 +245,14 @@
 #define CFG_USE_TEMPERATURE_DETECT                 0
 
 /*section 12-----for video transfer*/
-#if CFG_WIFI_P2P
-#define CFG_USE_APP_DEMO_VIDEO_TRANSFER            1
-#define CFG_USE_CAMERA_INTF                        1
-#else
 #define CFG_USE_APP_DEMO_VIDEO_TRANSFER            0
 #define CFG_USE_HSLAVE_SPI                         0
 #define CFG_USE_SPIDMA                             0
+#define CFG_USE_CAMERA_INTF                        1
 #if CFG_USE_CAMERA_INTF
 #define CFG_USE_I2C1                               1
 #define CFG_USE_I2C2                               0
 #endif
-
 /*section 13-----for GENERRAL DMA */
 #define CFG_GENERAL_DMA                            1
 
@@ -253,6 +269,9 @@
 #define CFG_USE_BLE_PS                             0
 #define CFG_USE_AP_IDLE                            0
 #define CFG_USE_FAKERTC_PS                         0
+#define CFG_LOW_VOLTAGE_PS                         0
+#define CFG_LOW_VOLTAGE_PS_32K_DIV                 0
+#define CFG_LOW_VOLTAGE_PS_TEST                    0
 
 /*section 17-----support sta power sleep*/
 #define CFG_USE_STA_PS                             1
@@ -263,9 +282,9 @@
 /*section 19-----for SDCARD HOST*/
 #define CFG_USE_SDCARD_HOST                        0
 //select SD or SD1
-#define SD_HOST_INTF                                0
-#define SD1_HOST_INTF                               1
-#define CFG_SD_HOST_INTF                            SD1_HOST_INTF
+#define SD_HOST_INTF                               0
+#define SD1_HOST_INTF                              1
+#define CFG_SD_HOST_INTF                           SD1_HOST_INTF
 
 /*section 20 ----- support mp3 decoder*/
 #define CONFIG_APP_MP3PLAYER                       0
@@ -278,18 +297,11 @@
 #endif
 #define CFG_SUPPORT_OTA_TFTP                       0
 
-/*section 22 ----- support adc calibrate*/
-#define CFG_SARADC_CALIBRATE                       0
-
 /*section 23 ----- support reduce nomal power*/
 #define CFG_SYS_REDUCE_NORMAL_POWER                0
 
 /*section 24 ----- less memery in rwnx*/
 #define CFG_LESS_MEMERY_IN_RWNX                    1
-#if CFG_IPERF_TEST_ACCEL
-#undef CFG_LESS_MEMERY_IN_RWNX
-#define CFG_LESS_MEMERY_IN_RWNX                    0
-#endif
 
 /*section 25 ----- use audio*/
 #if (CFG_SOC_NAME == SOC_BK7221U)
@@ -306,12 +318,15 @@
 #define CFG_USE_TICK_CAL                           1
 
 #define CFG_SUPPORT_BLE                            0
+#define CFG_BLE_USE_CLI                            1
 #define CFG_SUPPORT_BLE_MESH                       0
 #define CFG_USE_PTA                                0
 
 #define BLE_VERSION_4_2                            1
 #define BLE_VERSION_5_x                            2
 #define CFG_BLE_VERSION                            BLE_VERSION_4_2
+
+#define CFG_BLE_DIAGNOSTIC_PORT                    0
 
 #define WIFI_DEFAULT_BLE_REQUEST                   1
 #define BLE_DEFAULT_WIFI_REQUEST                   2
@@ -323,7 +338,7 @@
 #define CFG_USE_SPI_MASTER                         1
 #define CFG_USE_SPI_MST_FLASH                      1
 #define CFG_USE_SPI_MST_PSRAM                      0
-#define CFG_USE_SPI_SLAVE                          1
+#define CFG_USE_SPI_SLAVE                          0
 
 /*section 27 ----- hardware security: aes/sha/rsa */
 #define CFG_USE_SECURITY                           0
@@ -359,5 +374,11 @@
 #define FLASH_SELECTION_TYPE_4M                    0x400000 //4MBytes
 #define FLASH_SELECTION_TYPE_8M                    0x800000 //8MBytes
 #define CFG_FLASH_SELECTION_TYPE                   FLASH_SELECTION_TYPE_2M
+
+#define AT_SERVICE_CFG                             0
+
+#define CFG_USE_FORCE_LOWVOL_PS                    0
+// required for bk7251 supplicant lib
+#define CFG_WPA_TLS_WOLFSSL                        1
 
 #endif // _SYS_CONFIG_H_

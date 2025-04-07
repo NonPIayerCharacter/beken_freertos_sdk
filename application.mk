@@ -531,7 +531,7 @@ CFLAGS += -DSDK_COMMIT_ID=\"$(SDK_COMMIT)\"
 
 COMMIT_ID:=$(shell git rev-parse --short HEAD)
 OSFLAGS += -DOSK_COMMIT_ID=\"$(COMMIT_ID)\" -flto
-OSFLAGS += -g -marm -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -std=c99 -ffunction-sections -Wall -fsigned-char -fdata-sections -Wunknown-pragmas
+OSFLAGS += -g0 -marm -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -std=c99 -ffunction-sections -Wall -fsigned-char -fdata-sections -Wunknown-pragmas
 
 ifeq ($(OHOS), 1)
 	CFLAGS += -DCFG_SUPPORT_OHOS=1
@@ -539,13 +539,13 @@ ifeq ($(OHOS), 1)
 endif
 
 ASMFLAGS =
-ASMFLAGS += -g -marm -mthumb-interwork -mcpu=arm968e-s -march=armv5te -x assembler-with-cpp
+ASMFLAGS += -g0 -marm -mthumb-interwork -mcpu=arm968e-s -march=armv5te -x assembler-with-cpp
 
 LFLAGS = -flto
 ifeq ($(CFG_SUPPORT_MATTER), 0)
-LFLAGS += -g -Wl,--gc-sections -marm -mcpu=arm968e-s -mthumb-interwork -nostdlib  -Xlinker -Map=beken.map
+LFLAGS += -g0 -Wl,--gc-sections -marm -mcpu=arm968e-s -mthumb-interwork -nostdlib  -Xlinker -Map=beken.map
 else
-LFLAGS += -g -Wl,--gc-sections -mthumb -mcpu=arm968e-s -mthumb-interwork -nostdlib  -Xlinker -Map=beken.map
+LFLAGS += -g0 -Wl,--gc-sections -mthumb -mcpu=arm968e-s -mthumb-interwork -nostdlib  -Xlinker -Map=beken.map
 LFLAGS += --specs=nano.specs
 endif
 LFLAGS += -Wl,-wrap,malloc -Wl,-wrap,_malloc_r -Wl,-wrap,free -Wl,-wrap,_free_r -Wl,-wrap,zalloc -Wl,-wrap,calloc -Wl,-wrap,realloc  -Wl,-wrap,_realloc_r
@@ -651,6 +651,9 @@ endif
 ifeq ($(CFG_SOC_NAME), 5)
 	$(ENCRYPT) $(BIN_DIR)/bsp.bin 0 0 0 0 0
 endif
+ifeq ($(CFG_SOC_NAME), 3)
+	$(ENCRYPT) $(BIN_DIR)/bsp.bin 510fb093 a3cbeadc 5993a17e c7adeb03 10000
+endif
 	$(Q)cp $(BIN_DIR)/bk7231_bsp_enc.bin $(BIN_DIR)/bk7231_bsp.bin
 
 	@$(ECHO) ================================================
@@ -665,14 +668,21 @@ ifeq ($(SOC_BK7231T), 1)
 	$(Q)mv $(BIN_DIR)/bk7231_bsp_uart_2M.1220.bin $(BIN_DIR)/bk7231t_UA.bin
 else
 	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK $(SOC_NAME_BSP_BIN)$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE); else python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE); fi)
-	$(Q)mv $(BIN_DIR)/$(SOC_NAME_NOEXT)_2M.1220.bin $(BIN_DIR)/$(SOC_NAME_NOEXT)_QIO.bin
-	$(Q)mv $(BIN_DIR)/$(SOC_NAME_NOEXT)_bsp_uart_2M.1220.bin $(BIN_DIR)/$(SOC_NAME_NOEXT)_UA.bin
+	$(Q)mv $(BIN_DIR)/$(CFG_SOC_NAME_STR)_2M.1220.bin $(BIN_DIR)/$(CFG_SOC_NAME_STR)_QIO.bin
+	$(Q)mv $(BIN_DIR)/$(CFG_SOC_NAME_STR)_bsp_uart_2M.1220.bin $(BIN_DIR)/$(CFG_SOC_NAME_STR)_UA.bin
 endif
 ifeq ($(CFG_SOC_NAME), 5)
 	$(Q)rm $(BIN_DIR)/bk7231_bsp.bin
 	$(Q)cp $(BIN_DIR)/bsp_enc.bin $(BIN_DIR)/bk7231_bsp.bin
-	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK BK7231M$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i 8 -s $(CFG_FLASH_SELECTION_TYPE); else python ./beken_packager_wrapper -i 8 -s $(CFG_FLASH_SELECTION_TYPE); fi)
+	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK BK7231M$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i 9 -s $(CFG_FLASH_SELECTION_TYPE); else python ./beken_packager_wrapper -i 9 -s $(CFG_FLASH_SELECTION_TYPE); fi)
 	$(Q)mv $(BIN_DIR)/bk7231m_2M.1220.bin $(BIN_DIR)/BK7231M_QIO.bin
+endif
+ifeq ($(CFG_SOC_NAME), 3)
+	$(Q)rm $(BIN_DIR)/bk7231_bsp.bin
+	$(Q)cp $(BIN_DIR)/bsp_enc.bin $(BIN_DIR)/bk7231_bsp.bin
+	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK $(CFG_SOC_NAME_STR)_Tuya$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE); else python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE); fi)
+	$(Q)mv $(BIN_DIR)/$(CFG_SOC_NAME_STR)_2M.1220.bin $(BIN_DIR)/$(CFG_SOC_NAME_STR)_Tuya_QIO.bin
+	$(Q)mv $(BIN_DIR)/$(CFG_SOC_NAME_STR)_bsp_uart_2M.1220.bin $(BIN_DIR)/$(CFG_SOC_NAME_STR)_Tuya_UA.bin
 endif
 
 ifeq ("${CFG_SUPPORT_RTOS}", "4")
