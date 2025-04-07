@@ -85,7 +85,10 @@
 //  RF registers are being operated
 #define PS_WAITING_RF_OPERATION    CO_BIT(7)
 //  Station is waiting for temp detect
-#define PS_WAITING_TEMP         CO_BIT(8)
+#define PS_WAITING_TEMP            CO_BIT(8)
+//  data frame is waiting for app handle
+#define PS_WAITING_APP             CO_BIT(9)
+
 /// Mask showing that all ACs UAPSD enabled
 #define PS_ALL_UAPSD_ACS           0x0F
 
@@ -330,6 +333,9 @@ void ps_p2p_absence_update(struct vif_info_tag *p_vif_entry, bool absent);
 
 void ps_set_rf_prevent(void);
 void ps_clear_rf_prevent(void);
+void ps_set_app_prevent(void);
+void ps_clear_app_prevent(void);
+
 
 /// @}
 

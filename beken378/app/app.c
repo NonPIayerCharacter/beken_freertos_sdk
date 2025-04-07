@@ -69,6 +69,7 @@ volatile int32_t bmsg_rx_count = 0;
 
 extern void net_wlan_initial(void);
 extern void wpas_thread_start(void);
+extern void extended_app_waiting_for_launch(void);
 
 void bk_wlan_app_init(void)
 {
@@ -320,8 +321,17 @@ void ps_msg_process(UINT8 ps_msg)
 #endif
 #if CFG_USE_STA_PS
     case PS_BMSG_IOCTL_RF_TD_SET:
+#if (1 == CFG_LOW_VOLTAGE_PS)
+        if (LV_PS_DISABLED)
+#endif
+        {
+            ps_set_td_timer();
+        }
+        break;
+
+    case PS_BMSG_IOCTL_RF_TD_STOP:
 #if (0 == CFG_LOW_VOLTAGE_PS)
-        ps_set_td_timer();
+        ps_stop_td_timer();
 #endif
         break;
 
@@ -349,10 +359,15 @@ void ps_msg_process(UINT8 ps_msg)
 
         case PS_BMSG_IOCTL_RF_PS_TIMER_INIT:
 #if (1 == CFG_LOW_VOLTAGE_PS)
-            power_save_set_keep_timer_time(lv_ps_get_keep_timer_duration());
-#else
-            power_save_set_keep_timer_time(20);
+            if (LV_PS_ENABLED)
+            {
+                power_save_set_keep_timer_time(lv_ps_get_keep_timer_duration());
+            }
+            else
 #endif
+            {
+                power_save_set_keep_timer_time(20);
+            }
             break;
         case PS_BMSG_IOCTL_RF_PS_TIMER_DEINIT:
             power_save_set_keep_timer_time(0);
@@ -375,7 +390,10 @@ void ps_msg_process(UINT8 ps_msg)
 
 #if (1 == CFG_LOW_VOLTAGE_PS)
     case PS_BMSG_IOCTL_ARP_TX:
-        lv_ps_keepalive_arp_tx();
+        if (LV_PS_ENABLED)
+        {
+            lv_ps_keepalive_arp_tx();
+        }
         break;
 #endif
 
@@ -431,7 +449,10 @@ void bmsg_rx_sender(void *arg)
     ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
     if(kNoErr != ret)
     {
-        APP_PRT("bmsg_rx_sender_failed\r\n");
+        GLOBAL_INT_DISABLE();
+        bmsg_rx_count -= 1;
+        GLOBAL_INT_RESTORE();
+        os_printf("bmsg_rx_sender_failed\r\n");
     }
 }
 
@@ -753,7 +774,6 @@ void core_thread_uninit(void)
 }
 
 #if (CFG_SUPPORT_MATTER)
-extern void extended_app_waiting_for_launch(void);
 extern void ChipTest(void);//implementation in libAPP.a
 static void example_lighting_matter_task(void *pvParameters)
 {
@@ -783,7 +803,6 @@ extern void  user_main(void);
 void __attribute__((weak)) user_main(void)
 {
 #if (CFG_SUPPORT_MATTER)
-	extended_app_waiting_for_launch();
 	/* start the Matter example thread */
 	start_matter_app();
 #endif
@@ -791,6 +810,7 @@ void __attribute__((weak)) user_main(void)
 
 static void init_app_thread( void *arg )
 {
+    extended_app_waiting_for_launch();
 	#if CFG_ENABLE_DEMO_TEST
     if(application_start)
     {

@@ -19,8 +19,13 @@ static uint8_t bk_ble_ntf_val(struct prf_data *prf_data,struct bk_ble_ntf_upd_re
 															prf_data->prf_task,
 															gatt_srv_event_send_cmd,param->length);
 	if (p_cmd) {
+		gatts_dummy_t dummy;
+
+		dummy.att_idx = param->att_id;
+		dummy.prf_id = ble_env->id;
+		dummy.prop = GATT_NOTIFY;
+		p_cmd->dummy = dummy.gatts_dummy;
 		p_cmd->cmd_code = GATT_SRV_EVENT_SEND;
-		p_cmd->dummy = GATT_NOTIFY;
 		p_cmd->user_lid = ble_env->user_lid;
 		p_cmd->conidx = param->conidx;
 		p_cmd->evt_type = GATT_NOTIFY;
@@ -44,8 +49,13 @@ static uint8_t bk_ble_ind_val(struct prf_data *prf_data,struct bk_ble_ind_upd_re
 															prf_data->prf_task,
 															gatt_srv_event_send_cmd,param->length);
 	if (p_cmd) {
+		gatts_dummy_t dummy;
+
+		dummy.att_idx = param->att_id;
+		dummy.prf_id = ble_env->id;
+		dummy.prop = GATT_INDICATE;
+		p_cmd->dummy = dummy.gatts_dummy;
 		p_cmd->cmd_code = GATT_SRV_EVENT_SEND;
-		p_cmd->dummy = GATT_INDICATE;
 		p_cmd->user_lid = ble_env->user_lid;
 		p_cmd->conidx = param->conidx;
 		p_cmd->evt_type = GATT_INDICATE;

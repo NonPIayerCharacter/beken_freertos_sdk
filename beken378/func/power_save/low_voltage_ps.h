@@ -40,7 +40,7 @@
 
 #define MCU_SLEEP_DURATION_MIN     (4)  /* ms*/
 
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define MCU_WAKEUP_OFFSET          (48)  /* VALUE/32 ms, related to flash_on_delay configuration*/
 #elif (CFG_SOC_NAME == SOC_BK7231N)
 #define MCU_WAKEUP_OFFSET          (16)  /* VALUE/32 ms, related to flash_on_delay configuration*/
@@ -53,7 +53,15 @@
 #define MCU_TO_MAC_WAKEUP_DURATION      (1450)  /* us , if takes idle into consideration, it may no need to wakeup mcu before mac wakeup, so unable to get mcu wakeup timepoint, it can be calculate by mac_wakeup_point - mcu_to_mac_wakeup duration,bk7238 takes 1.4ms from mcu wakeup to mac wakeup*/
 #endif
 
-#if ((1 == CFG_LOW_VOLTAGE_PS) && (1 == CFG_LOW_VOLTAGE_PS_TEST))
+#if (0 == CFG_LOW_VOLTAGE_PS_COEXIST)
+#define LV_PS_ENABLED  1
+#define LV_PS_DISABLED 0
+#else
+#define LV_PS_ENABLED  (lv_ps_mode_get_en())
+#define LV_PS_DISABLED (!lv_ps_mode_get_en())
+#endif
+
+#if (1 == CFG_LOW_VOLTAGE_PS_TEST)
 /// management
 typedef struct lv_ps_info_mgmt
 {
@@ -168,6 +176,11 @@ extern uint8_t lv_ps_rf_reinit;
 extern uint8_t lv_ps_wakeup_wifi;
 extern uint16_t lv_ps_dtim_period;
 extern PS_DEEP_WAKEUP_WAY lv_ps_wake_up_way;
+extern uint8_t lv_ps_mac_pwd_en;
+extern uint8_t lv_ps_mac_need_restore;
+#if (CFG_LOW_VOLTAGE_PS_COEXIST == 1)
+extern uint8_t lv_ps_mode_enabled;
+#endif
 
 extern void lv_ps_init(void);
 extern uint32_t lv_ps_get_keep_timer_duration(void);
@@ -193,6 +206,8 @@ bool lv_ps_sleep_check( UINT32 sleep_tick);
 void lv_ps_sleep(void);
 void lv_ps_recv_beacon_change(void);
 uint32_t lv_ps_check_beacon_changed(void);
+void lv_ps_release_mac_aon_isolate(void);
+void lv_ps_admit_mac_clock_gating(UINT32 enable);
 
 #if CFG_USE_TICK_CAL
 void lv_ps_cal_tick(void);
@@ -214,6 +229,10 @@ void lv_ps_set_keep_timer_more(UINT32 value);
 UINT32 lv_ps_get_keep_timer_more(void);
 #endif
 
+#if (CFG_LOW_VOLTAGE_PS_COEXIST == 1)
+extern void lv_ps_mode_set_en(bool enable);
+extern bool lv_ps_mode_get_en(void);
+#endif
 #endif
 // eof
 

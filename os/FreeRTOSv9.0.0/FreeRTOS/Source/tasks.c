@@ -4886,7 +4886,7 @@ void vTaskDumpThreadListStack(List_t *list)
 		item = item->pxNext;
 	}
 }
-
+#if ( CFG_TASK_WDG_ENABLED != 1 )
 BaseType_t xTaskGetStackInfo(xTaskHandle xTask, uint32_t *stack_top,
 					uint32_t *stack_bottom, uint32_t *stack_size)
 {
@@ -4897,9 +4897,28 @@ BaseType_t xTaskGetStackInfo(xTaskHandle xTask, uint32_t *stack_top,
 	}
 
 	*stack_top = (uint32_t)t->pxTopOfStack;
-	*stack_bottom = (uint32_t)t->pxStack + t->ulStackSize;
-	*stack_size = (uint32_t)t->ulStackSize;
+	*stack_bottom = (uint32_t)t->pxStack;
+	*stack_size = (uint32_t)abs((uint32_t)t->pxStack-(uint32_t)t->pxTopOfStack);
 	return pdTRUE;
 }
 
+#else
+BaseType_t xTaskGetStackInfo(xTaskHandle xTask, uint32_t *stack_top,
+					uint32_t *stack_bottom, uint32_t *stack_size)
+{
+	TCB_t *t = (TCB_t*)xTask;
+
+	if (!t) {
+		return pdFALSE;
+	}
+
+	*stack_top = (uint32_t)t->pxTopOfStack;
+#if CFG_TASK_WDG_ENABLED
+	*stack_bottom = (uint32_t)t->pxStack + t->ulStackSize;
+	*stack_size = (uint32_t)t->ulStackSize;
+#endif
+
+	return pdTRUE;
+}
+#endif
 // eof

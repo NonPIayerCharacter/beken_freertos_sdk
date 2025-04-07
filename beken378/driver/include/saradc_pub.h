@@ -49,7 +49,7 @@ typedef struct
     volatile UINT8 all_done; /* 1: all done      0: still sampling*/
     UINT8 channel;
     //TODO: should refactory with bit-field option
-    #if 0//(CFG_SOC_NAME == SOC_BK7238)
+    #if 0//(CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     /* mode:     ADC mode
      *          00:  ADC power down mode
      *          01:  ADC one-step mode
@@ -108,6 +108,7 @@ void saradc_config_param_init(saradc_desc_t * adc_config);
 void saradc_ensure_close(void);
 UINT32 saradc_check_busy(void);
 UINT32 saradc_check_accuracy(void);
+UINT32 saradc_format_data(UINT32 data);
 
 extern saradc_calibrate_val saradc_val;
 #endif //_SARADC_PUB_H_

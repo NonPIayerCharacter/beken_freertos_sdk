@@ -84,8 +84,9 @@
  *
  * @param timeout        : Watchdag timeout, application should call bk_wdg_reload befor timeout.
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_wdg_initialize( uint32_t timeout );
 
@@ -102,8 +103,9 @@ void bk_wdg_reload( void );
  *
  * @param     none
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_wdg_finalize( void );
 

@@ -40,6 +40,8 @@ enum
     CMD_GPIO_INT_CLEAR		            = GPIO_CMD_MAGIC + 9,
     CMD_GPIO_EN_USB_PLUG_IN_INT         = GPIO_CMD_MAGIC + 10,
     CMD_GPIO_EN_USB_PLUG_OUT_INT        = GPIO_CMD_MAGIC + 11,
+    CMD_GPIO_CFG_BACKUP                 = GPIO_CMD_MAGIC + 12,
+    CMD_GPIO_CFG_RESTORE                = GPIO_CMD_MAGIC + 13,
 };
 
 
@@ -54,10 +56,22 @@ enum
     GMODE_OUTPUT_PULLUP,
     GMODE_SET_HIGH_IMPENDANCE,
     GMODE_DEEP_PS,
-    GMODE_HIGH_Z
+    GMODE_HIGH_Z,
+    GMODE_SECOND_FUNC_INPUT,
+    GMODE_SECOND_FUNC_PURE
 };
 
-#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238)
+enum
+{
+    GPIO_CAPACITY_0 = 0,
+    GPIO_CAPACITY_1,
+    GPIO_CAPACITY_2,
+    GPIO_CAPACITY_3
+};
+#define GPIO_CAPACITY_MASK              (0x3)
+#define GPIO_CAPACITY_POSI              (8)
+
+#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
 typedef enum 
 {
     GPIO0 = 0,
@@ -122,8 +136,22 @@ typedef enum
     GPIO22,
     GPIO23,
     GPIO24,
+    GPIO25,
     GPIO26 = 26,
-    GPIO28 = 28,   
+    GPIO28 = 28,
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    GPIO29,
+    GPIO30,
+    GPIO31,
+    GPIO32,
+    GPIO33,
+    GPIO34,
+    GPIO35,
+    GPIO36,
+    GPIO37,
+    GPIO38,
+    GPIO39,
+#endif
     GPIONUM,
 } GPIO_INDEX ;
 #endif
@@ -174,6 +202,14 @@ enum
     GFUNC_MODE_IRDA,
     GFUNC_MODE_TXEN,
     GFUNC_MODE_RXEN,
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    GFUNC_MODE_UART3,
+    GFUNC_MODE_I2S_GPIO_21,
+    GFUNC_MODE_MLCK,
+    GFUNC_MODE_HSYNC_VSYNC,
+    GFUNC_MODE_DVP_DATA,
+    GFUNC_MODE_PCLK
+#endif
 };
 
 enum
@@ -304,6 +340,9 @@ extern void gpio_output(UINT32 id, UINT32 val);
 extern void gpio_get_output(UINT32 id, UINT32 *val);
 extern void gpio_get_dir(UINT32 id, UINT32 *val);
 extern void gpio_int_mask(UINT32 id, UINT32 mask);
+extern UINT32 gpio_get_wakeup_pin(void);
+extern void gpio_wakeup_pin_suspend_second_function(UINT32 index);
+extern void gpio_wakeup_pin_recover_second_function(UINT32 index);
 #endif // _GPIO_PUB_H_
 
 // EOF

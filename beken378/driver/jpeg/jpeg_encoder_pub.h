@@ -13,9 +13,10 @@
 #define EJPEG_DEBUG
 #ifdef EJPEG_DEBUG
 #define EJPEG_PRT                    os_printf
+#define EJPEG_WPRT                   os_printf
 #else
 #define EJPEG_PRT                    null_prf
-#define EJPEG_WPRT                   null_prf
+#define EJPEG_WPRT                   os_printf
 #endif
 
 typedef struct ejpeg_desc
@@ -39,6 +40,11 @@ typedef struct ejpeg_desc
     void (*dma_rx_handler)(UINT32);
     UINT32 dma_channel;
     #endif
+
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    void (*line_clear_handler)(void);
+    UINT8 *yuv_base;
+#endif
 } DJPEG_DESC_ST, *DJPEG_DESC_PTR;
 
 enum
@@ -77,6 +83,7 @@ void ejpeg_set_target_bitrate_size(UINT32 ppi_type);
 UINT32 ejpeg_is_on(void);
 void ejpeg_off(void);
 UINT32 ejpeg_get_quant_base_value(void);
+void camera_power_on(void);
 
 #endif // CFG_USE_JPEG_ENCODER
 #endif // __JPEG_ENCODER_PUB_H__

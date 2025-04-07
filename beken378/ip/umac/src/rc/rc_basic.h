@@ -14,7 +14,7 @@
 
 #include "co_int.h"
 
-#define ME_RC_PERIOD                 (10) 
+#define ME_RC_PERIOD                 (100)
 #define ME_UTILS_RC_DEC_RATIO        (2) 
 #define ME_UTILS_RC_INC_RATIO        (3) 
 #define RATE_DOWN_DIST               (1) 

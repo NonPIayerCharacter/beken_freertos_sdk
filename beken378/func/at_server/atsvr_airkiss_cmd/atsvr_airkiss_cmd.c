@@ -50,7 +50,7 @@ static void wifi_rw_event_func(void *new_evt)
 		app_ble_env.actvs[stop_actv_idx].actv_status = ACTV_ADV_STARTED;
 		stop_ble_config();
 	}
-	else if(evt_type == RW_EVT_STA_DISCONNECTED)
+	else if(evt_type == RW_EVT_STA_ACTIVE_DISCONNECTED)
 	{
 		ATSVR_SIZEOF_OUTPUT_STRRING(ATSVR_EVT_WLAN_DISCONNECTED);
 	}

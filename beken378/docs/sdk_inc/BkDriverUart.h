@@ -72,7 +72,6 @@ typedef struct
 /******************************************************
  *                 Function Declarations
  ******************************************************/
-OSStatus bk_uart_initialize_test( bk_uart_t uart, uint8_t config, ring_buffer_t *optional_rx_buffer );
 /**@brief Initialises a UART interface
  *
  * @note Prepares an UART hardware interface for communications
@@ -81,8 +80,9 @@ OSStatus bk_uart_initialize_test( bk_uart_t uart, uint8_t config, ring_buffer_t 
  * @param  config   : UART configuration structure
  * @param  optional_rx_buffer : Pointer to an optional RX ring buffer
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_uart_initialize( bk_uart_t uart, const bk_uart_config_t *config, ring_buffer_t *optional_rx_buffer );
 
@@ -90,8 +90,9 @@ OSStatus bk_uart_initialize( bk_uart_t uart, const bk_uart_config_t *config, rin
  *
  * @param  uart : the interface which should be deinitialised
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_uart_finalize( bk_uart_t uart );
 
@@ -102,8 +103,9 @@ OSStatus bk_uart_finalize( bk_uart_t uart );
  * @param  data     : pointer to the start of data
  * @param  size     : number of bytes to transmit
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_uart_send( bk_uart_t uart, const void *data, uint32_t size );
 
@@ -115,8 +117,9 @@ OSStatus bk_uart_send( bk_uart_t uart, const void *data, uint32_t size );
  * @param  size     : number of bytes to receive
  * @param  timeout  : timeout in milisecond
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_uart_recv( bk_uart_t uart, void *data, uint32_t size, uint32_t timeout );
 OSStatus bk_uart_recv_prefetch( bk_uart_t uart, void *data, uint32_t size, uint32_t timeout );
@@ -135,8 +138,9 @@ uint32_t bk_uart_get_length_in_buffer( bk_uart_t uart );
  * @param  callback : callback to invoke when UART receive data, use NULL to clear callback
  * @param  param  : user param which will filled in callback as 2nd parameter
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_uart_set_rx_callback( bk_uart_t uart, uart_callback callback, void *param );
 

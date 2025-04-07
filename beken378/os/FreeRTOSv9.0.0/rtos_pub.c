@@ -9,7 +9,11 @@
 #include "fake_clock_pub.h"
 #include "mem_pub.h"
 #include "uart_pub.h"
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #include "calendar_pub.h"
+#else
+#include "rtc_reg_pub.h"
+#endif
 
 /******************************************************
  *                      Macros
@@ -959,6 +963,16 @@ uint32_t beken_tick_ms(void)
 	return ms_to_tick_ratio;
 }
 
+uint32_t rtos_disable_int(void)
+{
+	return port_disable_interrupts_flag();
+}
+
+void rtos_enable_int(uint32_t int_level)
+{
+	port_enable_interrupts_flag(int_level);
+}
+
 uint32_t rtos_get_timer_expiry_time(beken_timer_t *timer)
 {
 	return xTimerGetExpiryTime(timer->handle);
@@ -1048,7 +1062,11 @@ beken_time_t rtos_get_time(void)
 
 uint64_t rtos_get_time_us(void)
 {
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	return (uint64_t)cal_get_time_us();
+#else
+	return (uint64_t)rtc_reg_get_time_us();
+#endif
 }
 
 /**

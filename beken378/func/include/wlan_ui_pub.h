@@ -104,6 +104,22 @@ enum
     WLAN_RX_ALL,       /* receive ALL 802.11 packet */
 };
 
+/**
+ * @brief IEEE 802.11 Standards
+ */
+typedef enum
+{
+    WIFI_STANDARD_NONE = 0,
+    WIFI_STANDARD_11A,
+    WIFI_STANDARD_11B,
+    WIFI_STANDARD_11G,
+    WIFI_STANDARD_11N,
+    WIFI_STANDARD_11AC,
+    WIFI_STANDARD_11AX,
+
+    WIFI_STANDARD_MAX
+} wifi_standard;
+
 typedef uint8_t wlan_sec_type_t;
 
 /**
@@ -171,6 +187,13 @@ typedef struct _network_InitTypeDef_st
     int  wifi_retry_interval;     /**< Retry interval if an error is occured when connecting an access point,
                                      time unit is millisecond. */
     bool hidden_ssid;             /**< hidden ssid, only for softap */
+#if CFG_STA_AUTO_RECONNECT
+    /* auto reconnect configuration */
+    int auto_reconnect_count;		   /**< auto reconnect max count, 0 for always reconnect */
+    int auto_reconnect_timeout; 	   /**< auto reconnect timeout in secs, 0 for no timeout */
+    bool disable_auto_reconnect_after_disconnect;  /**< disable auto reconnect if deauth/disassoc by AP when in connected state */
+#endif
+
 #if CFG_WIFI_OCV
     bool ocv;                     /**< operating channel validation */
 #endif
@@ -281,6 +304,9 @@ struct wlan_fast_connect_info
 	uint8_t channel;
 	uint8_t psk[65];
 	uint8_t pwd[65];
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+	IPStatusTypedef net_info;
+#endif
 
 #if CFG_WLAN_FAST_CONNECT_WITHOUT_SCAN
 	uint16_t freq;
@@ -308,6 +334,9 @@ struct wlan_fast_connect_info
 #endif
 };
 
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+#define IP_STATUS_VALID     "\x89\xAB\xCD\xEF"
+#endif
 
 typedef struct vif_addcfg_st {
     char *ssid;
@@ -602,7 +631,7 @@ int wlan_sta_set(uint8_t *ssid, uint8_t ssid_len, uint8_t *psk);
 #endif
 int wlan_sta_set_config(wlan_sta_config_t *config);
 int wlan_sta_get_config(wlan_sta_config_t *config);
-int wlan_sta_set_autoconnect(int enable);
+int wlan_sta_set_autoreconnect(wlan_auto_reconnect_t *config);
 int wlan_sta_get_bss_size(uint32_t * size);
 int wlan_sta_get_bss(wlan_sta_bss_info_t * bss_get);
 int wlan_sta_set_bss(wlan_sta_bss_info_t * bss_set);
@@ -721,6 +750,52 @@ void bk_wlan_ap_monitor_coexist_tbtt_enable();
 void bk_wlan_ap_monitor_coexist_tbtt_disable();
 void bk_wlan_ap_monitor_coexist_tbtt_duration(int tbtt_duration_ms);
 #endif
+
+/**
+ * @brief Fetch BLE TX power
+ *
+ * @param power    TX power in dBm
+ *
+ * @return
+ *    - BK_ERR_BLE_SUCCESS: succeed
+ *    - others: fail
+ */
+bk_err_t bk_ble_get_tx_power(float *powerdBm);
+
+/**
+ * @brief Update BLE TX power
+ *
+ * @param power    TX power in dBm
+ *
+ * @return
+ *    - BK_ERR_BLE_SUCCESS: succeed
+ *    - others: fail
+ */
+bk_err_t bk_ble_set_tx_power(float powerdBm);
+
+/**
+ * @brief Fetch 802.11 TX power by standards
+ *
+ * @param standard IEEE 80211 standard
+ * @param power    TX power in dBm
+ *
+ * @return
+ *    - kNoErr: succeed
+ *    - otherwise: fail
+ */
+bk_err_t bk_wifi_get_tx_power(wifi_standard standard, float *powerdBm);
+
+/**
+ * @brief Update 802.11 TX power by standards
+ *
+ * @param standard IEEE 80211 standard
+ * @param power    TX power in dBm
+ *
+ * @return
+ *    - kNoErr: succeed
+ *    - otherwise: fail
+ */
+bk_err_t bk_wifi_set_tx_power(wifi_standard standard, float powerdBm);
 
 #ifdef __cplusplus
 }

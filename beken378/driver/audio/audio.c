@@ -12,12 +12,15 @@
 #include "mem_pub.h"
 #include "ring_buffer.h"
 
-#if ((CFG_USE_AUDIO) && (CFG_SOC_NAME == SOC_BK7221U))
+#if ((CFG_USE_AUDIO) && ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N)))
 void audio_power_up(void)
 {
     UINT32 param;
     param = PWD_AUDIO_CLK_BIT;
     sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    sddev_control(ICU_DEV_NAME, CMD_ICU_CLKGATING_DISABLE, &param);
+#endif
 }
 
 void audio_power_down(void)
@@ -25,6 +28,9 @@ void audio_power_down(void)
     UINT32 param;
     param = PWD_AUDIO_CLK_BIT;
     sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, &param);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    sddev_control(ICU_DEV_NAME, CMD_ICU_CLKGATING_ENABLE, &param);
+#endif
 }
 
 void audio_enable_interrupt(void)

@@ -42,6 +42,9 @@
 #include "power_save_pub.h"
 #include "bk7011_cal_pub.h"
 #include "ate_app.h"
+#if (CFG_SOC_NAME == SOC_BK7231N)
+#include "sys_ctrl.h"
+#endif
 
 /*
  * STRUCTURES
@@ -593,7 +596,7 @@ const uint32_t agc_ram_parameter[] =
 	0x00000000,
 	0x00000000,
 	0x14090b11
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 	0x30000000,
 	0x01000000,
 	0xa8000013,
@@ -2163,7 +2166,7 @@ void phy_pre_agc_init(void)
     {
         *dst ++ = *src ++;
     }
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #if !CFG_IPERF_TEST_ACCEL
     if (get_ate_mode_state())
 #endif
@@ -2377,7 +2380,7 @@ static void adjust_txdiggains(uint32_t dc_cmp)
     // Enable CCA lock IRQ
     mdm_irqctrl_set(MDM_IRQCCATIMEOUTEN_BIT);
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     REG_WRITE((REG_MDM_CFG_BASE_ADDR + 0x226 * 4), REG_READ(REG_MDM_CFG_BASE_ADDR + 0x226 * 4) & 0xFFFE); //peak_cancel_bypass=0
 #endif
 
@@ -2408,7 +2411,7 @@ static void phy_mdm_init(uint32_t tx_dc_off_comp)
     mdm_delaynormalgi_setf(17);
 
     // CPE mode
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     /* qunshan20210721: keep MDM_REG202<23>=1 for rx in ATE mode */
     if(!get_ate_mode_state())
 #endif
@@ -2417,11 +2420,24 @@ static void phy_mdm_init(uint32_t tx_dc_off_comp)
     // Enable CCA lock IRQ
     mdm_irqctrl_set(MDM_IRQCCATIMEOUTEN_BIT);
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     REG_WRITE((REG_MDM_CFG_BASE_ADDR + 0x226 * 4), REG_READ(REG_MDM_CFG_BASE_ADDR + 0x226 * 4) & 0xFFFE); //peak_cancel_bypass=0
     REG_WRITE((REG_MDM_CFG_BASE_ADDR + 0xC0C * 4), 1); //11B_TX_GAUSS_FILTER_ENABLE=1
 #endif
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+// from Dr.Guo 20230228, optim 11b performances
+    #define MDM_CFG_REG0XC0D_INIT_VALUE 0x00000000  //yanfeng20240422 0x00050000->0x00000000
+    #define MDM_CFG_REG0XC0E_INIT_VALUE 0x00160003  //yanfeng20240422 0x006E001A->0x00160003
+    #define MDM_CFG_REG0XC0F_INIT_VALUE 0x021B007F  //yanfeng20240422 0x03F80175->0x021B007F
+    #define MDM_CFG_REG0XC10_INIT_VALUE 0x0E620675  //yanfeng20240422 0x0F1408A5->0x0E620675
+    #define MDM_CFG_REG0XC11_INIT_VALUE 0x1B4C1741  //yanfeng20240422 0x1787150D->0x1B4C1741
+    REG_WRITE((REG_MDM_CFG_BASE_ADDR + 0xC0D * 4), MDM_CFG_REG0XC0D_INIT_VALUE);
+    REG_WRITE((REG_MDM_CFG_BASE_ADDR + 0xC0E * 4), MDM_CFG_REG0XC0E_INIT_VALUE);
+    REG_WRITE((REG_MDM_CFG_BASE_ADDR + 0xC0F * 4), MDM_CFG_REG0XC0F_INIT_VALUE);
+    REG_WRITE((REG_MDM_CFG_BASE_ADDR + 0xC10 * 4), MDM_CFG_REG0XC10_INIT_VALUE);
+    REG_WRITE((REG_MDM_CFG_BASE_ADDR + 0xC11 * 4), MDM_CFG_REG0XC11_INIT_VALUE);
+#endif
 
     PHY_WPRT("phy_mdm_init-->Static MDM settings done\r\n");
 }
@@ -2572,7 +2588,7 @@ static void phy_agc_init(void)
 
     // AGCRAMP (reduce ramp-down detection level)
     agc_rwnxagcramp_set(0x07200710);
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 	agc_rwnxagcevtsat_set(0x05044804);
 	agc_rwnxagcevtdet_set(0x3D449008);
 	agc_rwnxagcevtdis_set(0x3955B00C);     //huaming20221215: for large signal
@@ -2618,7 +2634,7 @@ static void phy_agc_init(void)
 
     // RWNXAGCCCA1 (CCA{FALL,RISE}THRDBM)
     // for when RWNXAGCCCACTRL[CCAENERGYEN] is on, clear bit8(saturation cca enable)
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     //Modem_81D[07:00]=RiseThreshold, CCA=1 when interference > RiseThreshold
     //Modem_81D[19:12]=FallThreshold, CCA=0 when interference < FallThreshold
     if (get_ate_mode_state())
@@ -2643,7 +2659,7 @@ static void phy_agc_init(void)
     agc_rwnxagcccatimeout_set(8000000); // 100ms
 
     // AGC Power Estimate Bias
-#if (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238)
+#if (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     agc_vpeakadcqdbv_setf((uint8_t) - 32); //change MDM_reg819<23:16> from 0xEC to 0xE0 by cunliang20201112
 #else
     agc_vpeakadcqdbv_setf((uint8_t) - 32);
@@ -2775,7 +2791,7 @@ static void phy_rf_init(void)
 
     while(rc_beken_spi_get() & 0x0fffffff);   //wait rf register write done
 
-#if (CFG_SOC_NAME != SOC_BK7238)
+#if (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
     rc_ch0_rx_onoff_delay_pack(  1, 1);
     rc_ch0_tx_onoff_delay_pack(  1, 1);   //old on delay 0x41
     rc_ch0_pa_onoff_delay_pack(  1, 0x10);//old on delay 0x41
@@ -2894,6 +2910,12 @@ static int force2040_toggle(uint8_t chantype)
         phy_trident_init();
         phy_rf_init();
     }
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+    else{
+        // recover trx setting
+        rwnx_cal_recover_rf_setting();
+    }
+#endif
     return 0;
 }
 
@@ -2968,7 +2990,7 @@ void phy_init(const struct phy_cfg_tag *config)
     PHY_WPRT("phy_init-->RC_PATHs=0x%X , RF_PATHS=0x%X\n", phy_env->rc_path_sel, phy_env->rf_path_sel);
 
     //PHY blocks initialization-----------------------------------------------------------
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     /* huaming suggest to config it bedore rf setting */
     mdm_fe1clkforce_setf(1);
 #endif
@@ -3359,7 +3381,7 @@ void phy_set_channel(uint8_t band, uint8_t type, uint16_t prim20_freq,
 //        //failure measures - reset, shut down...
 //    }
 
-#if (CFG_SOC_NAME != SOC_BK7238)
+#if (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
     rc_ch0_tx_onoff_delay_set(0x00010010);
     rc_ch0_pa_onoff_delay_set(0x000A00E0);
 #endif
@@ -3374,7 +3396,7 @@ void phy_set_channel(uint8_t band, uint8_t type, uint16_t prim20_freq,
     }
     else
     {
-#if (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238)
+#if (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         rwnx_cal_set_20M_setting();
 #endif
         //agc_rwnxagcsat_set(0x8393537);
@@ -3541,7 +3563,11 @@ void phy_get_rf_gain_capab(int8_t *max, int8_t *min)
 }
 #if (1 == CFG_LOW_VOLTAGE_PS)
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define CFG_USE_11B_LOW_POWER   1
+#else
 #define CFG_USE_11B_LOW_POWER   0
+#endif
 #if CFG_USE_11B_LOW_POWER
 uint8_t enter_11b_flag = 0;
 #endif
@@ -3550,9 +3576,12 @@ void phy_enter_11b_low_power(void)
 #if CFG_USE_11B_LOW_POWER
     if(enter_11b_flag == 0)
     {
-        uint32_t reg;
         os_null_printf("enter_11b_lp\r\n");
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+        sctrl_ctrl(CMD_SCTRL_OFDM_POWERDOWN, NULL);
+#else
+        uint32_t reg;
         reg = REG_PL_RD(RC_TRX_REG5_ADDR);//0x25
         reg &= ~(0x7 << 20);
         reg |= (0x3<< 20);
@@ -3574,7 +3603,7 @@ void phy_enter_11b_low_power(void)
         reg &= ~(0xf << 24);
         reg |= (0x4<< 24);
         REG_PL_WR(RC_TRX_REG12_ADDR,reg);
-
+#endif
         enter_11b_flag = 1;
     }
 #endif
@@ -3585,9 +3614,12 @@ void phy_exit_11b_low_power(void)
 #if CFG_USE_11B_LOW_POWER
     if(enter_11b_flag == 1)
     {
-        uint32_t reg;
         os_null_printf("exit_11b_lp\r\n");
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+        sctrl_ctrl(CMD_SCTRL_OFDM_POWERUP, NULL);
+#else
+        uint32_t reg;
         reg = REG_PL_RD(RC_TRX_REG5_ADDR);
         reg &= ~(0x7 << 20);
         reg |= (0x4<< 20);
@@ -3609,7 +3641,7 @@ void phy_exit_11b_low_power(void)
         reg &= ~(0xf << 24);
         reg |= (0x7<< 24);
         REG_PL_WR(RC_TRX_REG12_ADDR,reg);
-
+#endif
         enter_11b_flag = 0;
     }
 #endif
@@ -3641,7 +3673,7 @@ void phy_init_after_wakeup(void)
     phy_set_channel(PHY_BAND_2G4, PHY_CHNL_BW_20, freq, freq, 0, PHY_PRIM);
 }
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 void phy_wakeup_rf_reinit(void)
 {
     struct phy_env_tag phy_env_sleep;
@@ -3658,13 +3690,25 @@ void phy_wakeup_rf_reinit(void)
     phy_env->chnl_center2_freq   = PHY_UNUSED;
     phy_env->chnl_type           = PHY_CHNL_BW_OTHER;
 
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     /* huaming suggest to config it bedore rf setting */
     mdm_fe1clkforce_setf(1);
 #endif
 
-    // recover trx setting
-    rwnx_cal_recover_rf_setting();
+    //hengzh20240302: BK7231N rc down after sctrl_fix_dpll_div since MDM_RESET
+    if (((0 == phy_env_sleep.chnl_center1_freq) && (0 == phy_env_sleep.chnl_center2_freq)) ||
+        (phy_env->chnl_type == phy_env_sleep.chnl_type)) {
+#if (CFG_SOC_NAME == SOC_BK7231N)
+        if ((DEVICE_ID_BK7231N_P & DEVICE_ID_MASK) != (sctrl_ctrl(CMD_GET_DEVICE_ID, NULL) & DEVICE_ID_MASK)) {
+            // recover trx setting
+            rwnx_cal_recover_rf_setting();
+        }
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        // recover trx setting
+        rwnx_cal_recover_rf_setting();
+#endif
+
+    }
 
     //MODEM - contains AGC?
     phy_mdm_init(0);

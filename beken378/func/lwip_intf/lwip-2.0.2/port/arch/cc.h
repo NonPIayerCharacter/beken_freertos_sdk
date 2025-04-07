@@ -36,7 +36,7 @@
 
 #include "typedef.h"
 #include "uart_pub.h"
-//#include <sys/time.h>
+#include <sys/time.h>
 
 #define LWIP_NO_STDINT_H 1
 #if (CFG_SUPPORT_MATTER)

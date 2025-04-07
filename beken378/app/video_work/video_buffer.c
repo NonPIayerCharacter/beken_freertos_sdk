@@ -362,10 +362,40 @@ UINT32 video_buffer_read_frame(UINT8 *buf, UINT32 buf_len, int *err_code, UINT32
 #include "string.h"
 #include "stdlib.h"
 extern int hexstr2bin(const char *hex, u8 *buf, size_t len);
+extern void tvideo_set_sensor(UINT32 ppi, UINT32 fps);
+
+static void video_sensor_config(char *ppi, char *fps)
+{
+    UINT32 v_ppi = 0;
+    UINT32 v_fps = 0;
+    if (os_strcmp(ppi, "1280X720") == 0)
+    {
+        v_ppi = 3;
+    }
+    else
+    {
+        v_ppi = 1;  // 640X480
+    }
+
+    if (os_strcmp(fps, "30") == 0)
+    {
+        v_fps = 3;
+    }
+    else
+    {
+        v_fps = 2;  // 20fps
+    }
+    tvideo_set_sensor(v_ppi, v_fps);
+}
+
 void video_buffer(int argc, char **argv)
 {
     if (strcmp(argv[1], "open") == 0)
     {
+        if (argc >= 4)
+        {
+            video_sensor_config(argv[2], argv[3]);
+        }
         video_buffer_open();
     }
     else if (strcmp(argv[1], "read") == 0)

@@ -17,7 +17,7 @@
  * INCLUDE FILES
  ****************************************************************************************
  */
-#include "include.h" 
+#include "include.h"
 
 #include "co_int.h"
 #include "co_list.h"
@@ -318,7 +318,7 @@ uint8_t txl_frame_send_tdls_channel_switch_req_frame(struct tdls_chan_switch_req
 /**
  ****************************************************************************************
  * @brief Builds a TDLS Channel Switch Response frame.
- * 
+ *
  * Once the TDLS Channel Switch Response frame has been transmitted, the confirmation
  * function is called.
  *
@@ -335,7 +335,7 @@ uint8_t txl_frame_send_tdls_channel_switch_rsp_frame(struct vif_info_tag *vif_en
 /**
  ****************************************************************************************
  * @brief Builds a TDLS Peer Traffic Indication frame.
- * 
+ *
  * Once the TDLS Peer Traffic Indication frame has been transmitted, the confirmation
  * function is called.
  *
@@ -353,6 +353,7 @@ uint8_t txl_frame_send_tdls_peer_traffic_ind_frame(struct tdls_peer_traffic_ind_
 extern void txl_evm_set_hw_rate(HW_RATE_E rate, uint32_t is_2_4G);
 #endif
 
+void dump_txl_frame();
 
 #endif
 

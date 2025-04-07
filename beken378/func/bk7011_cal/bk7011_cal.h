@@ -9,10 +9,16 @@
 #include "bk7231n_cal.h"
 #elif (CFG_SOC_NAME == SOC_BK7238)
 #include "bk7238_cal.h"
+#elif (CFG_SOC_NAME == SOC_BK7252N)
+#include "bk7252n_cal.h"
 #elif (CFG_SOC_NAME == SOC_BK7221U)
 #include "bk7221u_cal.h"
 #endif
 #endif // _BK7011_CAL_H_
+
+#ifndef SDK_COMMIT_ID
+#define SDK_COMMIT_ID ""
+#endif
 
 typedef UINT16 heap_t;
 size_t MinHeapInsert(heap_t *heap, size_t heap_size, heap_t x);

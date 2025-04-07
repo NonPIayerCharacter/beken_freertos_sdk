@@ -44,6 +44,12 @@ enum
     CMD_SCTRL_MODEM_POWERUP,
     CMD_SCTRL_BLE_POWERDOWN,
     CMD_SCTRL_BLE_POWERUP,
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    CMD_SCTRL_OFDM_POWERDOWN,
+    CMD_SCTRL_OFDM_POWERUP,
+#endif
+    CMD_SCTRL_MAC_AON_ISOLATE_RELEASE,
+    CMD_SCTRL_MAC_CLOCK_GATING_ADMIT,
 
     CMD_SCTRL_CALI_DPLL,
 
@@ -69,7 +75,7 @@ enum
     CMD_BLE_RF_BIT_SET,
     CMD_BLE_RF_BIT_CLR,
     CMD_BLE_RF_BIT_GET,
-    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     CMD_BLE_RF_PTA_EN,
     CMD_BLE_RF_PTA_DIS,
     CMD_BLE_RF_PTA_GET,
@@ -112,6 +118,9 @@ enum
     CMD_SCTRL_GET_ANALOG9,
     CMD_SCTRL_GET_ANALOG10,
 #if (CFG_SOC_NAME == SOC_BK7221U)
+    CMD_SCTRL_SET_LINEIN_VOLUME_ANALOG,
+#endif
+#if ((CFG_SOC_NAME == SOC_BK7252N) || (CFG_SOC_NAME == SOC_BK7221U))
     CMD_SCTRL_OPEN_DAC_ANALOG,
     CMD_SCTRL_CLOSE_DAC_ANALOG,
     CMD_SCTRL_OPEN_ADC_MIC_ANALOG,
@@ -119,10 +128,11 @@ enum
     CMD_SCTRL_ENALBLE_ADC_LINE_IN,
     CMD_SCTRL_DISALBLE_ADC_LINE_IN,
     CMD_SCTRL_SET_DAC_VOLUME_ANALOG,
-    CMD_SCTRL_SET_LINEIN_VOLUME_ANALOG,    
     CMD_SCTRL_SET_VOLUME_PORT,
     CMD_SCTRL_SET_AUD_DAC_MUTE,
     CMD_SCTRL_AUDIO_PLL,
+#endif
+#if (CFG_SOC_NAME == SOC_BK7221U)
     CMD_SCTRL_USB_CHARGE_CAL,
     CMD_SCTRL_USB_CHARGE_START,
     CMD_SCTRL_USB_CHARGE_STOP,
@@ -171,6 +181,9 @@ enum
 #define BLK_BIT_AUDIO_RANDOM_GENERATOR           (1 << 15)
 #define BLK_BIT_USB                              (1 << 14)
 #elif (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#define BLK_BIT_AUDIO_RANDOM_GENERATOR           (1 << 15)
+#elif (CFG_SOC_NAME == SOC_BK7252N)
+#define BLK_BIT_AUDIO                            (1 << 17)
 #define BLK_BIT_AUDIO_RANDOM_GENERATOR           (1 << 15)
 #elif (CFG_SOC_NAME == SOC_BK7221U)
 #define BLK_BIT_NC                               (1 << 19)
@@ -226,6 +239,9 @@ enum
 #define DEFAULT_TXID_XTAL                        (0x19)
 #elif (CFG_SOC_NAME == SOC_BK7238)
 #define DEFAULT_TXID_XTAL                        (0x3C)
+#elif (CFG_SOC_NAME == SOC_BK7252N)
+// bk7252n tapout20240606 48-pins
+#define DEFAULT_TXID_XTAL                        (0x32)  //yanfeng20240606 0x25->0x32
 #elif (CFG_SOC_NAME == SOC_BK7231N)
 #if (CFG_XTAL_FREQUENCE == CFG_XTAL_FREQUENCE_40M)
 #define DEFAULT_TXID_XTAL                        (0x70)
@@ -242,7 +258,7 @@ enum
 #define PARAM_XTALH_CTUNE_MASK                   (0x7F)
 
 #define PARAM_AUD_DAC_GAIN_MASK                  (0x1F)
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define PARAM_XTALH_CTUNE_MASK                   (0xFF)
 
 #define PARAM_AUD_DAC_GAIN_MASK                  (0x1F)
@@ -257,7 +273,7 @@ enum
 #define LPO_SELECT_32K_XTAL                         (0x1)
 #define LPO_SELECT_32K_DIV                          (0x2)
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define SW_RETENTION_WDT_FLAG                       (1 << 16)
 #define SW_RETENTION_WDT_FLAG_POS                   (16)
 #define SW_RETENTION_VAL_MASK                       (0XFFFF)
@@ -378,7 +394,7 @@ extern void sctrl_normal_enter_sleep(UINT32 peri_clk);
 extern void sctrl_mcu_exit(void);
 extern void sctrl_mcu_init(void);
 
-#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238))
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)) || (CFG_SOC_NAME == SOC_BK7252N)
 extern void sctrl_flash_select_flash_controller(void);
 extern void sctrl_flash_select_spi_controller(void);
 #endif
@@ -400,15 +416,21 @@ extern UINT32 usb_power_is_pluged(void);
 extern RESET_SOURCE_STATUS sctrl_get_deep_sleep_wake_soure(void);
 extern UINT8 sctrl_if_mcu_can_sleep(void);
 extern int bk_misc_wakeup_get_gpio_num(void);
-extern UINT32 sctrl_get_deep_sleep_gpio_floating_map(void);
+#if ((SOC_BK7221U == CFG_SOC_NAME) || (SOC_BK7231U == CFG_SOC_NAME) || (SOC_BK7252N == CFG_SOC_NAME))
+UINT64 sctrl_get_deep_sleep_gpio_floating_map(void);
+#else
+UINT32 sctrl_get_deep_sleep_gpio_floating_map(void);
+#endif
 extern void sctrl_reboot_with_deep_sleep(UINT32 sleep_ms);
 extern int bk_init_deep_wakeup_gpio_status(void);
 extern uint32_t bk_save_deep_get_wakeup_gpio_status(void);
 extern void bk_save_deep_set_wakeup_gpio_status(uint32_t wakeup_gpio_num);
 extern bool sctrl_set_gpio_wakeup_index(UINT8 gpio_index, WAKEUP_GPIO_TYPE gpio_type);
+extern void saradc_config_vddram_voltage(UINT32 vol);
 #if CFG_USE_FORCE_LOWVOL_PS
 extern int bk_get_lv_sleep_wakeup_gpio_status(void);
 #endif
+extern UINT32 sctrl_ctrl(UINT32 cmd, void *param);
 
 #endif // _SCTRL_PUB_H_
 

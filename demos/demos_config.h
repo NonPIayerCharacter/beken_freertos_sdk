@@ -34,7 +34,7 @@
 #define EASY_FLASH_DEMO                  0
 
 #define EDDYSTONE_DEMO                   0
-
+#define THROUGHPUT_DEMO                  0
 
 #if ((HELLOWORLD_DEMO\
 		+ OS_THREAD_DEMO\
@@ -58,7 +58,8 @@
 		+ EASY_FLASH_DEMO\
 		+ LIGHT_CLIENT_APP_DEMO\
 		+ WIFI_STATION_PS_DEMO\
-		+ EDDYSTONE_DEMO) > 1)
+		+ EDDYSTONE_DEMO\
+		+ THROUGHPUT_DEMO) > 1)
 
 #error Only one demo case can be tested, thanks!!!
 #endif

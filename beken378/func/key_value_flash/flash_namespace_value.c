@@ -98,7 +98,7 @@ uint32_t _get_matter_flash_base_addr (uint32_t *base_addr, char * ucnamespace)
     return kNoErr;
 }
 #define get_matter_flash_base_addr(base_addr) _get_matter_flash_base_addr(base_addr, ucnamespace);
-uint8_t get_falsh_name_space_max_array(char *ucnamespace)
+uint8_t get_falsh_name_space_max_array(const char *ucnamespace)
 {
     bk_logic_partition_t *partition_info = NULL;
     if (0 == strcmp(ucnamespace, "chip-factory")) {
@@ -107,7 +107,7 @@ uint8_t get_falsh_name_space_max_array(char *ucnamespace)
         partition_info = bk_flash_get_info(BK_PARTITION_MATTER_FLASH);
     }
     BK_CHECK_POINTER_NULL(partition_info);
-    return (partition_info->partition_length)/(FLASH_SECTOR_SIZE);
+    return ((partition_info->partition_length)/(FLASH_SECTOR_SIZE))/2;
 }
 
 uint8_t change_namespace_to_beken(const char **ucnamespace, const char **name, char *buf, uint8_t buf_len)

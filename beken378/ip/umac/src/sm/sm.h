@@ -26,7 +26,6 @@
 #include "ke_task.h"
 
 
-
 /// Maximum length of the AssocReq IEs
 #define SM_MAX_IE_LEN   256
 
@@ -129,13 +128,13 @@ struct sm_env_tag
     //struct hal_dma_desc_tag dma_desc;
 
 #if NX_HOST_SME
-	/// the task id of SM_AUTH_REQ request
-	ke_task_id_t src_id;
+    /// the task id of SM_AUTH_REQ request
+    ke_task_id_t src_id;
 
-	struct sm_auth_req *auth_param;
-	/// Pointer to the structure used for the auth indication upload
+    struct sm_auth_req *auth_param;
+    /// Pointer to the structure used for the auth indication upload
 
-	struct sm_assoc_req *assoc_param;
+    struct sm_assoc_req *assoc_param;
 #else
     /// Pointer to the scanning parameters
     struct sm_connect_req *connect_param;
@@ -460,9 +459,8 @@ int32_t get_roaming_thrsh(void);
 void handoff_handler(bool unregister_old_ap);
 
 #endif  // NX_ROAMING
-#ifdef BK_DEAUTH_BEFORE_CONNECT
+
 void sm_send_deauth_before_connect(void);
-#endif
 
 /// SM module environment
 extern struct sm_env_tag sm_env;

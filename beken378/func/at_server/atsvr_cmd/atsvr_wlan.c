@@ -545,7 +545,7 @@ static void wlan_status_callback(void *ctxt)
 	case RW_EVT_STA_CONNECTED:
 		atsvr_event_sender(ATSVR_WLAN_CONNECTTED);
 		break;
-	case RW_EVT_STA_DISCONNECTED:
+	case RW_EVT_STA_ACTIVE_DISCONNECTED:
 		atsvr_event_sender(ATSVR_WLAN_DISCONNECT);
 		break;
 	default:

@@ -335,7 +335,7 @@ static void temp_detect_polling_handler(void)
     #endif // (CFG_SOC_NAME != SOC_BK7231)
 
     g_temp_detect_config.detect_intval_change++;
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     if ((g_temp_detect_config.detect_intval_change > 1)
     && (g_temp_detect_config.detect_intval_change < ADC_TMEP_DETECT_INTVAL_CHANGE)) {
         cur_val = (UINT16)((float)cur_val * 0.7 + (float)g_temp_detect_config.last_detect_val * 0.3);
@@ -574,7 +574,7 @@ static void temp_detect_handler(void)
     for (; index < ADC_TEMP_BUFFER_SIZE; index++)
     {
         /* 0 is invalid, but saradc may return 0 in power save mode */
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         if ((0 != tmp_detect_desc.pData[index]) && (1023 != tmp_detect_desc.pData[index]))
 #else
         if ((0 != tmp_detect_desc.pData[index]) && (2048 != tmp_detect_desc.pData[index]))
@@ -592,7 +592,7 @@ static void temp_detect_handler(void)
     else
     {
         sum = sum / count;
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         sum = sum / 2;
 #elif (CFG_SOC_NAME != SOC_BK7231)
         sum = sum / 4;
@@ -737,7 +737,7 @@ static void temp_single_detect_handler(void)
         sum = sum1 / 2 + sum2 / 2;
         sum = sum / 2;
         sum = sum / 4;
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         sum1 = tmp_single_desc.pData[1] + tmp_single_desc.pData[2];
         sum2 = tmp_single_desc.pData[3] + tmp_single_desc.pData[4];
         sum = sum1 / 2 + sum2 / 2;

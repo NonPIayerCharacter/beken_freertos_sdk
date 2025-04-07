@@ -37,10 +37,17 @@ typedef struct
     ring_buffer_t *rx_buffer;
 } UART_UI_ST;
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 static UART_UI_ST uart_st[2] =
+#else
+static UART_UI_ST uart_st[3] =
+#endif
 {
     [0]  = {.user_buffer_flag = 0, .rx_buffer = NULL},
     [1]  = {.user_buffer_flag = 0, .rx_buffer = NULL},
+#if ((CFG_SOC_NAME == SOC_BK7252N))
+    [2]  = {.user_buffer_flag = 0, .rx_buffer = NULL},
+#endif
 };
 
 const bk_uart_config_t test_uart_config[] =
@@ -89,6 +96,10 @@ OSStatus bk_uart_initialize( bk_uart_t uart, const bk_uart_config_t *config, rin
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(BK_UART_3 == uart)
+        uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
+#endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
 
@@ -129,6 +140,10 @@ OSStatus bk_uart_recv( bk_uart_t uart, void *data, uint32_t size, uint32_t timeo
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(BK_UART_3 == uart)
+        uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
+#endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
 	
@@ -154,6 +169,10 @@ OSStatus bk_uart_recv_prefetch( bk_uart_t uart, void *data, uint32_t size, uint3
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(BK_UART_3 == uart)
+        uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
+#endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
 	
@@ -176,6 +195,10 @@ uint32_t bk_uart_get_length_in_buffer( bk_uart_t uart )
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(BK_UART_3 == uart)
+        uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
+#endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
 
@@ -194,6 +217,10 @@ OSStatus bk_uart_set_rx_callback(bk_uart_t uart, uart_callback callback, void *p
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(BK_UART_3 == uart)
+        uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
+#endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
 

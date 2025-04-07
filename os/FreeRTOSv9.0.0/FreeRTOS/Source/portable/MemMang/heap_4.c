@@ -171,7 +171,7 @@ application.  When the bit is free the block is still part of the free heap
 space. */
 static size_t xBlockAllocatedBit = 0;
 
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N))
 uint8_t *psram_ucHeap;
 /* Create a couple of list links to mark the start and end of the list. */
 static BlockLink_t psram_xStart, *psram_pxEnd = NULL;
@@ -181,9 +181,13 @@ fragmentation. */
 static size_t psram_xFreeBytesRemaining = 0U;
 static size_t psram_xMinimumEverFreeBytesRemaining = 0U;
 
+#if (CFG_SOC_NAME == SOC_BK7221U)
 #define PSRAM_START_ADDRESS    (void*)(0x00900000)
 #define PSRAM_END_ADDRESS      (void*)(0x00900000 + 256 * 1024)
-
+#elif(CFG_SOC_NAME == SOC_BK7252N)
+#define PSRAM_START_ADDRESS    (void*)(0x02000000)
+#define PSRAM_END_ADDRESS      (void*)(0x02000000 + 256 * 1024)
+#endif
 /*-----------------------------------------------------------*/
 
 static void psram_prvInsertBlockIntoFreeList( BlockLink_t *pxBlockToInsert )
@@ -742,7 +746,7 @@ void vPortFree( void *pv )
 				pxLink->funcName[0] = 0;
 				pxLink->line = 0;
 #endif
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N))
 				if (puc > psram_ucHeap)
                 {
                     /* Add this block to the list of psram free blocks. */
@@ -799,7 +803,7 @@ void printLeakMem(int leaktime)
 
 size_t xPortGetFreeHeapSize( void )
 {
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N))
     return xFreeBytesRemaining + psram_xFreeBytesRemaining;
 #else
 	return xFreeBytesRemaining;
@@ -809,7 +813,7 @@ size_t xPortGetFreeHeapSize( void )
 
 size_t xPortGetMinimumEverFreeHeapSize( void )
 {
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N))
     return xMinimumEverFreeBytesRemaining + psram_xMinimumEverFreeBytesRemaining;
 #else
 	return xMinimumEverFreeBytesRemaining;
@@ -897,7 +901,7 @@ static void prvHeapInit( void )
 	xMinimumEverFreeBytesRemaining = pxFirstFreeBlock->xBlockSize;
 	xFreeBytesRemaining = pxFirstFreeBlock->xBlockSize;
 
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N))
     xTotalHeapSize = PSRAM_END_ADDRESS - PSRAM_START_ADDRESS;
     psram_ucHeap = PSRAM_START_ADDRESS;
 
@@ -1018,7 +1022,7 @@ void *pvPortRealloc( void *pv, size_t xWantedSize )
 	void *pvReturn = NULL;
 	BlockLink_t *pxIterator, *pxPreviousBlock, *tmp;
 
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N))
     if (puc > psram_ucHeap)
     {
         return psram_realloc(pv, xWantedSize);

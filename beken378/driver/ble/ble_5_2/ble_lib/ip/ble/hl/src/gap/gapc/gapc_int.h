@@ -42,6 +42,53 @@
  ****************************************************************************************
  */
 
+/// GAP Attribute database handles
+/// Generic Access Profile Service
+enum
+{
+    // GATT Service index
+    GATT_IDX_PRIM_SVC,
+
+    GATT_IDX_CHAR_SVC_CHANGED,
+    GATT_IDX_SVC_CHANGED,
+    GATT_IDX_SVC_CHANGED_CFG,
+
+    GATT_IDX_CHAR_CLI_SUP_FEAT,
+    GATT_IDX_CLI_SUP_FEAT,
+
+    GATT_IDX_CHAR_DB_HASH,
+    GATT_IDX_DB_HASH,
+
+    GATT_IDX_CHAR_SRV_SUP_FEAT,
+    GATT_IDX_SRV_SUP_FEAT,
+
+    GATT_IDX_NUMBER,
+
+    // GAP Service index
+    GAP_IDX_PRIM_SVC = GATT_IDX_NUMBER,
+
+    GAP_IDX_CHAR_DEVNAME,
+    GAP_IDX_DEVNAME,
+
+    GAP_IDX_CHAR_ICON,
+    GAP_IDX_ICON,
+
+    GAP_IDX_CHAR_RSLV_PRIV_ADDR_ONLY,
+    GAP_IDX_RSLV_PRIV_ADDR_ONLY,
+
+    GAP_IDX_CHAR_SLAVE_PREF_PARAM,
+    GAP_IDX_SLAVE_PREF_PARAM,
+
+    GAP_IDX_CHAR_CNT_ADDR_RESOL,
+    GAP_IDX_CNT_ADDR_RESOL,
+
+    GAP_IDX_NUMBER,
+
+    /// Maximum number of GATT attributes
+    GATT_NB_ATT = GATT_IDX_NUMBER,
+    /// Maximum number of GAP attributes
+    GAP_NB_ATT = GAP_IDX_NUMBER - GATT_IDX_NUMBER,
+};
 
 /*
  * DEFINES
@@ -673,6 +720,17 @@ struct gap_bdaddr* gapc_get_bdaddr(uint8_t conidx, uint8_t src);
  ****************************************************************************************
  */
 void gapc_sdt_init(uint8_t init_type);
+
+/**
+ ****************************************************************************************
+ * @brief Convert attribute index to attribute handle
+ *
+ * @param[in] att_idx       Attribute index
+ *
+ * @return Attribute handle
+ ****************************************************************************************
+ */
+uint16_t gapc_svc_hdl_get(uint8_t att_idx);
 
 /*
  * TASK DESCRIPTOR DECLARATIONS

@@ -11,22 +11,18 @@
 #include "common_bt_defines.h"
 
 /// Scan interval
-#define APP_CONN_SCAN_INTV                 (100)
+#define APP_CONN_SCAN_INTV                 (60)
 /// Scan window
-#define APP_CONN_SCAN_WD                   (20)
-/// Conn interval
-#define APP_CONN_INTV                      (30) // 1.25MS
-
-#define APP_CONN_KEEP_INTV                 (81) // 1.25MS
-
-#define APP_SDP_KEEP_TIME                  (3000)
-
-/// Conn window
+#define APP_CONN_SCAN_WD                   (30)
+/// connection interval
+#define APP_CONN_INTV                      (50)
+/// connection latency
 #define APP_CONN_LATENCY                   (0)
-#define APP_CONN_SUP_TO                    (500) // 10MS
-#define APP_CONN_DRV_TO                    (10000)  //1mS
-
-#define APP_CONN_IND_DELT_TIME             (3)
+/// connection timeout
+#define APP_CONN_SUP_TO                    (500)
+/// duration of connection event
+#define APP_CONN_CE_LEN_MIN                (10)
+#define APP_CONN_CE_LEN_MAX                (20)
 
 #define APP_INIT_REUSE_ACTV_IDX            0
 #define APP_INIT_SET_STOP_CONN_TIMER       1
@@ -52,12 +48,12 @@ extern void appm_set_initing_actv_idx(unsigned char conidx,unsigned char actv_id
 #endif
 #endif  ////BLE_CENTRAL
 
-extern ble_err_t appm_start_connecting(uint8_t con_idx);
+extern void appm_set_gap_prefer_ext_connect_params(ext_conn_param_t *pref_par);
+extern ble_err_t appm_start_connecting(uint8_t con_idx,uint16_t con_dev_time);
 extern ble_err_t appm_stop_connencting(uint8_t con_idx);
-extern ble_err_t set_app_ble_master_conn_dev_timeout(unsigned char con_idx,unsigned int n_10mS);
+extern ble_err_t appm_delete_initing(uint8_t con_idx);
 extern int appm_set_connect_dev_addr(unsigned char connidx,struct bd_addr *bdaddr,unsigned char addr_type);
-extern ble_err_t appm_create_initing(uint8_t con_idx,unsigned short con_interval,
-                                                unsigned short con_latency,unsigned short sup_to);
+extern ble_err_t appm_create_initing(uint8_t con_idx);
 
 #endif  ///_APP_BLE_INIT_H_
 

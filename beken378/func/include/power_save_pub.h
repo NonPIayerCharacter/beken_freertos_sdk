@@ -27,6 +27,11 @@
 #endif
 
 #define LOW_VOL_ARP_SEND_INTERVAL         30//s
+#if (CFG_SOC_NAME == SOC_BK7252N) && (0 == CFG_LOW_VOLTAGE_PS)
+#define PS_TBTT_PRE_LEAD                  800//us
+#else
+#define PS_TBTT_PRE_LEAD                  0//us
+#endif
 
 #define PS_USE_KEEP_TIMER       1
 #define PS_USE_WAIT_TIMER       1
@@ -45,6 +50,7 @@
  * @PS_BMSG_IOCTL_RF_KP_HANDLER      keep timer handler
  * @PS_BMSG_IOCTL_RF_TD_HANDLER      traffic dectect handler
  * @PS_BMSG_IOCTL_RF_KP_STOP         keep timer stop
+ * @PS_BMSG_IOCTL_RF_TD_STOP         traffic dectect timer stop
  * @PS_BMSG_IOCTL_WAIT_TM_SET        wait timer set
  * @PS_BMSG_IOCTL_WAIT_TM_HANDLER    wait timer handler
  * @PS_BMSG_IOCTL_RF_PS_TIMER_INIT   keep timer set
@@ -64,14 +70,15 @@ typedef enum {
     PS_BMSG_IOCTL_RF_KP_HANDLER = 7,
     PS_BMSG_IOCTL_RF_TD_HANDLER = 8,
     PS_BMSG_IOCTL_RF_KP_STOP = 9,
-    PS_BMSG_IOCTL_WAIT_TM_SET = 10,
-    PS_BMSG_IOCTL_WAIT_TM_HANDLER = 11,
-    PS_BMSG_IOCTL_RF_PS_TIMER_INIT = 12,
-    PS_BMSG_IOCTL_RF_PS_TIMER_DEINIT = 13,
-    PS_BMSG_IOCTL_AP_PS_STOP = 14,
-    PS_BMSG_IOCTL_AP_PS_START = 15,
-    PS_BMSG_IOCTL_AP_PS_RUN = 16,
-    PS_BMSG_IOCTL_ARP_TX = 17,
+    PS_BMSG_IOCTL_RF_TD_STOP = 10,
+    PS_BMSG_IOCTL_WAIT_TM_SET = 11,
+    PS_BMSG_IOCTL_WAIT_TM_HANDLER = 12,
+    PS_BMSG_IOCTL_RF_PS_TIMER_INIT = 13,
+    PS_BMSG_IOCTL_RF_PS_TIMER_DEINIT = 14,
+    PS_BMSG_IOCTL_AP_PS_STOP = 15,
+    PS_BMSG_IOCTL_AP_PS_START = 16,
+    PS_BMSG_IOCTL_AP_PS_RUN = 17,
+    PS_BMSG_IOCTL_ARP_TX = 18,
 } PS_BMSG_IOCTL_CMD;
 
 #define ICU_BASE                                     (0x00802000)
@@ -136,6 +143,7 @@ extern UINT8 power_save_if_rf_sleep();
 extern UINT16 power_save_radio_wkup_get ( void );
 extern void power_save_radio_wkup_set ( UINT16 );
 extern UINT8 power_save_set_dtim_multi ( UINT8 );
+extern UINT8 power_save_sm_set_all_listen_interval( UINT16 );
 extern UINT8 power_save_sm_set_all_bcmc ( UINT8 );
 extern void power_save_wkup_event_set ( UINT32 );
 extern UINT8 power_save_if_ps_rf_dtim_enabled ( void );
@@ -198,6 +206,7 @@ extern void ps_set_rf_prevent(void);
 extern void ps_clear_rf_prevent(void);
 
 void ps_set_td_timer(void);
+void ps_stop_td_timer(void);
 UINT32 bk_unconditional_sleep_mode_get ( void );
 void ps_set_mac_reset_prevent(void);
 void ps_clear_mac_reset_prevent(void);
@@ -205,6 +214,7 @@ void ps_clear_mac_reset_prevent(void);
 UINT8 power_save_low_latency_get ( void );
 void power_save_set_low_latency ( UINT8 );
 #endif
+void power_save_set_wait_timer_period ( UINT32 time );
 void power_save_set_listen_int(UINT16 listen_int);
 void power_save_wait_timer_set ( void );
 

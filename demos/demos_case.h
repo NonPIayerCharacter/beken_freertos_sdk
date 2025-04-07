@@ -98,5 +98,9 @@
 #include "eddystone_core.h"
 #endif
 
+#if THROUGHPUT_DEMO
+#include "throughput_test.h"
+#endif
+
 #endif /*_DEMO_CASE_H_*/
 

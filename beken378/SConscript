@@ -16,11 +16,8 @@ src += ["driver/dma/dma.c"]
 src += ["driver/entry/arch_main.c"]
 src += ["driver/fft/fft.c"]
 src += ["driver/flash/flash.c"]
-src += ["driver/general_dma/general_dma.c"]
-src += ["driver/i2s/i2s.c"]
 src += ["driver/icu/icu.c"]
 src += ["driver/intc/intc.c"]
-src += ["driver/irda/irda.c"]
 src += ["driver/macphy_bypass/mac_phy_bypass.c"]
 src += ["driver/phy/phy_trident.c"]
 src += ["driver/pwm/mcu_ps_timer.c"]
@@ -28,13 +25,9 @@ src += ["driver/pwm/bk_timer.c"]
 src += ["driver/pwm/bk_timer_extense.c"]
 src += ["driver/saradc/saradc.c"]
 src += ["driver/saradc/saradc_bk7238.c"]
-src += ["driver/sdcard/sdcard.c"]
-src += ["driver/sdcard/sdio_driver.c"]
 src += ["driver/spidma/spidma.c"]
 src += ["driver/spi/spi_psram.c"]
 src += ["driver/spi/spi_flash.c"]
-src += ["driver/jpeg/jpeg_encoder.c"]
-src += ["driver/i2c/i2c1.c"]
 src += ["driver/i2c/i2c2.c"]
 src += ["driver/sys_ctrl/sys_ctrl.c"]
 src += ["driver/uart/Retarget.c"]
@@ -43,7 +36,6 @@ src += ["driver/wdt/wdt.c"]
 src += ["driver/usb/usb.c"]
 src += ["driver/rw_pub/rw_platf_pub.c"]
 src += ["driver/driver.c"]
-src += ["driver/qspi/qspi.c"]
 src += ["rttos/source/rtos_pub.c"]
 src += ["rttos/source/port.c"]
 src += ["rttos/source/port_asm.S"]
@@ -52,7 +44,7 @@ src += ["rttos/mem_arch.c"]
 src += ["rttos/os_clock.c"]
 src += ["rttos/str_arch.c"]
 src += ["rttos/target_util.c"]
-src += ["rttos/ate/rtt_ate_app.c"]    
+src += ["rttos/ate/rtt_ate_app.c"]
 src += ["func/saradc_intf/saradc_intf.c"]
 src += ["app/config/param_config.c"]
 src += ["app/app.c"]
@@ -121,7 +113,6 @@ src += ["func/wlan_ui/wlan_ui.c"]
 src += ["func/hostapd_intf/hostapd_intf.c"]
 
 src += ["func/user_driver/BkDriverPwm.c"]
-src += ["func/user_driver/BkDriverQspi.c"]
 src += ["func/user_driver/BkDriverRng.c"]
 src += ["func/usb/fusb.c"]
 src += ["func/usb_plug/usb_plug.c"]
@@ -175,16 +166,14 @@ path += [cwd + '/driver/codec']
 path += [cwd + '/driver/common']
 path += [cwd + '/driver/common/reg']
 path += [cwd + '/driver/dma']
-path += [cwd + '/driver/entry'] 
+path += [cwd + '/driver/entry']
 path += [cwd + '/driver/fft']
 path += [cwd + '/driver/flash']
 path += [cwd + '/driver/general_dma']
 path += [cwd + '/driver/gpio']
-path += [cwd + '/driver/i2s']
 path += [cwd + '/driver/icu']
 path += [cwd + '/driver/include']
 path += [cwd + '/driver/intc']
-path += [cwd + '/driver/irda']
 path += [cwd + '/driver/macphy_bypass']
 path += [cwd + '/driver/phy']
 path += [cwd + '/driver/pwm']
@@ -295,9 +284,62 @@ if (GetLocalDepend(options, 'CFG_WPA3') == 1):
 if (GetLocalDepend(options, 'CFG_WRAP_LIBC') == 1):
     path += [cwd + '/func/libc']
 
-if (0 == string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7231N')) or (0 == string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7238')):
+soc_bk7231n = string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7231N')
+soc_bk7238 = string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7238')
+soc_bk7252n = string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7252N')
+if (0 == soc_bk7231n) or (0 == soc_bk7238):
     src += ["driver/calendar/calendar.c"]
     path += [cwd + '/driver/calendar']
+
+if (0 == soc_bk7252n):
+    src += ["driver/rtc/rtc_reg.c"]
+    path += [cwd + '/driver/rtc']
+    src += ["driver/charge/charge.c"]
+    path += [cwd + '/driver/charge']
+    src += ["driver/irda/irda_bk7252n.c"]
+    path += [cwd + '/driver/i2s']
+    src += ["driver/i2s/i2s_bk7252n.c"]
+    path += [cwd + '/driver/hpm']
+    src += ["driver/hpm/hpm.c"]
+    src += ["driver/la/la.c"]
+    path += [cwd + '/driver/la']
+    src += ["driver/general_dma/general_dma_bk7252n.c"]
+    src += ["driver/qspi/qspi_bk7252n.c"]
+    src += ["driver/jpeg/jpeg.c"]
+    path += [cwd + '/driver/yuv_buf']
+    src += ["driver/yuv_buf/yuv_buf.c"]
+    path += [cwd + '/driver/ipchksum']
+    src += ["driver/ipchksum/ipchksum.c"]
+    src += ["driver/i2c/i2c1_bk7252n.c"]
+    src += ["driver/sd_card/sd_card_driver.c"]
+    src += ["driver/sd_card/sdcard_test.c"]
+    src += ["driver/sd_card/cli_sdcard.c"]
+    src += ["driver/sd_card/sd_card_adapter.c"]
+    src += ["driver/sd_io/v2p0/sdio_hal.c"]
+    src += ["driver/sd_io/v2p0/sdio_slave_driver.c"]
+    src += ["driver/sd_io/v2p0/cli_sdio_slave.c"]
+    src += ["driver/sd_io/v2p0/sdio_utils.c"]
+    src += ["driver/sd_io/v2p0/sdio_test.c"]
+    src += ["driver/sd_io/sdio_host/sdio_host_hal.c"]
+    src += ["driver/sd_io/sdio_host/sdio_host_driver.c"]
+    src += ["driver/sd_io/sdio_host/cli_sdio_host.c"]
+    path += [cwd + '/driver/sd_card']
+    path += [cwd + '/driver/sd_io']
+    path += [cwd + '/driver/sd_io/include']
+    path += [cwd + '/driver/sd_io/sdio_host']
+    path += [cwd + '/driver/sd_io/v2p0']
+else:
+    path += [cwd + '/driver/irda']
+    src += ["driver/irda/irda.c"]
+    path += [cwd + '/driver/i2s']
+    src += ["driver/i2s/i2s.c"]
+    src += ["driver/general_dma/general_dma.c"]
+    src += ["driver/jpeg/jpeg_encoder.c"]
+    src += ["driver/i2c/i2c1.c"]
+    src += ["driver/qspi/qspi.c"]
+    src += ["func/user_driver/BkDriverQspi.c"]
+    src += ["driver/sdcard/sdcard.c"]
+    src += ["driver/sdcard/sdio_driver.c"]
 
 libs = []
 
@@ -306,9 +348,18 @@ libpath = []
 objs = []
 
 cppdefines = ['CFG_SUPPORT_RTT=1']
-OSK_COMMIT = subprocess.check_output("git rev-parse --short HEAD", shell=True)
+OSK_GIT_PATH = cwd+"/../.git"
+SDK_GIT_PATH = cwd+"/.git"
+if os.path.exists(OSK_GIT_PATH):
+    OSK_COMMIT = subprocess.check_output("git rev-parse --short HEAD", shell=True)
+else:
+    OSK_COMMIT = "no commitid"
 cppdefines += ['OSK_COMMIT_ID=\\\"%s\\\"' %(OSK_COMMIT[:-1])]
-SDK_COMMIT = subprocess.check_output("git rev-parse --short HEAD", cwd=cwd, shell=True)
+
+if os.path.exists(SDK_GIT_PATH):
+    SDK_COMMIT = subprocess.check_output("git rev-parse --short HEAD", cwd=cwd, shell=True)
+else:
+    SDK_COMMIT = "no commitid"
 cppdefines += ['SDK_COMMIT_ID=\\\"%s\\\"' %(SDK_COMMIT[:-1])]
 
 group = DefineGroup('beken_sdk', src, depend = [''], CPPPATH = path, CPPDEFINES = cppdefines, LIBS = libs, LIBPATH = libpath)

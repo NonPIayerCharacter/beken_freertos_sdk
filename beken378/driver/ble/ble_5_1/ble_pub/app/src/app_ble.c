@@ -106,9 +106,27 @@ actv_state_t app_ble_actv_state_get(uint8_t actv_idx)
 	return app_ble_env.actvs[actv_idx].actv_status;
 }
 
-uint8_t app_ble_get_idle_actv_idx_handle(void)
+uint8_t app_ble_get_idle_actv_idx_handle(ACTV_TYPE type)
 {
 	uint8_t index;
+
+	switch (type) {
+		case ADV_ACTV:
+		{
+			if (app_ble_env.actv_cnt.adv_actv >= CFG_BLE_ADV_NUM) {
+				return UNKNOW_ACT_IDX;
+			}
+		}break;
+		case SCAN_ACTV:
+		{
+			if (app_ble_env.actv_cnt.scan_actv >= CFG_BLE_SCAN_NUM) {
+				return UNKNOW_ACT_IDX;
+			}
+		}break;
+		default:
+			return UNKNOW_ACT_IDX;
+		break;
+	}
 
 	for (index = 0; index < BLE_ACTIVITY_MAX; index++) {
 		if (app_ble_env.actvs[index].actv_status == ACTV_IDLE) {
@@ -116,26 +134,35 @@ uint8_t app_ble_get_idle_actv_idx_handle(void)
 		}
 	}
 
-	if (index == BLE_ACTIVITY_MAX) {
-		bk_printf("Don't have free actv\r\n");
-		return UNKNOW_ACT_IDX;
-	}
-
 	return index;
 }
 
-uint8_t app_ble_get_idle_conn_idx_handle(void)
+uint8_t app_ble_get_idle_conn_idx_handle(ACTV_TYPE type)
 {
 	uint8_t conn_idx;
+	switch (type) {
+		case INIT_ACTV:
+		{
+			if (app_ble_env.actv_cnt.init_actv >= CFG_BLE_INIT_NUM) {
+				return UNKNOW_CONN_HDL;
+			}
+		}break;
+		case CONN_ACTV:
+		{
+			if (app_ble_env.actv_cnt.conn_actv >= CFG_BLE_CONN_NUM) {
+				return UNKNOW_CONN_HDL;
+			}
+		}break;
+		default:
+			return UNKNOW_CONN_HDL;
+		break;
+	}
 
 	for (conn_idx = 0; conn_idx < BLE_CONNECTION_MAX; conn_idx++) {
 		if (app_ble_env.connections[conn_idx].conhdl == UNKNOW_CONN_HDL) {
 			break;
 		}
 	}
-
-	if(conn_idx >= BLE_CONNECTION_MAX)
-		return UNKNOW_CONN_HDL;
 
 	return conn_idx;
 }
@@ -590,10 +617,14 @@ ble_err_t app_ble_set_le_pkt_size(uint8_t conn_idx)
 	BLE_APP_CHECK_CONN_IDX(conn_idx);
 	uint8_t conhdl = app_ble_get_connhdl(conn_idx);
 
+	if (app_ble_env.connections[conn_idx].role == APP_BLE_MASTER_ROLE) {
+		conn_idx = BLE_APP_INITING_INDEX(conn_idx);
+	}
+
 	if ((conhdl != UNKNOW_CONN_HDL) && (conhdl != USED_CONN_HDL)) {
 		struct gapc_set_le_pkt_size_cmd *cmd = KERNEL_MSG_ALLOC(GAPC_SET_LE_PKT_SIZE_CMD,
 									KERNEL_BUILD_ID(TASK_BLE_GAPC, conhdl),
-									KERNEL_BUILD_ID(TASK_BLE_APP, BLE_APP_INITING_INDEX(conn_idx)),
+									KERNEL_BUILD_ID(TASK_BLE_APP, conn_idx),
 									gapc_set_le_pkt_size_cmd);
 
 		if (cmd) {
@@ -791,9 +822,6 @@ void app_ble_next_operation(uint8_t idx, uint8_t status)
 	case BLE_START_SCAN:
 	case BLE_STOP_SCAN:
 	case BLE_DELETE_SCAN:
-	case BLE_CONN_UPDATE_MTU:
-	case BLE_CONN_UPDATE_PARAM:
-	case BLE_CONN_DIS_CONN:
 		app_ble_reset();
 		if (cmd_op_cb) {
 			cmd_ret.cmd_idx = idx;
@@ -903,6 +931,15 @@ void app_ble_next_operation(uint8_t idx, uint8_t status)
 			cmd_op_cb(cmd, &cmd_ret);
 		}
 		break;
+	case BLE_INIT_DELETE:
+		bk_printf("Cmd[%d]operation[%d]BLE_INIT_DELETE\r\n", app_ble_env.cmd, op_idx);
+		app_ble_reset();
+		if (cmd_op_cb) {
+			cmd_ret.cmd_idx = idx;
+			cmd_ret.status = status;
+			cmd_op_cb(cmd, &cmd_ret);
+		}
+		break;
 	case BLE_INIT_START_CONN:
 		bk_printf("Cmd[%d]operation[%d]BLE_INIT_START_CONN\r\n", app_ble_env.cmd, op_idx);
 		app_ble_reset();
@@ -914,18 +951,6 @@ void app_ble_next_operation(uint8_t idx, uint8_t status)
 		break;
 	case BLE_INIT_STOP_CONN:
 		bk_printf("Cmd[%d]operation[%d]BLE_INIT_STOP_CONN\r\n", app_ble_env.cmd, op_idx);
-		app_ble_reset();
-		if (cmd_op_cb) {
-			cmd_ret.cmd_idx = idx;
-			cmd_ret.status = status;
-			cmd_op_cb(cmd, &cmd_ret);
-		}
-		break;
-	case BLE_INIT_DIS_CONN:
-		break;
-	case BLE_INIT_READ_CHAR:
-	case BLE_INIT_WRITE_CHAR:
-		bk_printf("Cmd[%d]operation[%d] READ/Write CHAR\r\n", app_ble_env.cmd, op_idx);
 		app_ble_reset();
 		if (cmd_op_cb) {
 			cmd_ret.cmd_idx = idx;

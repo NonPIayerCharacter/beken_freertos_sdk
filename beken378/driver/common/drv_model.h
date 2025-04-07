@@ -1,10 +1,8 @@
 #ifndef _DRV_MODEL_H_
 #define _DRV_MODEL_H_
 
-#define DD_MAX_DEV              (10)
-#define DD_MAX_SDEV             (16)
-
-#define DD_MAX_DEV_MASK         (DD_MAX_DEV - 1)
+#define DD_INITIAL_SIZE                  (10)
+#define DD_EXP_STEP_SIZE                 (5)
 
 #define DD_MAX_NAME_LEN         (16)
 

@@ -1,11 +1,14 @@
 #include "include.h"
 #include "arm_arch.h"
 
-#if CFG_USE_SDCARD_HOST
-
+#if 0//CFG_USE_SDCARD_HOST
 #include "sdio_driver.h"
 #include "sdcard.h"
 #include "sdcard_pub.h"
+
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#include "uart_pub.h"
+#endif
 
 #include "drv_model_pub.h"
 #include "sys_ctrl_pub.h"

@@ -7,7 +7,7 @@
 #include "drv_model_pub.h"
 #include "intc_pub.h"
 
-#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238)
+#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
 static driver_fft_t driver_fft;
 static SDD_OPERATIONS fft_op =
 {

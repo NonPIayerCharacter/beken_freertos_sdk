@@ -43,15 +43,15 @@ int uart_print_port = DEBUG_UART_PORT;
 int print_log_enable = FALSE;
 #endif
 
+static struct uart_callback_des uart_receive_callback[3] = {{NULL}, {NULL}, {NULL}};
+static struct uart_callback_des uart_txfifo_needwr_callback[3] = {{NULL}, {NULL}, {NULL}};
+static struct uart_callback_des uart_tx_end_callback[3] = {{NULL}, {NULL}, {NULL}};
 
-static struct uart_callback_des uart_receive_callback[2] = {{NULL}, {NULL}};
-static struct uart_callback_des uart_txfifo_needwr_callback[2] = {{NULL}, {NULL}};
-static struct uart_callback_des uart_tx_end_callback[2] = {{NULL}, {NULL}};
-
-UART_S uart[2] =
+UART_S uart[3] =
 {
     {0, 0, 0},
-	{0, 0, 0}
+    {0, 0, 0},
+    {0, 0, 0}
 };
 
 static DD_OPERATIONS uart1_op =
@@ -71,6 +71,17 @@ static DD_OPERATIONS uart2_op =
     uart2_write,
     uart2_ctrl
 };
+
+#if (CFG_SOC_NAME == SOC_BK7252N)
+static DD_OPERATIONS uart3_op =
+{
+    uart3_open,
+    uart3_close,
+    uart3_read,
+    uart3_write,
+    uart3_ctrl
+};
+#endif
 
 #if AT_SERVICE_CFG
 int log_enable(void)
@@ -92,6 +103,10 @@ UINT8 uart_is_tx_fifo_empty(UINT8 uport)
 
     if(UART1_PORT == uport)
         param = REG_READ(REG_UART1_FIFO_STATUS);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(UART3_PORT == uport)
+        param = REG_READ(REG_UART3_FIFO_STATUS);
+#endif
     else
         param = REG_READ(REG_UART2_FIFO_STATUS);
 
@@ -104,6 +119,10 @@ UINT8 uart_is_tx_fifo_full(UINT8 uport)
 
     if(UART1_PORT == uport)
         param = REG_READ(REG_UART1_FIFO_STATUS);
+ #if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(UART3_PORT == uport)
+        param = REG_READ(REG_UART3_FIFO_STATUS);
+#endif
     else
         param = REG_READ(REG_UART2_FIFO_STATUS);
 
@@ -114,6 +133,10 @@ void bk_send_byte(UINT8 uport, UINT8 data)
 {
     if(UART1_PORT == uport)
         while(!UART1_TX_WRITE_READY);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(UART3_PORT == uport)
+        while(!UART3_TX_WRITE_READY);
+#endif
     else
         while(!UART2_TX_WRITE_READY);
 
@@ -193,25 +216,44 @@ void uart_hw_init(UINT8 uport)
     UINT32 conf_reg_addr, fifo_conf_reg_addr;
     UINT32 flow_conf_reg_addr, wake_conf_reg_addr, intr_reg_addr;
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #if !((UART1_BAUD_RATE != UART_BAUD_RATE) && (UART2_BAUD_RATE != UART_BAUD_RATE))
     baud_div = UART_CLOCK / UART_BAUD_RATE;
+#endif
+#else
+#if !((UART1_BAUD_RATE != UART_BAUD_RATE) && (UART2_BAUD_RATE != UART_BAUD_RATE) && (UART3_BAUD_RATE != UART_BAUD_RATE))
+    baud_div = UART_CLOCK / UART_BAUD_RATE;
+#endif
 #endif
 
     if(UART1_PORT == uport)
     {
-    	#if UART1_BAUD_RATE != UART_BAUD_RATE
+#if UART1_BAUD_RATE != UART_BAUD_RATE
     	baud_div = UART_CLOCK / UART1_BAUD_RATE;
-		#endif
+#endif
         conf_reg_addr = REG_UART1_CONFIG;
         fifo_conf_reg_addr = REG_UART1_FIFO_CONFIG;
         flow_conf_reg_addr = REG_UART1_FLOW_CONFIG;
         wake_conf_reg_addr = REG_UART1_WAKE_CONFIG;
         intr_reg_addr = REG_UART1_INTR_ENABLE;
     }
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(UART3_PORT == uport)
+    {
+#if UART3_BAUD_RATE != UART_BAUD_RATE
+        baud_div = UART_CLOCK / UART3_BAUD_RATE;
+#endif
+        conf_reg_addr = REG_UART3_CONFIG;
+        fifo_conf_reg_addr = REG_UART3_FIFO_CONFIG;
+        flow_conf_reg_addr = REG_UART3_FLOW_CONFIG;
+        wake_conf_reg_addr = REG_UART3_WAKE_CONFIG;
+        intr_reg_addr = REG_UART3_INTR_ENABLE;
+    }
+#endif
     else
     {
 #if UART2_BAUD_RATE != UART_BAUD_RATE
-    	baud_div = UART_CLOCK / UART2_BAUD_RATE;
+        baud_div = UART_CLOCK / UART2_BAUD_RATE;
 #endif
         conf_reg_addr = REG_UART2_CONFIG;
         fifo_conf_reg_addr = REG_UART2_FIFO_CONFIG;
@@ -219,8 +261,9 @@ void uart_hw_init(UINT8 uport)
         wake_conf_reg_addr = REG_UART2_WAKE_CONFIG;
         intr_reg_addr = REG_UART2_INTR_ENABLE;
     }
+
     baud_div = baud_div - 1;
-	
+
     reg = UART_TX_ENABLE
           | (UART_RX_ENABLE & (~UART_IRDA))
           | (((DEF_DATA_LEN & UART_DATA_LEN_MASK) << UART_DATA_LEN_POSI)
@@ -262,6 +305,16 @@ void uart_hw_set_change(UINT8 uport, bk_uart_config_t *uart_config)
         flow_conf_reg_addr = REG_UART1_FLOW_CONFIG;
         wake_reg_addr = REG_UART1_WAKE_CONFIG;
     }
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(UART3_PORT == uport)
+    {
+        intr_ena_reg_addr = REG_UART3_INTR_ENABLE;
+        conf_reg_addr = REG_UART3_CONFIG;
+        fifi_conf_reg_addr = REG_UART3_FIFO_CONFIG;
+        flow_conf_reg_addr = REG_UART3_FLOW_CONFIG;
+        wake_reg_addr = REG_UART3_WAKE_CONFIG;
+    }
+#endif
     else
     {
         intr_ena_reg_addr = REG_UART2_INTR_ENABLE;
@@ -270,6 +323,7 @@ void uart_hw_set_change(UINT8 uport, bk_uart_config_t *uart_config)
         flow_conf_reg_addr = REG_UART2_FLOW_CONFIG;
         wake_reg_addr = REG_UART2_WAKE_CONFIG;
     }
+
     REG_WRITE(intr_ena_reg_addr, 0);//disable int
 
     baud_div = UART_CLOCK / uart_config->baud_rate;
@@ -309,6 +363,9 @@ void uart_hw_set_change(UINT8 uport, bk_uart_config_t *uart_config)
     REG_WRITE(wake_reg_addr, 0);
 
     reg = RX_FIFO_NEED_READ_EN | UART_RX_STOP_END_EN;
+    if (parity_en) {
+        reg |= UART_RX_PARITY_ERR_EN;
+    }
     REG_WRITE(intr_ena_reg_addr, reg);
 }
 
@@ -359,6 +416,10 @@ void uart_fifo_flush(UINT8 uport)
 
     if(UART1_PORT == uport)
         reg_addr = REG_UART1_CONFIG;
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(UART3_PORT == uport)
+        reg_addr = REG_UART3_CONFIG;
+#endif
     else
         reg_addr = REG_UART2_CONFIG;
 
@@ -382,12 +443,21 @@ void uart_hw_uninit(UINT8 uport)
         conf_reg_addr = REG_UART1_CONFIG;
         fifostatus_reg_addr = REG_UART1_FIFO_STATUS;
     }
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(UART3_PORT == uport)
+    {
+        intr_ena_reg_addr = REG_UART3_INTR_ENABLE;
+        conf_reg_addr = REG_UART3_CONFIG;
+        fifostatus_reg_addr = REG_UART3_FIFO_STATUS;
+    }
+#endif
     else
     {
         intr_ena_reg_addr = REG_UART2_INTR_ENABLE;
         conf_reg_addr = REG_UART2_CONFIG;
         fifostatus_reg_addr = REG_UART2_FIFO_STATUS;
     }
+
     /*disable rtx intr*/
     reg = REG_READ(intr_ena_reg_addr);
     reg &= (~(RX_FIFO_NEED_READ_EN | UART_RX_STOP_END_EN));
@@ -417,6 +487,13 @@ void uart_reset(UINT8 uport)
         uart1_exit();
         uart1_init();
     }
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(UART3_PORT == uport)
+    {
+        uart3_exit();
+        uart3_init();
+    }
+#endif
     else
     {
         uart2_exit();
@@ -427,6 +504,7 @@ void uart_reset(UINT8 uport)
 void uart_send_backgroud(void)
 {
     /* send the buf at backgroud context*/
+    /* Todo maybe the uart_send_backgroud is UART3_PORT in bk7252n */
     uart_write_fifo_frame(UART2_PORT, uart[UART2_PORT].tx, DEBUG_PRT_MAX_CNT);
 }
 
@@ -471,6 +549,10 @@ UINT32 uart_read_fifo_frame(UINT8 uport, KFIFO_PTR rx_ptr)
 
     if(UART1_PORT == uport)
         fifo_status_reg = REG_UART1_FIFO_STATUS;
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if(UART3_PORT == uport)
+        fifo_status_reg = REG_UART3_FIFO_STATUS;
+#endif
     else
         fifo_status_reg = REG_UART2_FIFO_STATUS;
 
@@ -494,6 +576,10 @@ void uart_set_tx_fifo_needwr_int(UINT8 uport, UINT8 set)
 
 	if(UART1_PORT == uport)
 		reg = REG_READ(REG_UART1_INTR_ENABLE);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+	else if(UART3_PORT == uport)
+		reg = REG_READ(REG_UART3_INTR_ENABLE);
+#endif
 	else
 		reg = REG_READ(REG_UART2_INTR_ENABLE);
 
@@ -509,8 +595,13 @@ void uart_set_tx_fifo_needwr_int(UINT8 uport, UINT8 set)
 	if(UART1_PORT == uport){
 		REG_WRITE(REG_UART1_INTR_ENABLE, reg);
 	}
+#if BK7252N_UART_NEW_REG
+	else if(UART3_PORT == uport)
+		REG_WRITE(REG_UART3_INTR_ENABLE, reg);
+#endif
 	else
 		REG_WRITE(REG_UART2_INTR_ENABLE, reg);
+
 }
 
 void uart_set_tx_stop_end_int(UINT8 uport, UINT8 set)
@@ -519,6 +610,10 @@ void uart_set_tx_stop_end_int(UINT8 uport, UINT8 set)
 
 	if(UART1_PORT == uport)
 		reg = REG_READ(REG_UART1_INTR_ENABLE);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+	else if(UART3_PORT == uport)
+		reg = REG_READ(REG_UART3_INTR_ENABLE);
+#endif
 	else
 		reg = REG_READ(REG_UART2_INTR_ENABLE);
 
@@ -533,6 +628,10 @@ void uart_set_tx_stop_end_int(UINT8 uport, UINT8 set)
 
 	if(UART1_PORT == uport)
 		REG_WRITE(REG_UART1_INTR_ENABLE, reg);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+	else if(UART3_PORT == uport)
+		REG_WRITE(REG_UART3_INTR_ENABLE, reg);
+#endif
 	else
 		REG_WRITE(REG_UART2_INTR_ENABLE, reg);
 }
@@ -564,6 +663,53 @@ void uart_fast_init(void)
     uart_hw_init(uart_print_port);
 }
 
+UINT32 conf_reg_value_bakeup = 0;
+UINT32 intr_reg_value_bakeup = 0;
+volatile UINT8 uart_print_port_bakeup_flag = 0;
+void uart_print_port_suspend(void)
+{
+    UINT32 conf_reg_addr, intr_reg_addr;
+
+    if (UART1_PORT == uart_print_port)
+    {
+        conf_reg_addr = REG_UART1_CONFIG;
+        intr_reg_addr = REG_UART1_INTR_ENABLE;
+    }
+    else
+    {
+        conf_reg_addr = REG_UART2_CONFIG;
+        intr_reg_addr = REG_UART2_INTR_ENABLE;
+    }
+
+    conf_reg_value_bakeup = REG_READ(conf_reg_addr);
+    intr_reg_value_bakeup = REG_READ(intr_reg_addr);
+    REG_WRITE(conf_reg_addr, 0);
+    REG_WRITE(intr_reg_addr, 0);
+    uart_print_port_bakeup_flag = 1;
+}
+
+void uart_print_port_recover(void)
+{
+    UINT32 conf_reg_addr, intr_reg_addr;
+
+    if (UART1_PORT == uart_print_port)
+    {
+        conf_reg_addr = REG_UART1_CONFIG;
+        intr_reg_addr = REG_UART1_INTR_ENABLE;
+    }
+    else
+    {
+        conf_reg_addr = REG_UART2_CONFIG;
+        intr_reg_addr = REG_UART2_INTR_ENABLE;
+    }
+
+    if(uart_print_port_bakeup_flag)
+    {
+        REG_WRITE(conf_reg_addr, conf_reg_value_bakeup);
+        REG_WRITE(intr_reg_addr, intr_reg_value_bakeup);
+        uart_print_port_bakeup_flag = 0;
+    }
+}
 /*******************************************************************/
 void uart1_isr(void)
 {
@@ -637,12 +783,12 @@ void uart1_init(void)
     UINT32 ret;
     UINT32 param;
     UINT32 intr_status;
-	
+
 #if UART1_USE_FIFO_REC
     ret = uart_sw_init(UART1_PORT);
     ASSERT(UART_SUCCESS == ret);
 #endif
-	
+
     ddev_register_dev(UART1_DEV_NAME, &uart1_op);
 
     intc_service_register(IRQ_UART1, PRI_IRQ_UART1, uart1_isr);
@@ -718,7 +864,7 @@ UINT32 uart1_ctrl(UINT32 cmd, void *parm)
     switch(cmd)
     {
     case CMD_SEND_BACKGROUND:
-        //     uart_send_backgroud();
+        uart_send_backgroud();
         break;
 
     case CMD_UART_RESET:
@@ -1073,16 +1219,293 @@ UINT32 uart2_ctrl(UINT32 cmd, void *parm)
     return ret;
 }
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+void uart3_isr(void)
+{
+    UINT32 status;
+    UINT32 intr_en;
+    UINT32 intr_status;
+
+    intr_en = REG_READ(REG_UART3_INTR_ENABLE);
+    intr_status = REG_READ(REG_UART3_INTR_STATUS);
+    REG_WRITE(REG_UART3_INTR_STATUS, intr_status);
+    status = intr_status & intr_en;
+
+    if(status & (RX_FIFO_NEED_READ_STA | UART_RX_STOP_END_STA))
+    {
+    #if ((!CFG_SUPPORT_RTT) && (UART3_USE_FIFO_REC))
+        uart_read_fifo_frame(UART3_PORT, uart[UART3_PORT].rx);
+    #endif
+
+        if (uart_receive_callback[2].callback != 0)
+        {
+            void *param = uart_receive_callback[2].param;
+
+            uart_receive_callback[2].callback(UART3_PORT, param);
+        }
+        else
+        {
+            uart_read_byte(UART3_PORT); /*drop data for rtt*/
+        }
+    }
+
+    if(status & TX_FIFO_NEED_WRITE_STA)
+    {
+        if (uart_txfifo_needwr_callback[2].callback != 0)
+        {
+            void *param = uart_txfifo_needwr_callback[2].param;
+
+            uart_txfifo_needwr_callback[2].callback(UART3_PORT, param);
+        }
+    }
+
+    if(status & RX_FIFO_OVER_FLOW_STA)
+    {
+    }
+
+    if(status & UART_RX_PARITY_ERR_STA)
+    {
+        uart_fifo_flush(UART3_PORT);
+    }
+
+    if(status & UART_RX_STOP_ERR_STA)
+    {
+    }
+
+    if(status & UART_TX_STOP_END_STA)
+    {
+        if (uart_tx_end_callback[2].callback != 0)
+        {
+            void *param = uart_tx_end_callback[2].param;
+
+            uart_tx_end_callback[2].callback(UART3_PORT, param);
+        }
+    }
+
+    if(status & UART_RXD_WAKEUP_STA)
+    {
+    }
+}
+
+//Todo uart3's gpio and irq have not been adapted
+void uart3_init(void)
+{
+    UINT32 ret;
+    UINT32 param;
+    UINT32 intr_status;
+
+#if UART3_USE_FIFO_REC
+    ret = uart_sw_init(UART3_PORT);
+    ASSERT(UART_SUCCESS == ret);
+#endif
+
+    ddev_register_dev(UART3_DEV_NAME, &uart3_op);
+
+    intc_service_register(IRQ_UART3, PRI_IRQ_UART3, uart3_isr);
+
+    param = PWD_UART3_CLK_BIT;
+    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
+
+    param = GFUNC_MODE_UART3;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+    uart_hw_init(UART3_PORT);
+
+    /*irq enable, Be careful: it is best that irq enable at open routine*/
+    intr_status = REG_READ(REG_UART3_INTR_STATUS);
+    REG_WRITE(REG_UART3_INTR_STATUS, intr_status);
+
+    param = IRQ_UART3_BIT;
+    sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
+}
+
+//Todo uart3's gpio and irq have not been adapted
+void uart3_exit(void)
+{
+    UINT32 param;
+
+    /*irq enable, Be careful: it is best that irq enable at close routine*/
+    param = IRQ_UART3_BIT;
+    sddev_control(ICU_DEV_NAME, CMD_ICU_INT_DISABLE, &param);
+
+    uart_hw_uninit(UART3_PORT);
+
+    ddev_unregister_dev(UART3_DEV_NAME);
+
+    uart_sw_uninit(UART3_PORT);
+}
+
+UINT32 uart3_open(UINT32 op_flag)
+{
+    return UART_SUCCESS;
+}
+
+UINT32 uart3_close(void)
+{
+    return UART_SUCCESS;
+}
+
+UINT32 uart3_read(char *user_buf, UINT32 count, UINT32 op_flag)
+{
+#if UART3_USE_FIFO_REC
+    return kfifo_get(uart[UART3_PORT].rx, (UINT8 *)user_buf, count);
+#else
+    return -1;
+#endif
+}
+
+UINT32 uart3_write(char *user_buf, UINT32 count, UINT32 op_flag)
+{
+#if UART3_USE_FIFO_REC
+    return kfifo_put(uart[UART3_PORT].tx, (UINT8 *)user_buf, count);
+#else
+    return -1;
+#endif
+}
+
+UINT32 uart3_ctrl(UINT32 cmd, void *parm)
+{
+    UINT32 ret;
+    int baud;
+    UINT32 conf_reg_addr;
+    UINT32 baud_div,reg;
+    peri_busy_count_add();
+
+    ret = UART_SUCCESS;
+    switch(cmd)
+    {
+    case CMD_SEND_BACKGROUND:
+        uart_send_backgroud();
+        break;
+
+    case CMD_UART_RESET:
+        uart_reset(UART3_PORT);
+        break;
+
+    case CMD_RX_COUNT:
+#if UART3_USE_FIFO_REC
+        ret = kfifo_data_size(uart[UART3_PORT].rx);
+#else
+        ret = 0;
+#endif
+        break;
+
+    case CMD_RX_PEEK:
+    {
+        UART_PEEK_RX_PTR peek;
+
+        peek = (UART_PEEK_RX_PTR)parm;
+
+        if(!((URX_PEEK_SIG != peek->sig)
+                || (NULLPTR == peek->ptr)
+                || (0 == peek->len)))
+        {
+            ret = kfifo_out_peek(uart[UART3_PORT].rx, peek->ptr, peek->len);
+        }
+
+        break;
+    }
+    case CMD_UART_INIT:
+        uart_hw_set_change(UART3_PORT, parm);
+        break;
+    case CMD_UART_SET_RX_CALLBACK:
+        if (parm)
+        {
+            struct uart_callback_des *uart_callback;
+
+            uart_callback = (struct uart_callback_des *)parm;
+
+            uart_rx_callback_set(UART3_PORT, uart_callback->callback, uart_callback->param);
+        }
+        else
+        {
+            uart_rx_callback_set(UART3_PORT, NULL, NULL);
+        }
+        break;
+    case CMD_UART_SET_TX_CALLBACK:
+        if (parm)
+        {
+            struct uart_callback_des *uart_callback;
+
+            uart_callback = (struct uart_callback_des *)parm;
+
+            uart_tx_end_callback_set(UART3_PORT, uart_callback->callback, uart_callback->param);
+        }
+        else
+        {
+            uart_tx_end_callback_set(UART3_PORT, NULL, NULL);
+        }
+        break;
+    case CMD_UART_SET_TX_FIFO_NEEDWR_CALLBACK:
+        if (parm)
+        {
+            struct uart_callback_des *uart_callback;
+
+            uart_callback = (struct uart_callback_des *)parm;
+
+            uart_tx_fifo_needwr_callback_set(UART3_PORT, uart_callback->callback, uart_callback->param);
+        }
+        else
+        {
+            uart_tx_fifo_needwr_callback_set(UART3_PORT, NULL, NULL);
+        }
+        break;
+    case CMD_SET_STOP_END:
+        uart_set_tx_stop_end_int(UART3_PORT, *(UINT8 *)parm);
+        break;
+
+    case CMD_SET_TX_FIFO_NEEDWR_INT:
+        uart_set_tx_fifo_needwr_int(UART3_PORT, *(UINT8 *)parm);
+        break;
+    case CMD_SET_BAUT:
+        baud =  *((int*)parm);
+        baud_div = UART_CLOCK / baud;
+        baud_div = baud_div - 1;
+        conf_reg_addr = REG_UART3_CONFIG;//current uart
+        reg = (REG_READ(conf_reg_addr))&(~(UART_CLK_DIVID_MASK<< UART_CLK_DIVID_POSI));
+        reg = reg | ((baud_div & UART_CLK_DIVID_MASK) << UART_CLK_DIVID_POSI);
+        REG_WRITE(conf_reg_addr, reg);
+
+        break;
+    default:
+        break;
+    }
+
+    peri_busy_count_dec();
+
+    return ret;
+}
+#endif
+
 UINT32 uart_wait_tx_over()
 {
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     UINT32 uart_wait_us,baudrate1,baudrate2;
+#else
+    UINT32 uart_wait_us,baudrate1,baudrate2,baudrate3;
+#endif
     baudrate1 = UART_CLOCK/((((REG_READ(REG_UART1_CONFIG))>>UART_CLK_DIVID_POSI)
                     & UART_CLK_DIVID_MASK) + 1);
     baudrate2 = UART_CLOCK/((((REG_READ(REG_UART2_CONFIG))>>UART_CLK_DIVID_POSI)
                     & UART_CLK_DIVID_MASK) + 1);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    baudrate3 = UART_CLOCK/((((REG_READ(REG_UART3_CONFIG))>>UART_CLK_DIVID_POSI)
+                    & UART_CLK_DIVID_MASK) + 1);
+#endif
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     uart_wait_us = 1000000 * UART2_TX_FIFO_COUNT * 10 / baudrate2
                 + 1000000 * UART1_TX_FIFO_COUNT * 10 / baudrate1;
+#else
+    uart_wait_us = 1000000 * UART3_TX_FIFO_COUNT * 10 / baudrate3
+                 + 1000000 * UART2_TX_FIFO_COUNT * 10 / baudrate2
+                 + 1000000 * UART1_TX_FIFO_COUNT * 10 / baudrate1;
+#endif
+
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    while (UART3_TX_FIFO_EMPTY_GET() == 0)
+    {
+    }
+#endif
 
     while (UART2_TX_FIFO_EMPTY_GET() == 0)
     {
@@ -1102,6 +1525,10 @@ int uart_read_byte(int uport)
 
     if (UART1_PORT == uport)
         fifo_status_reg = REG_UART1_FIFO_STATUS;
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if (UART3_PORT == uport)
+        fifo_status_reg = REG_UART3_FIFO_STATUS;
+#endif
     else
         fifo_status_reg = REG_UART2_FIFO_STATUS;
 
@@ -1115,6 +1542,10 @@ int uart_write_byte(int uport, char c)
 {
     if (UART1_PORT == uport)
         while(!UART1_TX_WRITE_READY);
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if (UART3_PORT == uport)
+        while(!UART3_TX_WRITE_READY);
+#endif
     else
         while(!UART2_TX_WRITE_READY);
 
@@ -1135,6 +1566,13 @@ int uart_rx_callback_set(int uport, uart_callback callback, void *param)
         uart_receive_callback[1].callback = callback;
         uart_receive_callback[1].param = param;
     }
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if (uport == UART3_PORT)
+    {
+        uart_receive_callback[2].callback = callback;
+        uart_receive_callback[2].param = param;
+    }
+#endif
     else
     {
         return -1;
@@ -1155,6 +1593,13 @@ int uart_tx_fifo_needwr_callback_set(int uport, uart_callback callback, void *pa
         uart_txfifo_needwr_callback[1].callback = callback;
         uart_txfifo_needwr_callback[1].param = param;
     }
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if (uport == UART3_PORT)
+    {
+        uart_txfifo_needwr_callback[2].callback = callback;
+        uart_txfifo_needwr_callback[2].param = param;
+    }
+#endif
     else
     {
         return -1;
@@ -1175,6 +1620,13 @@ int uart_tx_end_callback_set(int uport, uart_callback callback, void *param)
         uart_tx_end_callback[1].callback = callback;
         uart_tx_end_callback[1].param = param;
     }
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    else if (uport == UART3_PORT)
+    {
+        uart_tx_end_callback[2].callback = callback;
+        uart_tx_end_callback[2].param = param;
+    }
+#endif
     else
     {
         return -1;

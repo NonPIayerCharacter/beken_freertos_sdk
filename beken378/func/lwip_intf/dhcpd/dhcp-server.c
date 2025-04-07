@@ -13,6 +13,7 @@
 #include "mem_pub.h"
 #include "lwip/etharp.h"
 #include "lwip/sockets.h"
+#include "apm_task.h"
 
 #define os_mem_alloc os_malloc
 #define os_mem_free  os_free
@@ -469,6 +470,14 @@ static int process_dhcp_message(char *msg, int len)
 			response_type = got_ip ? DHCP_MESSAGE_ACK :
 			    DHCP_MESSAGE_NAK;
 	}
+
+	if (got_client_ip) {
+		struct apm_got_ip_ind *sta_got_ip =KE_MSG_ALLOC(APM_GOT_IP_IND, TASK_API,
+															  TASK_ME, apm_got_ip_ind);
+		memcpy(sta_got_ip->mac, &hdr->chaddr, sizeof(hdr->chaddr));
+		sta_got_ip->ipaddr = dhcps.client_ip;
+		ke_msg_send(sta_got_ip);
+		}
 
 	if (response_type != DHCP_NO_RESPONSE) {
         uint32_t dst_ip = 0, retry = 0;

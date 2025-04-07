@@ -1,6 +1,7 @@
 #ifndef _BK7231U_REGLIST_H_
 #define _BK7231U_REGLIST_H_
 
+#include "ble.h"
 //************************************************************//
 //XVR
 //************************************************************//
@@ -92,14 +93,20 @@
 #define BLE_XVR_AUTO_CHAN_MASK									(0xF)
 #define BLE_XVR_AUTO_CHAN_POST									(17)
 
-#define REG_APB3_UART_CFG               (*((volatile unsigned long *)   0x00802200))
-#define REG_APB3_UART_FIFO_CFG          (*((volatile unsigned long *)   0x00802204))
-#define REG_APB3_UART_FIFO_STAT         (*((volatile unsigned long *)   0x00802208))
-#define REG_APB3_UART_PORT              (*((volatile unsigned long *)   0x0080220C))
-#define REG_APB3_UART_INT_ENABLE        (*((volatile unsigned long *)   0x00802210))
-#define REG_APB3_UART_INT_STAT          (*((volatile unsigned long *)   0x00802214))
-#define REG_APB3_UART_FLOW_CFG          (*((volatile unsigned long *)   0x00802218))
-#define REG_APB3_UART_WAKERNEL_CFG      (*((volatile unsigned long *)   0x0080221c))
+#if (BLE_DUT_UART_PORT == PORT_UART2)
+#define REG_APB3_UART_CFG_BASE   (0x00802200)
+#else
+#define REG_APB3_UART_CFG_BASE   (0x00802100)
+#endif // (BLE_DUT_UART_PORT == PORT_UART2)
+
+#define REG_APB3_UART_CFG               (*((volatile unsigned long *)   (REG_APB3_UART_CFG_BASE + 0x00)))
+#define REG_APB3_UART_FIFO_CFG          (*((volatile unsigned long *)   (REG_APB3_UART_CFG_BASE + 0x04)))
+#define REG_APB3_UART_FIFO_STAT         (*((volatile unsigned long *)   (REG_APB3_UART_CFG_BASE + 0x08)))
+#define REG_APB3_UART_PORT              (*((volatile unsigned long *)   (REG_APB3_UART_CFG_BASE + 0x0c)))
+#define REG_APB3_UART_INT_ENABLE        (*((volatile unsigned long *)   (REG_APB3_UART_CFG_BASE + 0x10)))
+#define REG_APB3_UART_INT_STAT          (*((volatile unsigned long *)   (REG_APB3_UART_CFG_BASE + 0x14)))
+#define REG_APB3_UART_FLOW_CFG          (*((volatile unsigned long *)   (REG_APB3_UART_CFG_BASE + 0x18)))
+#define REG_APB3_UART_WAKERNEL_CFG      (*((volatile unsigned long *)   (REG_APB3_UART_CFG_BASE + 0x1c)))
 
 #define REG_READ(addr)          *((volatile uint32_t *)(addr))
 #define REG_WRITE(addr, _data)  (*((volatile uint32_t *)(addr)) = (_data))

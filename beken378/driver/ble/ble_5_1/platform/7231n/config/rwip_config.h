@@ -47,11 +47,11 @@
 #define CFG_BLE_SCAN_NUM		1
 #endif
 #ifndef CFG_BLE_INIT_NUM
-///slave role connect number
+///master role connect number
 #define CFG_BLE_INIT_NUM		0
 #endif
 #ifndef CFG_BLE_CONN_NUM
-///enable ble scan
+///slave role connect number
 #define CFG_BLE_CONN_NUM		1
 #endif
 
@@ -226,8 +226,8 @@
 #error "CFG_CON == 0"
 #endif
 
-//	 <o> CFG_RAL <1-10>
-//   <i> CFG NUMBER OF DEVICE IN RAL (1 -- 10)
+//	 <o> CFG_RAL <1-8>
+//   <i> CFG NUMBER OF DEVICE IN RAL (1 -- 8)
 #define CFG_RAL			4
 
 //	 <o> CFG_ACT <1-10>

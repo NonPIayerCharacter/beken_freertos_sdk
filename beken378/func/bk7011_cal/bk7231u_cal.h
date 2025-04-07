@@ -2,6 +2,9 @@
 #define _BK7231U_CAL_H_
 
 #if (CFG_SOC_NAME != SOC_BK7231)
+#define POWER_TABLE_11B_1DB_STEP (2) /* refer to cfg_tab_b, 0.50db for each step */
+#define POWER_TABLE_11G_1DB_STEP (2) /* refer to cfg_tab_g, 0.50db for each step */
+
 void delay05us(INT32 num);
 
 #define trx_reg_is_write(st_trxreg)     while(BK7011RCBEKEN.REG0x1->value & st_trxreg) 	{cpu_delay(1);}

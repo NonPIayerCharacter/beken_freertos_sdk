@@ -135,7 +135,7 @@ const bk_logic_partition_t bk7231_partitions_2M[BK_PARTITION_MAX] =
     {
         .partition_owner           = BK_FLASH_EMBEDDED,
         .partition_description     = "NET info",
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if 0//(CFG_SOC_NAME == SOC_BK7221U)
         .partition_start_addr      = 0x1FF000,// for net related info
 #elif (CFG_SOC_NAME == SOC_BK7231N)
         .partition_start_addr      = 0x1d1000,
@@ -163,12 +163,12 @@ const bk_logic_partition_t bk7231_partitions_2M[BK_PARTITION_MAX] =
         .partition_options         = PAR_OPT_READ_EN | PAR_OPT_WRITE_DIS,
     }
 #endif
-	#if AT_SERVICE_CFG
+    #if AT_SERVICE_CFG
     [BK_PARTITION_USR_CONFIG] =
     {
         .partition_owner           = BK_FLASH_EMBEDDED,
         .partition_description     = "USER info",
-        .partition_start_addr      = 0x1f7000,// for net related info
+        .partition_start_addr      = 0x1ee000,// for net related info
         .partition_length          = 0x1000,
         .partition_options         = PAR_OPT_READ_EN | PAR_OPT_WRITE_DIS,
     },
@@ -176,11 +176,19 @@ const bk_logic_partition_t bk7231_partitions_2M[BK_PARTITION_MAX] =
     {
         .partition_owner           = BK_FLASH_EMBEDDED,
         .partition_description     = "BLE SERVER",
-        .partition_start_addr      = 0x1f8000,// for ble svr in ATSVR
+        .partition_start_addr      = 0x1ef000,// for ble svr in ATSVR
         .partition_length          = 0x1000,
         .partition_options         = PAR_OPT_READ_EN | PAR_OPT_WRITE_DIS,
     },
     #endif
+    [BK_PARTITION_BLE_BONDING_FLASH] =
+    {
+        .partition_owner           = BK_FLASH_EMBEDDED,
+        .partition_description     = "ble bonding info",
+        .partition_start_addr      = 0x1f0000,
+        .partition_length          = 0x1000,
+        .partition_options         = PAR_OPT_READ_EN | PAR_OPT_WRITE_DIS,
+    },
 };
 #endif
 
@@ -246,11 +254,11 @@ const bk_logic_partition_t bk7231_partitions_4M[BK_PARTITION_MAX] =
     }
 #endif
     #if AT_SERVICE_CFG
-	[BK_PARTITION_USR_CONFIG] =
+    [BK_PARTITION_USR_CONFIG] =
     {
         .partition_owner           = BK_FLASH_EMBEDDED,
         .partition_description     = "USER info",
-        .partition_start_addr      = 0x3f7000,// for net related info
+        .partition_start_addr      = 0x3ee000,// for net related info
         .partition_length          = 0x1000,
         .partition_options         = PAR_OPT_READ_EN | PAR_OPT_WRITE_DIS,
     },
@@ -258,7 +266,7 @@ const bk_logic_partition_t bk7231_partitions_4M[BK_PARTITION_MAX] =
     {
         .partition_owner           = BK_FLASH_EMBEDDED,
         .partition_description     = "BLE SERVER",
-        .partition_start_addr      = 0x3f8000,// for ble svr in ATSVR
+        .partition_start_addr      = 0x3ef000,// for ble svr in ATSVR
         .partition_length          = 0x1000,
         .partition_options         = PAR_OPT_READ_EN | PAR_OPT_WRITE_DIS,
     },

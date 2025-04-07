@@ -7,7 +7,7 @@
 #include "stdarg.h"
 #include "include.h"
 #include "rtos_pub.h"
-#include "Error.h"
+#include "error.h"
 #include "string.h"
 #include "sockets.h"
 #include "wlan_ui_pub.h"
@@ -61,12 +61,12 @@ void ap_sta_softap_app_init(char *ap_ssid, char *ap_key)
     os_strcpy((char *)wNetConfig.wifi_ssid, ap_ssid);
     os_strcpy((char *)wNetConfig.wifi_key, ap_key);
 
-    wNetConfig.wifi_mode = SOFT_AP;
-    wNetConfig.dhcp_mode = DHCP_Server;
+    wNetConfig.wifi_mode = BK_SOFT_AP;
+    wNetConfig.dhcp_mode = DHCP_SERVER;
     wNetConfig.wifi_retry_interval = 100;
     os_strcpy((char *)wNetConfig.local_ip_addr, "192.168.10.1");
     os_strcpy((char *)wNetConfig.net_mask, "255.255.255.0");
-    os_strcpy((char *)wNetConfig.dnsServer_ip_addr, "192.168.10.1");
+    os_strcpy((char *)wNetConfig.dns_server_ip_addr, "192.168.10.1");
 
     bk_printf("SSID:%s , KEY:%s\r\n", wNetConfig.wifi_ssid, wNetConfig.wifi_key);
     bk_wlan_start(&wNetConfig);
@@ -74,7 +74,7 @@ void ap_sta_softap_app_init(char *ap_ssid, char *ap_key)
 
 void ap_sta_stop_Softap(void)
 {
-    bk_wlan_stop(SOFT_AP);
+    bk_wlan_stop(BK_SOFT_AP);
 }
 
 void ap_sta_softap_start( void )
@@ -93,7 +93,7 @@ int ap_sta_target_wifi_station_connect(const char *ssid, const char *passwd)
     os_strcpy((char *)wNetConfig.wifi_ssid, ssid);
     os_strcpy((char *)wNetConfig.wifi_key, passwd);
 
-    wNetConfig.wifi_mode = STATION;
+    wNetConfig.wifi_mode = BK_STATION;
     wNetConfig.dhcp_mode = DHCP_CLIENT;
     wNetConfig.wifi_retry_interval = 100;
 
@@ -126,7 +126,6 @@ AP_STA_MSG_T *ap_sta_analysis_message(char *Rxbuf, int Len)
     char CheckSum;
     char CheckXOR;
     int offset = 0;
-    int strLen;
     int ssidLen, keyLen;
     int MsgLen;
     AP_STA_MSG_T *Result = NULL;
@@ -135,8 +134,10 @@ AP_STA_MSG_T *ap_sta_analysis_message(char *Rxbuf, int Len)
     {
         CheckSum = ap_sta_full_frame_checksum(&Rxbuf[offset + 4], Len - 5);
         //if(CheckSum != Rxbuf[offset+2]) return;
+        (void)(CheckSum);
         CheckXOR = ap_sta_full_frame_check_xor(&Rxbuf[offset + 4], Len - 5);
         //if(CheckXOR != Rxbuf[offset+3]) return;
+        (void)(CheckXOR);
 
         memset(ssid, 0, sizeof(ssid));
         memset(passwd, 0, sizeof(passwd));

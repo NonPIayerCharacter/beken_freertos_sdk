@@ -27,6 +27,7 @@
 #define IPERF_REPORT_INTERVAL   3
 #define IPERF_INVALID_INDEX     (-1)
 #define IPERF_DEFAULT_DURATION  30 /*second*/
+#define IPERF_DEFAULT_SPEED_LIMIT   (-1)
 
 enum {
 	IPERF_STATE_STOPPED = 0,
@@ -59,7 +60,7 @@ extern void sctrl_overclock(int improve);
 #endif
 
 static iperf_param_t s_param = { IPERF_STATE_STOPPED, IPERF_MODE_NONE, NULL, IPERF_PORT};
-
+static int speed_limit = IPERF_DEFAULT_SPEED_LIMIT;
 
 static void iperf_reset(void)
 {
@@ -151,6 +152,20 @@ static int iperf_udp_server_report(uint32_t pkt_len, int lost, int total)
 	return 0;
 }
 
+static int iperf_bw_delay(int send_size)
+{
+	int period_us = 0;
+	float pkts_per_tick = 0;
+
+	if (speed_limit > 0) {
+		pkts_per_tick = speed_limit * 1.0 / (send_size * 8) / 500;
+		period_us = 2000 / pkts_per_tick;
+		os_printf("iperf_size:%d, speed_limit:%d, period_us:%d pkts_per_tick:%.5f\n",
+			send_size, speed_limit, period_us, pkts_per_tick);
+	}
+	return period_us;
+}
+
 static void iperf_client(void *thread_param)
 {
 	int sock, ret;
@@ -160,6 +175,11 @@ static void iperf_client(void *thread_param)
 	uint8_t *send_buf;
 	struct sockaddr_in addr;
 	uint32_t start_tick, retry_cnt = 0;
+	int period_us = 0;
+	int fdelay_us = 0;
+	int64_t prev_time = 0;
+	int64_t send_time = 0;
+	uint32_t now_time = 0;
 
 #if CFG_IPERF_DONT_MALLOC_BUFFER
 	send_buf = &_empty_ram;
@@ -171,6 +191,9 @@ static void iperf_client(void *thread_param)
 	for (i = 0; i < IPERF_BUFSZ; i++)
 		send_buf[i] = i & 0xff;
 #endif
+
+	period_us = iperf_bw_delay(IPERF_BUFSZ);
+
 #if CFG_IPERF_TEST_ACCEL
 	sctrl_overclock(1);
 #endif
@@ -198,13 +221,31 @@ static void iperf_client(void *thread_param)
 		iperf_set_sock_opt(sock);
 		iperf_report_init();
 		start_tick = fclk_get_tick();
+		prev_time = rtos_get_time();
 
 		while (s_param.state == IPERF_STATE_STARTED) {
+			if (speed_limit > 0) {
+				send_time = rtos_get_time();
+				fdelay_us = period_us + (int32_t)(prev_time - send_time) - 8000;
+				prev_time = send_time;
+			}
+			else if (speed_limit == 0) {
+				now_time = rtos_get_time();
+				if ((now_time - prev_time) / 1000 > 0) {
+					prev_time = now_time;
+					rtos_delay_milliseconds(4);
+				}
+			}
+
 			retry_cnt = 0;
 _tx_retry:
 			ret = send(sock, send_buf, IPERF_BUFSZ, 0);
-			if (ret > 0)
+			if (ret > 0) {
 				iperf_report(ret);
+				if (fdelay_us > 0) {
+					rtos_delay_milliseconds(fdelay_us / 1000);
+				}
+			}
 			else {
 				if (s_param.state != IPERF_STATE_STARTED)
 					break;
@@ -355,6 +396,11 @@ static void iperf_udp_client(void *thread_param)
 	uint32_t retry_cnt, *iperf_hdr = NULL;
 	int send_size;
 	int cycle = 7;
+	int period_us = 0;
+	int fdelay_us = 0;
+	int64_t prev_time = 0;
+	int64_t send_time = 0;
+	uint32_t now_time = 0;
 
 	send_size = IPERF_BUFSZ > 1470 ? 1470 : IPERF_BUFSZ;
 	buffer = os_malloc(send_size);
@@ -362,6 +408,8 @@ static void iperf_udp_client(void *thread_param)
 		goto udp_exit;
 	os_memset(buffer, 0x00, send_size);
 	iperf_hdr = (uint32_t*)buffer;
+
+	period_us = iperf_bw_delay(send_size);
 
 #if CFG_IPERF_TEST_ACCEL
 	sctrl_overclock(1);
@@ -380,8 +428,22 @@ static void iperf_udp_client(void *thread_param)
 		iperf_report_init();
 		start_tick = fclk_get_tick();
 		os_printf("iperf udp mode run...\n");
+		prev_time = rtos_get_time();
 
 		while (IPERF_STATE_STARTED == s_param.state) {
+			if (speed_limit > 0) {
+				send_time = rtos_get_time();
+				fdelay_us = period_us + (int32_t)(prev_time - send_time);
+				prev_time = send_time;
+			}
+			else if (speed_limit == 0) {
+				now_time = rtos_get_time();
+				if ((now_time - prev_time) / 1000 > 0) {
+					prev_time = now_time;
+					rtos_delay_milliseconds(4);
+				}
+			}
+
 			packet_count++;
 			retry_cnt = 0;
 			tick = fclk_get_tick();
@@ -392,6 +454,9 @@ tx_retry:
 			ret = sendto(sock, buffer, send_size, 0, (struct sockaddr *)&server, sizeof(struct sockaddr_in));
 			if (ret) {
 				iperf_report(ret);
+				if (fdelay_us > 0) {
+					rtos_delay_milliseconds(fdelay_us / 1000);
+				}
 			}
 			else {
 				retry_cnt ++;
@@ -582,7 +647,7 @@ void iperf_usage(void)
 	os_printf("  -t           time in seconds to transmit for (default 30 secs)\n");
 	os_printf("  -h           print this message and quit\n");
 	os_printf("  --stop       stop iperf program\n");
-
+	os_printf("  -b 	  set iperf bandwidth limit\n");
 	return;
 }
 
@@ -641,13 +706,20 @@ void iperf(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 	int port = IPERF_PORT;
 	int is_server_mode, is_client_mode;
 	uint32_t duration = IPERF_DEFAULT_DURATION;
+	uint32_t value;
+	char *msg = NULL;
 
 	/* check parameters of command line*/
-	if (iperf_param_find(argc, argv, "-h") || (argc == 1))
-		goto __usage;
-	else if (iperf_param_find(argc, argv, "--stop")
+	if (iperf_param_find(argc, argv, "-h") || (argc == 1)) {
+		iperf_usage();
+		msg = CLI_CMD_RSP_SUCCEED;
+		os_memcpy(pcWriteBuffer, msg, os_strlen(msg));
+		return;
+	} else if (iperf_param_find(argc, argv, "--stop")
 			 || iperf_param_find(argc, argv, "-stop")) {
 		iperf_stop();
+		msg = CLI_CMD_RSP_SUCCEED;
+		os_memcpy(pcWriteBuffer, msg, os_strlen(msg));
 		return;
 	}
 
@@ -696,12 +768,46 @@ void iperf(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 			duration = atoi(argv[id + 1]);
 	}
 
+	id = iperf_param_find_id(argc, argv, "-b");
+	if (IPERF_INVALID_INDEX != id) {
+		if (argv[id + 1] == NULL) {
+			speed_limit = 0;
+		}
+		else {
+			speed_limit = atoi(argv[id + 1]);
+
+			if ((speed_limit == 0) || argc - 1 < id + 1)
+				goto __usage;
+
+			value = os_strlen(argv[id + 1]);
+			if (value > 1) {
+				if (argv[id + 1][value - 1] == 'k') {
+					speed_limit *= 1000;
+				} else if (argv[id + 1][value - 1] == 'K') {
+					speed_limit *= 1024;
+				} else if (argv[id + 1][value - 1] == 'm') {
+					speed_limit *= 1000 * 1000;
+				} else if (argv[id + 1][value - 1] == 'M') {
+					speed_limit *= 1024 * 1024;
+				} else {
+					goto __usage;
+				}
+			} else {
+				goto __usage;
+			}
+		}
+	}
+
 	iperf_start(mode, host, port, duration);
+	msg = CLI_CMD_RSP_SUCCEED;
+	os_memcpy(pcWriteBuffer, msg, os_strlen(msg));
 
 	return;
 
 __usage:
 	iperf_usage();
+	msg = CLI_CMD_RSP_ERROR;
+	os_memcpy(pcWriteBuffer, msg, os_strlen(msg));
 
 	return;
 }

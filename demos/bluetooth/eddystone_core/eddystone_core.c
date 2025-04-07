@@ -11,6 +11,7 @@
 #include "ble_api_5_x.h"
 #include "app_ble.h"
 #include "gatt.h"
+#include "kernel_mem.h"
 
 typedef struct {
 	ble_ecs_brdcst_cap_t    brdcst_cap;
@@ -251,70 +252,87 @@ ble_err_t bk_ble_read_event_private(void *param)
 
 	if (r_req->att_idx == EDDYSTONE_LOCK_STATE_VALUE) {
 		r_req->length = sizeof(init_params.lock_state.read);
+		r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
+
 		memcpy(&(r_req->value[0]), &(init_params.lock_state.read), r_req->length);
 	} else if ((r_req->att_idx == EDDYSTONE_UNLOCK_VALUE) && (init_params.lock_state.read == BLE_ECS_LOCK_STATE_LOCKED)) {
 		r_req->length = ECS_KEY_SIZE;
+		r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
+
 		for (int i = 0;i < ECS_KEY_SIZE;i++) {
 			extern int bk_rand();
 			init_params.unlock.lock[i] = (uint8_t)bk_rand();
 		}
+
 		memcpy(&(r_req->value[0]), &(init_params.unlock.lock), r_req->length);
 	} else if (init_params.lock_state.read == BLE_ECS_LOCK_STATE_UNLOCKED) {
 		switch (r_req->att_idx) {
 			case EDDYSTONE_BRDCST_CAP_VALUE:
 			{
 				r_req->length = sizeof(init_params.brdcst_cap);
+				r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
 				memcpy(&(r_req->value[0]), &(init_params.brdcst_cap), r_req->length);
 				break;
 			}
 			case EDDYSTONE_ACTIVE_SLOT_VALUE:
 			{
 				r_req->length = sizeof(init_params.active_slot);
+				r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
 				memcpy(&(r_req->value[0]), &(init_params.active_slot), r_req->length);
 				break;
 			}
 			case EDDYSTONE_ADV_INTRVL_VALUE:
 			{
 				r_req->length = sizeof(init_params.adv_intrvl);
+				r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
 				memcpy(&(r_req->value[0]), &(init_params.adv_intrvl), r_req->length);
 				break;
 			}
 			case EDDYSTONE_RADIO_TX_PWR_VALUE:
 			{
 				r_req->length = sizeof(init_params.radio_tx_pwr);
+				r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
 				memcpy(&(r_req->value[0]), &(init_params.radio_tx_pwr), r_req->length);
 				break;
 			}
 			case EDDYSTONE_ADV_TX_PWR_VALUE:
 			{
 				r_req->length = sizeof(init_params.adv_tx_pwr);
+				r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
 				memcpy(&(r_req->value[0]), &(init_params.adv_tx_pwr), r_req->length);
 				break;
 			}
 			case EDDYSTONE_PUBLIC_ECDH_KEY_VALUE:
 			{
+				r_req->length = 32;
+				r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
+
 				for (uint8_t i = 0 ; i < 32; i++) {
 					extern int bk_rand();
 					r_req->value[i] = (uint8_t)bk_rand();
 				}
-				r_req->length = 32;
+
 				break;
 			}
 			case EDDYSTONE_EID_ID_KEY_VALUE:
 			{
+				r_req->length = ECS_KEY_SIZE;
+				r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
+
 				for (int i = 0;i < ECS_KEY_SIZE;i++) {
 					extern int bk_rand();
 					r_req->value[i] = (uint8_t)bk_rand();
 				}
-				r_req->length = ECS_KEY_SIZE;
+
 				break;
 			}
 			case EDDYSTONE_RW_ADV_SLOT_VALUE:
 			{
 				if (init_params.active_slot == 0) {
 					ble_eddystone_adv_data_get();
-					memcpy(r_req->value, data_adv, data_length);
 					r_req->length = data_length;
+					r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
+					memcpy(r_req->value, data_adv, data_length);
 				} else {
 					r_req->length = 0;
 				}
@@ -323,7 +341,9 @@ ble_err_t bk_ble_read_event_private(void *param)
 			case EDDYSTONE_REMAIN_CONN_VALUE:
 			{
 				r_req->length = sizeof(init_params.remain_conn);
+				r_req->value = kernel_malloc(r_req->length, KERNEL_MEM_KERNEL_MSG);
 				memcpy(&(r_req->value[0]), &(init_params.remain_conn), r_req->length);
+
 				if (init_params.remain_conn == 0x1) {
 					ble_eddystone_post_msg(EDDYSTONE_ADV_EVENT, NULL, 0);
 				}
@@ -336,6 +356,20 @@ ble_err_t bk_ble_read_event_private(void *param)
 	} else {
 		r_req->length = 0;
 	}
+
+	app_gatts_rsp_t rsp;
+
+	rsp.token = r_req->token;
+	rsp.con_idx = r_req->conn_idx;
+	rsp.attr_handle = r_req->hdl;
+	rsp.status = GAP_ERR_NO_ERROR;
+	rsp.att_length = r_req->length;
+	rsp.value_length = r_req->length;
+	rsp.value = r_req->value;
+
+	bk_ble_gatts_read_response(&rsp);
+	kernel_free(r_req->value);
+
 	return retval;
 }
 
@@ -379,10 +413,9 @@ ble_err_t bk_ble_disconnect_event_private(void *param)
 ble_err_t bk_ble_init_conn_papam_update_data_req_event_private(void *param)
 {
 	uint16_t retval = BK_ERR_BLE_SUCCESS;
-	conn_param_t *d_ind = (conn_param_t *)param;
+	conn_param_req_t *d_ind = (conn_param_req_t *)param;
 	bk_printf("CONN_PARAM_UPDATE:conn_idx:%d,intv_min:%d,intv_max:%d,time_out:%d\r\n",d_ind->conn_idx,
 				d_ind->intv_min,d_ind->intv_max,d_ind->time_out);
-	app_ble_send_conn_param_update_cfm(d_ind->conn_idx, true);
 	return retval;
 }
 

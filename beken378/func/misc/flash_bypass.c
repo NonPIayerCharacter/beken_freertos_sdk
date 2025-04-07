@@ -9,7 +9,7 @@
 #include "sys_ctrl.h"
 #if (CFG_SOC_NAME == SOC_BK7221U)
 #include "spi.h"
-#elif(CFG_SOC_NAME == SOC_BK7238)
+#elif(CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #include "spi_bk7231n.h"
 #endif
 #include "icu.h"
@@ -215,7 +215,7 @@ wr_exceptional:
 
 	return exceptional_flag;
 }
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 int flash_bypass_op_read(uint8_t *tx_buf, uint32_t tx_len, uint8_t *rx_buf, uint32_t rx_len)
 {
 	uint32_t intc_enable_reg, reg;
@@ -237,7 +237,7 @@ int flash_bypass_op_read(uint8_t *tx_buf, uint32_t tx_len, uint8_t *rx_buf, uint
 	reg_dat  = REG_READ(SPI_DAT);
 
 	/*step 2, resident cache*/
-	// link this function to itcm on bk7238
+	// link this function to itcm on bk7238 and bk7252n
 
 	/*step 3, config spi master*/
 	/*     3.1 clear spi fifo content*/
@@ -491,7 +491,7 @@ int flash_bypass_op_write(uint8_t *op_code, uint8_t *tx_buf, uint32_t tx_len)
 	reg_dat  = REG_READ(SPI_DAT);
 
 	/*step 2, resident cache*/
-	// link this function to itcm on bk7238
+	// link this function to itcm on bk7238 and bk7252n
 
 	/*step 3, config spi master*/
 	/*     3.1 clear spi fifo content*/
@@ -700,7 +700,7 @@ int flash_bypass_wr_sr_cb(uint32_t larg, uint32_t rarg)
 }
 #endif
 
-#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7238))
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7238)) || (CFG_SOC_NAME == SOC_BK7252N)
 uint32_t flash_bypass_operate_sr_init(void)
 {
 	flash_register_bypass_cb(flash_bypass_wr_sr_cb);

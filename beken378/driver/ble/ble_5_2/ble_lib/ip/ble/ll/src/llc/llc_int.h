@@ -1007,8 +1007,17 @@ void llc_proc_timer_pause_set(uint8_t link_id, uint8_t proc_type, bool enable);
  */
 uint8_t llc_proc_collision_check(uint8_t link_id, uint8_t proc_id);
 
-
-
+/**
+ ****************************************************************************************
+ * @brief This function is used to read the current transmitter PHY and receiver PHY
+           on the connection identified by remote address.
+ *
+ * @param[in]  link_id     Link Identifier
+ * @param[out] rx_phy      the current receiver PHY
+ * @param[out] tx_phy      the current transmitter PHY
+ ****************************************************************************************
+ */
+int hci_ble_read_phy(uint8_t link_id, uint8_t *rx_phy, uint8_t *tx_phy);
 
 /* ************************************************************************************ */
 /* *************************             HCI HELPERS             ********************** */

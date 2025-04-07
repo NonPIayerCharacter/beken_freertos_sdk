@@ -7,6 +7,9 @@
 ////Difference between pieces
 #define DIFFERENCE_PIECES_CFG        0
 
+#define POWER_TABLE_11B_1DB_STEP (4) /* refer to cfg_tab_b, 0.50db for each step */
+#define POWER_TABLE_11G_1DB_STEP (4) /* refer to cfg_tab_g, 0.25db for each step */
+
 void delay05us(INT32 num);
 
 #define trx_reg_is_write(st_trxreg)     while(BK7238_RC_REG.REG0x1->value & st_trxreg) 	{cpu_delay(1);}

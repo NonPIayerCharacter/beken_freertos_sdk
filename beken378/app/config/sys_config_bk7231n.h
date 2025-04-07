@@ -52,9 +52,10 @@
 
 /*section 2-----function macro config-----*/
 #define CFG_SUPPORT_MATTER                         0
-
-#define CFG_TX_EVM_TEST                            0
-#define CFG_RX_SENSITIVITY_TEST                    0
+#define CFG_RWNX_REODER                            0
+#define CFG_FORCE_RATE                             0
+#define CFG_TX_EVM_TEST                            1
+#define CFG_RX_SENSITIVITY_TEST                    1
 #define CFG_AP_MONITOR_COEXIST                     0
 #if CFG_AP_MONITOR_COEXIST
 #define CFG_AP_MONITOR_COEXIST_DEMO                0
@@ -82,6 +83,11 @@
 #define CFG_RWNX_QOS_MSDU                          1
 #define CFG_WLAN_FAST_CONNECT                      0
 #if CFG_WLAN_FAST_CONNECT
+#define CFG_WLAN_FAST_CONNECT_STATIC_IP            0
+#define CFG_WLAN_SUPPORT_FAST_DHCP                 0
+#if (CFG_WLAN_FAST_CONNECT_STATIC_IP && CFG_WLAN_SUPPORT_FAST_DHCP)
+#error "static ip support and fast dhcp support cannot be opened at the same time"
+#endif
 /* fast connect will connects to AP without any scan */
 #define CFG_WLAN_FAST_CONNECT_WITHOUT_SCAN         0
 /* fast connect will disconnect with AP first before AUTH */
@@ -102,6 +108,10 @@
 #define CFG_WIFI_AP_CUSTOM_RATES                   0
 /* repush txdesc when txl_reset happens */
 #define CFG_WIFI_REPUSH_WHEN_RESET                 0
+/* Send deauth before sending auth to AP */
+#define CFG_WIFI_DEAUTH_BEFORE_AUTH                0
+/* Connection retry support*/
+#define CFG_STA_AUTO_RECONNECT                     0
 
 /*Use macro to shut down some unused functions*/
 #define CFG_WPA_MAYBE_UNUSED                       1
@@ -164,6 +174,9 @@
 #define CFG_EASY_FLASH                             0
 #define CFG_AP_SUPPORT_HT_IE                       0
 #define CFG_SUPPORT_BSSID_CONNECT                  0
+#if CFG_SUPPORT_BSSID_CONNECT
+#define CFG_BSSID_FAST_CONNECT                     0
+#endif
 #define CFG_USE_CONV_UTF8                          0
 #define CFG_BK_AWARE                               0
 #define CFG_BK_AWARE_OUI                           "\xC8\x47\x8C"
@@ -247,6 +260,7 @@
 #define SOC_BK7271                                 4
 #define SOC_BK7231N                                5
 #define CFG_SOC_NAME                               SOC_BK7231N
+#define CFG_SOC_NAME_STR                           "bk7231n"
 
 #if ((SOC_BK7231N == CFG_SOC_NAME) && CFG_JTAG_ENABLE && CFG_SUPPORT_SARADC)
 #error "jtag and saradc are using the same gpio"

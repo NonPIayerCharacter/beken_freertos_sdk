@@ -9,6 +9,7 @@ typedef enum{
     TXPWR_TAB_TAB               = 0x22222200,
     CALI_MAIN_TX                = 0x33333300,
     CALI_MAIN_RX                = 0x44444400,
+    TXPWR_TAB_TAB_V2            = 0x55555500,
     TXEND                       = 0xeeeeeeee,
     TXNON                       = 0xffffffff
 }TXSTRUCT;
@@ -16,7 +17,7 @@ typedef enum{
 #define DEFAULT_TXID_ID           (12345678)
 #if (CFG_SOC_NAME == SOC_BK7231N)
 #define DEFAULT_TXID_THERMAL      (330)
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define DEFAULT_TXID_THERMAL      (255)
 #else
 #define DEFAULT_TXID_THERMAL      (280) //180430,7231:315,7231U:340
@@ -97,13 +98,13 @@ typedef struct {
     INT8 p_index_delta_ble;
 } VOLT_PWR_ST, *VOLT_PWR_PTR;
 
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 typedef struct tmp_pwr_st {
-    unsigned trx0x0c_12_15 : 4; //not used on BK7238 actually
+    unsigned trx0x0c_12_15 : 4; //not used on (BK7238 and BK7252N) actually
     signed p_index_delta : 6;
     signed p_index_delta_g : 6;
     signed p_index_delta_ble : 6;
-    signed xtal_c_dlta : 10; //8bits xtalh_ctune on BK7238
+    signed xtal_c_dlta : 10; //8bits xtalh_ctune on (BK7238 and BK7252N)
 } TMP_PWR_ST, *TMP_PWR_PTR;
 #elif (CFG_SOC_NAME == SOC_BK7231N)
 typedef struct tmp_pwr_st {//do
@@ -150,7 +151,7 @@ typedef enum
 #define TEMPERATURE_HIGH 95
 
 
-extern void manual_cal_load_bandgap_calm(void);
+extern UINT32 manual_cal_load_bandgap_calm(void);
 void bk7011_cal_vdddig_by_temperature(temperature_type new_temperature_type);
 void bk7011_update_by_temperature(INT16 temp_code, UINT16 cur_val);
 
@@ -168,6 +169,7 @@ extern void rwnx_cal_en_rx_filter_offset(void);
 extern void rwnx_cal_dis_rx_filter_offset(void);
 extern void rwnx_cal_set_txpwr(UINT32 pwr_gain, UINT32 grate);
 extern UINT32 manual_cal_get_pwr_idx_shift(UINT32 rate, UINT32 bandwidth, UINT32 *pwr_gain);
+extern UINT32 manual_cal_get_pwr_idx_shift_fcc(UINT32 rate, UINT32 bandwidth, UINT32 *pwr_gain);
 extern int manual_cal_get_txpwr(UINT32 rate, UINT32 channel, UINT32 bandwidth, UINT32 *pwr_gain);
 extern void manual_cal_save_txpwr(UINT32 rate, UINT32 channel, UINT32 pwr_gain);
 #if (CFG_SOC_NAME != SOC_BK7231)
@@ -235,7 +237,7 @@ extern void rwnx_cal_set_txpwr_for_ble_boardcast(void);
 extern void bk7011_set_rf_config_tssithred_b(int tssi_thred_b);
 extern void bk7011_set_rf_config_tssithred_g(int tssi_thred_g);
 extern void rwnx_cal_recover_txpwr_for_wifi(void);
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 extern void rwnx_cal_recover_rf_setting(void);
 extern void rwnx_cal_recover_wifi_setting(void);
 extern UINT32 bk7011_get_power_gain(void);
@@ -303,5 +305,11 @@ extern void cmd_rfcali_cfg_tssi_b(char *pcWriteBuffer, int xWriteBufferLen, int 
 extern void cmd_rfcali_show_data(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv);
 extern void cmd_rfcali_cfg_tssi_n20(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv);
 extern void cmd_rfcali_cfg_tssi_n40(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv);
+
+uint8_t manual_cal_get_ble_pwr_idx(uint8_t channel);
+void ble_cal_set_txpwr(uint8_t idx);
+
+int manual_cal_set_targetpwr(UINT32 rate, float pwr_dBm);
+float manual_cal_get_targetpwr(UINT32 rate);
 
 #endif // _BK7011_CAL_PUB_H_

@@ -314,8 +314,10 @@ typedef struct gapm_env_
     uint8_t         priv_cfg;
     /// Device Role
     uint8_t         role;
-    /// Number of BLE connection
-    uint8_t         connections;
+    /// Number of BLE master connection
+    uint8_t         connections_master;
+    /// Number of BLE slave connection
+    uint8_t         connections_slave;
     /// Pairing mode authorized (@see enum gapm_pairing_mode)
     uint8_t         pairing_mode;
 
@@ -348,9 +350,10 @@ typedef struct gapm_env_
     uint8_t         created_actvs;
     /// Number of started activities
     uint8_t         started_actvs;
-    /// Number of started activities that can lead to connection establishment (connectable
-    /// advertising or initiating)
-    uint8_t         connect_actvs;
+    /// Number of started activities that can lead to connection establishment (connectable advertising)
+    uint8_t         connect_adv_actvs;
+    /// Number of started activities that can lead to connection establishment (initiating)
+    uint8_t         connect_init_actvs;
     /// Number of devices in the white list
     uint8_t         nb_dev_wl;
     /// State of GAPM ADDR module

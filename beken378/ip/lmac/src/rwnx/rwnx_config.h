@@ -101,13 +101,13 @@
 #endif // CONFIG_IEEE80211N
 
 #if CFG_IEEE80211W
-#define CFG_MFP				1
+#define CFG_MFP                1
 #endif
 
 #if CFG_SME
-#define NX_HOST_SME			1
+#define NX_HOST_SME            1
 #else
-#define NX_HOST_SME			0
+#define NX_HOST_SME            0
 #endif
 
 #if CFG_WIFI_P2P
@@ -215,10 +215,10 @@
 
 /// Define the Aggregation+Block Ack option for TX
 #if defined CFG_AGG
-	#define NX_AMPDU_TX          1
+    #define NX_AMPDU_TX          1
     #define NX_MAX_BA_TX         CFG_BATX
 #if (NX_MAX_BA_TX == 0)
-	#error "At least one BA TX agreement shall be allowed"
+    #error "At least one BA TX agreement shall be allowed"
 #endif
 
 #else
@@ -461,7 +461,7 @@
 #define RW_NX_AGC_SNR_EN                1
 
 /// Number of TX frame descriptors and buffers available for frames generated internally
-#define NX_TXFRAME_CNT       NX_VIRT_DEV_MAX + RW_BFR_TXFRAME_CNT
+#define NX_TXFRAME_CNT       (NX_VIRT_DEV_MAX + RW_BFR_TXFRAME_CNT + 1)
 
 /// Maximum size of a TX frame generated internally
 #if (NX_P2P)
@@ -587,9 +587,6 @@
 #define BK_NX_CHAN                  1
 /* BK macro in IP */
 #define BK_NX_CONNECTION_MONITOR    1
-
-/// Send deauth before sending auth to AP
-//#define BK_DEAUTH_BEFORE_CONNECT    1
 
 /// Send null frames to AP after associated with AP to accelerate AP sending 1/4 EAPoL frame
 // #define BK_SEND_NULL_AFTER_ASSOC    1

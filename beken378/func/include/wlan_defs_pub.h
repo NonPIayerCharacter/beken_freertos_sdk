@@ -2,6 +2,7 @@
 #define _NET_WLAN_WLAN_DEFS_H_
 
 #include <stdint.h>
+#include "rw_msg_pub.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -304,6 +305,26 @@ typedef struct wlan_gen_psk_param {
 typedef struct wlan_sta_wps_pin {
 	char pin[9];
 } wlan_sta_wps_pin_t;
+
+/**
+ * @brief Wlan auto reconnect definition
+ *
+ * count     auto reconnect retry count, 0 for no restrict
+ * timeout   auto reconnect timeout, 0 for no restrict
+ * disable_reconnect_when_disconnect  disable reconnect when disconnect by AP if current
+ *           state is connect with AP.
+ */
+typedef struct wlan_auto_reconnect {
+	int max_count;
+	int timeout;
+	//bool disable_reconnect_when_disconnect;
+	unsigned int disable_reconnect_when_disconnect;
+} wlan_auto_reconnect_t;
+
+typedef struct {
+	int disconnect_reason;                /**< Disconnect reason of BK STA */
+	bool local_generated;                 /**< if disconnect is request by local */
+} wifi_event_sta_disconnected_t;
 
 /**
  * @brief Wlan AP configuration field definition

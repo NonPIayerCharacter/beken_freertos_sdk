@@ -337,6 +337,16 @@ typedef struct bk_prf_char_def
     /// Characteristic properties
     uint8_t prop;
 } bk_prf_char_def_t;
+
+typedef volatile union
+{
+    struct {
+        uint16_t att_idx     :8;
+        uint16_t prf_id      :4;
+        uint16_t prop        :4;
+    };
+    uint16_t gatts_dummy;
+}gatts_dummy_t;
 /*
  * CALLBACK FUNCTION DEFINITIONS
  ****************************************************************************************

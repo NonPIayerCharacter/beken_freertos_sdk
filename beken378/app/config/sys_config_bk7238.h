@@ -53,7 +53,8 @@
 
 /*section 2-----function macro config-----*/
 #define CFG_SUPPORT_MATTER                         0
-
+#define CFG_RWNX_REODER                            0
+#define CFG_FORCE_RATE                             0
 #define CFG_TX_EVM_TEST                            0
 #define CFG_RX_SENSITIVITY_TEST                    0
 #define CFG_AP_MONITOR_COEXIST                     0
@@ -67,6 +68,13 @@
 #define CFG_WPA_CTRL_IFACE                         1
 #define CFG_RWNX_QOS_MSDU                          1
 #define CFG_WLAN_FAST_CONNECT                      0
+#if CFG_WLAN_FAST_CONNECT
+#define CFG_WLAN_FAST_CONNECT_STATIC_IP            0
+#define CFG_WLAN_SUPPORT_FAST_DHCP                 0
+#if (CFG_WLAN_FAST_CONNECT_STATIC_IP && CFG_WLAN_SUPPORT_FAST_DHCP)
+#error "static ip support and fast dhcp support cannot be opened at the same time"
+#endif
+#endif
 #define CFG_WPA2_ENTERPRISE                        0
 #define CFG_WPA3_ENTERPRISE                        0
 /* WPS(WSC) Support */
@@ -82,6 +90,8 @@
 #define CFG_WIFI_AP_CUSTOM_RATES                   0
 /* repush txdesc when txl_reset happens */
 #define CFG_WIFI_REPUSH_WHEN_RESET                 0
+/* Send deauth before sending auth to AP */
+#define CFG_WIFI_DEAUTH_BEFORE_AUTH                0
 
 /*Use macro to shut down some unused functions*/
 #define CFG_WPA_MAYBE_UNUSED                       1
@@ -217,6 +227,7 @@
 #define SOC_BK7236                                 6
 #define SOC_BK7238                                 7
 #define CFG_SOC_NAME                               SOC_BK7238
+#define CFG_SOC_NAME_STR                           "bk7238"
 
 /*section 7-----calibration*/
 #if (CFG_RUNNING_PLATFORM == FPGA_PLATFORM)
@@ -262,6 +273,7 @@
 #define CFG_USE_FAKERTC_PS                         0
 #define CFG_LOW_VOLTAGE_PS                         1
 #define CFG_LOW_VOLTAGE_PS_32K_DIV                 0
+#define CFG_LOW_VOLTAGE_PS_COEXIST                 0
 #define CFG_LOW_VOLTAGE_PS_TEST                    0
 
 #if( ( CFG_SUPPORT_ALIOS ) || ( CFG_SUPPORT_RTT ) )
@@ -385,10 +397,18 @@
 #endif
 
 /* watchdog, freertos only */
+#if CFG_JTAG_ENABLE
+#define CFG_INT_WDG_ENABLED                        0
+#define CFG_INT_WDG_PERIOD_MS                      10000
+/*if use DUMP_STACK_WHEN_TASK_WDG_TIGGERED ,please pay attention to xTaskGetStackInfo !!!*/
+#define CFG_TASK_WDG_ENABLED                       0
+#define CFG_TASK_WDG_PERIOD_MS                     60000
+#else
 #define CFG_INT_WDG_ENABLED                        1
 #define CFG_INT_WDG_PERIOD_MS                      10000
 #define CFG_TASK_WDG_ENABLED                       1
 #define CFG_TASK_WDG_PERIOD_MS                     60000
+#endif
 
 /*section 29 -----  peripheral interface open  */
 #define CFG_USE_I2C1                               0
@@ -447,5 +467,7 @@
 #endif // (CFG_USE_MBEDTLS == 0)
 #define CFG_USE_SOFT_RTC                           1
 #endif // (AT_SERVICE_CFG)
+
+#define CFG_DEFAULT_ADC_HIGH_BITS                  0x84
 
 #endif // _SYS_CONFIG_H_

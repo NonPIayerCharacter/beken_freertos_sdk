@@ -1,6 +1,7 @@
 #ifndef _RC_BEKEN_H_
 #define _RC_BEKEN_H_
 
+// rc_beken.h does not be comfigured in bk7252n
 #define BASEADDR_RC_BEKEN                                       0x01050000
 
 //ADDRC_BEKEN_REG0x0

@@ -15,6 +15,7 @@ typedef enum
     TYPE_5FPS            = 0,
     TYPE_10FPS,
     TYPE_20FPS,
+    TYPE_30FPS,
     FPS_MAX
 } FPS_TYPE; // frame per second
 

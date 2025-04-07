@@ -129,6 +129,8 @@
 #define CFG_BK_AWARE_OUI                           "\xC8\x47\x8C"
 #define CFG_RESTORE_CONNECT                        0
 #define CFG_QUICK_TRACK                            0
+#define CFG_RWNX_REODER                            0
+#define CFG_FORCE_RATE                             0
 
 /* use mbedtls as wpa crypto functions */
 #define CFG_USE_MBEDTLS                            0
@@ -201,6 +203,7 @@
 #define SOC_BK7231N                                5
 #define SOC_BK7236                                 6
 #define CFG_SOC_NAME                               SOC_BK7236
+#define CFG_SOC_NAME_STR                           "bk7236"
 
 /*section 7-----calibration*/
 #if (CFG_RUNNING_PLATFORM == FPGA_PLATFORM)

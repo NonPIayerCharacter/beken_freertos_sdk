@@ -47,7 +47,7 @@ typedef void (*PFUNC)(UINT8);
 #define PWM_INT_EN               (0x01)
 #define PWM_INT_DIS              (0x00)
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define PWM_IDLE_MODE               (0x00)
 #define PWM_PWM_MODE                (0x01)
 #define PWM_TIMER_MODE              (0x02)
@@ -75,7 +75,7 @@ typedef struct
         UINT8 val;
         struct
         {
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
             /* cfg--PWM config
                * bit[2:0]: PWM mode selection
                *           000:IDLE
@@ -131,7 +131,7 @@ typedef struct
 #if (CFG_SOC_NAME == SOC_BK7231)
     UINT16 end_value;
     UINT16 duty_cycle;
-#elif (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     UINT32 end_value;
     UINT32 duty_cycle1;
     UINT32 duty_cycle2;

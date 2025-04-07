@@ -1,5 +1,6 @@
 #include "include.h"
 #include "rw_pub.h"
+#include "rw_msg_pub.h"
 #include "vif_mgmt.h"
 #include "sa_station.h"
 #include "param_config.h"
@@ -65,7 +66,9 @@
 #include "low_voltage_ps.h"
 #include "intc_pub.h"
 #include "arm_arch.h"
-
+#if CFG_WLAN_SUPPORT_FAST_DHCP
+#include "lwip/inet.h"
+#endif
 monitor_cb_t g_monitor_cb = 0;
 unsigned char g_monitor_is_not_filter = 0;
 static monitor_cb_t g_bcn_cb = 0;
@@ -89,6 +92,11 @@ static uint8_t g_ap_channel = DEFAULT_CHANNEL_AP;
 extern void phy_enable_lsig_intr(void);
 extern void phy_disable_lsig_intr(void);
 extern void sta_ip_get_start_time(void);
+#if CFG_WLAN_SUPPORT_FAST_DHCP
+extern void dhcp_set_fast_dhcp_ip_address(ip4_addr_t ip);
+#endif
+extern int manual_cal_get_tx_power(wifi_standard standard, float *powerdBm);
+extern int manual_cal_set_tx_power(wifi_standard standard, float powerdBm);
 
 
 #if !CFG_IEEE80211AX
@@ -212,7 +220,12 @@ uint8_t bk_wlan_has_role(uint8_t role)
     vif_entry = (VIF_INF_PTR)rwm_mgmt_is_vif_first_used();
     while(vif_entry)
     {
-        if(vif_entry->type == role)
+        if(role == VIF_STA)
+        {
+            if(g_sta_param_ptr->ssid.length)
+                role_count ++ ;
+        }
+        else if(vif_entry->type == role)
         {
             role_count ++ ;
         }
@@ -420,7 +433,7 @@ void bk_reboot_with_type(RESET_SOURCE_STATUS type)
 #endif
     {
         os_printf("wdt reboot\r\n");
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         delay_ms(100); //add delay for bk_writer BEKEN_DO_REBOOT cmd
 #endif
         sddev_control(WDT_DEV_NAME, WCMD_SET_PERIOD, &wdt_val);
@@ -683,6 +696,13 @@ void bk_wlan_sta_init(network_InitTypeDef_st *inNetworkInitPara)
             inet_aton(inNetworkInitPara->net_mask, &(g_wlan_general_param->ip_mask));
             inet_aton(inNetworkInitPara->gateway_ip_addr, &(g_wlan_general_param->ip_gw));
         }
+
+#if CFG_STA_AUTO_RECONNECT
+            g_sta_param_ptr->auto_reconnect_count = inNetworkInitPara->auto_reconnect_count;
+            g_sta_param_ptr->auto_reconnect_timeout = inNetworkInitPara->auto_reconnect_timeout;
+            g_sta_param_ptr->disable_auto_reconnect_after_disconnect =
+                    inNetworkInitPara->disable_auto_reconnect_after_disconnect;
+#endif
     }
 
 #if CFG_ROLE_LAUNCH
@@ -707,7 +727,7 @@ void bk_wlan_sta_init(network_InitTypeDef_st *inNetworkInitPara)
     bk_wlan_register_bcn_cb(wlan_ui_bcn_callback);
 }
 
-#if CFG_WPA_CTRL_IFACE && CFG_WLAN_FAST_CONNECT
+#if CFG_WPA_CTRL_IFACE && (CFG_WLAN_FAST_CONNECT || CFG_BSSID_FAST_CONNECT)
 #if (FAST_CONNECT_INFO_ENC_METHOD == ENC_METHOD_XOR)
 void fc_info_enc(struct wlan_fast_connect_info *fci)
 {
@@ -788,15 +808,22 @@ void wlan_read_fast_connect_info(struct wlan_fast_connect_info *fci)
 void wlan_write_fast_connect_info(struct wlan_fast_connect_info *fci)
 {
 	uint32_t status;
-	struct wlan_fast_connect_info pre_fci;
+	struct wlan_fast_connect_info *pre_fci;
 	uint32_t protect_flag, protect_param;
 	DD_HANDLE flash_hdl;
 
+	pre_fci = os_malloc(sizeof(struct wlan_fast_connect_info));
+
+	if (pre_fci == NULL) {
+		bk_printf("pre_fci malloc failed!\n");
+		goto wr_exit;
+	}
+
 	/* obtain the previous bssid info*/
-	wlan_read_fast_connect_info(&pre_fci);
+	wlan_read_fast_connect_info(pre_fci);
 
 	/* if different, save the latest information about fast connection*/
-	if (!os_memcmp(&pre_fci, fci, sizeof(*fci)))
+	if (!os_memcmp(pre_fci, fci, sizeof(*fci)))
 		goto wr_exit;
 
 	/* write flash and save the information about fast connection*/
@@ -816,6 +843,8 @@ void wlan_write_fast_connect_info(struct wlan_fast_connect_info *fci)
     bk_printf("writed fci to flash\n");
 
 wr_exit:
+	if (pre_fci)
+		os_free(pre_fci);
 	return;
 }
 #endif
@@ -873,26 +902,123 @@ void wlan_send_disconnect_after_reboot(uint16_t freq, uint8_t *bssid, uint8_t *s
 }
 #endif
 
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+static UINT8 rl_use_ip_mode = DHCP_DISABLE;
+
+void bk_wlan_set_fast_connect_us_ip_mode(UINT8 mode)
+{
+	// please set ip mode before connect
+	GLOBAL_INT_DECLARATION();
+	GLOBAL_INT_DISABLE();
+
+	if(mode == DHCP_DISABLE)
+		rl_use_ip_mode = DHCP_DISABLE;
+	else
+		rl_use_ip_mode = DHCP_CLIENT;
+
+	GLOBAL_INT_RESTORE();
+}
+
+static UINT8 __maybe_unused bk_wlan_get_fast_connect_us_ip_mode(void)
+{
+	return rl_use_ip_mode;
+}
+
+static bool bk_wlan_fci_net_info_valid(struct wlan_fast_connect_info *fci)
+{
+	uint8_t *pattern = (uint8_t *)IP_STATUS_VALID;
+
+	if (os_memcmp(fci->net_info.mac, pattern, sizeof(IP_STATUS_VALID)) == 0)
+		return true;
+
+	return false;
+}
+#endif
+
+int bk_wlan_clear_fci_net_info(void)
+{
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+	UINT32 status;
+	DD_HANDLE flash_hdl;
+	uint8_t protect_flag, protect_param;
+	struct wlan_fast_connect_info *fci;
+	uint8_t *psk = (uint8_t *)IP_STATUS_VALID;
+#if CFG_WLAN_SUPPORT_FAST_DHCP
+	ip4_addr_t zero = {.addr = 0};
+#endif
+	//clear fci info
+	os_memset(&fci, 0, sizeof(fci));
+
+	//read back from flash
+	wlan_read_fast_connect_info(fci);
+
+	//check pattern
+	if (0 != os_memcmp(fci->net_info.mac, psk, sizeof(IP_STATUS_VALID)))
+		return 1;
+
+	//clear network info
+	os_memset (&fci->net_info, 0, sizeof(fci->net_info));
+
+	//write back to flash
+	flash_hdl = ddev_open(FLASH_DEV_NAME, &status, 0);
+	ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, &protect_flag);
+	protect_param = FLASH_PROTECT_NONE;
+	ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, (void *)&protect_param);
+	bk_flash_erase(BK_PARTITION_NET_PARAM, 0,4096);
+	//encrypt fci info
+#if (FAST_CONNECT_INFO_ENC_METHOD != ENC_METHOD_NULL)
+	fc_info_enc(&fci);
+#endif
+	bk_flash_write(BK_PARTITION_NET_PARAM, 0,(uint8 *)fci,sizeof(*fci));
+	ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_flag);
+	ddev_close(flash_hdl);
+#if CFG_WLAN_SUPPORT_FAST_DHCP
+	dhcp_set_fast_dhcp_ip_address(zero);
+#endif
+	bk_printf("clear only fci-net info\r\n");
+
+#endif
+
+	return 1;
+}
 
 OSStatus bk_wlan_start_sta(network_InitTypeDef_st *inNetworkInitPara)
 {
 	size_t psk_len = 0;
 	u8 *psk = 0;
 
+#if CFG_STA_AUTO_RECONNECT
+	wlan_auto_reconnect_t ar;
+#endif
+
 #if CFG_WPA_CTRL_IFACE
-#if CFG_WLAN_FAST_CONNECT
+#if CFG_WLAN_FAST_CONNECT || CFG_BSSID_FAST_CONNECT
 	struct wlan_fast_connect_info fci;
 	int ssid_len, req_ssid_len;
 	bool fci_valid __maybe_unused = false;
 	bool fast_connect __maybe_unused = false;
 #endif
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+	IPStatusTypedef *net_info;
+#endif
 	int chan = 0;
-#if CFG_WLAN_FAST_CONNECT || CFG_WLAN_FAST_CONNECT_WPA3
+#if CFG_WLAN_FAST_CONNECT || CFG_WLAN_FAST_CONNECT_WPA3 || CFG_BSSID_FAST_CONNECT
 	sta_ip_get_start_time();
 #endif
+#if CFG_STA_AUTO_RECONNECT
+	/*
+	* let supplicant know we will reconnect after disconnect, so supplicant will not post
+	* DISCONNECT EVENT if we are connecting to another ssid(can be the same ssid).
+	*/
+	wpa_ctrl_request(WPA_CTRL_CMD_WPAS_SET, (void *)true);
+#endif
+
 	/* diconnect previous connection if may */
 	sta_ip_down();	// XXX: WLAN_DISCONNECT_EVENT may handle this
 	wlan_sta_disconnect();
+#if CFG_STA_AUTO_RECONNECT
+	wpa_ctrl_request(WPA_CTRL_CMD_WPAS_SET, (void *)false);
+#endif
 #else /* !CFG_WPA_CTRL_IFACE */
 #if CFG_ROLE_LAUNCH
 	rl_status_set_st_state(RL_ST_STATUS_RESTART_ST);
@@ -916,7 +1042,7 @@ OSStatus bk_wlan_start_sta(network_InitTypeDef_st *inNetworkInitPara)
 #endif
     bk_wlan_sta_init(inNetworkInitPara);
 
-#if CFG_WPA_CTRL_IFACE && CFG_WLAN_FAST_CONNECT
+#if CFG_WPA_CTRL_IFACE && (CFG_WLAN_FAST_CONNECT || CFG_BSSID_FAST_CONNECT)
 	wlan_read_fast_connect_info(&fci);
 
 	ssid_len = os_strlen((char*)fci.ssid);
@@ -934,10 +1060,13 @@ OSStatus bk_wlan_start_sta(network_InitTypeDef_st *inNetworkInitPara)
 	bk_printf("  chan: %d\n", fci.channel);
 	bk_printf("  desire ssid: |%s|\n", inNetworkInitPara->wifi_ssid);
 #endif
-
-	if (ssid_len == req_ssid_len &&
+	if ((ssid_len == req_ssid_len &&
 		os_memcmp(inNetworkInitPara->wifi_ssid, fci.ssid, ssid_len) == 0 &&
-		os_strcmp(inNetworkInitPara->wifi_key, (char*)fci.pwd) == 0) {
+		os_strcmp(inNetworkInitPara->wifi_key, (char*)fci.pwd) == 0) ||
+	  (inNetworkInitPara->wifi_bssid &&
+		os_memcmp(inNetworkInitPara->wifi_bssid, fci.bssid, 6) == 0 &&
+		os_strcmp(inNetworkInitPara->wifi_key, (char*)fci.pwd) == 0)) {
+
 		chan = fci.channel;
 		psk = fci.psk;
 		psk_len = PMK_LEN * 2;
@@ -963,6 +1092,14 @@ OSStatus bk_wlan_start_sta(network_InitTypeDef_st *inNetworkInitPara)
 	 */
 	wpa_psk_request(g_sta_param_ptr->ssid.array, g_sta_param_ptr->ssid.length,
 			(char*)g_sta_param_ptr->key, psk, psk_len);
+
+#if CFG_STA_AUTO_RECONNECT
+	/* set auto reconnect parameters */
+	ar.max_count = g_sta_param_ptr->auto_reconnect_count;
+	ar.timeout = g_sta_param_ptr->auto_reconnect_timeout;
+	ar.disable_reconnect_when_disconnect = g_sta_param_ptr->disable_auto_reconnect_after_disconnect;
+	wlan_sta_set_autoreconnect(&ar);
+#endif
 
 #if CFG_WPA_CTRL_IFACE
 	/* enable wpa_supplicant */
@@ -1068,6 +1205,40 @@ OSStatus bk_wlan_start_sta(network_InitTypeDef_st *inNetworkInitPara)
     net_wlan_add_netif(&g_sta_param_ptr->own_mac);
 #endif
 
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP
+	if (fast_connect && (bk_wlan_get_fast_connect_us_ip_mode() == DHCP_DISABLE)) {
+		if (bk_wlan_fci_net_info_valid(&fci)) {
+			bk_printf("fast_connect with static ip\r\n");
+			net_info = &fci.net_info;
+			inNetworkInitPara->dhcp_mode = DHCP_DISABLE;
+			os_strcpy(inNetworkInitPara->local_ip_addr, net_info->ip);
+			os_strcpy(inNetworkInitPara->net_mask, net_info->mask);
+			os_strcpy(inNetworkInitPara->gateway_ip_addr, net_info->gate);
+			os_strcpy(inNetworkInitPara->dns_server_ip_addr, net_info->dns);
+			// TODO: DAD check and send gratuitous ARP
+			//
+			// etharp_query(netif, local_ip_addr, NULL);
+			// start timer (500ms)
+			// if (arp_rsp_recieved)
+			//	   start_dhcpc();
+			// if (timeout)
+			//	   use_this_static_ip();
+		}
+	}
+#else
+	inNetworkInitPara->dhcp_mode = DHCP_CLIENT;
+#if CFG_WLAN_SUPPORT_FAST_DHCP
+	net_info = &fci.net_info;
+	/*For fast dhcp, set previous offered ip address*/
+	if (fast_connect && bk_wlan_fci_net_info_valid(&fci)) {
+		ip4_addr_t ip;
+		bk_printf("fast dhcp offered ip: %s\r\n", net_info->ip);
+		inet_aton(net_info->ip, &ip);
+		dhcp_set_fast_dhcp_ip_address(ip);
+	}
+#endif
+#endif
+
 	/* set IP mode */
     ip_address_set(inNetworkInitPara->wifi_mode,
                    inNetworkInitPara->dhcp_mode,
@@ -1113,8 +1284,9 @@ int app_deinit(void)
 			wlan_p2p_find();
 			status = 0;
 		}
-		else if ((msg.dmsg == RW_EVT_STA_DISCONNECTED ||
-			 msg.dmsg == RW_EVT_STA_CONNECT_FAILED) && status == 1) {
+		else if ((msg.dmsg > RW_EVT_STA_CONNECTING &&
+			msg.dmsg < RW_EVT_STA_CONNECTED) &&
+			status == 1) {
 			sta_ip_down();
 			rwnx_hw_reinit();
 			rtos_delay_milliseconds(2000);
@@ -1693,6 +1865,7 @@ int bk_wlan_stop(char mode)
     if(mode == BK_STATION)
     {
         mhdr_set_station_status(RW_EVT_STA_IDLE);
+        mhdr_set_station_stage(RW_STG_STA_IDLE);
     }
 
     switch(mode)
@@ -1727,6 +1900,12 @@ int bk_wlan_stop(char mode)
         break;
 
     case BK_STATION:
+        if(g_sta_param_ptr)
+        {
+            os_memset(g_sta_param_ptr->ssid.array, 0, g_sta_param_ptr->ssid.length);
+            g_sta_param_ptr->ssid.length = 0;
+        }
+
 #if CFG_ROLE_LAUNCH
         rl_pre_sta_set_status(RL_STATUS_UNKNOWN);
 		rl_status_set_st_state(RL_ST_STATUS_RESTART_HOLD);
@@ -2479,64 +2658,56 @@ int bk_wlan_dtim_rf_ps_get_enable_flag(void)
 	return rf_ps_enabled;
 }
 #endif
-#if (1 == CFG_LOW_VOLTAGE_PS)
 
-int bk_wlan_mcu_suppress_and_sleep(UINT32 sleep_ticks )
-{
-#if (!CFG_JTAG_ENABLE)
-#if CFG_USE_MCU_PS
-	#if (CFG_OS_FREERTOS)
-	GLOBAL_INT_DECLARATION();
-	GLOBAL_INT_DISABLE();
-	UINT32 sleep_ms = BK_TICKS_TO_MS ( sleep_ticks );
-	if(sleep_ms > MCU_SLEEP_DURATION_MIN)
-		lv_ps_sleep_check( sleep_ticks );
-
-    #if (CFG_LOW_VOLTAGE_PS && (CFG_SOC_NAME == SOC_BK7238))
-    uint32_t int_enable_reg_save = 0;
-    extern uint8_t rwip_driver_ext_wakeup_get(void);
-    if (rwip_driver_ext_wakeup_get()) {
-        int_enable_reg_save = REG_READ(ICU_INTERRUPT_ENABLE);
-        REG_WRITE(ICU_INTERRUPT_ENABLE, CO_BIT(FIQ_BLE) | CO_BIT(FIQ_BTDM));
-    }
-    GLOBAL_INT_RESTORE();
-    while(rwip_driver_ext_wakeup_get());
-    if (int_enable_reg_save) {
-        REG_WRITE(ICU_INTERRUPT_ENABLE,int_enable_reg_save);
-    }
-    #else
-    GLOBAL_INT_RESTORE();
-    #endif
-	#endif
-#endif
-#endif
-	return 0;
-}
-#else
 int bk_wlan_mcu_suppress_and_sleep(UINT32 sleep_ticks )
 {
 #if (!CFG_JTAG_ENABLE)
 #if CFG_USE_MCU_PS
 #if (CFG_OS_FREERTOS)
-	GLOBAL_INT_DECLARATION();
-	GLOBAL_INT_DISABLE();
-	TickType_t missed_ticks = 0;
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
 
-	missed_ticks = mcu_power_save( sleep_ticks );
-	if(missed_ticks >= 0){
-		fclk_update_tick( missed_ticks );
-	} else{
-		GLOBAL_INT_RESTORE();
-		return -1;
-	}
-	GLOBAL_INT_RESTORE();
+    #if (1 == CFG_LOW_VOLTAGE_PS)
+    if (LV_PS_ENABLED)
+    {
+        UINT32 sleep_ms = BK_TICKS_TO_MS ( sleep_ticks );
+        if(sleep_ms > MCU_SLEEP_DURATION_MIN)
+            lv_ps_sleep_check( sleep_ticks );
+
+        #if ((CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N))
+        uint32_t int_enable_reg_save = 0;
+        extern uint8_t rwip_driver_ext_wakeup_get(void);
+        if (rwip_driver_ext_wakeup_get()) {
+            int_enable_reg_save = REG_READ(ICU_INTERRUPT_ENABLE);
+            REG_WRITE(ICU_INTERRUPT_ENABLE, CO_BIT(FIQ_BLE) | CO_BIT(FIQ_BTDM));
+        }
+        GLOBAL_INT_RESTORE();
+        while(rwip_driver_ext_wakeup_get());
+        if (int_enable_reg_save) {
+            REG_WRITE(ICU_INTERRUPT_ENABLE,int_enable_reg_save);
+        }
+        #else
+        GLOBAL_INT_RESTORE();
+        #endif
+    }
+    else
+    #endif
+    {
+        TickType_t missed_ticks = mcu_power_save( sleep_ticks );
+        if(missed_ticks >= 0){
+            fclk_update_tick( missed_ticks );
+        } else{
+            GLOBAL_INT_RESTORE();
+            return -1;
+        }
+        GLOBAL_INT_RESTORE();
+    }
 #endif
 #endif
 #endif
 
     return 0;
 }
-#endif
 
 #if CFG_USE_MCU_PS
 /** @brief  Enable mcu power save,close mcu ,and wakeup by irq
@@ -2917,5 +3088,44 @@ int wlan_get_mesh_condition(void)
 }
 #endif
 #endif
+
+bk_err_t bk_ble_get_tx_power(float *powerdBm)
+{
+	if (powerdBm == NULL)
+	{
+		return BK_ERR_PARAM;
+	}
+
+	//WIFI_STANDARD_NONE for ble
+	return manual_cal_get_tx_power(WIFI_STANDARD_NONE, powerdBm);
+}
+
+bk_err_t bk_ble_set_tx_power(float powerdBm)
+{
+	//WIFI_STANDARD_NONE for ble
+	return manual_cal_set_tx_power(WIFI_STANDARD_NONE, powerdBm);
+}
+
+bk_err_t bk_wifi_get_tx_power(wifi_standard standard, float *powerdBm)
+{
+	if ((powerdBm == NULL) || (standard <= WIFI_STANDARD_NONE) || (standard >= WIFI_STANDARD_MAX))
+	{
+		return BK_ERR_PARAM;
+	}
+
+	return manual_cal_get_tx_power(standard, powerdBm);
+}
+
+bk_err_t bk_wifi_set_tx_power(wifi_standard standard, float powerdBm)
+{
+	if ((standard <= WIFI_STANDARD_NONE) || (standard >= WIFI_STANDARD_MAX))
+	{
+		return BK_ERR_PARAM;
+	}
+
+	return manual_cal_set_tx_power(standard, powerdBm);
+}
+
+
 // eof
 

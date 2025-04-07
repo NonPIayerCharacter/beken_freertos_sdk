@@ -18,7 +18,7 @@ typedef enum {
 typedef struct  ps_deep_ctrl {
 
 	/*deep_sleep wakeup mode */
-	PS_DEEP_WAKEUP_WAY wake_up_way;
+	uint32_t wake_up_way;
 	
 	/** @brief	Request deep sleep,and wakeup by gpio.
 	 *
@@ -48,7 +48,11 @@ typedef struct  ps_deep_ctrl {
 	UINT32 gpio_last_index_map;
 	UINT32 gpio_last_edge_map;
 	UINT32 gpio_stay_hi_map;
-	
+#if (CFG_SOC_NAME == SOC_BK7252N)
+	UINT32 gpio_edge_sel_map;
+	UINT32 gpio_last_edge_sel_map;
+#endif
+
 	UINT32 sleep_time;
 	UINT32 lpo_32k_src;
 	UINT32 sleep_mode;

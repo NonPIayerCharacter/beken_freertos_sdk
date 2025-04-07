@@ -43,7 +43,7 @@
 #define _IRQ_STACK_SIZE_                  0xFF0
 #define _SVC_STACK_SIZE_                  0x3F0
 #define _SYS_STACK_SIZE_                  0x3F0
-#define _UND_STACK_SIZE_                  0x010
+#define _UND_STACK_SIZE_                  0x040
 #define _ABT_STACK_SIZE_                  0x010
 
 #define BOOT_MODE_MASK                    0x1F
@@ -281,16 +281,16 @@
 	.endm
 
 	 .section .bss
-	 .align 3
-	 .global und_stack_start
- und_stack_start:
- 	 .space _UND_STACK_SIZE_
- 
 	.align 3
 	.global abt_stack_start
 abt_stack_start:
 	 .space _ABT_STACK_SIZE_
 
+	 .align 3
+	 .global und_stack_start
+und_stack_start:
+	 .space _UND_STACK_SIZE_
+ 
 	.align 3
 	.global fiq_stack_start
 fiq_stack_start:
@@ -342,7 +342,7 @@ boot_reset:
 	.word 0x00003133
 
 AFTER_FLAG:
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 	B AFTER_FLAG
 	.org  0xc0 //0x100 - sizeof(section.vector) = 0x100 - 0x40
 	.word 0x32374B42
@@ -370,7 +370,7 @@ AFTER_FLAG:
     /*Stay in Supervisor Mode
       copy data from binary to ram*/
     BL _sysboot_copy_data_to_ram
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     BL _sysboot_copy_code_to_itcm
 #endif
     
@@ -464,7 +464,7 @@ _sysboot_zi_init:
     BLO 5b
     BX LR
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 /*FUNCTION:     _sysboot_copy_code_to_itcm*/
 /*DESCRIPTION:  copy itcm code from FLASH/ROM to SRAM*/
 _sysboot_copy_code_to_itcm:

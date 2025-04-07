@@ -28,7 +28,11 @@
 #include "ke_msg.h"
 #include "lwip/pbuf.h"
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #define RW_BAK_REG_LEN               (103)
+#else
+#define RW_BAK_REG_LEN               (256)
+#endif
 
 typedef struct rw_rx_info_st {
     /// Index of the station that sent the frame. 0xFF if unknown.
@@ -39,7 +43,8 @@ typedef struct rw_rx_info_st {
     uint8_t dst_idx;
     /// RSSI of the received frame.
     int8_t rssi;
-
+    //sequence number
+    uint16_t sn;
     /// flags of lowest byte of rx_dmadesc->flags
     uint8_t rx_dmadesc_flags;
     uint8_t reserved[3];
@@ -94,7 +99,19 @@ struct rwnx_env_tag
     bool hw_in_doze;
 };
 #endif
-
+#if CFG_FORCE_RATE
+typedef enum cmdtype_rcinfo {
+    FORCE_RTSCTS     =  0,
+    FORCE_CTSToSelf,
+    FORCE_HWRETRY,
+    FORCE_NOT_B_MODE,
+    FORCE_NOT_N_MODE,
+    FORCE_G_RATE0,
+    FORCE_G_RATE1,
+    FORCE_G_RATE2,
+    FORCE_G_RATE3,
+}CMDTYPE_RCINFO;
+#endif
 /*
  * GLOBAL VARIABLES DECLARATIONS
  ****************************************************************************************
@@ -157,8 +174,11 @@ extern void rwnxl_register_connector(RW_CONNECTOR_T *intf);
 extern int8_t rwnx_get_system_evm(void);
 extern uint8_t rwnx_get_system_snr(void);
 extern void rwnx_system_evm_init(void);
-
 extern int rwnx_intf_set_rx2tx_rssi_threslod(int8_t level, int8_t rssi_thold);
+#if CFG_FORCE_RATE
+extern uint32_t rwnx_set_rc_value(CMDTYPE_RCINFO type, uint8_t value);
+extern void rwnx_set_edcca_threshold(int8 threshold);
+#endif
 /// @}
 #endif // _RWNXL_H_
 

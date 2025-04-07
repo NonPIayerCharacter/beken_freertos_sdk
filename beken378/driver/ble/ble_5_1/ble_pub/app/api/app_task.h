@@ -101,6 +101,7 @@ enum app_msg_id
     APP_INIT_START_TIMEOUT_EVENT,
     APP_INIT_CON_SDP_END_TIMER,
 #endif
+    APP_SEC_BOND_SAVE_TIMER,
 };
 
 struct app_task_event_ind

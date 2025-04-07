@@ -468,7 +468,7 @@ void sta_mgmt_add_key(struct mm_key_add_req const *param, uint8_t hw_key_idx);
  */
 void sta_mgmt_del_key(struct sta_info_tag *sta);
 uint32_t sta_rec_rx_timepoint_by_mac(const uint8_t *mac);
-uint32_t sta_rec_rx_timepoint_by_id(uint8_t sta_id);
+uint32_t sta_rec_rx_timepoint_by_id(struct txdesc *txdesc);
 
 /**
  ****************************************************************************************

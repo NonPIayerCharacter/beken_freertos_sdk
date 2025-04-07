@@ -13,7 +13,7 @@
 #error "if use hspi, need open CFG_USE_SPIDMA and CFG_USE_HSLAVE_SPI"
 #endif
 
-#if ((CFG_SOC_NAME != SOC_BK7231U) && (CFG_SOC_NAME != SOC_BK7221U) && (CFG_SOC_NAME != SOC_BK7271) && (CFG_SOC_NAME != SOC_BK7236))
+#if ((CFG_SOC_NAME != SOC_BK7231U) && (CFG_SOC_NAME != SOC_BK7221U) && (CFG_SOC_NAME != SOC_BK7271) && (CFG_SOC_NAME != SOC_BK7236) && (CFG_SOC_NAME != SOC_BK7252N))
 #if (CFG_USE_CAMERA_INTF == 1)
 #error "chip not support CFG_USE_CAMERA_INTF"
 #endif

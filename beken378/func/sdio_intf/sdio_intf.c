@@ -44,9 +44,7 @@
 #include "rwnx.h"
 #include "rw_pub.h"
 
-
-
-#if CFG_SDIO
+#if CFG_SDIO_PORT
 LIST_HEADER_T inbound_list;
 
 UINT16 freq_2_4_G[WIFI_2_4_G_CHANNEL_NUM] =

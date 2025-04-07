@@ -17,7 +17,7 @@
 #include "arch.h"
 #include "reg_access.h"
 
-#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238)
+#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
 /** @brief Number of registers in the REG_LA peripheral.
  */
 #define REG_LA_COUNT 16

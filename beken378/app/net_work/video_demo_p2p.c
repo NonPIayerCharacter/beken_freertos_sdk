@@ -158,8 +158,8 @@ static void app_demo_p2p_rw_event_func(void *new_evt)
         APP_DEMO_P2P_PRT("RW_EVT_STA_GOT_IP\r\n");
         app_demo_p2p_send_msg(DAP_WIFI_CONECTED, 0);
     }
-    else if (evt_type == RW_EVT_STA_DISCONNECTED ||
-             evt_type == RW_EVT_STA_CONNECT_FAILED)
+    else if (evt_type < RW_EVT_STA_CONNECTED &&
+             evt_type > RW_EVT_STA_CONNECTING)
     {
         APP_DEMO_P2P_PRT("RW_EVT_STA_DISCONNECTED\r\n");
         app_demo_p2p_send_msg(DAP_WIFI_DISCONECTED, 0);

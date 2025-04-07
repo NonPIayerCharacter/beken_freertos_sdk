@@ -1,7 +1,7 @@
 #ifndef __START_TYPE_PUB_H_
 #define __START_TYPE_PUB_H_
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define     START_TYPE_ADDR        (0x00800000 + 84 * 4)
 #else
 #define     START_TYPE_ADDR        (0x0080a080)

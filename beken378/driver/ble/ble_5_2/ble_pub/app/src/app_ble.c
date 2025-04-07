@@ -34,13 +34,19 @@
 #include "app_task.h"                // Application task Definition
 #include "app_ble.h"                     // Application Definition
 #include "gap.h"                     // GAP Definition
+#include "gap_int.h"
 #include "gapm_msg.h"               // GAP Manager Task API
+#include "gapm_int.h"
 #include "gapc_msg.h"               // GAP Controller Task API
+#include "gapc_int.h"
 #include "gatt_msg.h"
 #include "gatt_int.h"
-
+#include "llc_int.h"
 #include "common_bt.h"                   // Common BT Definition
 #include "common_math.h"                 // Common Maths Definition
+#include "gapc.h"
+#include "kernel_mem.h"
+#include "l2cap_hl_api.h"
 
 #if BLE_GATT_CLI
 #include "app_sdp.h"
@@ -91,6 +97,20 @@ struct app_env_tag app_ble_env;
  ****************************************************************************************
  */
 
+#if BLE_CENTRAL
+const struct appm_create_conn_param default_init_par =
+{
+    .conn_intv_max   = APP_CONN_INTV,
+    .conn_intv_min   = APP_CONN_INTV,
+    .conn_latency    = APP_CONN_LATENCY,
+    .supervision_to  = APP_CONN_SUP_TO,
+    .scan_interval   = APP_CONN_SCAN_INTV,
+    .scan_window     = APP_CONN_SCAN_WD,
+    .ce_len_min      = APP_CONN_CE_LEN_MIN,
+    .ce_len_max      = APP_CONN_CE_LEN_MAX,
+};
+#endif
+
 ble_status_t app_ble_env_state_get(void)
 {
 	return app_ble_env.app_status & BLE_APP_STATUS_MASK;
@@ -117,9 +137,32 @@ uint8_t app_ble_actv_state_find(uint8_t status)
 	return index;
 }
 
-uint8_t app_ble_get_idle_actv_idx_handle(void)
+uint8_t app_ble_get_idle_actv_idx_handle(ACTV_TYPE type)
 {
 	uint8_t index;
+	switch (type) {
+		case ADV_ACTV:
+		{
+			if (app_ble_env.actv_cnt.adv_actv >= CFG_BLE_ADV_NUM) {
+				return UNKNOW_ACT_IDX;
+			}
+		}break;
+		case SCAN_ACTV:
+		{
+			if (app_ble_env.actv_cnt.scan_actv >= CFG_BLE_SCAN_NUM) {
+				return UNKNOW_ACT_IDX;
+			}
+		}break;
+		case PER_SYNC_ACTV:
+		{
+			if (app_ble_env.actv_cnt.per_sync_actv >= CFG_BLE_PER_SYNC) {
+				return UNKNOW_ACT_IDX;
+			}
+		}break;
+		default:
+			return UNKNOW_ACT_IDX;
+		break;
+	}
 
 	for (index = 0; index < BLE_ACTIVITY_MAX; index++) {
 		if (app_ble_env.actvs[index].actv_status == ACTV_IDLE) {
@@ -127,26 +170,35 @@ uint8_t app_ble_get_idle_actv_idx_handle(void)
 		}
 	}
 
-	if (index == BLE_ACTIVITY_MAX) {
-		bk_printf("Don't have free actv\r\n");
-		return UNKNOW_ACT_IDX;
-	}
-
 	return index;
 }
 
-uint8_t app_ble_get_idle_conn_idx_handle(void)
+uint8_t app_ble_get_idle_conn_idx_handle(ACTV_TYPE type)
 {
 	uint8_t conn_idx;
+	switch (type) {
+		case INIT_ACTV:
+		{
+			if (app_ble_env.actv_cnt.init_actv >= CFG_BLE_INIT_NUM) {
+				return UNKNOW_CONN_HDL;
+			}
+		}break;
+		case CONN_ACTV:
+		{
+			if (app_ble_env.actv_cnt.conn_actv >= CFG_BLE_CONN_NUM) {
+				return UNKNOW_CONN_HDL;
+			}
+		}break;
+		default:
+			return UNKNOW_CONN_HDL;
+		break;
+	}
 
 	for (conn_idx = 0; conn_idx < BLE_CONNECTION_MAX; conn_idx++) {
 		if (app_ble_env.connections[conn_idx].conhdl == UNKNOW_CONN_HDL) {
 			break;
 		}
 	}
-
-	if(conn_idx >= BLE_CONNECTION_MAX)
-		return UNKNOW_CONN_HDL;
 
 	return conn_idx;
 }
@@ -203,6 +255,7 @@ void app_ble_reset(void)
 {
 	app_ble_env.op_mask = 0;
 	app_ble_env.op_cb = NULL;
+	app_ble_env.cmd = BLE_CMD_NONE;
 	app_ble_env.app_status = APP_BLE_READY;
 }
 
@@ -697,6 +750,246 @@ ble_err_t app_ble_delete_scaning(uint8_t actv_idx)
 	return ret;
 }
 
+#if (CFG_BLE_PER_ADV)
+ble_err_t app_ble_create_periodic_advertising(uint8_t actv_idx, struct per_adv_param *per_adv)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	BLE_APP_CHECK_ACTVS_IDX(actv_idx);
+
+	if (app_ble_actv_state_get(actv_idx) == ACTV_IDLE) {
+		struct gapm_activity_create_adv_cmd *p_cmd = KERNEL_MSG_ALLOC(GAPM_ACTIVITY_CREATE_CMD,
+										TASK_BLE_GAPM, TASK_BLE_APP,
+										gapm_activity_create_adv_cmd);
+
+		if (p_cmd) {
+			/// Set operation code
+			p_cmd->operation = GAPM_CREATE_ADV_ACTIVITY;
+
+			// Fill the allocated kernel message
+			p_cmd->own_addr_type = per_adv->own_addr_type;
+			p_cmd->adv_param.type = GAPM_ADV_TYPE_PERIODIC;
+			p_cmd->adv_param.prop = per_adv->adv_prop;
+			p_cmd->adv_param.filter_pol = ADV_ALLOW_SCAN_ANY_CON_ANY;
+			p_cmd->adv_param.prim_cfg.chnl_map = per_adv->chnl_map;
+			p_cmd->adv_param.prim_cfg.phy = per_adv->prim_phy;
+
+			p_cmd->adv_param.disc_mode = GAPM_ADV_MODE_GEN_DISC;
+			p_cmd->adv_param.prim_cfg.adv_intv_min = per_adv->adv_intv_min;
+			p_cmd->adv_param.prim_cfg.adv_intv_max = per_adv->adv_intv_max;
+
+			p_cmd->adv_param.second_cfg.max_skip = 3;
+			p_cmd->adv_param.second_cfg.phy = per_adv->second_phy;
+			p_cmd->adv_param.second_cfg.adv_sid = actv_idx;
+
+			p_cmd->adv_param.period_cfg.adv_intv_max = 80;
+			p_cmd->adv_param.period_cfg.adv_intv_min = 40;
+			p_cmd->adv_param.period_cfg.cte_count = 0;
+
+			kernel_msg_send(p_cmd);
+
+			ret = ERR_SUCCESS;
+		} else {
+			ret = ERR_NO_MEM;
+		}
+	} else {
+		bk_printf("actv[%d] is not idle\r\n", actv_idx);
+		ret = ERR_BLE_STATUS;
+	}
+	return ret;
+}
+
+ble_err_t app_ble_set_periodic_adv_data(uint8_t actv_idx, unsigned char *per_adv_buff, uint16_t per_adv_len)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	BLE_APP_CHECK_ACTVS_IDX(actv_idx);
+
+	if ((app_ble_actv_state_get(actv_idx) == ACTV_ADV_CREATED)
+		|| (app_ble_actv_state_get(actv_idx) == ACTV_ADV_STARTED)) {
+		struct gapm_set_adv_data_cmd *p_cmd = KERNEL_MSG_ALLOC_DYN(GAPM_SET_ADV_DATA_CMD,
+										TASK_BLE_GAPM, TASK_BLE_APP,
+										gapm_set_adv_data_cmd,
+										per_adv_len);
+
+		if (p_cmd) {
+			p_cmd->operation = GAPM_SET_PERIOD_ADV_DATA;
+			p_cmd->actv_idx = app_ble_env.actvs[actv_idx].gap_advt_idx;
+			memcpy(&p_cmd->data[0], per_adv_buff, per_adv_len);
+			p_cmd->length = per_adv_len;
+
+			kernel_msg_send(p_cmd);
+
+			ret = ERR_SUCCESS;
+		} else {
+			ret = ERR_NO_MEM;
+		}
+	} else {
+		bk_printf("actv[%d] is not created\r\n", actv_idx);
+		ret = ERR_BLE_STATUS;
+	}
+	return ret;
+}
+#endif
+
+#if (CFG_BLE_PER_SYNC)
+ble_err_t app_ble_create_periodic_sync(uint8_t actv_idx)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	BLE_APP_CHECK_ACTVS_IDX(actv_idx);
+
+	if (app_ble_actv_state_get(actv_idx) == ACTV_IDLE ||
+		app_ble_actv_state_get(actv_idx) == ACTV_PER_SYNC_CREATED) {
+		// Prepare the GAPM_ACTIVITY_CREATE_CMD message
+		struct gapm_activity_create_cmd *p_cmd = KERNEL_MSG_ALLOC(GAPM_ACTIVITY_CREATE_CMD,
+												TASK_BLE_GAPM, TASK_BLE_APP,
+												gapm_activity_create_cmd);
+
+		if (p_cmd) {
+			memset(p_cmd, 0, sizeof(*p_cmd));
+			p_cmd->operation = GAPM_CREATE_PERIOD_SYNC_ACTIVITY;
+			p_cmd->own_addr_type = GAPM_STATIC_ADDR;
+
+			kernel_msg_send(p_cmd);
+
+			ret = ERR_SUCCESS;
+		} else {
+			ret = ERR_NO_MEM;
+		}
+	} else {
+		ret = ERR_BLE_STATUS;
+	}
+
+	return ret;
+}
+
+ble_err_t app_ble_start_periodic_sync(uint8_t actv_idx, ble_periodic_sync_param_t *param)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	BLE_APP_CHECK_ACTVS_IDX(actv_idx);
+
+	if (app_ble_actv_state_get(actv_idx) == ACTV_PER_SYNC_CREATED) {
+		// Prepare the GAPM_ACTIVITY_START_CMD message
+		struct gapm_activity_start_cmd *p_cmd = KERNEL_MSG_ALLOC(GAPM_ACTIVITY_START_CMD,
+												TASK_BLE_GAPM, TASK_BLE_APP,
+												gapm_activity_start_cmd);
+
+		if (p_cmd) {
+			p_cmd->operation = GAPM_START_ACTIVITY;
+			p_cmd->u_param.per_sync_param.skip = param->skip;
+			p_cmd->u_param.per_sync_param.sync_to = param->sync_to;
+			p_cmd->u_param.per_sync_param.type = param->per_sync_type;
+			p_cmd->u_param.per_sync_param.report_en_bf = param->report_en_bf;
+			p_cmd->u_param.per_sync_param.cte_type = param->cte_type;
+			p_cmd->u_param.per_sync_param.adv_addr.adv_sid = param->adv_sid;
+			p_cmd->u_param.per_sync_param.adv_addr.addr_type = param->adv_addr_type;
+			memcpy(&p_cmd->u_param.per_sync_param.adv_addr.addr, &param->adv_addr, sizeof(param->adv_addr));
+			p_cmd->actv_idx = app_ble_env.actvs[actv_idx].gap_advt_idx;
+
+			kernel_msg_send(p_cmd);
+
+			ret = ERR_SUCCESS;
+		} else {
+			ret = ERR_NO_MEM;
+		}
+	} else {
+		ret = ERR_BLE_STATUS;
+	}
+
+	return ret;
+}
+
+ble_err_t app_ble_stop_periodic_sync(uint8_t actv_idx)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	BLE_APP_CHECK_ACTVS_IDX(actv_idx);
+
+	if (app_ble_actv_state_get(actv_idx) == ACTV_PER_SYNC_STARTED) {
+		// Prepare the GAPM_ACTIVITY_STOP_CMD message
+		struct gapm_activity_stop_cmd *cmd = KERNEL_MSG_ALLOC(GAPM_ACTIVITY_STOP_CMD,
+											TASK_BLE_GAPM, TASK_BLE_APP,
+											gapm_activity_stop_cmd);
+
+		if (cmd) {
+			// Fill the allocated kernel message
+			cmd->operation = GAPM_STOP_ACTIVITY;
+			cmd->actv_idx = app_ble_env.actvs[actv_idx].gap_advt_idx;
+
+			// Send the message
+			kernel_msg_send(cmd);
+
+			ret = ERR_SUCCESS;
+		} else {
+			ret = ERR_NO_MEM;
+		}
+	} else {
+		ret = ERR_BLE_STATUS;
+	}
+
+	return ret;
+}
+
+ble_err_t app_ble_delete_periodic_sync(uint8_t actv_idx)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	BLE_APP_CHECK_ACTVS_IDX(actv_idx);
+
+	if (app_ble_actv_state_get(actv_idx) == ACTV_PER_SYNC_CREATED) {
+		// Prepare the GAPM_ACTIVITY_DELETE_CMD message
+		struct gapm_activity_delete_cmd *p_cmd = KERNEL_MSG_ALLOC(GAPM_ACTIVITY_DELETE_CMD,
+												TASK_BLE_GAPM, TASK_BLE_APP,
+												gapm_activity_delete_cmd);
+
+		if (p_cmd) {
+			// Set operation code
+			p_cmd->operation = GAPM_DELETE_ACTIVITY;
+			p_cmd->actv_idx = app_ble_env.actvs[actv_idx].gap_advt_idx;
+
+			// Send the message
+			kernel_msg_send(p_cmd);
+
+			ret = ERR_SUCCESS;
+		} else {
+			ret = ERR_NO_MEM;
+		}
+	} else {
+		ret = ERR_BLE_STATUS;
+	}
+
+	return ret;
+}
+#endif
+
+#if (CFG_BLE_PER_ADV) | (CFG_BLE_PER_SYNC)
+ble_err_t app_ble_periodic_adv_sync_transf(uint8_t actv_idx, uint16_t service_data)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	struct gapc_per_adv_sync_trans_cmd *p_cmd = KERNEL_MSG_ALLOC(GAPC_PER_ADV_SYNC_TRANS_CMD,
+											TASK_BLE_GAPC, TASK_BLE_APP,
+											gapc_per_adv_sync_trans_cmd);
+
+	if (p_cmd) {
+		p_cmd->operation = GAPC_PER_ADV_SYNC_TRANS;
+		p_cmd->actv_idx = actv_idx;
+		p_cmd->service_data = service_data;
+
+		// Send the message
+		kernel_msg_send(p_cmd);
+
+		ret = ERR_SUCCESS;
+	} else {
+		ret = ERR_NO_MEM;
+	}
+
+	return ret;
+}
+#endif
+
 ble_err_t app_ble_set_le_pkt_size(uint8_t conn_idx,uint16_t pkt_size)
 {
 	ble_err_t ret = ERR_SUCCESS;
@@ -704,10 +997,14 @@ ble_err_t app_ble_set_le_pkt_size(uint8_t conn_idx,uint16_t pkt_size)
 	BLE_APP_CHECK_CONN_IDX(conn_idx);
 	uint8_t conhdl = app_ble_get_connhdl(conn_idx);
 
+	if (app_ble_env.connections[conn_idx].role == APP_BLE_MASTER_ROLE) {
+		conn_idx = BLE_APP_INITING_INDEX(conn_idx);
+	}
+
 	if ((conhdl != UNKNOW_CONN_HDL) && (conhdl != USED_CONN_HDL)) {
 		struct gapc_set_le_pkt_size_cmd *cmd = KERNEL_MSG_ALLOC(GAPC_SET_LE_PKT_SIZE_CMD,
 									KERNEL_BUILD_ID(TASK_BLE_GAPC, conhdl),
-									KERNEL_BUILD_ID(TASK_BLE_APP, BLE_APP_INITING_INDEX(conn_idx)),
+									KERNEL_BUILD_ID(TASK_BLE_APP, conn_idx),
 									gapc_set_le_pkt_size_cmd);
 
 		if (cmd) {
@@ -776,21 +1073,50 @@ ble_err_t app_ble_mtu_exchange(uint8_t conn_idx)
 	#endif
 }
 
-ble_err_t app_ble_gap_set_phy(uint8_t conn_idx, ble_set_phy_t * phy_info)
+ble_err_t app_ble_gap_read_phy(uint8_t conn_idx, ble_read_phy_t *phy)
 {
 	ble_err_t ret = ERR_SUCCESS;
+
 	BLE_APP_CHECK_CONN_IDX(conn_idx);
-	if (app_ble_get_connhdl(conn_idx) != UNKNOW_CONN_HDL) {
-		// Prepare the GAPC_GET_INFO_CMD message
+	uint8_t conhdl = app_ble_get_connhdl(conn_idx);
+
+	if (BLE_APP_CONHDL_IS_VALID(conhdl)) {
+		uint8_t link_id = BLE_CONHDL_TO_LINKID(gapc_get_conhdl(conhdl));
+
+		if (hci_ble_read_phy(link_id, &phy->rx_phy, &phy->tx_phy)) {
+			ret = ERR_CMD_NOT_SUPPORT;
+		}
+	} else {
+		ret = ERR_INVALID_PARAM;
+	}
+
+	return ret;
+}
+
+ble_err_t app_ble_gap_set_phy(uint8_t conn_idx, ble_set_phy_t *phy)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	BLE_APP_CHECK_CONN_IDX(conn_idx);
+	uint8_t conhdl = app_ble_get_connhdl(conn_idx);
+
+	if (app_ble_env.connections[conn_idx].role == APP_BLE_MASTER_ROLE) {
+		conn_idx = BLE_APP_INITING_INDEX(conn_idx);
+	}
+
+	if (BLE_APP_CONHDL_IS_VALID(conhdl)) {
+		// Prepare the GAPC_SET_PHY_CMD message
 		struct gapc_set_phy_cmd *cmd = KERNEL_MSG_ALLOC(GAPC_SET_PHY_CMD,
-														KERNEL_BUILD_ID(TASK_BLE_GAPC, app_ble_get_connhdl(conn_idx)),
-														KERNEL_BUILD_ID(TASK_BLE_APP, BLE_APP_INITING_INDEX(conn_idx)),
+														KERNEL_BUILD_ID(TASK_BLE_GAPC, conhdl),
+														KERNEL_BUILD_ID(TASK_BLE_APP, conn_idx),
 														gapc_set_phy_cmd);
+
 		if (cmd) {
 			cmd->operation = GAPC_SET_PHY;
-			cmd->phy_opt = phy_info->phy_opt;
-			cmd->rx_phy = phy_info->rx_phy;
-			cmd->tx_phy = phy_info->tx_phy;
+			cmd->phy_opt = phy->phy_opt;
+			cmd->rx_phy = phy->rx_phy;
+			cmd->tx_phy = phy->tx_phy;
+
 			// Send the message
 			kernel_msg_send(cmd);
 			ret = ERR_SUCCESS;
@@ -800,6 +1126,7 @@ ble_err_t app_ble_gap_set_phy(uint8_t conn_idx, ble_set_phy_t * phy_info)
 	} else {
 		ret = ERR_BLE_STATUS;
 	}
+
 	return ret;
 }
 
@@ -846,6 +1173,242 @@ void app_ble_send_conn_param_update_cfm(uint8_t con_idx,bool accept)
 	kernel_msg_send(cfm);
 }
 
+#if (BLE_APP_SEC)
+ble_err_t app_ble_get_bonded_device_num(uint8_t *dev_num)
+{
+    *dev_num = __builtin_popcount(app_sec_env.bonded);
+
+    if (*dev_num > MAX_BOND_NUM) {
+        *dev_num = 0xFF;
+    }
+
+    return ERR_SUCCESS;
+}
+
+ble_err_t app_ble_get_bonded_device_list(uint8_t *dev_num, bk_ble_bond_dev_t *dev_list)
+{
+    ble_err_t ret = ERR_SUCCESS;
+    uint8_t exp_num = *dev_num;
+    uint8_t act_num = 0;
+
+    for (uint8_t i = 0; i < MAX_BOND_NUM; i++) {
+
+        if ((app_sec_env.bonded >> i) & 1) {
+
+            if (act_num++ < exp_num) {
+                memcpy(dev_list->addr, app_sec_env.bond_info[i].peer_irk.addr.addr, GAP_BD_ADDR_LEN);
+                dev_list->addr_type = app_sec_env.bond_info[i].peer_irk.addr.addr_type;
+                dev_list++;
+            } else {
+                ret = ERR_NO_MEM;
+            }
+
+        }
+
+    }
+
+    *dev_num = act_num;
+    return ret;
+}
+#endif
+
+ble_err_t app_ble_get_sendable_packets_num(uint16_t *pkt_total)
+{
+    *pkt_total = l2cap_chan_ll_buf_nb_get();
+    return ERR_SUCCESS;
+}
+
+ble_err_t app_ble_get_cur_sendable_packets_num(uint16_t *pkt_curr)
+{
+    *pkt_curr = l2cap_chan_ll_buf_nb_avail_get();
+    return ERR_SUCCESS;
+}
+
+ble_err_t app_ble_set_channels(bk_ble_channels_t *channels)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	struct gapm_set_channel_map_cmd *cmd = KERNEL_MSG_ALLOC(GAPM_SET_CHANNEL_MAP_CMD,
+											TASK_BLE_GAPM, TASK_BLE_APP,
+											gapm_set_channel_map_cmd);
+
+	if (cmd){
+		cmd->operation = GAPM_SET_CHANNEL_MAP;
+		memcpy(cmd->chmap.map, channels->channels, BLE_CHANNELS_LEN);
+		kernel_msg_send(cmd);
+	} else {
+		ret = ERR_NO_MEM;
+	}
+
+	return ret;
+}
+
+ble_err_t app_ble_get_wl_size_cmd(uint8_t *wl_size)
+{
+	*wl_size = BLE_WHITELIST_MAX;
+	return ERR_SUCCESS;
+}
+
+ble_err_t app_ble_list_clear_wl_cmd(void)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	struct gapm_list_set_wl_cmd *cmd = KERNEL_MSG_ALLOC(GAPM_LIST_SET_CMD,
+										TASK_BLE_GAPM, TASK_BLE_APP,
+										gapm_list_set_wl_cmd);
+
+	if (cmd) {
+		cmd->operation = GAPM_SET_WL;
+		cmd->size = 0;
+
+		kernel_msg_send(cmd);
+	} else {
+		ret = ERR_NO_MEM;
+	}
+	return ret;
+}
+
+ble_err_t app_ble_update_wl_cmd(uint8_t add_remove, struct bd_addr *addr, uint8_t addr_type)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	struct gapm_list_update_cmd *cmd = KERNEL_MSG_ALLOC(GAPM_LIST_UPDATE_CMD,
+											TASK_BLE_GAPM, TASK_BLE_APP,
+											gapm_list_update_cmd);
+
+	if (cmd) {
+		if (add_remove) {
+			cmd->operation = GAPM_LIST_ADD_DEVICE;
+		} else {
+			cmd->operation = GAPM_LIST_REMOVE_DEVICE;
+		}
+
+		cmd->list_type = GAP_WL;
+		cmd->device_addr.addr_type = addr_type;
+		memcpy(cmd->device_addr.addr, addr, GAP_BD_ADDR_LEN);
+
+		kernel_msg_send(cmd);
+	} else {
+		ret = ERR_NO_MEM;
+	}
+	return ret;
+}
+
+ble_err_t app_ble_clear_per_adv_list_cmd(void)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	struct gapm_list_set_pal_cmd *cmd = KERNEL_MSG_ALLOC(GAPM_LIST_SET_CMD,
+												TASK_BLE_GAPM, TASK_BLE_APP,
+												gapm_list_set_pal_cmd);
+
+	if (cmd) {
+		cmd->operation = GAPM_SET_PAL;
+		cmd->size = 0;
+
+		kernel_msg_send(cmd);
+
+		ret = ERR_SUCCESS;
+	} else {
+		ret = ERR_NO_MEM;
+	}
+
+	return ret;
+}
+
+ble_err_t app_ble_update_per_adv_list_cmd(uint8_t add_remove, gap_per_adv_bdaddr_t *p_pal_info)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	struct gapm_list_update_cmd *cmd = KERNEL_MSG_ALLOC(GAPM_LIST_UPDATE_CMD,
+											TASK_BLE_GAPM, TASK_BLE_APP,
+											gapm_list_update_cmd);
+
+	if (cmd){
+		if (add_remove) {
+			cmd->operation = GAPM_LIST_ADD_DEVICE;
+		} else {
+			cmd->operation = GAPM_LIST_REMOVE_DEVICE;
+		}
+
+		cmd->list_type = GAP_PAL;
+		cmd->device_addr.addr_type = p_pal_info->addr_type;
+		cmd->adv_sid = p_pal_info->adv_sid;
+		memcpy(cmd->device_addr.addr, p_pal_info->addr, GAP_BD_ADDR_LEN);
+
+		kernel_msg_send(cmd);
+	} else {
+		ret = ERR_NO_MEM;
+	}
+
+	return ret;
+}
+
+
+#if (BLE_GATT_CLI)
+ble_err_t app_ble_gattc_read_by_type(uint8_t conn_idx, uint16_t start_handle,
+                                     uint16_t end_handle, const charac_uuid_t *p_uuid)
+{
+	struct sdp_env_tag *p_env = sdp_get_env_use_conidx(conn_idx);
+	uint8_t conhdl = app_ble_get_connhdl(conn_idx);
+
+	if (p_env == NULL || !BLE_APP_CONHDL_IS_VALID(conhdl)) {
+		return ERR_INVALID_PARAM;
+	}
+
+	struct gatt_cli_read_by_uuid_cmd *p_cmd = KERNEL_MSG_ALLOC(GATT_CMD, KERNEL_BUILD_ID(TASK_BLE_GATT, conhdl),
+																KERNEL_BUILD_ID(TASK_BLE_APP, conn_idx),
+																gatt_cli_read_by_uuid_cmd);
+
+	if (p_cmd) {
+		p_cmd->cmd_code = GATT_CLI_READ_BY_UUID;
+		p_cmd->dummy = GATT_ROLE_CLIENT;
+		p_cmd->user_lid = p_env->user_lib;
+		p_cmd->conidx = conhdl;
+		p_cmd->start_hdl = start_handle;
+		p_cmd->end_hdl = end_handle;
+		p_cmd->uuid_type = p_uuid->uuid_type;
+		memcpy(p_cmd->uuid, p_uuid->uuid, GATT_UUID_128_LEN);
+
+		kernel_msg_send(p_cmd);
+
+		return ERR_SUCCESS;
+	} else {
+		return ERR_NO_MEM;
+	}
+}
+
+ble_err_t app_ble_gattc_read_multiple(uint8_t conn_idx, app_gattc_multi_t *read_multi)
+{
+	struct sdp_env_tag *p_env = sdp_get_env_use_conidx(conn_idx);
+	uint8_t conhdl = app_ble_get_connhdl(conn_idx);
+
+	if (p_env == NULL || !BLE_APP_CONHDL_IS_VALID(conhdl)) {
+		return ERR_INVALID_PARAM;
+	}
+
+	struct gatt_cli_read_multiple_cmd *p_cmd = KERNEL_MSG_ALLOC_DYN(GATT_CMD, KERNEL_BUILD_ID(TASK_BLE_GATT, conhdl),
+																KERNEL_BUILD_ID(TASK_BLE_APP, conn_idx),
+																gatt_cli_read_multiple_cmd,
+																read_multi->nb_att * sizeof(struct gatt_att));
+
+	if (p_cmd) {
+		p_cmd->cmd_code = GATT_CLI_READ_MULTIPLE;
+		p_cmd->dummy = GATT_ROLE_CLIENT;
+		p_cmd->user_lid = p_env->user_lib;
+		p_cmd->conidx = conhdl;
+		p_cmd->nb_att = read_multi->nb_att;
+		memcpy(p_cmd->atts, read_multi->p_atts, read_multi->nb_att * sizeof(struct gatt_att));
+
+		kernel_msg_send(p_cmd);
+
+		return ERR_SUCCESS;
+	} else {
+		return ERR_NO_MEM;
+	}
+}
+#endif
+
 void app_ble_next_operation(uint8_t idx, uint8_t status)
 {
 	uint8_t op_idx;
@@ -869,9 +1432,10 @@ void app_ble_next_operation(uint8_t idx, uint8_t status)
 		case BLE_START_SCAN:
 		case BLE_STOP_SCAN:
 		case BLE_DELETE_SCAN:
-		case BLE_CONN_UPDATE_MTU:
-		case BLE_CONN_UPDATE_PARAM:
-		case BLE_CONN_DIS_CONN:
+		case BLE_CREATE_PERIODIC_SYNC:
+		case BLE_START_PERIODIC_SYNC:
+		case BLE_STOP_PERIODIC_SYNC:
+		case BLE_DELETE_PERIODIC_SYNC:
 			app_ble_reset();
 			if (cmd_op_cb) {
 				cmd_ret.cmd_idx = idx;
@@ -999,11 +1563,8 @@ void app_ble_next_operation(uint8_t idx, uint8_t status)
 				cmd_op_cb(cmd, &cmd_ret);
 			}
 			break;
-		case BLE_INIT_DIS_CONN:
-			break;
-		case BLE_INIT_READ_CHAR:
-		case BLE_INIT_WRITE_CHAR:
-			bk_printf("Cmd[%d]operation[%d] READ/Write CHAR\r\n", app_ble_env.cmd, op_idx);
+		case BLE_INIT_DELETE:
+			bk_printf("Cmd[%d]operation[%d]BLE_INIT_DELETE\r\n", app_ble_env.cmd, op_idx);
 			app_ble_reset();
 			if (cmd_op_cb) {
 				cmd_ret.cmd_idx = idx;
@@ -1015,6 +1576,131 @@ void app_ble_next_operation(uint8_t idx, uint8_t status)
 			bk_printf("unknow ble app command:%d\r\n", app_ble_env.cmd);
 			break;
 	}
+}
+
+ble_err_t app_ble_gatts_remove_service(uint8_t user_lid, uint16_t start_handle)
+{
+	struct gatt_db_svc_remove_cmd * p_cmd = KERNEL_MSG_ALLOC(GATT_CMD, TASK_BLE_GATT, TASK_BLE_APP,
+															gatt_db_svc_remove_cmd);
+
+	if (p_cmd) {
+		p_cmd->cmd_code = GATT_DB_SVC_REMOVE;
+		p_cmd->dummy = start_handle;
+		p_cmd->user_lid = user_lid;
+		p_cmd->start_hdl = start_handle;
+
+		kernel_msg_send(p_cmd);
+
+		return ERR_SUCCESS;
+	} else {
+		return ERR_NO_MEM;
+	}
+}
+
+ble_err_t app_ble_gatts_app_unregister(uint8_t user_lid, uint16_t service_handle)
+{
+	struct gatt_user_unregister_cmd * p_cmd = KERNEL_MSG_ALLOC(GATT_CMD, TASK_BLE_GATT, TASK_BLE_APP,
+																gatt_user_unregister_cmd);
+
+	if (p_cmd) {
+		p_cmd->cmd_code = GATT_USER_UNREGISTER;
+		p_cmd->dummy = service_handle;
+		p_cmd->user_lid = user_lid;
+
+		kernel_msg_send(p_cmd);
+
+		return ERR_SUCCESS;
+	} else {
+		return ERR_NO_MEM;
+	}
+}
+
+ble_err_t app_ble_gatts_read_response(app_gatts_rsp_t *rsp)
+{
+	gatt_db_svc_t *p_svc = NULL;
+	uint8_t conhdl = app_ble_get_connhdl(rsp->con_idx);
+
+	if (!BLE_APP_CONHDL_IS_VALID(conhdl) || gatt_db_svc_find(rsp->attr_handle, &p_svc)) {
+		return ERR_INVALID_PARAM;
+	}
+
+	struct gatt_srv_att_read_get_cfm_st * cmd = KERNEL_MSG_ALLOC_DYN(GATT_CFM,
+														KERNEL_BUILD_ID(TASK_BLE_GATT, conhdl),
+														KERNEL_BUILD_ID(TASK_BLE_APP, rsp->con_idx),
+														gatt_srv_att_read_get_cfm_st,
+														rsp->value_length);
+
+	if (cmd) {
+		cmd->req_ind_code = GATT_SRV_ATT_READ_GET;
+		cmd->user_lid = p_svc->user_lid;
+		cmd->token = rsp->token;
+		cmd->status = rsp->status;
+		cmd->conidx = conhdl;
+		cmd->att_length = rsp->att_length;
+		cmd->value_length = rsp->value_length;
+		memcpy(cmd->value, rsp->value, rsp->value_length);
+
+		kernel_msg_send(cmd);
+	} else {
+		return ERR_NO_MEM;
+	}
+
+	return ERR_SUCCESS;
+}
+
+ble_err_t app_ble_gatts_set_attr_value(uint16_t attr_handle, uint16_t length, uint8_t *value)
+{
+	ble_err_t ret = ERR_SUCCESS;
+	gatt_db_att_t *p_att = NULL;
+	gatt_db_svc_t *p_svc = NULL;
+
+	uint8_t status = gatt_db_att_get(attr_handle, &p_svc, &p_att);
+
+	if(status == GAP_ERR_NO_ERROR) {
+		// value can not be set for following parameters
+		if ((p_att->uuid == GATT_DECL_PRIMARY_SERVICE) || (p_att->uuid == GATT_DECL_SECONDARY_SERVICE)
+			|| (p_att->uuid == GATT_DECL_CHARACTERISTIC) || (p_att->uuid == GATT_DECL_INCLUDE)
+			|| (p_att->uuid == GATT_DESC_CHAR_EXT_PROPERTIES) || (p_att->uuid == GATT_DESC_CLIENT_CHAR_CFG)
+			|| (p_att->uuid == GATT_DESC_SERVER_CHAR_CFG)) {
+
+			ret = ERR_REQUEST_NOT_SUPPORTED;
+		} else {
+			if (p_att->attr_val.value == NULL) {
+				p_att->attr_val.value = kernel_malloc(length, KERNEL_MEM_ATT_DB);
+			} else {
+				kernel_free(p_att->attr_val.value);
+				p_att->attr_val.value = kernel_malloc(length, KERNEL_MEM_ATT_DB);
+			}
+
+			p_att->attr_val.length = length;
+			memcpy(p_att->attr_val.value, value, length);
+		}
+	}
+	return ret;
+}
+
+ble_err_t app_ble_gatts_get_attr_value(uint16_t attr_handle, uint16_t *length, uint8_t **value)
+{
+	ble_err_t ret = ERR_SUCCESS;
+	gatt_db_att_t *p_att = NULL;
+	gatt_db_svc_t *p_svc = NULL;
+
+	uint8_t status = gatt_db_att_get(attr_handle, &p_svc, &p_att);
+
+	if (status == GAP_ERR_NO_ERROR) {
+		*length = p_att->attr_val.length;
+		*value = p_att->attr_val.value;
+	} else {
+		ret = ERR_INVALID_HANDLE;
+	}
+	return ret;
+}
+
+ble_err_t app_ble_gatts_svc_chg_ind_send(uint16_t start_handle, uint16_t end_handle)
+{
+	// Inform that database has been updated
+	gapc_svc_db_updated(start_handle, end_handle);
+	return ERR_SUCCESS;
 }
 
 /////////////// other /////////////////////////////////////////////
@@ -1036,6 +1722,11 @@ void appm_init( void )
 {
 	// Reset the application manager environment
 	memset(&app_ble_env, 0, sizeof(struct app_env_tag));
+#if BLE_CENTRAL
+	app_ble_env.init_conn_par.phy_mask = GAPM_INIT_PROP_1M_BIT;
+	memcpy(&app_ble_env.init_conn_par.conn_param_1m, &default_init_par, sizeof(struct appm_create_conn_param));
+#endif
+
 	for (int i = 0; i < BLE_CONNECTION_MAX; i++) {
 		app_ble_env.connections[i].conhdl = UNKNOW_CONN_HDL;
 		app_ble_env.connections[i].role = APP_BLE_NONE_ROLE;
@@ -1055,6 +1746,7 @@ void appm_init( void )
 	#if (BLE_APP_SEC)
 	app_sec_init();
 	#endif
+
 	// Reset the stack
 	ble_appm_send_gapm_reset_cmd();
 }

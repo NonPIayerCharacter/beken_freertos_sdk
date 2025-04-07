@@ -10,16 +10,13 @@
 
 void comm_event_sent(uint8_t conidx,uint8_t user_lid,uint16_t dummy,uint16_t status)
 {
-	if ((status == GAP_ERR_NO_ERROR) && ((dummy == GATT_INDICATE) || (dummy == GATT_NOTIFY))) {
-		if (ble_event_notice) {
-			ble_cmd_param_t cmd;
-
-			cmd.cmd_idx = dummy;
-			cmd.status = status;
-			ble_event_notice(BLE_5_TX_DONE,&cmd);
-		}
-	} else {
-		bk_printf("[%s]conidx:%d,user_lid:%d,dummy:%d,status:%d\r\n",__func__,conidx,user_lid,dummy,status);
+	if (ble_event_notice) {
+		atts_tx_t cmd;
+		cmd.conn_idx = app_ble_find_conn_idx_handle(conidx);
+		cmd.att_idx = ((gatts_dummy_t)dummy).att_idx;
+		cmd.prf_id =  ((gatts_dummy_t)dummy).prf_id;
+		cmd.status = status;
+		ble_event_notice(BLE_5_TX_DONE,&cmd);
 	}
 }
 
@@ -27,46 +24,50 @@ static void comm_cb_att_read_get(uint8_t conidx,uint8_t user_lid,uint16_t token,
 									uint16_t max_length)
 {
 	struct bk_ble_env_tag *ble_env = NULL;
-	common_buf_t *p_buf = NULL;
-
 	read_req_t read_req;
 	uint16_t status = GAP_ERR_NO_ERROR;
+	common_buf_t *p_buf = NULL;
+	uint16_t length = 0;
+	uint8_t *value;
+	uint16_t send_length = 0;
 
 	// retrieve handle information
 	prf_data_t *prf_data = prf_data_get_by_prf_handler(hdl);
+	app_ble_gatts_get_attr_value(hdl, &length, &value);
 
 	if (prf_data) {
-		// retrieve handle information
-		ble_env = (struct bk_ble_env_tag*)(prf_data->p_env);
+		if (value && (length > offset)) {
+			send_length = ((length - offset) > max_length) ? max_length : (length - offset);
+			status = common_buf_alloc(&p_buf, GATT_BUFFER_HEADER_LEN, send_length, GATT_BUFFER_TAIL_LEN);
 
-		read_req.conn_idx = app_ble_find_conn_idx_handle(conidx);
-		read_req.value = kernel_malloc(BLE_CHAR_DATA_LEN, KERNEL_MEM_KERNEL_MSG);
-		read_req.size = BLE_CHAR_DATA_LEN;
-		read_req.att_idx = hdl - ble_env->start_hdl;
-		read_req.prf_id = ble_env->id;
+			if (status == GAP_ERR_NO_ERROR) {
+				common_buf_copy_data_from_mem(p_buf, &(value[offset]), send_length);
+			} else {
+				status = ATT_ERR_INSUFF_RESOURCE;
+			}
 
-		if (ble_event_notice)
-			ble_event_notice(BLE_5_READ_EVENT,&read_req);
+			if (p_buf) {
+				gatt_srv_att_read_get_cfm(conidx, user_lid, token, status, p_buf->data_len, p_buf);
+				common_buf_release(p_buf);
+			}
 
-		status = common_buf_alloc(&p_buf,GATT_BUFFER_HEADER_LEN,read_req.length,GATT_BUFFER_TAIL_LEN);
-
-		if(status == GAP_ERR_NO_ERROR) {
-			common_buf_copy_data_from_mem(p_buf,read_req.value,read_req.length);
 		} else {
-			status = ATT_ERR_INSUFF_RESOURCE;
-			kernel_free(read_req.value);
+			// retrieve handle information
+			ble_env = (struct bk_ble_env_tag*)(prf_data->p_env);
+
+			read_req.conn_idx = app_ble_find_conn_idx_handle(conidx);
+			read_req.value = NULL;
+			read_req.size = 0;
+			read_req.att_idx = hdl - ble_env->start_hdl;
+			read_req.prf_id = ble_env->id;
+			read_req.hdl = hdl;
+			read_req.token = token;
+
+			if (ble_event_notice)
+				ble_event_notice(BLE_5_READ_EVENT, &read_req);
 		}
-	} else {
-		status = ATT_ERR_INVALID_HANDLE;
 	}
 
-	if (p_buf) {
-		gatt_srv_att_read_get_cfm(conidx,user_lid,token,status,p_buf->data_len,p_buf);
-		kernel_free(read_req.value);
-		common_buf_release(p_buf);
-	} else {
-		bk_printf("[%s]status:%d\r\n",__func__,status);
-	}
 }
 
 void comm_att_event_get(uint8_t conidx,uint8_t user_lid,uint16_t token,uint16_t dummy,uint16_t hdl,
@@ -103,7 +104,7 @@ static void comm_cb_att_val_set(uint8_t conidx,uint8_t user_lid,uint16_t token,u
 			ble_event_notice(BLE_5_WRITE_EVENT,&write_req);
 	}
 
-	gatt_srv_att_val_set_cfm(conidx,user_lid,token,GAP_ERR_NO_ERROR);
+	gatt_srv_att_val_set_cfm(conidx, user_lid, token, GAP_ERR_NO_ERROR);
 }
 
 
@@ -131,9 +132,6 @@ static uint16_t bk_ble_service_init(prf_data_t *p_env,uint16_t *p_start_hdl,uint
 			bk_printf("[%s]p_cb null\r\n",__func__);
 		}
 
-		// Service content flag
-		uint16_t cfg_flag = 0xFFFF;
-
 		shdl = *p_start_hdl;
 
 		 // register DISS user
@@ -145,7 +143,7 @@ static uint16_t bk_ble_service_init(prf_data_t *p_env,uint16_t *p_start_hdl,uint
 		//Create FFF0 in the DB
 		//------------------ create the attribute database for the profile -------------------
 		status = gatt_db_svc_add(user_lid, sec_lvl,(uint8_t *)(p_params->uuid),p_params->att_db_nb,
-								(uint8_t *)&cfg_flag,(gatt_att_desc_t *)(p_params->att_db),p_params->att_db_nb, &shdl);
+					NULL,(gatt_att_desc_t *)(p_params->att_db),p_params->att_db_nb, &shdl);
 		if (status != GAP_ERR_NO_ERROR) {
 			break;
 		}
@@ -189,8 +187,14 @@ static uint16_t bk_ble_service_destroy(prf_data_t *p_env,uint8_t reason)
 		kernel_free(ble_env->operation);
 	}
 
+	if (reason != PRF_DESTROY_RESET) {
+		gatt_user_unregister(ble_env->user_lid);
+	}
+
 	// free profile environment variables
 	p_env->p_env = NULL;
+	p_env->api_id = TASK_BLE_ID_INVALID;
+	p_env->prf_id = PRF_ID_INVALID;
 	kernel_free(ble_env);
 
 	return 0;

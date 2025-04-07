@@ -1,7 +1,7 @@
 #ifndef __REG_EM_BLE_RX_ISO_DESC_H_
 #define __REG_EM_BLE_RX_ISO_DESC_H_
 
-extern uint8_t ex_mem[];
+extern uint8_t *ex_mem;
 
 #define REG_EM_BLE_RX_ISO_DESC_SIZE 12
 

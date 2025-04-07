@@ -2,7 +2,7 @@
 #include "arm_arch.h"
 #include "sys_config.h"
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #include "spi_pub.h"
 #include "drv_model_pub.h"
 #include "intc_pub.h"
@@ -652,11 +652,11 @@ void spi_isr(void)
 	//BK_SPI_PRT("0x%08x\r\n", status);
 
 	if ((status & RXINT) || (status & SPI_S_CS_UP_INT_STATUS)) {
-		REG_WRITE((0x00802800 + (0x18 * 4)), 0x02);
+		//REG_WRITE((0x00802800 + (0x18 * 4)), 0x02);
 
 		if (spi_receive_callback.callback != 0) {
-			REG_WRITE((0x00802800 + (0x1a * 4)), 0x02);
-			REG_WRITE((0x00802800 + (0x1a * 4)), 0x00);
+			//REG_WRITE((0x00802800 + (0x1a * 4)), 0x02);
+			//REG_WRITE((0x00802800 + (0x1a * 4)), 0x00);
 
 			void *param = spi_receive_callback.param;
 
@@ -668,7 +668,7 @@ void spi_isr(void)
 			spi_rxfifo_clr();
 		}
 
-		REG_WRITE((0x00802800 + (0x18 * 4)), 0x00);
+		//REG_WRITE((0x00802800 + (0x18 * 4)), 0x00);
 	}
 
 	if (status & TXINT) {

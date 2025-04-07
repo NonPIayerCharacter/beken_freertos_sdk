@@ -1,7 +1,11 @@
 #ifndef _BK_AUDIO_H_
 #define _BK_AUDIO_H_
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #define AUDIO_BASE                                   (0x00802B00)
+#else
+#define AUDIO_BASE                                   (0x00A06000)
+#endif
 
 #define AUDIO_CONFIG                                 (AUDIO_BASE + 0x0 * 4)
 #define SAMPLE_RATE_ADC_POSI                         (0)

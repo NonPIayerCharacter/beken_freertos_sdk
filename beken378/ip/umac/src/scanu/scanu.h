@@ -88,8 +88,12 @@ struct scanu_env_tag
     /// P2P Scan (ssid we are looking for is "DIRECT-")
     bool p2p_scan;
     #endif //(NX_P2P)
+    struct scanu_setting setting;
 
-	struct scanu_setting setting;
+    uint8_t upload_scanu_result;
+    // The number of receiving frame.
+    uint8_t recv_frame_cnt;
+    uint32_t start_time;
 };
 
 /// Definition of an additional IE buffer

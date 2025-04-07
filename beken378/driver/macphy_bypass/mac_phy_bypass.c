@@ -19,6 +19,7 @@ UINT32 g_band = 0;
 
 void mpb_regs_reset(void)
 {
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	int index;
 	for (index = 0; index <= 0xB; index++) {
 		REG_WRITE(MPB_ADDR_BASE + index * 4, 0);
@@ -26,6 +27,7 @@ void mpb_regs_reset(void)
 	for (index = 0x80; index <= 0x92; index++) {
 		REG_WRITE(MPB_ADDR_BASE + index * 4, 0);
 	}
+#endif
 }
 
 #if CFG_MAC_PHY_BAPASS
@@ -57,6 +59,11 @@ struct MPB_TypeDef mpb_regs =
     (volatile MPB_REG0x8D_TypeDef  *)(MPB_ADDR_BASE + 141 * 4),
     (volatile MPB_REG0x8E_TypeDef  *)(MPB_ADDR_BASE + 142 * 4),
     (volatile MPB_REG0x8F_TypeDef  *)(MPB_ADDR_BASE + 143 * 4),
+#if (SOC_BK7252N == CFG_SOC_NAME)
+    (volatile MPB_REG0x90_TypeDef  *)(MPB_ADDR_BASE + 144 * 4),
+    (volatile MPB_REG0x91_TypeDef  *)(MPB_ADDR_BASE + 145 * 4),
+    (volatile MPB_REG0x92_TypeDef  *)(MPB_ADDR_BASE + 146 * 4),
+#endif
 };
 
 static SDD_OPERATIONS mpb_op = {

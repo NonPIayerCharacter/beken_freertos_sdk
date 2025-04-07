@@ -4,9 +4,9 @@
 #include "uart_pub.h"
 
 #define I2C2_DEBUG
-//#undef I2C2_DEBUG
+#undef I2C2_DEBUG
 
-#define I2C2_PRT                 os_printf//os_printf
+#define I2C2_PRT                 os_null_printf//os_printf
 
 #ifdef I2C2_DEBUG
 #define I2C2_WPRT                warning_prf

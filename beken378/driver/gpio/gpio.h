@@ -61,6 +61,9 @@ typedef void (*GPIO_FUNC_PTR)(unsigned char param);
 #define GCFG_PULL_ENABLE_POS                 5
 #define GCFG_FUNCTION_ENABLE_POS             6
 #define GCFG_INPUT_MONITOR_POS               7
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define GCFG_GPIO_CAPACITY_POS               8
+#endif
 
 #define GCFG_INPUT_BIT                       (1 << 0)
 #define GCFG_OUTPUT_BIT                      (1 << 1)
@@ -70,6 +73,9 @@ typedef void (*GPIO_FUNC_PTR)(unsigned char param);
 #define GCFG_PULL_ENABLE_BIT                 (1 << 5)
 #define GCFG_FUNCTION_ENABLE_BIT             (1 << 6)
 #define GCFG_INPUT_MONITOR_BIT               (1 << 7)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define GCFG_GPIO_CAPACITY_MASK              (0x3 << 8)
+#endif
 
 #define REG_GPIO_FUNC_CFG                    (GPIO_BASE_ADDR + 32*4)
 #define PERIAL_MODE_1                         (0)
@@ -90,7 +96,7 @@ typedef void (*GPIO_FUNC_PTR)(unsigned char param);
 #define AUDIO_DPLL_UNLOCK_INT_EN              (1 << 1)
 #define DPLL_UNLOCK_INT                       (1 << 2)
 #define AUDIO_DPLL_UNLOCK_INT                 (1 << 3)
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if (CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N)
 #define USB_PLUG_IN_INT_EN                    (1 << 4)
 #define USB_PLUG_OUT_INT_EN                   (1 << 5)
 #define USB_PLUG_IN_INT                       (1 << 6)
@@ -99,6 +105,9 @@ typedef void (*GPIO_FUNC_PTR)(unsigned char param);
 #else
 #define GPIO_EXTRAL_INT_MASK                  (DPLL_UNLOCK_INT | AUDIO_DPLL_UNLOCK_INT)
 #endif  // (CFG_SOC_NAME == SOC_BK7221U)
+#if (CFG_SOC_NAME == SOC_BK7238)
+#define I2C_IO_SEL_BIT                        (1 << 8)
+#endif
 #endif  //  (CFG_SOC_NAME == SOC_BK7231)
 
 #define REG_GPIO_DETECT                      (GPIO_BASE_ADDR + 39*4)
@@ -114,9 +123,15 @@ typedef void (*GPIO_FUNC_PTR)(unsigned char param);
 #define REG_GPIO_MODULE_SELECT               (GPIO_BASE_ADDR + 45*4)
 #define GPIO_MODUL_NONE                      0xff
 
-#if (CFG_SOC_NAME != SOC_BK7231)
-#define GPIO_SD_DMA_MODULE                   (0 << 2)
-#define GPIO_SD_HOST_MODULE                  (1 << 2)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define GPIO_SD_GPIO_GROUP_14_19             (0 << 2)
+#define GPIO_SD_GPIO_GROUP_34_39             (1 << 2)
+
+#define GPIO_SD_MODULE_POS                    2
+#define GPIO_SD_MODULE_MASK                   (3 << GPIO_SD_MODULE_POS)
+#elif (CFG_SOC_NAME != SOC_BK7231)
+#define GPIO_SD_DMA_MODULE                    (0 << 2)
+#define GPIO_SD_HOST_MODULE                   (1 << 2)
 #define GPIO_SD1_DMA_MODULE                   (2 << 2)
 #define GPIO_SD1_HOST_MODULE                  (3 << 2)
 #define GPIO_SD_MODULE_POS                    2
@@ -130,11 +145,23 @@ typedef void (*GPIO_FUNC_PTR)(unsigned char param);
 
 #if (CFG_SOC_NAME != SOC_BK7231)
 #define GPIO_SPI1_DMA_MODULE                  (2 << 0)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define GPIO_HSSPI1_MODULE                   (2 << 0)
+#endif
 #define GPIO_SPI1_MODULE                      (3 << 0)
 #define GPIO_SPI_DMA_MODULE                  (0 << 0)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define GPIO_HSSPI_MODULE                    (0 << 0)
+#endif
 #define GPIO_SPI_MODULE                      (1 << 0)
 #define GPIO_SPI_MODULE_POS                   0
 #define GPIO_SPI_MODULE_MASK                  (3 << GPIO_SPI_MODULE_POS)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define GPIO_SDIO_MODULE                     (0 << 2)
+#define GPIO_SDIO1_MODULE                    (1 << 2)
+#define GPIO_SDIO_MODULE_POS                 (2)
+#define GPIO_SDIO_MODULE_MASK                 (3 << GPIO_SDIO_MODULE_POS)
+#endif
 #else
 #define GPIO_SPI_DMA_MODULE                  (0 << 0)
 #define GPIO_SPI_MODULE                      (1 << 0)

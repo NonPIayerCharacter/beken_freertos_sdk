@@ -54,69 +54,116 @@ void scan_ap_cb(void *ctxt, uint8_t param)
 
 void show_scan_ap_result(void)
 {
-    struct sta_scan_res *scan_rst_table;
-    char scan_rst_ap_num = 0;       /**< The number of access points found in scanning. */
+#if !CFG_WPA_CTRL_IFACE
+    struct scanu_rst_upload *scan_rst;
+    ScanResult apList;
     int i;
+    GLOBAL_INT_DECLARATION();
 
-    scan_rst_ap_num = bk_wlan_get_scan_ap_result_numbers();
-    if(scan_rst_ap_num == 0)
-    {
-        os_printf("NULL AP\r\n");
+    apList.ApList = NULL;
+
+    GLOBAL_INT_DISABLE();
+    scan_rst = sr_get_scan_results();
+    if (scan_rst == NULL) {
+        GLOBAL_INT_RESTORE();
+        apList.ApNum = 0;
         return;
+    } else {
+        apList.ApNum = scan_rst->scanu_num;
     }
-
-    scan_rst_table = (struct sta_scan_res *)os_malloc(sizeof(struct sta_scan_res) * scan_rst_ap_num);
-    if(scan_rst_table == NULL)
-    {
-        os_printf("scan_rst_table malloc failed!\r\n");
-        return;
-    }
-
-    bk_wlan_get_scan_ap_result(scan_rst_table, scan_rst_ap_num);
-
-    os_printf("\r\nscan ap count:%d\r\n", scan_rst_ap_num);
-    for( i = 0; i < scan_rst_ap_num; i++ )
-    {
-        os_printf("%d: %s, ", i + 1, scan_rst_table[i].ssid);
-        os_printf("Channal:%d, ", scan_rst_table[i].channel);
-        switch(scan_rst_table[i].security)
-        {
-        case BK_SECURITY_TYPE_NONE:
-            os_printf(" %s, ", "Open");
-            break;
-        case BK_SECURITY_TYPE_WEP:
-            os_printf(" %s, ", "CIPHER_WEP");
-            break;
-        case BK_SECURITY_TYPE_WPA_TKIP:
-            os_printf(" %s, ", "CIPHER_WPA_TKIP");
-            break;
-        case BK_SECURITY_TYPE_WPA_AES:
-            os_printf(" %s, ", "CIPHER_WPA_AES");
-            break;
-        case BK_SECURITY_TYPE_WPA2_TKIP:
-            os_printf(" %s, ", "CIPHER_WPA2_TKIP");
-            break;
-        case BK_SECURITY_TYPE_WPA2_AES:
-            os_printf(" %s, ", "CIPHER_WPA2_AES");
-            break;
-        case BK_SECURITY_TYPE_WPA2_MIXED:
-            os_printf(" %s, ", "CIPHER_WPA2_MIXED");
-            break;
-        case BK_SECURITY_TYPE_AUTO:
-            os_printf(" %s, ", "CIPHER_AUTO");
-            break;
-        default:
-            os_printf(" %s(%d), ", "unknown", scan_rst_table[i].security);
-            break;
+    if (apList.ApNum > 0) {
+        apList.ApList = (void *)os_zalloc(sizeof(*apList.ApList) * apList.ApNum);
+        if(apList.ApList == NULL){
+            GLOBAL_INT_RESTORE();
+            bk_printf("Got ap count: %d,but malloc failed\r\n", apList.ApNum);
+            return;
         }
-        os_printf("RSSI=%d \r\n", scan_rst_table[i].level);
+        for (i = 0; i < scan_rst->scanu_num; i++) {
+            os_memcpy(apList.ApList[i].ssid, scan_rst->res[i]->ssid, 32);
+            apList.ApList[i].ApPower = scan_rst->res[i]->level;
+        }
+    }
+    GLOBAL_INT_RESTORE();
+
+    if (apList.ApList == NULL)
+        apList.ApNum = 0;
+
+    bk_printf("Got ap count: %d\r\n", apList.ApNum);
+    for (i = 0; i < apList.ApNum; i++) {
+        apList.ApList[i].ssid[32] = '\0';
+        bk_printf("    %s, RSSI=%d\r\n", apList.ApList[i].ssid, apList.ApList[i].ApPower);
+    }
+    bk_printf("Get ap end.......\r\n\r\n");
+
+    if (apList.ApList != NULL) {
+        os_free(apList.ApList);
+        apList.ApList = NULL;
     }
 
-    if( scan_rst_table != NULL )
-    {
-        os_free(scan_rst_table);
-        scan_rst_table = NULL;
+#if CFG_ROLE_LAUNCH
+    rl_pre_sta_set_status(RL_STATUS_STA_LAUNCHED);
+#endif
+
+    sr_release_scan_results(scan_rst);
+#else    /* CFG_WPA_CTRL_IFACE */
+    int ret;
+    ScanResult_adv apList;
+    extern int hostapd_scan_started;
+
+    if (bk_wlan_ap_is_up() > 0 || hostapd_scan_started)
+        ret = wlan_ap_scan_result(&apList);
+    else
+        ret = wlan_sta_scan_result(&apList);
+
+    if (!ret) {
+        int ap_num = apList.ApNum;
+        int i;
+
+        os_printf("\r\nscan ap count:%d\r\n", ap_num);
+        for( i = 0; i < ap_num; i++ )
+        {
+            apList.ApList[i].ssid[32] = '\0';
+            os_printf("%d: %s, ", i + 1, apList.ApList[i].ssid);
+            os_printf("Channal:%d, ", apList.ApList[i].channel);
+            switch(apList.ApList[i].security)
+            {
+            case BK_SECURITY_TYPE_NONE:
+                os_printf(" %s, ", "Open");
+                break;
+            case BK_SECURITY_TYPE_WEP:
+                os_printf(" %s, ", "CIPHER_WEP");
+                break;
+            case BK_SECURITY_TYPE_WPA_TKIP:
+                os_printf(" %s, ", "CIPHER_WPA_TKIP");
+                break;
+            case BK_SECURITY_TYPE_WPA_AES:
+                os_printf(" %s, ", "CIPHER_WPA_AES");
+                break;
+            case BK_SECURITY_TYPE_WPA2_TKIP:
+                os_printf(" %s, ", "CIPHER_WPA2_TKIP");
+                break;
+            case BK_SECURITY_TYPE_WPA2_AES:
+                os_printf(" %s, ", "CIPHER_WPA2_AES");
+                break;
+            case BK_SECURITY_TYPE_WPA2_MIXED:
+                os_printf(" %s, ", "CIPHER_WPA2_MIXED");
+                break;
+            case BK_SECURITY_TYPE_AUTO:
+                os_printf(" %s, ", "CIPHER_AUTO");
+                break;
+            default:
+                os_printf(" %s(%d), ", "unknown", apList.ApList[i].security);
+                break;
+            }
+            os_printf("RSSI=%d \r\n", apList.ApList[i].ApPower);
+        }
     }
+
+    if (apList.ApList != NULL) {
+        os_free(apList.ApList);
+        apList.ApList = NULL;
+    }
+#endif /* CFG_WPA_CTRL_IFACE */
 }
 
 void wifi_scan_thread( beken_thread_arg_t arg )

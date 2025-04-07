@@ -1,7 +1,11 @@
 #include "low_voltage_compensation.h"
 #include "power_save_pub.h"
 #include "power_save.h"
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #include "calendar_pub.h"
+#else
+#include "rtc_reg_pub.h"
+#endif
 #include "low_voltage_ps.h"
 
 #define INIT_TARGET_LEAD_VALUE_US               (4 * 1000)
@@ -14,7 +18,7 @@
 #define GOAL_TARGET_LEAD_VALUE_US               (2000)
 #define GOAL_TARGET_LEAD_VALUE_US_LITTLE_DTIM     (1800)
 #else
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define GOAL_TARGET_LEAD_VALUE_US               (1500)
 #define GOAL_TARGET_LEAD_VALUE_US_LITTLE_DTIM     (1500)
 #else
@@ -369,7 +373,11 @@ uint32_t lvc_recv_bcn_handler(uint64_t tsf, uint32_t tsf_offset)
 	GLOBAL_INT_DECLARATION();
 
 	current_tsf_timer_point = (uint64_t)nxmac_tsf_lo_get() + ((uint64_t)nxmac_tsf_hi_get() << 32) + tsf_offset;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	local_time = cal_get_time_us();
+#else
+    local_time = rtc_reg_get_time_us();
+#endif
 #if(CFG_LV_PS_WITH_IDLE_TICK == 1)
 	if(0 == lv_ps_get_keep_timer_more())
 #endif
@@ -463,7 +471,11 @@ uint32_t lvc_recv_bcn_handler_tim(void)
 	uint64_t duration;
 	uint64_t local_time;
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	local_time = cal_get_time_us();
+#else
+    local_time = rtc_reg_get_time_us();
+#endif
 	// Adding an INT32 to an UINT64 directly is not allowd.
 	if(lv_ps_tbtt_local_remainder < 0) {
 		lv_ps_tbtt_local = (local_time + (-lv_ps_tbtt_local_remainder)) / lv_ps_beacon_interval * lv_ps_beacon_interval - (-lv_ps_tbtt_local_remainder);

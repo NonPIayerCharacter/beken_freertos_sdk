@@ -14,6 +14,8 @@ platform_match = 'yes'
 
 if (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7238'):
     ble_lib_name += '_7238'
+elif (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7252N'):
+    ble_lib_name += '_7252n'
 elif (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7236'):
     ble_lib_name += '_7236'
 else:
@@ -202,10 +204,6 @@ if ((GetLocalDepend(options, 'CFG_SUPPORT_BLE') == 1)
     src_pub += ["ble_pub/app/src/app_findt.c"]
     src_pub += ["ble_pub/app/src/app_diss.c"]
     src_pub += ["ble_pub/ui/ble_ui.c"]
-    src_pub += ["platform/7238/entry/ble_main.c"]
-    src_pub += ["platform/7238/driver/rf/rf_xvr.c"]
-    src_pub += ["platform/7238/driver/rf/ble_rf_port.c"]
-    src_pub += ["platform/7238/driver/uart/uart_ble.c"]
 
     path += [cwd + '/arch/armv5']
     path += [cwd + '/arch/armv5/compiler']
@@ -256,12 +254,32 @@ if ((GetLocalDepend(options, 'CFG_SUPPORT_BLE') == 1)
     path += [cwd + '/ble_pub/profiles/find/findt/api']
     path += [cwd + '/ble_pub/profiles/dis/diss/api']
     path += [cwd + '/ble_pub/ui']
-    path += [cwd + '/platform/7238/config']
-    path += [cwd + '/platform/7238/driver/reg']
-    path += [cwd + '/platform/7238/driver/rf']
-    path += [cwd + '/platform/7238/driver/uart']
-    path += [cwd + '/platform/7238/entry']
-    path += [cwd + '/platform/7238/nvds/api']
+
+if ((GetLocalDepend(options, 'CFG_SUPPORT_BLE') == 1)
+    and (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7238')):
+    path += [cwd + '/platform/bk7238/config']
+    path += [cwd + '/platform/bk7238/driver/reg']
+    path += [cwd + '/platform/bk7238/driver/rf']
+    path += [cwd + '/platform/bk7238/driver/uart']
+    path += [cwd + '/platform/bk7238/entry']
+    path += [cwd + '/platform/bk7238/nvds/api']
+    src_pub += ["platform/bk7238/entry/ble_main.c"]
+    src_pub += ["platform/bk7238/driver/rf/rf_xvr.c"]
+    src_pub += ["platform/bk7238/driver/rf/ble_rf_port.c"]
+    src_pub += ["platform/bk7238/driver/uart/uart_ble.c"]
+
+if ((GetLocalDepend(options, 'CFG_SUPPORT_BLE') == 1)
+    and (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7252N')):
+    path += [cwd + '/platform/bk7252n/config']
+    path += [cwd + '/platform/bk7252n/driver/reg']
+    path += [cwd + '/platform/bk7252n/driver/rf']
+    path += [cwd + '/platform/bk7252n/driver/uart']
+    path += [cwd + '/platform/bk7252n/entry']
+    path += [cwd + '/platform/bk7252n/nvds/api']
+    src_pub += ["platform/bk7252n/entry/ble_main.c"]
+    src_pub += ["platform/bk7252n/driver/rf/rf_xvr.c"]
+    src_pub += ["platform/bk7252n/driver/rf/ble_rf_port.c"]
+    src_pub += ["platform/bk7252n/driver/uart/uart_ble.c"]
 
 libs = [ble_lib_name]
 libpath = [cwd + '/']

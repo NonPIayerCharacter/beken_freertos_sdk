@@ -19,6 +19,7 @@
 #include "ble_api_5_x.h"
 #include "app_sdp.h"
 #include "common.h"
+#include "kernel_mem.h"
 
 static hal_ble_env_t hal_ble_env;
 static char at_rsp_msg_buf[200];
@@ -35,17 +36,19 @@ extern UINT64 fclk_get_tick(void);
 extern void register_app_sdp_common_callback(app_sdp_comm_callback comm_cb);
 extern int hexstr2bin(const char * hex, u8 * buf, size_t len);
 extern ble_err_t app_ble_set_le_pkt_size(uint8_t conn_idx, uint16_t pkt_size);
+#define GET_UUID_LEN_FROM_PERM(perm) (perm & GATT_ATT_UUID_TYPE_MASK) >> GATT_ATT_UUID_TYPE_LSB
+
 
 static const bk_attm_desc_t attrListPattern[BK_Attr_IDX_NB]=
 {
     //  Service Declaration
-    [BK_Attr_IDX_SVC]               = {BK_ATT_DECL_PRIMARY_SERVICE, BK_PERM_SET(RD, ENABLE), 0},
+    [BK_Attr_IDX_SVC]               = {BK_ATT_DECL_PRIMARY_SERVICE, PROP(RD), 0},
 
     //  Level Characteristic Declaration
-    [BK_Attr_IDX_CHAR]              = {BK_ATT_DECL_CHARACTERISTIC, BK_PERM_SET(RD, ENABLE), 0},
+    [BK_Attr_IDX_CHAR]              = {BK_ATT_DECL_CHARACTERISTIC,  PROP(RD), 0},
 
     //  Level Client Characteristic Configuration
-    [BK_Attr_IDX_CLIENT_CHAR_CFG]   = {BK_ATT_DESC_CLIENT_CHAR_CFG, BK_PERM_SET(RD, ENABLE)|BK_PERM_SET(WRITE_REQ,ENABLE), 0},
+    [BK_Attr_IDX_CLIENT_CHAR_CFG]   = {BK_ATT_DESC_CLIENT_CHAR_CFG, PROP(RD)|PROP(WR),OPT(NO_OFFSET)},
 };
 
 static uint8_t svr_create_flag=0;
@@ -95,6 +98,7 @@ static void  at_bk_ble_svr_init(uint8_t srv_index)
         ble_db_cfg.uuid[srv_tmp->uuidLen-1-i]=tmp;
     }
 
+#if 0
     for(int i=0;i<ble_db_cfg.att_db_nb;i++)
     {
         ble_db_cfg.att_db[i].info = (ble_db_cfg.att_db[i].info>>8);
@@ -105,6 +109,7 @@ static void  at_bk_ble_svr_init(uint8_t srv_index)
         }
         bk_printf("info:0x%d,exinfo:0x%x\r\n",ble_db_cfg.att_db[i].info,ble_db_cfg.att_db[i].ext_info);
     }
+#endif
 
     svr_start_flag=0;
     bk_ble_create_db(&ble_db_cfg);
@@ -185,7 +190,7 @@ uint8_t appm_adv_data_decode(uint8_t len,const uint8_t *data,uint8_t *find_str,u
             break;
             case GAP_AD_TYPE_COMPLETE_LIST_16_BIT_UUID:
             {
-                if( (data[index+2]==0x12) && (data[index+3]==0x18) )////HID?υτ???????????
+                if( (data[index+2]==0x12) && (data[index+3]==0x18) )
                 {
 
                 }
@@ -225,10 +230,24 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
         read_req_t *r_req = (read_req_t *)param;
         bk_printf("read_cb:conn_idx:%d, prf_id:%d, add_id:%d\r\n",
             r_req->conn_idx, r_req->prf_id, r_req->att_idx);
+
+        uint16_t length = 3;
+        r_req->value = kernel_malloc(length, KERNEL_MEM_KERNEL_MSG);
         r_req->value[0] = 0x12;
         r_req->value[1] = 0x34;
         r_req->value[2] = 0x56;
-        r_req->length = 3;
+
+        app_gatts_rsp_t rsp;
+        rsp.token = r_req->token;
+        rsp.con_idx = r_req->conn_idx;
+        rsp.attr_handle = r_req->hdl;
+        rsp.status = GAP_ERR_NO_ERROR;
+        rsp.att_length = length;
+        rsp.value_length = length;
+        rsp.value = r_req->value;
+
+        bk_ble_gatts_read_response(&rsp);
+        kernel_free(r_req->value);
 
         rsp_len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+READ:%d,%d,%d,%d,%02x\r\n",
                                     hal_ble_env.connidx,r_req->prf_id,r_req->att_idx,r_req->length,r_req->value[0]);
@@ -303,7 +322,7 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
     case BLE_5_INIT_CONNECT_EVENT:
     {
         conn_ind_t *c_ind = (conn_ind_t *)param;
-        #if (CFG_SOC_NAME == SOC_BK7238)
+        #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         app_ble_get_peer_feature(c_ind->conn_idx);
         app_ble_set_le_pkt_size(c_ind->conn_idx,LE_MAX_OCTETS);
         sdp_discover_all_service(c_ind->conn_idx);
@@ -318,7 +337,7 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
     case BLE_5_INIT_DISCONNECT_EVENT:
     {
         discon_ind_t *d_ind = (discon_ind_t *)param;
-        #if (CFG_SOC_NAME == SOC_BK7238)
+        #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         sdp_common_cleanup(d_ind->conn_idx);
         #endif
         bk_printf("BLE_5_INIT_DISCONNECT_EVENT:conn_idx:%d,reason:0x%x\r\n", d_ind->conn_idx,d_ind->reason);
@@ -328,10 +347,9 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
     #endif
     case BLE_5_INIT_CONN_PARAM_UPDATE_REQ_EVENT:
     {
-        conn_param_t *d_ind = (conn_param_t *)param;
+        conn_param_req_t *d_ind = (conn_param_req_t *)param;
         bk_printf("BLE_5_INIT_CONN_PARAM_UPDATE_REQ_EVENT:conn_idx:%d,intv_min:%d,intv_max:%d,time_out:%d\r\n",d_ind->conn_idx,
             d_ind->intv_min,d_ind->intv_max,d_ind->time_out);
-        app_ble_send_conn_param_update_cfm(d_ind->conn_idx,true);
     }
     break;
     case BLE_5_INIT_CONN_PARAM_UPDATE_IND_EVENT:
@@ -384,16 +402,6 @@ static void at_ble_cmd_cb(ble_cmd_t cmd, ble_cmd_param_t *param)
         case BLE_STOP_SCAN:
             break;
         case BLE_DELETE_SCAN:
-            break;
-        case BLE_CONN_UPDATE_MTU:
-            break;
-        case BLE_CONN_UPDATE_PARAM:
-            break;
-        case BLE_CONN_DIS_CONN:
-            bk_printf("BLE_CONN_DIS_CONN\r\n");
-            break;
-        case BLE_INIT_WRITE_CHAR:
-            bk_printf("BLE_INIT_WRITE_CHAR\r\n");
             break;
         case BLE_INIT_CREATE:
             bk_printf("BLE_INIT_CREATE\r\n");
@@ -636,14 +644,14 @@ static void at_ble_set_mode(int argc, char **argv)
         register_app_sdp_characteristic_callback(at_ble_app_sdp_characteristic_cb);
         register_app_sdp_charac_callback(at_app_sdp_charac_cb);
         register_app_sdp_common_callback(at_sdp_comm_callback);
-        #elif (CFG_SOC_NAME == SOC_BK7238)
+        #elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         sdp_set_notice_cb(at_sdp_event_cb);
         sdp_set_discovery_svc_cb(at_sdp_discovery_cb);
         uint8_t conn_idx;
-        conn_idx = app_ble_get_idle_conn_idx_handle();
+        conn_idx = app_ble_get_idle_conn_idx_handle(INIT_ACTV);
         bk_printf("------------->conn_idx:%d\r\n",conn_idx);
         hal_ble_env.sdp_conn_idx = conn_idx;
-        bk_ble_create_init(conn_idx, 0, 0, 0,at_ble_cmd_cb);
+        bk_ble_create_init(conn_idx, at_ble_cmd_cb);
         #endif
     }
 
@@ -829,7 +837,7 @@ static void at_ble_enable_scan(int argc, char **argv)
         scan_info.filter_type = filter_type;
         memcpy(scan_info.filter_param,hal_ble_env.scan.filter_param,len);
 
-        hal_ble_env.scan.scan_idx = app_ble_get_idle_actv_idx_handle();
+        hal_ble_env.scan.scan_idx = app_ble_get_idle_actv_idx_handle(SCAN_ACTV);
         bk_printf("bk_ble_scan_start idx:%d,filter_type:%d,len:%d,%d,%d\r\n",hal_ble_env.scan.scan_idx,scan_info.filter_type,
         len,scan_info.interval,scan_info.window);
         ret = bk_ble_scan_start(hal_ble_env.scan.scan_idx,&scan_info,at_ble_cmd_cb);
@@ -997,12 +1005,12 @@ static void at_ble_server_create(int argc, char **argv)
         }
         else
         {
-            srv_tmp->att_db[att_offset].info=perm->valueint;
-
             if(uuid_len->valueint==128)
-                srv_tmp->att_db[att_offset].ext_info=BK_PERM_SET(RI, ENABLE)|BK_PERM_SET(UUID_LEN, UUID_128);
+                srv_tmp->att_db[att_offset].info=((perm->valueint)>>8)|ATT_UUID(128);
             else
-                srv_tmp->att_db[att_offset].ext_info=BK_PERM_SET(RI, ENABLE)|BK_PERM_SET(UUID_LEN, UUID_16);
+                srv_tmp->att_db[att_offset].info=((perm->valueint)>>8);
+
+            srv_tmp->att_db[att_offset].ext_info=val_max_len->valueint|OPT(NO_OFFSET);
 
             hexstr2bin(uuid->valuestring,srv_tmp->att_db[att_offset++].uuid,uuid_len->valueint>>3);
 
@@ -1110,7 +1118,8 @@ static void at_ble_character_read(int argc, char **argv)
                 char_index++;
                 desc_index = 0;
                 att_index++;    //att_index of char value declaration
-                if(BK_PERM_RIGHT_UUID_128==BK_PERM_GET(srv_tmp->att_db[att_index].ext_info,UUID_LEN))
+
+                if(GATT_UUID_128==GET_UUID_LEN_FROM_PERM(srv_tmp->att_db[att_index].info))
                     uuidLen=16;
                 else
                     uuidLen=2;
@@ -1229,7 +1238,7 @@ static void at_ble_set_advdata_ex(int argc, char **argv)
     memcpy(&adv_info.respData[2], hal_ble_env.adv.adv_name, adv_info.respData[0]-1);
     adv_info.respDataLen = adv_info.respData[0]+1;
 
-    hal_ble_env.adv.adv_idx = app_ble_get_idle_actv_idx_handle();
+    hal_ble_env.adv.adv_idx = app_ble_get_idle_actv_idx_handle(ADV_ACTV);
     bk_ble_adv_start(hal_ble_env.adv.adv_idx, &adv_info, at_ble_cmd_cb);
 
     atsvr_output_msg("OK\r\n",4);
@@ -1362,7 +1371,7 @@ static void at_ble_start_adv(int argc, char **argv)
         bk_ble_start_advertising(app_ble_actv_state_find(ACTV_ADV_CREATED),0,at_ble_cmd_cb);
     }else
     {
-        hal_ble_env.adv.adv_idx = app_ble_get_idle_actv_idx_handle();
+        hal_ble_env.adv.adv_idx = app_ble_get_idle_actv_idx_handle(ADV_ACTV);
         bk_ble_adv_start(hal_ble_env.adv.adv_idx, &adv_info, at_ble_cmd_cb);
     }
     atsvr_output_msg("OK\r\n",4);
@@ -1420,7 +1429,7 @@ static void at_ble_set_con_param(int argc, char **argv)
         g_env_param.ble_param.sup_to=atoi(argv[5]);
     }
 
-    bk_ble_update_param(hal_ble_env.sdp_conn_idx,atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]),at_ble_cmd_cb);
+    bk_ble_update_param(hal_ble_env.sdp_conn_idx,atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[5]));
 
     atsvr_output_msg("OK\r\n",4);
 }
@@ -1563,7 +1572,7 @@ static void at_ble_start_connect(int argc, char **argv)
     bk_printf("------------->conn_idx:%d--%d\r\n",hal_ble_env.sdp_conn_idx,atoi(argv[1]));
 
     bk_ble_init_set_connect_dev_addr(hal_ble_env.sdp_conn_idx,&bdaddr,addr_type);
-    bk_ble_init_start_conn(hal_ble_env.sdp_conn_idx,at_ble_cmd_cb);
+    bk_ble_init_start_conn(hal_ble_env.sdp_conn_idx,10000,at_ble_cmd_cb);
 
     bk_printf("idx:%d, addr_type:%d\r\n",hal_ble_env.sdp_conn_idx,addr_type);
 
@@ -1671,7 +1680,7 @@ static void at_ble_set_con_mtu(int argc, char **argv)
     uint16_t mtu=atoi(argv[2]);
     bk_printf("mtu:%d\r\n",mtu);
 
-    bk_ble_gatt_mtu_change(conn_index,at_ble_cmd_cb);
+    bk_ble_gatt_mtu_change(conn_index);
 
     atsvr_output_msg("OK\r\n",4);
 
@@ -1894,7 +1903,7 @@ static void at_ble_gattc_get_value(int argc, char **argv)
 
     if(att_hdl != 0xffff)
     {
-        ret = bk_ble_read_service_data_by_handle_req(atoi(argv[1]),att_hdl,at_ble_cmd_cb);
+        ret = bk_ble_read_service_data_by_handle_req(atoi(argv[1]),att_hdl);
     }
     if(ret == 0)
     {
@@ -1951,7 +1960,7 @@ static void at_ble_gattc_set_value(int argc, char **argv)
     bk_printf("\r\nread_len:%d start write to slave\r\n",read_len);
 
     hdl=sdp_get_att_hdl(atoi(argv[1]),srv_idx,char_idx,desc_idx);
-    ret = bk_ble_write_service_data_req(atoi(argv[1]),hdl,read_len,data,at_ble_cmd_cb);
+    ret = bk_ble_write_service_data_req(atoi(argv[1]),hdl,read_len,data);
     if(ret == 0)
     {
         atsvr_output_msg("OK\r\n",strlen("OK\r\n"));

@@ -62,7 +62,7 @@ endif
 export GREEN RED NC ECHO
 
 .PHONY: help
-help: 
+help:
 	@echo "Usage of build with Beken SDK with Makefile"
 	@echo ""
 	@echo "ip              build wifi library"
@@ -72,15 +72,16 @@ help:
 	@echo "bk7231u         build bk7231u default project"
 	@echo "bk7231n         build bk7231n default project"
 	@echo "bk7238          build bk7238 default project"
+	@echo "bk7252n         build bk7252n default project"
 	@echo "bk7251          build bk7251 default project"
 	@echo "bk7271          build bk7271 default project"
 
 .PHONY: ip
-ip: 
+ip:
 	@$(MAKE) -f application.mk ip
 
 .PHONY: ble
-ble: 
+ble:
 	@$(MAKE) -f application.mk ble
 
 .PHONY: usb

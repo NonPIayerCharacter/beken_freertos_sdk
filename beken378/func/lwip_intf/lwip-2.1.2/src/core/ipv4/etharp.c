@@ -59,6 +59,9 @@
 #include "lwip_netif_address.h"
 #include "net.h"
 
+#if (1 == CFG_LOW_VOLTAGE_PS)
+#include "low_voltage_ps.h"
+#endif
 #ifdef LWIP_HOOK_FILENAME
 #include LWIP_HOOK_FILENAME
 #endif
@@ -1156,6 +1159,12 @@ etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr,
 #endif /* LWIP_AUTOIP */
   {
     ethernet_output(netif, p, ethsrc_addr, ethdst_addr, ETHTYPE_ARP);
+#if (1 == CFG_LOW_VOLTAGE_PS)
+    if (LV_PS_ENABLED)
+    {
+      lv_ps_update_arp_send_time();
+    }
+#endif
   }
 
   ETHARP_STATS_INC(etharp.xmit);

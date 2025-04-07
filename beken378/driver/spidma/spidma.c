@@ -285,17 +285,20 @@ static void spidma_config_txdma(void)
 
     sddev_control(GDMA_DEV_NAME, CMD_GDMA_CFG_TYPE4, &cfg);
 
-    //en_cfg.channel = p_spidma_desc->dma_tx_channel;
-    //en_cfg.param = p_spidma_desc->txbuf_len; // dma translen
-    //sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_TRANS_LENGTH, &en_cfg);
+    if (en_cfg.param && en_cfg.channel)
+    {
+        en_cfg.channel = p_spidma_desc->dma_tx_channel;
+        en_cfg.param = p_spidma_desc->txbuf_len; // dma translen
+        sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_TRANS_LENGTH, &en_cfg);
 
-    //en_cfg.channel = p_spidma_desc->dma_tx_channel;
-    //en_cfg.param = 0; // no repert
-    //sddev_control(GDMA_DEV_NAME, CMD_GDMA_CFG_WORK_MODE, &en_cfg);
-    
-    //en_cfg.channel = p_spidma_desc->dma_tx_channel;
-    //en_cfg.param = 1;
-    //sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_DMA_ENABLE, &en_cfg);
+        en_cfg.channel = p_spidma_desc->dma_tx_channel;
+        en_cfg.param = 0; // no repert
+        sddev_control(GDMA_DEV_NAME, CMD_GDMA_CFG_WORK_MODE, &en_cfg);
+
+        en_cfg.channel = p_spidma_desc->dma_tx_channel;
+        en_cfg.param = 1;
+        sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_DMA_ENABLE, &en_cfg);
+    }
 }
 
 static void spidma_start_txdma(UINT8 *tx_buf, UINT32 tx_len)
@@ -347,13 +350,13 @@ static void spidma_exit_txdma(void)
 #endif // CFG_GENERAL_DMA
 #endif // (CFG_SOC_NAME == SOC_BK7231)
 
-static void spidma_software_init(void)
+__maybe_unused static void spidma_software_init(void)
 {
     p_spidma_desc = NULL;
     ddev_register_dev(SPIDMA_DEV_NAME, &spidma_op);
 }
 
-static void spidma_hardware_init(void)
+__maybe_unused static void spidma_hardware_init(void)
 {
     UINT32 reg;
     /* register interrupt */
@@ -394,7 +397,7 @@ static void spidma_hardware_init(void)
 
 void spidma_init(void)
 {
-    spidma_software_init();
+    // spidma_software_init();
     spidma_hardware_init();
 }
 

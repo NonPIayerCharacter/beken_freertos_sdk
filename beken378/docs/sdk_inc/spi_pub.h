@@ -38,7 +38,7 @@ enum
     CMD_SPI_TXTRANS_EN,
     CMD_SPI_RXTRANS_EN,
     CMD_SPI_CS_EN,
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     CMD_SPI_SET_TX_FINISH_INT_CALLBACK,
     CMD_SPI_SET_RX_FINISH_INT_CALLBACK,
 #endif
@@ -93,7 +93,7 @@ enum
 
 struct spi_message
 {
-#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7236) && (CFG_SOC_NAME != SOC_BK7238)
+#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7236) && (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
     UINT8 *send_buf;
     UINT32 send_len;
 
@@ -143,9 +143,8 @@ struct spi_callback_des
 * bk_spi_slave_init(max_hz, mode);
 * @endcode
 * 
-* @param
-*       - rate: the rate of spi transfer
-*       - mode: spi mode
+* @param rate: the rate of spi transfer
+* @param mode: spi mode
 * @return
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -173,8 +172,7 @@ int bk_spi_slave_init(UINT32 rate, UINT32 mode);
 * 
 * @endcode
 * 
-* @param
-*       - msg:  the config of spi driver
+* @param msg:  the config of spi driver
 * @return
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -185,8 +183,7 @@ int bk_spi_slave_xfer(struct spi_message *msg);
 
 /**@brief    De-initialise spi slave driver
 *
-* @param
-*       - void 
+* @param void 
 * @return    
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -204,9 +201,8 @@ int bk_spi_slave_deinit(void);
 * bk_spi_slave_init(max_hz, mode);
 * @endcode
 * 
-* @param
-*       - rate: the rate of spi transfer
-*       - mode: spi mode
+* @param rate: the rate of spi transfer
+* @param mode: spi mode
 * @return
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -235,8 +231,7 @@ int bk_spi_master_init(UINT32 rate,UINT32 mode);
 * 
 * @endcode
 * 
-* @param
-*       - msg: the config of spi driver
+* @param msg: the config of spi driver
 * @return
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -247,8 +242,7 @@ int bk_spi_master_xfer(struct spi_message *msg);
 
 /**@brief    De-initialise spi master driver
 *
-* @param
-*       -   void 
+* @param  void 
 * @return
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -272,10 +266,9 @@ int bk_spi_master_deinit(void);
 *    bk_spi_dma_init(mode, max_hz, &msg);
 * @endcode
 * 
-* @param
-*       - rate: the rate of spi transfer
-*       - mode: spi mode
-*       - spi_msg: the config of spi driver
+* @param rate: the rate of spi transfer
+* @param mode: spi mode
+* @param spi_msg: the config of spi driver
 * @return
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -298,9 +291,8 @@ int bk_spi_dma_init(UINT32 mode, UINT32 rate, struct spi_message *spi_msg);
 *    
 * @endcode
 * 
-* @param
-*       - mode: spi mode
-*       - spi_msg: the config of spi driver
+* @param mode: spi mode
+* @param spi_msg: the config of spi driver
 * @return    
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -324,10 +316,9 @@ int bk_spi_dma_transfer(UINT32 mode, struct spi_message *spi_msg);
 *
 * @endcode
 * 
-* @param
-*       - rate: the rate of spi transfer
-*       - mode: spi mode
-*       - spi_msg: the config of spi driver
+* @param rate: the rate of spi transfer
+* @param mode: spi mode
+* @param spi_msg: the config of spi driver
 * @return
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -340,8 +331,7 @@ int bk_spi_master_dma_tx_loop_init(UINT32 mode, UINT32 rate, struct spi_message 
 * 
 * @endcode
 * 
-* @param
-*       - spi_msg: the data of spi transfer
+* @param spi_msg: the data of spi transfer
 * @return
 *       - kNoErr: On success.
 *       - others: other errors.
@@ -350,8 +340,7 @@ int bk_spi_master_dma_send_loop(struct spi_message *spi_msg);
 
 /**@brief    De-initialise spi dma loop mode
 *
-* @param
-*       - void
+* @param void
 * @return
 *       - kNoErr: On success.
 *       - others: other errors.

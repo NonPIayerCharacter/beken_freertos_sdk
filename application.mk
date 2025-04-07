@@ -144,6 +144,7 @@ INCLUDES += -I./demos/wifi/station
 INCLUDES += -I./demos/wifi/station_power_save
 INCLUDES += -I./demos/bluetooth/eddystone
 INCLUDES += -I./demos/bluetooth/eddystone_core
+INCLUDES += -I./demos/bluetooth/throughput
 
 ifeq ($(CFG_WRAP_LIBC),1)
 INCLUDES += -I./beken378/func/libc
@@ -193,7 +194,9 @@ ifeq ($(CFG_SUPPORT_MATTER), 0)
 #SRC_C += ./demos/os/os_timer/os_timer.c
 #SRC_C += ./demos/peripheral/adc/test_adc.c
 #SRC_C += ./demos/peripheral/flash/test_flash.c
+#ifneq ($(CFG_SOC_NAME),$(SOC_BK7252N))
 #SRC_C += ./demos/peripheral/psram/test_psram.c
+#endif
 #SRC_C += ./demos/peripheral/gpio/test_gpio.c
 #SRC_C += ./demos/peripheral/pwm/test_pwm.c
 #SRC_C += ./demos/peripheral/uart/test_uart.c
@@ -205,6 +208,7 @@ ifeq ($(CFG_SUPPORT_MATTER), 0)
 #SRC_C += ./demos/wifi/station_power_save/wifi_station_ps_demo.c
 #SRC_C += ./demos/bluetooth/eddystone/eddystone.c
 #SRC_C += ./demos/bluetooth/eddystone_core/eddystone_core.c
+#SRC_C += ./demos/bluetooth/throughput/throughput_test.c
 #SRC_C += ./demos/demos_start.c
 endif
 endif
@@ -227,7 +231,11 @@ SRC_OS += ./os/FreeRTOSv9.0.0/FreeRTOS/Source/croutine.c
 SRC_OS += ./os/FreeRTOSv9.0.0/FreeRTOS/Source/event_groups.c
 SRC_OS += ./os/FreeRTOSv9.0.0/FreeRTOS/Source/list.c
 SRC_OS += ./os/FreeRTOSv9.0.0/FreeRTOS/Source/portable/Keil/ARM968es/port.c
+ifeq ("${CfG_ENABLE_HEAP_5}", "1")
+SRC_OS += ./os/FreeRTOSv9.0.0/FreeRTOS/Source/portable/MemMang/heap_5.c
+else
 SRC_OS += ./os/FreeRTOSv9.0.0/FreeRTOS/Source/portable/MemMang/heap_4.c
+endif
 SRC_OS += ./os/FreeRTOSv9.0.0/FreeRTOS/Source/queue.c
 SRC_OS += ./os/FreeRTOSv9.0.0/FreeRTOS/Source/tasks.c
 SRC_OS += ./os/FreeRTOSv9.0.0/FreeRTOS/Source/timers.c
@@ -378,28 +386,25 @@ DEPENDENCY_LIST += $(SRC_DRV_C:%.c=$(OBJ_DIR)/%.d)
 OBJ_FUNC_LIST = $(SRC_FUNC_C:%.c=$(OBJ_DIR)/%.o)
 DEPENDENCY_LIST += $(SRC_FUNC_C:%.c=$(OBJ_DIR)/%.d)
 
-ifeq ($(CFG_SOC_NAME), 1)
+ifeq ($(CFG_SOC_NAME_STR), "bk7231")
 SOC_NAME_ELF = bk7231.elf
 SOC_NAME_BIN = bk7231.bin
 SOC_NAME_MAP = bk7231.map
 SOC_NAME_LDS = bk7231.ld
 SOC_NAME_BSP_LDS = bk7231_bsp.ld
-SOC_NAME_NOEXT = bk7231
-else ifeq ($(CFG_SOC_NAME), 2)
+else ifeq ($(CFG_SOC_NAME_STR), "bk7231u")
 SOC_NAME_ELF = bk7231u.elf
 SOC_NAME_BIN = bk7231u.bin
 SOC_NAME_MAP = bk7231u.map
 SOC_NAME_LDS = bk7231.ld
 SOC_NAME_BSP_LDS = bk7231_bsp.ld
-SOC_NAME_NOEXT = bk7231u
-else ifeq ($(CFG_SOC_NAME), 3)
+else ifeq ($(CFG_SOC_NAME_STR), "bk7251")
 SOC_NAME_ELF = bk7251.elf
 SOC_NAME_BIN = bk7251.bin
 SOC_NAME_MAP = bk7251.map
 SOC_NAME_LDS = bk7231.ld
 SOC_NAME_BSP_LDS = bk7231_bsp.ld
-SOC_NAME_NOEXT = bk7251
-else ifeq ($(CFG_SOC_NAME), 5)
+else ifeq ($(CFG_SOC_NAME_STR), "bk7231n")
 SOC_NAME_ELF = bk7231n.elf
 SOC_NAME_BIN = bk7231n.bin
 SOC_NAME_MAP = bk7231n.map
@@ -418,7 +423,7 @@ SOC_NAME_LDS = bk7231n.lds
 SOC_NAME_BSP_LDS = bk7231n_bsp.lds
 endif
 endif
-else ifeq ($(CFG_SOC_NAME), 7)
+else ifeq ($(CFG_SOC_NAME_STR), "bk7238")
 SOC_NAME_ELF = bk7238.elf
 SOC_NAME_BIN = bk7238.bin
 SOC_NAME_MAP = bk7238.map
@@ -437,6 +442,20 @@ SOC_NAME_LDS = bk7238.lds
 SOC_NAME_BSP_LDS = bk7238_bsp.lds
 endif
 endif
+else ifeq ($(CFG_SOC_NAME_STR), "bk7252n")
+SOC_NAME_ELF = bk7252n.elf
+SOC_NAME_BIN = bk7252n.bin
+SOC_NAME_MAP = bk7252n.map
+$(warning using-bk7252n_bsp.lds)
+SOC_NAME_LDS = bk7252n.lds
+SOC_NAME_BSP_LDS = bk7252n_bsp.lds
+else ifeq ($(CFG_SOC_NAME_STR), "bk7253")
+SOC_NAME_ELF = bk7253.elf
+SOC_NAME_BIN = bk7253.bin
+SOC_NAME_MAP = bk7253.map
+$(warning using-bk7253_bsp.lds)
+SOC_NAME_LDS = bk7253.lds
+SOC_NAME_BSP_LDS = bk7253_bsp.lds
 endif
 
 SOC_NAME_BSP_ELF = bk7231_bsp.elf
@@ -494,7 +513,20 @@ else ifeq ("${CFG_SUPPORT_RTOS}", "4")
 OSFLAGS = -DCFG_SUPPORT_LITEOS=1
 endif
 
+OSK_GIT_PATH = ./git
+SDK_GIT_PATH = ./beken378/.git
+ifeq ($(wildcard $(OSK_GIT_PATH)), "")
+COMMIT_ID := no commitid
+else
+COMMIT_ID := $(shell git rev-parse --short HEAD)
+endif
+OSFLAGS += -DOSK_COMMIT_ID=\"$(COMMIT_ID)\"
+
+ifeq ($(wildcard $(SDK_GIT_PATH)), "")
+SDK_COMMIT := no commitid
+else
 SDK_COMMIT := $(shell cd beken378 && git rev-parse --short HEAD)
+endif
 CFLAGS += -DSDK_COMMIT_ID=\"$(SDK_COMMIT)\"
 
 COMMIT_ID:=$(shell git rev-parse --short HEAD)

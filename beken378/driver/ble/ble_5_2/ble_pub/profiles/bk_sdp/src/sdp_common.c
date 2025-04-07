@@ -8,9 +8,12 @@
 #include "app_ble.h"
 #include "gatt_msg.h"
 #include "app_task.h"
+#include "gapc_int.h"
+#include "common_math.h"
 
 struct sdp_env_tag sdp_env[BLE_CONNECTION_MAX];
 extern sdp_notice_cb_t sdp_event_notice;
+extern ble_notice_cb_t ble_event_notice;
 
 struct sdp_env_tag * sdp_get_free_env(void)
 {
@@ -104,7 +107,7 @@ struct sdp_db * sdp_extract_svc_info(uint8_t nb_att, const gatt_svc_att_t* p_att
 	uint32_t malloc_size = sizeof(struct bk_prf_char_def) * chars_nb +
 						sizeof(struct bk_prf_desc_def) * descs_nb +
 						sizeof(struct sdp_db);
-	bk_printf("[sdp_add_svr]chars_nb:%d,descs_nb:%d,malloc_size:%d\r\n",chars_nb,descs_nb,malloc_size);
+
 	if (!kernel_check_malloc(malloc_size,KERNEL_MEM_NON_RETENTION)) {
 		return NULL;
 	}
@@ -131,7 +134,7 @@ struct sdp_db * sdp_extract_svc_info(uint8_t nb_att, const gatt_svc_att_t* p_att
 	struct db *p_svr = NULL;
 
 	p_svr = &p_db->svr;
-	for (att=0 ;att < nb_att; att++) {	
+	for (att=0 ;att < nb_att; att++) {
 		if(p_atts[att].att_type == GATT_ATT_PRIMARY_SVC) {
 			p_svr->svc.uuid_type = p_atts[att].uuid_type;
 			p_svr->svc.start_hdl = p_atts[att].info.svc.start_hdl;
@@ -222,7 +225,6 @@ static void sdp_discover_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t dummy
 
 static void sdp_read_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t dummy, uint16_t status)
 {
-	bk_printf("[%s]status:%d\r\n",__func__,status);
 	sdp_event_t sdp_event;
 	memset(&sdp_event,0,sizeof(sdp_event_t));
 	sdp_event.con_idx = app_ble_find_conn_idx_handle(conidx);
@@ -234,7 +236,6 @@ static void sdp_read_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t dummy, ui
 
 static void sdp_write_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t dummy, uint16_t status)
 {
-	bk_printf("[%s]status:%d\r\n",__func__,status);
 	sdp_event_t sdp_event;
 	memset(&sdp_event,0,sizeof(sdp_event_t));
 	sdp_event.con_idx = app_ble_find_conn_idx_handle(conidx);
@@ -260,7 +261,7 @@ static void sdp_svc_cb(uint8_t conidx, uint8_t user_lid, uint16_t dummy, uint16_
 		if( p_atts[j].uuid_type == GATT_UUID_16 ) {
 			bk_printf("att_type:%d,uuid_type:%d,UUID:%x,start_hdl:0x%x,end_hdl:0x%x,val_hdl:0x%x,prop:0x%x\r\n",p_atts[j].att_type,p_atts[j].uuid_type, p_atts[j].uuid[0]| p_atts[j].uuid[1]<<8,p_atts[j].info.svc.start_hdl,
 			p_atts[j].info.svc.end_hdl,p_atts[j].info.charac.val_hdl,p_atts[j].info.charac.prop);
-		} else if( p_atts->uuid_type == GATT_UUID_128 ) {
+		} else if( p_atts[j].uuid_type == GATT_UUID_128 ) {
 			bk_printf("att_type:%d,uuid_type:%d,UUID:",p_atts[j].att_type,p_atts[j].uuid_type);
 			for( uint8_t i=0;i<16;i++) {
 				bk_printf("%x ", p_atts[j].uuid[i]);
@@ -332,7 +333,7 @@ static void sdp_att_val_cb(uint8_t conidx, uint8_t user_lid, uint16_t dummy, uin
 		sdp_event_notice(SDP_CHARAC_READ,&sdp_event);
 	}
 }
-static void sdp_att_val_evt_cb(uint8_t conidx, uint8_t user_lid, uint16_t token, uint8_t evt_type, bool complete, 
+static void sdp_att_val_evt_cb(uint8_t conidx, uint8_t user_lid, uint16_t token, uint8_t evt_type, bool complete,
 							uint16_t hdl, common_buf_t* p_data)
 {
 	uint8_t conn_idx = app_ble_find_conn_idx_handle(conidx);
@@ -365,6 +366,24 @@ static void sdp_att_val_evt_cb(uint8_t conidx, uint8_t user_lid, uint16_t token,
 		}
 	}
 	gatt_cli_att_event_cfm(conidx, user_lid, token);
+
+	if (hdl == gapc_svc_hdl_get(GATT_IDX_SVC_CHANGED)) {
+		struct sdp_env_tag *p_env = sdp_get_env_use_conidx(conn_idx);
+
+		while (!(common_list_is_empty(&p_env->svr_list))) {
+			struct sdp_db *p_db = (struct sdp_db *)common_list_pop_front(&p_env->svr_list);
+
+			if (p_db->svr.chars_nb) {
+				kernel_free(p_db->svr.chars);
+			}
+			if (p_db->svr.descs_nb) {
+				kernel_free(p_db->svr.descs);
+			}
+			kernel_free(p_db);
+		}
+
+		sdp_discover_all_service(conn_idx);
+	}
 }
 
 /// Client callback hander
@@ -412,14 +431,11 @@ uint8_t sdp_common_cleanup(uint8_t con_idx)
 	while (!(common_list_is_empty(&p_env->svr_list))) {
 		struct sdp_db *p_db = (struct sdp_db *)common_list_pop_front(&p_env->svr_list);
 		if (p_db->svr.chars_nb) {
-			bk_printf("[sdp_clean]chars:%p,chars_nb:%d\r\n",p_db->svr.chars,p_db->svr.chars_nb);
 			kernel_free(p_db->svr.chars);
 		}
 		if (p_db->svr.descs_nb) {
-			bk_printf("[sdp_clean]descs:%p,descs_nb:%d\r\n",p_db->svr.descs,p_db->svr.descs_nb);
 			kernel_free(p_db->svr.descs);
 		}
-		bk_printf("[sdp_clean]sdp_db:%p\r\n",p_db);
 		kernel_free(p_db);
 	}
 	status = gatt_user_unregister(p_env->user_lib);
@@ -465,7 +481,15 @@ static int sdp_gatt_cmp_evt_handler(kernel_msg_id_t const msgid,
 								kernel_task_id_t const dest_id,
 								kernel_task_id_t const src_id)
 {
-	bk_printf("[%s]cmd_code:%d,status:%d\r\n",__func__,param->cmd_code,param->status);
+	if (param->cmd_code == GATT_CLI_MTU_UPDATE) {
+		if (ble_event_notice) {
+			ble_cmd_cmp_evt_t event;
+			event.conn_idx = app_ble_find_conn_idx_handle(param->conidx);
+			event.status = param->status;
+			event.cmd = BLE_CONN_UPDATE_MTU;
+			ble_event_notice(BLE_5_GAP_CMD_CMP_EVENT, &event);
+		}
+	}
 	return (KERNEL_MSG_CONSUMED);
 }
 

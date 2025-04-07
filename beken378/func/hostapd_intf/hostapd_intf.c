@@ -622,9 +622,9 @@ int wpa_get_scan_rst(struct prism2_hostapd_param *param, int len)
 	struct wpa_scan_results *results = param->u.scan_rst;
 	struct sta_scan_res *scan_rst_ptr;
 	struct wpa_scan_res *r;
-	FUNC_1PARAM_PTR fn;
+	FUNC_1PARAM_PTR fn = bk_wlan_get_status_cb();
+	wlan_status_t val;
 	int i, ret = 0;
-	u32 val;
 
 	// reduce IEs for scan only
 	bool reduce_ie = false;
@@ -645,9 +645,9 @@ int wpa_get_scan_rst(struct prism2_hostapd_param *param, int len)
 		rw_evt_type net_type =  mhdr_get_station_status();
 		if((net_type != RW_EVT_STA_GOT_IP) && (net_type != RW_EVT_STA_CONNECTED))
 		{
-			fn = bk_wlan_get_status_cb();
 			if (fn) {
-				val = RW_EVT_STA_NO_AP_FOUND;
+				val.reason_code = 0;
+				val.evt_type = RW_EVT_STA_NO_AP_FOUND;
 				(*fn)(&val);
 			}
 			mhdr_set_station_status(RW_EVT_STA_NO_AP_FOUND);
@@ -842,6 +842,11 @@ int wpa_send_assoc_req(struct prism2_hostapd_param *param, int len)
 	if (param->u.assoc_req.mfp == MGMT_FRAME_PROTECTION_REQUIRED)
 		connect_param->flags |= MFP_IN_USE;
 
+#if CFG_WIFI_DEAUTH_BEFORE_AUTH
+	// send deauth before sending first AUTH packet
+	connect_param->flags |= DEAUTH_BEFORE_AUTH;
+#endif
+
 	connect_param->vif_idx = param->vif_idx;
 	connect_param->ssid.length = param->u.assoc_req.ssid_len;
 	os_memcpy(connect_param->ssid.array, param->u.assoc_req.ssid, connect_param->ssid.length);
@@ -880,21 +885,24 @@ assoc_exit:
 
 int wpa_send_disconnect_req(struct prism2_hostapd_param *param, int len)
 {
-    FUNC_1PARAM_PTR fn;
-    u32 val;
-    DISCONNECT_PARAM_T disconnect_param = {0};
-    disconnect_param.vif_idx = param->vif_idx;
-    disconnect_param.reason_code = param->u.disconnect_req.reason;
+	FUNC_1PARAM_PTR fn = bk_wlan_get_status_cb();
+	wlan_status_t val;
+	rw_stage_type conn_stage = mhdr_get_station_stage();
+	DISCONNECT_PARAM_T disconnect_param = {0};
+	disconnect_param.vif_idx = param->vif_idx;
+	disconnect_param.reason_code = param->u.disconnect_req.reason;
 
-	fn = bk_wlan_get_status_cb();
-	if(fn)
-	{
-		val = RW_EVT_STA_DISCONNECTED;
-		(*fn)(&val);
+	if (conn_stage == RW_STG_STA_AUTH || conn_stage == RW_STG_STA_ASSOC
+		|| conn_stage == RW_STG_STA_EXT_AUTH || conn_stage == RW_STG_STA_KEY_HANDSHARK) {
+		if (fn) {
+			val.reason_code = disconnect_param.reason_code;
+			val.evt_type = RW_EVT_STA_ACTIVE_DISCONNECTED;
+			(*fn)(&val);
+		}
 	}
-	mhdr_set_station_status(RW_EVT_STA_DISCONNECTED);
+	mhdr_set_station_status(RW_EVT_STA_ACTIVE_DISCONNECTED);
 
-    return rw_msg_send_sm_disconnect_req(&disconnect_param);
+	return rw_msg_send_sm_disconnect_req(&disconnect_param);
 }
 
 #ifdef CONFIG_SME
@@ -1021,10 +1029,11 @@ int wpa_hostapd_set_sta_flag(struct prism2_hostapd_param *param, int len)
 
 		{
 			FUNC_1PARAM_PTR fn = bk_wlan_get_status_cb();
-			uint32_t val;
+			wlan_status_t val;
 
 			if (fn) {
-				val = RW_EVT_AP_CONNECTED;
+				val.reason_code = 0;
+				val.evt_type = RW_EVT_AP_CONNECTED;
 				(*fn)(&val);
 			}
 		}

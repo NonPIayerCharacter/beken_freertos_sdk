@@ -4,7 +4,7 @@
 #include "arm_arch.h"
 #include "sys_config.h"
 
-#if(CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if(CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #include "icu_pub.h"
 #include "spi_pub.h"
 #include "sys_ctrl_pub.h"

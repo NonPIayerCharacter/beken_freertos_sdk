@@ -18,7 +18,7 @@
 #define AUD_ADC_DEF_DMA_CHANNEL     GDMA_CHANNEL_2
 #endif
 
-#if ((CFG_USE_AUD_ADC) && (CFG_SOC_NAME == SOC_BK7221U))
+#if ((CFG_USE_AUD_ADC) && ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N)))
 enum
 {
     AUD_ADC_STA_CLOSED   = 0,
@@ -285,8 +285,8 @@ static void audio_adc_config_dma(void)
 
     //cfg.fin_handler = audio_dac_dma_handler;
     cfg.fin_handler = NULL;
-    
-    cfg.src_module = GDMA_X_SRC_AUDIO_TX_REQ;
+
+    cfg.src_module = GDMA_X_SRC_AUDIO_RX_REQ;
     cfg.dst_module = GDMA_X_DST_DTCM_WR_REQ;
 
     sddev_control(GDMA_DEV_NAME, CMD_GDMA_CFG_TYPE5, &cfg);
@@ -614,9 +614,13 @@ static UINT32 audio_adc_ctrl(UINT32 cmd, void *param)
 
         case AUD_ADC_CMD_SET_SAMPLE_RATE:
             ASSERT(param);
-            audio_adc_set_enable_bit(0);
+            if (aud_adc.status == AUD_ADC_STA_PLAYING) {
+                audio_adc_set_enable_bit(0);
+            }
             audio_adc_set_sample_rate(*((UINT32 *)param));
-            audio_adc_set_enable_bit(1);
+            if (aud_adc.status == AUD_ADC_STA_PLAYING) {
+                audio_adc_set_enable_bit(1);
+            }
             break;
 
         case AUD_ADC_CMD_SET_VOLUME:

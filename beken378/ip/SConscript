@@ -122,6 +122,8 @@ elif (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7271'):
     wifi_lib_name += '_7271'
 elif (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7238'):
     wifi_lib_name += '_7238'
+elif (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7252N'):
+    wifi_lib_name += '_7252n'
 else:
     wifi_lib_name += '_unknown'
     platform_match = 'no'
