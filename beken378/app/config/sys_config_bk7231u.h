@@ -216,6 +216,7 @@
 #define SOC_BK7221U                                3
 #define SOC_BK7231N                                5
 #define CFG_SOC_NAME                               SOC_BK7231U
+#define CFG_SOC_NAME_STR                           "bk7231u"
 
 /*section 7-----calibration*/
 #if (CFG_RUNNING_PLATFORM == FPGA_PLATFORM)
