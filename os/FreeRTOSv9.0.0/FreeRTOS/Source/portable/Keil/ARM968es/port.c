@@ -112,6 +112,18 @@ from an asm wrapper function. */
 	static uint16_t s_nPulseLength;
 #endif
 
+FUNCPTR func_irda_bg_check = NULL;
+
+void bg_register_irda_check_func(FUNCPTR func)
+{
+	func_irda_bg_check = func;
+}
+
+void bg_unregister_irda_check_func()
+{
+	func_irda_bg_check = NULL;
+}
+
 /*-----------------------------------------------------------*/
 void vApplicationIdleHook( void )
 {
@@ -119,6 +131,10 @@ void vApplicationIdleHook( void )
         extern void bk_task_wdt_feed(void);
         bk_task_wdt_feed();
 #endif
+	if(func_irda_bg_check)
+	{
+		(*func_irda_bg_check)();
+	}
 }
 
 /*-----------------------------------------------------------*/

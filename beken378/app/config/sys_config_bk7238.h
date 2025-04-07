@@ -47,7 +47,7 @@
 #define THD_RECONNECT_PRIORITY                     4
 #define THD_MEDIA_PRIORITY                         4
 #define THD_WPAS_PRIORITY                          5
-#define THD_EXTENDED_APP_PRIORITY                  5
+#define THD_EXTENDED_APP_PRIORITY                  6
 #define THD_HOSTAPD_PRIORITY                       5
 #define THDD_KEY_SCAN_PRIORITY                     7
 
@@ -324,7 +324,7 @@
 #define CFG_USE_TICK_CAL                           1
 
 #define CFG_SUPPORT_BLE                            0
-#define CFG_BLE_USE_CLI                            1
+#define CFG_BLE_USE_CLI                            0
 #define CFG_SUPPORT_BLE_MESH                       0
 #define CFG_USE_PTA                                1
 
@@ -342,24 +342,6 @@
 #define BLE_DEFAULT_WIFI_REQUEST                   2
 #define BLE_WIFI_CO_REQUEST                        3
 #define RF_USE_POLICY                              WIFI_DEFAULT_BLE_REQUEST
-
-#define CFG_BLE_ADV_NUM                            1
-#define CFG_BLE_SCAN_NUM                           1
-#define CFG_BLE_USE_DYN_RAM                        1
-#define CFG_BLE_DIAGNOSTIC_PORT                    0
-
-// 0 mean do not support ble master
-#define CFG_BLE_INIT_NUM                           0
-
-#define CFG_BLE_CONN_NUM                           1
-
-#if (CFG_BLE_ADV_NUM == 0)
-#error "ADV NUM should not be 0"
-#endif
-
-#if (CFG_BLE_CONN_NUM == 0)
-#error "CONN NUM should not be 0"
-#endif
 
 #define CFG_XTAL_FREQUENCE_40M                     40000000 //40MHz
 #define CFG_XTAL_FREQUENCE_26M                     26000000 //26MHz
@@ -423,7 +405,7 @@
 #define CFG_PERIPHERAL_TEST                        0
 #define CFG_SUPPORT_SPI_TEST                       0
 
-#define CFG_USE_FORCE_LOWVOL_PS                    1
+#define CFG_USE_FORCE_LOWVOL_PS                    0
 
 #define CFG_NO_POWTBL                              1
 #define CFG_TKIP_SW_CRYPT                          1

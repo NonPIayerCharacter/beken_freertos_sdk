@@ -567,10 +567,11 @@ bool lv_ps_sleep_check( UINT32 sleep_tick)
 		lv_ele_role = lv_elem->lv_type;
 	}
 	#if CFG_SUPPORT_BLE
-	else if (!ble_thread_is_up() && (!bk_wlan_has_role(VIF_STA))) {
+	else if (!ble_thread_is_up() && (!bk_wlan_has_role(VIF_STA)))
 	#else
 	else if (!bk_wlan_has_role(VIF_STA))
 	#endif
+	{
 		/*keep lv sleep mode util wakeup by gpio*/
 		lv_ps_target_time = -1;
 	}

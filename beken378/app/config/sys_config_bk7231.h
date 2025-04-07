@@ -335,5 +335,7 @@
 
 #define CFG_LWIP_MEM_POLICY                        2
 #define CFG_WIFI_TX_KEYDATA_USE_LOWEST_RATE        1
+// required for bk7231 supplicant lib
+#define CFG_WPA_TLS_WOLFSSL                        1
 
 #endif // _SYS_CONFIG_H_

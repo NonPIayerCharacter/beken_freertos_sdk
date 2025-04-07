@@ -46,7 +46,7 @@
 #define THD_RECONNECT_PRIORITY                     4
 #define THD_MEDIA_PRIORITY                         4
 #define THD_WPAS_PRIORITY                          5
-#define THD_EXTENDED_APP_PRIORITY                  5
+#define THD_EXTENDED_APP_PRIORITY                  6 
 #define THD_HOSTAPD_PRIORITY                       5
 #define THDD_KEY_SCAN_PRIORITY                     7
 
@@ -54,8 +54,8 @@
 #define CFG_SUPPORT_MATTER                         0
 #define CFG_RWNX_REODER                            0
 #define CFG_FORCE_RATE                             0
-#define CFG_TX_EVM_TEST                            1
-#define CFG_RX_SENSITIVITY_TEST                    1
+#define CFG_TX_EVM_TEST                            0
+#define CFG_RX_SENSITIVITY_TEST                    0
 #define CFG_AP_MONITOR_COEXIST                     0
 #if CFG_AP_MONITOR_COEXIST
 #define CFG_AP_MONITOR_COEXIST_DEMO                0
@@ -77,7 +77,7 @@
 #define CFG_RC_STATS                               1
 #endif
 
-#define CFG_ROLE_LAUNCH                            0
+#define CFG_ROLE_LAUNCH                            1
 #define CFG_USE_WPA_29                             1
 #define CFG_WPA_CTRL_IFACE                         1
 #define CFG_RWNX_QOS_MSDU                          1
@@ -225,7 +225,7 @@
 
 /*section 4-----DEBUG macro config-----*/
 #define CFG_UART_DEBUG                             0
-#define CFG_SUPPORT_BKREG                          0
+#define CFG_SUPPORT_BKREG                          1
 #define CFG_ENABLE_WPA_LOG                         0
 #define IPERF_CLOSE                                0  /* close iperf */
 #define IPERF_OPEN_WITH_ACCEL                      1  /* open iperf and accel */
@@ -366,27 +366,6 @@
 #define BLE_WIFI_CO_REQUEST                        3
 #define RF_USE_POLICY                              WIFI_DEFAULT_BLE_REQUEST
 
-#define CFG_BLE_ADV_NUM                            1
-#if (CFG_SUPPORT_MATTER == 1)
-#define CFG_BLE_SCAN_NUM                           0
-#else
-#define CFG_BLE_SCAN_NUM                           1
-#endif
-#define CFG_BLE_USE_DYN_RAM                        1
-
-// 0 mean do not support ble master
-#define CFG_BLE_INIT_NUM                           0
-
-#define CFG_BLE_CONN_NUM                           1
-
-#if (CFG_BLE_ADV_NUM == 0)
-#error "ADV NUM should not be 0"
-#endif
-
-#if (CFG_BLE_CONN_NUM == 0)
-#error "CONN NUM should not be 0"
-#endif
-
 #define CFG_XTAL_FREQUENCE_40M                     40000000 //40MHz
 #define CFG_XTAL_FREQUENCE_26M                     26000000 //26MHz
 #if (CFG_SOC_NAME == SOC_BK7231N)
@@ -450,7 +429,7 @@
 
 #define AT_SERVICE_CFG                             0
 
-#define CFG_USE_FORCE_LOWVOL_PS                    0
+#define CFG_USE_FORCE_LOWVOL_PS                    1
 
 #define CFG_BK_NX_GET_WIFI_SNR                     0
 

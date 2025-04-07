@@ -613,9 +613,11 @@ SRC_FUNC_C += ./beken378/func/wlan_ui/bk_peripheral_test.c
 SRC_FUNC_C += ./beken378/func/utf8/conv_utf8.c
 
 # video / jpeg
+ifeq ($CFG_USE_CAMERA_INTF), 1)
 SRC_FUNC_C += ./beken378/func/camera_intf/camera_intf.c
 SRC_FUNC_C += ./beken378/func/camera_intf/camera_intf_gc2145.c
 SRC_FUNC_C += ./beken378/func/video_transfer/video_transfer.c
+endif
 
 ifeq ($(CFG_LOW_VOLTAGE_PS), 1)
 SRC_FUNC_C += ./beken378/func/power_save/low_voltage_ps.c

@@ -83,9 +83,9 @@
 
 /* Timers */
 #define configUSE_TIMERS                            ( 1 )
-#define configTIMER_TASK_PRIORITY                   ( 2 )
-#define configTIMER_QUEUE_LENGTH                    ( 16 )
-#define configTIMER_TASK_STACK_DEPTH                ( ( unsigned short ) (3072 / sizeof( portSTACK_TYPE )) )
+#define configTIMER_TASK_PRIORITY                   ( 6 )
+#define configTIMER_QUEUE_LENGTH                    ( 32 )
+#define configTIMER_TASK_STACK_DEPTH                ( ( unsigned short ) (6144 / sizeof( portSTACK_TYPE )) )
 
 /* Task */
 #define configMAX_PRIORITIES		                ( 10 )
@@ -103,7 +103,7 @@
 
 /* Memory */
 #define configDYNAMIC_HEAP_SIZE                   1
-#define configTOTAL_HEAP_SIZE		             ( ( size_t ) ( 80 * 1024 ) )
+#define configTOTAL_HEAP_SIZE		             ( ( size_t ) ( 105 * 1024 ) )
 
 /* Queue & Semaphore & Mutex */
 #define configQUEUE_REGISTRY_SIZE		          0
