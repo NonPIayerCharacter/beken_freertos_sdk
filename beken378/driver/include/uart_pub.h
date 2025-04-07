@@ -14,6 +14,9 @@
 #define UART_SUCCESS                 (0)
 #define UART_FAILURE                 ((UINT32)-1)
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define UART3_DEV_NAME               ("uart3")   /*debug purpose*/
+#endif
 #define UART2_DEV_NAME               ("uart2")   /*debug purpose*/
 #define UART1_DEV_NAME               ("uart1")   /*comm purpose*/
 
@@ -21,6 +24,9 @@
 
 #define UART1_PORT				0
 #define UART2_PORT				1
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define UART3_PORT				2
+#endif
 
 enum
 {
@@ -120,9 +126,14 @@ extern void uart2_init(void);
 extern void uart2_exit(void);
 extern void uart2_isr(void);
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+extern void uart3_init(void);
+extern void uart3_exit(void);
+extern void uart3_isr(void);
+#endif
+
 extern void fatal_print(const char *fmt, ...);
 extern void bk_printf(const char *fmt, ...);
-extern void uart_send_byte(UINT8 ch, UINT8 data);
 extern void bk_send_string(UINT8 uport, const char *string);
 extern UINT32 uart_wait_tx_over();
 extern UINT8 uart_is_tx_fifo_empty(UINT8 uport);
@@ -130,5 +141,7 @@ extern UINT8 uart_is_tx_fifo_full(UINT8 uport);
 extern int uart_read_byte(int uport);
 extern int uart_write_byte(int uport, char c);
 extern void print_hex_dump(const char *prefix, void *b, int len);
+extern void uart_print_port_suspend(void);
+extern void uart_print_port_recover(void);
 #endif // _UART_PUB_H
 

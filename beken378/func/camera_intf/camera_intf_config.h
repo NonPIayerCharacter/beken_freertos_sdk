@@ -6,7 +6,9 @@
 #ifdef CAMERA_INTF_DEBUG
 #define CAMERA_INTF_PRT             os_printf
 #define CAMERA_INTF_WPRT            warning_prf
-#define CAMERA_INTF_FATAL           fatal_prf
+#define CAMERA_INTF_FATAL           fatal_prf 
+#define DEBUG_TIMRT_INTERVAL        (2000)
+#define CAMERA_BITRATE_LOG_PRT
 #else
 #define CAMERA_INTF_PRT             null_prf
 #define CAMERA_INTF_WPRT            null_prf

@@ -901,6 +901,8 @@ int rtos_init_event_fd(beken_event_t event_handle);
   */
 int rtos_deinit_event_fd(int fd);
 uint32_t rtos_get_tick_count(void);
+uint32_t rtos_disable_int(void);
+void rtos_enable_int(uint32_t int_level);
 
 #ifdef __cplusplus
 }

@@ -364,6 +364,10 @@ SECTIONS
         *heap_4.marm.o(.bss .bss.* .scommon .sbss .dynbss COMMON)
         *timers.marm.o(.bss .bss.* .scommon .sbss .dynbss COMMON)
 
+	/* Matter */
+	*libCHIPAppServer.Server.cpp.o(.bss .bss.* .scommon .sbss .dynbss COMMON)
+	*libTransportLayer.SessionManager.cpp.o(.bss .bss.* .scommon .sbss .dynbss COMMON)
+
     } >tcm AT>flash
     _tcmbss_start = ADDR(.tcm);
     _tcmbss_end = _tcmbss_start + SIZEOF(.tcm);

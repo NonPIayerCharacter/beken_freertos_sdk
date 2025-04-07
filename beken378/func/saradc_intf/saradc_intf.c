@@ -126,11 +126,14 @@ static void sadc_detect_handler(void)
 		sum = sum1 / 2 + sum2 / 2;
 		sum = sum / 2;
 
+		#if (CFG_SOC_NAME == SOC_BK7231N)
+		p_ADC_drv_desc->pData[0] = saradc_format_data(sum);
+		#else
 		adc_accuracy = (uint8_t)saradc_check_accuracy();
 		if (adc_accuracy != 0)
 			sum = sum >> (adc_accuracy - 1);
-
 		p_ADC_drv_desc->pData[0] = sum;
+		#endif
 
 		rtos_set_semaphore(&tadc_entity->sema_wait_end);
 	}
@@ -266,7 +269,7 @@ TADC_ENTITY_T *tadc_entity_init(void)
     return adc_entity;
 }
 
-#if (CFG_SOC_NAME != SOC_BK7231) && (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7236) && (CFG_SOC_NAME != SOC_BK7238)
+#if (CFG_SOC_NAME != SOC_BK7231) && (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7236) && (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
 /*
 vol:	PSRAM_VDD_1_8V
 		PSRAM_VDD_2_5V
@@ -290,6 +293,33 @@ void saradc_disable_vddram_voltage(void)
     param = BLK_BIT_MIC_QSPI_RAM_OR_FLASH;
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_DISABLE, &param);
 
+}
+#elif (CFG_SOC_NAME == SOC_BK7252N)
+void saradc_config_vddram_voltage(UINT32 vol)
+{
+    UINT32 param;
+    // bk7252n:  ioldo trim,000:2.8V ~111:3.5V step:100m
+    if(vol == PSRAM_VDD_3_3V)
+    {
+        param = 5;
+    }
+    else
+    {
+        // other, set to 2.8V
+        param = 0;
+    }
+    sddev_control(SCTRL_DEV_NAME, CMD_QSPI_VDDRAM_VOLTAGE, &param);
+
+    param = PCLK_POSI_VDDRAM;
+    sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_ENABLE, &param);
+}
+
+void saradc_disable_vddram_voltage(void)
+{
+    UINT32 param;
+
+    param = PCLK_POSI_VDDRAM;
+    sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_DISABLE, &param);
 }
 #endif
 
@@ -596,7 +626,7 @@ static void adc_check(int argc, char **argv)
         {
         UINT32 sum = 0, sum1, sum2;
         UINT16 *pData = p_ADC_drv_desc->pData;
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         sum1 = pData[6] + pData[7];
         sum2 = pData[8] + pData[9];
 #else
@@ -609,7 +639,7 @@ static void adc_check(int argc, char **argv)
         p_ADC_drv_desc->pData[0] = sum;
         }
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         os_printf("saradc[ch%d]=%d\r\n", (UINT32)p_ADC_drv_desc->channel, (UINT32)p_ADC_drv_desc->pData[0]);
 #else
         float voltage = 0.0;

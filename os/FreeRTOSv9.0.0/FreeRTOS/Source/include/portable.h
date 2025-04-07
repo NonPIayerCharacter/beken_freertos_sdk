@@ -152,6 +152,17 @@ typedef struct HeapRegion
 	size_t xSizeInBytes;
 } HeapRegion_t;
 
+typedef struct xHeapStats
+{
+    size_t xAvailableHeapSpaceInBytes;      /* The total heap size currently available - this is the sum of all the free blocks, not the largest block that can be allocated. */
+    size_t xSizeOfLargestFreeBlockInBytes;  /* The maximum size, in bytes, of all the free blocks within the heap at the time vPortGetHeapStats() is called. */
+    size_t xSizeOfSmallestFreeBlockInBytes; /* The minimum size, in bytes, of all the free blocks within the heap at the time vPortGetHeapStats() is called. */
+    size_t xNumberOfFreeBlocks;             /* The number of free memory blocks within the heap at the time vPortGetHeapStats() is called. */
+    size_t xMinimumEverFreeBytesRemaining;  /* The minimum amount of total free memory (sum of all free blocks) there has been in the heap since the system booted. */
+    size_t xNumberOfSuccessfulAllocations;  /* The number of calls to pvPortMalloc() that have returned a valid memory block. */
+    size_t xNumberOfSuccessfulFrees;        /* The number of calls to vPortFree() that has successfully freed a block of memory. */
+} HeapStats_t;
+
 /*
  * Used to define multiple heap regions for use by heap_5.c.  This function
  * must be called before any calls to pvPortMalloc() - not creating a task,
@@ -163,7 +174,7 @@ typedef struct HeapRegion
  * terminated by a HeapRegions_t structure that has a size of 0.  The region
  * with the lowest start address must appear first in the array.
  */
-void vPortDefineHeapRegions( const HeapRegion_t * const pxHeapRegions ) PRIVILEGED_FUNCTION;
+void vPortDefineHeapRegions(HeapRegion_t * const pxHeapRegions ) PRIVILEGED_FUNCTION;
 
 
 /*

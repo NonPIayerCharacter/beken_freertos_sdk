@@ -152,22 +152,11 @@ typedef enum {
 	BLE_OP_SCAN_MAX,
 }ble_scan_op;
 
-typedef enum {
-	BLE_OP_UPDATE_CONN_POS,
-	BLE_OP_MTU_CHANGE_POS,
-	BLE_OP_DIS_CONN_POS,
-
-	BLE_OP_CONN_MAX,
-}ble_conn_op;
-
 typedef enum{
 	BLE_OP_CREATE_INIT_POS = 0,
 	BLE_OP_INIT_START_POS,
 	BLE_OP_INIT_STOP_POS,
-	BLE_OP_INIT_DIS_CONN_POS,
-
-	BLE_OP_INIT_READ_CHAR_POS,
-	BLE_OP_INIT_WRITE_CHAR_POS,
+	BLE_OP_INIT_DEL_POS,
 	BLE_OP_INIT_MAX,
 }ble_init_op;
 
@@ -292,10 +281,12 @@ struct app_env_tag {
 	uint8_t loc_irk[KEY_LEN];
 	/// Counter used to generate IRK
 	uint8_t rand_cnt;
-
+	///activities information
 	struct actv_info actvs[BLE_ACTIVITY_MAX];
-
+	///connections information
 	struct conn_info connections[BLE_CONNECTION_MAX];
+	///Count the number of different activities created.
+	struct actv_type actv_cnt;
 };
 
 /*
@@ -325,7 +316,7 @@ extern struct app_env_tag app_ble_env;
 
 ble_status_t app_ble_env_state_get(void);
 actv_state_t app_ble_actv_state_get(uint8_t actv_idx);
-uint8_t app_ble_get_idle_conn_idx_handle(void);
+uint8_t app_ble_get_idle_conn_idx_handle(ACTV_TYPE type);
 uint8_t app_ble_find_conn_idx_handle(uint16_t conhdl);
 uint8_t app_ble_find_actv_idx_handle(uint16_t gap_actv_idx);
 uint8_t app_ble_get_connhdl(int conn_idx);

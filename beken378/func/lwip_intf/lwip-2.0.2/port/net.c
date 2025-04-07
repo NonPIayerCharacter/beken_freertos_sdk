@@ -31,7 +31,11 @@
 #include "net.h"
 //#include "netif.h"
 #include "low_voltage_ps.h"
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #include "calendar_pub.h"
+#else
+#include "rtc_reg_pub.h"
+#endif
 
 #include "bk_log.h"
 
@@ -77,6 +81,10 @@ static struct interface g_mlan = {{0}};
 static struct interface g_uap = {{0}};
 net_sta_ipup_cb_fn sta_ipup_cb = NULL;
 
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+static beken_mutex_t dhcp_restart_mutex = NULL;
+extern int bk_wlan_clear_fci_net_info(void);
+#endif
 extern void *net_get_sta_handle(void);
 extern void *net_get_uap_handle(void);
 extern err_t lwip_netif_init(struct netif *netif);
@@ -233,7 +241,7 @@ static void wm_netif_status_static_callback(struct netif *n)
     if (n->flags & NETIF_FLAG_UP)
     {
         // static IP success;
-        os_printf("using static ip...\n");
+        os_printf("\r\n using static ip: %u.%u.%u.%u \r\n", BK_IP4_STR(n->ip_addr.addr));
         mhdr_set_station_status(RW_EVT_STA_GOT_IP);/* dhcp success*/
 
         if(sta_ipup_cb != NULL)
@@ -248,50 +256,54 @@ static void wm_netif_status_static_callback(struct netif *n)
     }
 }
 
-
+extern struct wpa_supplicant *wpa_suppliant_ctrl_get_wpas();
+extern void wlan_store_fci(struct wpa_supplicant *wpa_s);
 static void wm_netif_status_callback(struct netif *n)
 {
-	FUNC_1PARAM_PTR fn;
-    struct dhcp *dhcp;
-	u32 val;
+	struct wpa_supplicant *wpa_s = wpa_suppliant_ctrl_get_wpas();
+	FUNC_1PARAM_PTR fn = bk_wlan_get_status_cb();
+	wlan_status_t val;
+	struct dhcp *dhcp;
 
-	if (n->flags & NETIF_FLAG_UP)
-	{
+	if (n->flags & NETIF_FLAG_UP) {
 		dhcp = netif_dhcp_data(n);
-		if(dhcp != NULL)
-		{
-			if (dhcp->state == DHCP_STATE_BOUND)
-            {
+		if (dhcp != NULL) {
+			if (dhcp->state == DHCP_STATE_BOUND) {
 				// dhcp success
 				os_printf("IP up: %d.%d.%d.%d\r\n",BK_IP4_STR(ip_addr_get_ip4_u32(&n->ip_addr)));
-
+				os_printf("RSP:OK\r\n");
 #if CFG_ROLE_LAUNCH
-                rl_pre_sta_set_status(RL_STATUS_STA_LAUNCHED);
+				rl_pre_sta_set_status(RL_STATUS_STA_LAUNCHED);
 #endif
-				fn = (FUNC_1PARAM_PTR)bk_wlan_get_status_cb();
-				if(fn)
-				{
-					val = RW_EVT_STA_GOT_IP;
+				if(fn) {
+					val.reason_code = 0;
+					val.evt_type = RW_EVT_STA_GOT_IP;
 					(*fn)(&val);
 				}
+				mhdr_set_station_stage(RW_STG_STA_COMPLETE);
 				mhdr_set_station_status(RW_EVT_STA_GOT_IP);
 
 #if (1 == CFG_LOW_VOLTAGE_PS)
-				//re-enter into ps if connection loss/deauth/disassoc
-				auto_check_dtim_rf_ps_mode();
+				if (LV_PS_ENABLED)
+				{
+					//re-enter into ps if connection loss/deauth/disassoc
+					auto_check_dtim_rf_ps_mode();
 
-				#if(1 == CFG_LOW_VOLTAGE_PS_TEST)
-				extern void lv_ps_info_reconnect();
-				lv_ps_info_reconnect();
-				#endif
+					#if(1 == CFG_LOW_VOLTAGE_PS_TEST)
+					extern void lv_ps_info_reconnect();
+					lv_ps_info_reconnect();
+					#endif
+				}
 
 #endif
 				/* dhcp success*/
-                if(sta_ipup_cb != NULL)
-                    sta_ipup_cb(NULL);
+				if(sta_ipup_cb != NULL)
+					sta_ipup_cb(NULL);
 
 				if(sta_connected_func != NULL)
 					(*sta_connected_func)();
+
+				wlan_store_fci(wpa_s);
 			}
 			else
 			{
@@ -435,13 +447,13 @@ void sta_ip_get_start_time(void){
 
 void sta_ip_start(void)
 {
-    struct wlan_ip_config address = {0};
+	struct wlan_ip_config address = {0};
+	mhdr_set_station_stage(RW_STG_STA_GET_IP);
 
-	if(!sta_ip_start_flag)
-	{
+	if (!sta_ip_start_flag) {
 		os_printf("sta_ip_start\r\n");
-#if CFG_WLAN_FAST_CONNECT || CFG_WLAN_FAST_CONNECT_WPA3
-		if (os_reltime_initialized(&sta_start_time)){
+#if CFG_WLAN_FAST_CONNECT || CFG_WLAN_FAST_CONNECT_WPA3 || CFG_BSSID_FAST_CONNECT
+		if (os_reltime_initialized(&sta_start_time)) {
 			struct os_reltime now, diff;
 			os_get_reltime(&now);
 			os_reltime_sub(&now, &sta_start_time, &diff);
@@ -455,7 +467,7 @@ void sta_ip_start(void)
 		net_configure_address(&sta_ip_settings, net_get_sta_handle());
 #if defined(LWIP_IPV6) && LWIP_IPV6
 		struct netif *n=net_get_sta_handle();
-		if(!(n->flags & NETIF_FLAG_MLD6)) {
+		if (!(n->flags & NETIF_FLAG_MLD6)) {
 			netif_create_ip6_linklocal_address(n, 1);
 			netif_set_ip6_autoconfig_enabled(n, 1);
 			n->flags |= NETIF_FLAG_MLD6;
@@ -466,12 +478,12 @@ void sta_ip_start(void)
 	}
 
 	os_printf("sta_ip_start2:0x%x\r\n", address.ipv4.address);
-    net_get_if_addr(&address, net_get_sta_handle());
-    if((mhdr_get_station_status() == RW_EVT_STA_CONNECTED)
-		&& (0 != address.ipv4.address))
-    {
-        mhdr_set_station_status(RW_EVT_STA_GOT_IP);
-    }
+	net_get_if_addr(&address, net_get_sta_handle());
+	if ((mhdr_get_station_status() == RW_EVT_STA_CONNECTED)
+		&& (0 != address.ipv4.address)) {
+		mhdr_set_station_stage(RW_STG_STA_COMPLETE);
+		mhdr_set_station_status(RW_EVT_STA_GOT_IP);
+	}
 }
 
 void sta_set_vif_netif(void)
@@ -573,6 +585,22 @@ void ip_address_set(int iface, int dhcp, char *ip, char *mask, char*gw, char*dns
 		memcpy(&uap_ip_settings, &addr, sizeof(addr));
 }
 
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+void net_restart_dhcp(void)
+{
+	if(dhcp_restart_mutex)
+	{
+		rtos_lock_mutex(&dhcp_restart_mutex);
+		bk_wlan_clear_fci_net_info();
+
+		sta_ip_down();
+		ip_address_set(BK_STATION, DHCP_CLIENT, NULL, NULL, NULL, NULL);
+		sta_ip_start();
+		rtos_unlock_mutex(&dhcp_restart_mutex);
+	}
+}
+#endif
+
 int net_configure_address(struct ipv4_config *addr, void *intrfc_handle)
 {
 	if (!intrfc_handle)
@@ -607,14 +635,14 @@ int net_configure_address(struct ipv4_config *addr, void *intrfc_handle)
 		ip_addr_set_ip4_u32(&if_handle->gw, addr->gw);
 		netifapi_netif_set_addr(&if_handle->netif, (ip4_addr_t*)&if_handle->ipaddr,
 					(ip4_addr_t*)&if_handle->nmask, (ip4_addr_t*)&if_handle->gw);
-		netifapi_netif_set_up(&if_handle->netif);
 		//AP never configure DNS server address!!!
 		if(if_handle == &g_mlan)
 		{
-			net_configure_dns((struct wlan_ip_config *)addr);
 			netif_set_status_callback(&if_handle->netif,
 										wm_netif_status_static_callback);
 		}
+		netifapi_netif_set_up(&if_handle->netif);
+		net_configure_dns((struct wlan_ip_config *)addr);
 		break;
 
 	case ADDR_TYPE_DHCP:
@@ -817,6 +845,16 @@ void net_wlan_initial(void)
 #if LWIP_IPV6
     net_ipv6stack_init(&g_mlan.netif);
 #endif /* LWIP_IPV6 */
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+    if (dhcp_restart_mutex == NULL)
+    {
+        if(rtos_init_mutex(&dhcp_restart_mutex) != 0)
+        {
+            net_d("dhcp_restart_mutex failed\r\n");
+            dhcp_restart_mutex = NULL;
+        }
+    }
+#endif
 }
 
 void net_wlan_add_netif(void *mac)

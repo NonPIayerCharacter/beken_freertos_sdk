@@ -66,6 +66,16 @@ void prf_init(uint8_t init_type);
  ****************************************************************************************
  * @brief Link creation event, update profiles states.
  *
+ * @param[in] hdl        service hdl
+ *
+ ****************************************************************************************
+ */
+void prf_destroy(uint16_t hdl);
+
+/**
+ ****************************************************************************************
+ * @brief Link creation event, update profiles states.
+ *
  * @param[in] conidx        connection index
  * @param[in] p_con_param    Pointer to connection parameter information
  *

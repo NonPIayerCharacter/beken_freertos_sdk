@@ -107,9 +107,18 @@ typedef struct tvideo_message
     UINT32 data;
 } TV_MSG_T;
 
+static UINT32 sensor_ppi = VGA_640_480;
+static UINT32 sensor_fps = TYPE_20FPS;
+
 #define TV_QITEM_COUNT      (60)
 beken_thread_t  tvideo_thread_hdl = NULL;
 beken_queue_t tvideo_msg_que = NULL;
+
+void tvideo_set_sensor(UINT32 ppi, UINT32 fps)
+{
+    sensor_ppi = ppi;
+    sensor_fps = fps;
+}
 
 void tvideo_intfer_send_msg(UINT32 new_msg)
 {
@@ -355,11 +364,12 @@ static void tvideo_config_desc(void)
     tvideo_st.rx_read_len = 0;
 
     tvideo_st.sener_cfg = 0;
-    CMPARAM_SET_PPI(tvideo_st.sener_cfg, VGA_640_480);
+    CMPARAM_SET_PPI(tvideo_st.sener_cfg, sensor_ppi);
     // only bk7236 support 720P
     //CMPARAM_SET_PPI(tvideo_st.sener_cfg, VGA_1280_720);
 
-    CMPARAM_SET_FPS(tvideo_st.sener_cfg, TYPE_20FPS);
+    CMPARAM_SET_FPS(tvideo_st.sener_cfg, sensor_fps);
+    TVIDEO_PRT("sensor ppi:[%d] fps:[%d] \r\n", sensor_ppi, sensor_fps);
 
     tvideo_st.node_full_handler = tvideo_rx_handler;
     tvideo_st.data_end_handler = tvideo_end_frame_handler;
@@ -540,8 +550,15 @@ int video_transfer_init(TVIDEO_SETUP_DESC_PTR setup_cfg)
 
         if(init_ret != kNoErr)
         {
-            rtos_deinit_queue(&tvideo_msg_que);
-            tvideo_msg_que = NULL;
+            if(tvideo_msg_que)
+            {
+                rtos_deinit_queue(&tvideo_msg_que);
+                tvideo_msg_que = NULL;
+            }
+            if(tvideo_thread_hdl)
+            {
+                TVIDEO_FATAL("Error: thread hal still exist\r\n");
+            }
             tvideo_thread_hdl = NULL;
             TVIDEO_FATAL("Error: Failed to video transfer init\r\n");
         }

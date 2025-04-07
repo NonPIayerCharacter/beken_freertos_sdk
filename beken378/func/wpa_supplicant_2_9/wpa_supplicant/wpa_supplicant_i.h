@@ -1017,6 +1017,24 @@ struct wpa_supplicant {
 #endif
 
 	int auto_reconnect_disabled;
+#ifdef BK_SUPPLICANT
+
+	/* flag indicates user will reconnect later */
+	bool reconnect;
+#endif
+#if defined(BK_SUPPLICANT) && defined(CONFIG_AUTO_RECONNECT)
+	/* initial value of reconnect count, -1 for never stop */
+	int auto_reconnect_max_count;
+	/* reconnect timeout in sec, -1 for never timeout */
+	int auto_reconnect_timeout;
+	/* auto reconnect after disconnect */
+	int disable_auto_reconnect_after_disconnect;
+
+	/* dynamic changes */
+	int auto_reconnect_count;
+	/* start time of connection */
+	struct os_reltime auto_reconnect_start_time;
+#endif
 
 	 /* Channel preferences for AP/P2P GO use */
 	int best_24_freq;
@@ -1529,6 +1547,21 @@ static inline int network_is_persistent_group(struct wpa_ssid *ssid)
 }
 
 
+#if defined(BK_SUPPLICANT) && defined(CONFIG_AUTO_RECONNECT)
+/**
+ * Whether wpa supplicant connection will always automatically reconnect.
+ */
+static inline bool wpas_auto_reconnect_limited(struct wpa_supplicant *wpa_s)
+{
+	if (wpa_s->auto_reconnect_timeout == 0 &&
+		wpa_s->auto_reconnect_max_count == 0)
+		return false;
+
+	return true;
+}
+
+#endif
+
 static inline int wpas_mode_to_ieee80211_mode(enum wpas_mode mode)
 {
 	switch (mode) {
@@ -1602,6 +1635,7 @@ int wpas_ctrl_iface_get_pref_freq_list_override(struct wpa_supplicant *wpa_s,
 
 int wpa_is_fils_supported(struct wpa_supplicant *wpa_s);
 int wpa_is_fils_sk_pfs_supported(struct wpa_supplicant *wpa_s);
+void wpa_supplicant_auto_reconnect_timeout(void *eloop_ctx, void *timeout_ctx);
 
 int get_security_type_from_ie(u8 *ie_start, int len, u16 caps);
 

@@ -9,8 +9,10 @@ src += ["bk7231u_cal.c"]
 src += ["bk7231n_cal.c"]
 src += ["bk7221u_cal.c"]
 src += ["bk7238_cal.c"]
+src += ["bk7252n_cal.c"]
 src += ["manual_cal_bk7231u.c"]
 src += ["manual_cal_bk7238.c"]
+src += ["manual_cal_bk7252n.c"]
 src += ["chip_support.c"]
 
 path = []
@@ -32,6 +34,8 @@ elif (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7271'):
     cal_lib_name += '_7271'
 elif (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7238'):
     cal_lib_name += '_7238'
+elif (GetLocalDepend(options, 'CFG_SOC_NAME') == 'SOC_BK7252N'):
+    cal_lib_name += '_7252n'
 else:
     cal_lib_name += '_unknown'
     platform_match = 'no'

@@ -51,6 +51,9 @@ typedef enum
 {
     BK_UART_1 = 0,
     BK_UART_2,
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    BK_UART_3,
+#endif
     BK_UART_MAX,
 } bk_uart_t;
 

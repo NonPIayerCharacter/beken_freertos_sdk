@@ -292,6 +292,34 @@ ble_err_t appm_stop_connencting(uint8_t con_idx)
 	return ret;
 }
 
+ble_err_t appm_delete_initing(uint8_t con_idx)
+{
+	ble_err_t ret = ERR_SUCCESS;
+
+	APP_BLE_INIT_CHECK_CONN_IDX(con_idx);
+	if (BLE_APP_MASTER_GET_IDX_STATE(con_idx) == APP_INIT_STATE_CREATED) {
+		struct gapm_activity_delete_cmd *p_cmd = KERNEL_MSG_ALLOC(GAPM_ACTIVITY_DELETE_CMD,
+									TASK_BLE_GAPM, KERNEL_BUILD_ID(TASK_BLE_APP,BLE_APP_INITING_INDEX(con_idx)),
+									gapm_activity_delete_cmd);
+
+		if (p_cmd) {
+			// Set operation code
+			p_cmd->operation = GAPM_DELETE_ACTIVITY;
+			p_cmd->actv_idx = app_ble_env.actvs[con_idx].gap_advt_idx;
+			// Send the message
+			kernel_msg_send(p_cmd);
+			ret = ERR_SUCCESS;
+		} else {
+			ret = ERR_NO_MEM;
+		}
+	} else {
+		bk_printf("conidx [%d] is not created\r\n", con_idx);
+		ret = ERR_BLE_STATUS;
+	}
+
+	return ret;
+}
+
 int app_ble_master_appm_disconnect(uint8_t conidx)
 {
 	APP_BLE_INIT_CHECK_CONN_IDX(conidx);

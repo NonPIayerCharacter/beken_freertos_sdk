@@ -417,7 +417,7 @@ void bk_show_register (struct arm_registers *regs)
 
 void bk_trap_udef(struct arm_registers *regs)
 {
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     *((volatile uint32_t *)START_TYPE_ADDR) = (uint32_t)(CRASH_UNDEFINED_VALUE & 0xffff);
 #else
     *((volatile uint32_t *)START_TYPE_ADDR) = (uint32_t)CRASH_UNDEFINED_VALUE;
@@ -429,7 +429,7 @@ void bk_trap_udef(struct arm_registers *regs)
 
 void bk_trap_pabt(struct arm_registers *regs)
 {
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     *((volatile uint32_t *)START_TYPE_ADDR) = (uint32_t)(CRASH_PREFETCH_ABORT_VALUE & 0xffff);
 #else
     *((volatile uint32_t *)START_TYPE_ADDR) = (uint32_t)CRASH_PREFETCH_ABORT_VALUE;
@@ -441,7 +441,7 @@ void bk_trap_pabt(struct arm_registers *regs)
 
 void bk_trap_dabt(struct arm_registers *regs)
 {
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     *((volatile uint32_t *)START_TYPE_ADDR) = (uint32_t)(CRASH_DATA_ABORT_VALUE & 0xffff);
 #else
     *((volatile uint32_t *)START_TYPE_ADDR) = (uint32_t)CRASH_DATA_ABORT_VALUE;
@@ -453,7 +453,7 @@ void bk_trap_dabt(struct arm_registers *regs)
 
 void bk_trap_resv(struct arm_registers *regs)
 {
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     *((volatile uint32_t *)START_TYPE_ADDR) = (uint32_t)(CRASH_UNUSED_VALUE & 0xffff);
 #else
     *((volatile uint32_t *)START_TYPE_ADDR) = (uint32_t)CRASH_UNUSED_VALUE;

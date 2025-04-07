@@ -105,7 +105,7 @@ static void eddystone_app_event_handler(EDDYSTONE_MSG_T *msg)
 			break;
 		default:
 			break;
-	};
+	}
 }
 
 void eddystone_thread(beken_thread_arg_t arg)

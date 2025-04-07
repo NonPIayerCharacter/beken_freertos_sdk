@@ -16,7 +16,11 @@
 #include "fft_pub.h"
 #include "i2s_pub.h"
 #include "saradc_pub.h"
+#if !(SOC_BK7252N == CFG_SOC_NAME)
 #include "irda_pub.h"
+#else
+#include "irda_pub_bk7252n.h"
+#endif
 #include "mac_phy_bypass_pub.h"
 #include "bk_timer_pub.h"
 #include "i2c_pub.h"
@@ -41,10 +45,6 @@
 #include "general_dma_pub.h"
 #endif
 
-#if CFG_USE_SDCARD_HOST
-#include "sdcard_pub.h"
-#endif
-
 #if CFG_USE_STA_PS
 #include "power_save_pub.h"
 #endif
@@ -65,6 +65,15 @@
 #include "calendar_pub.h"
 #endif
 
+#if (SOC_BK7252N == CFG_SOC_NAME)
+#include "rtc_reg_pub.h"
+#include "charge_pub.h"
+#include "hpm_pub.h"
+#include "la_pub.h"
+#include "yuv_buf_pub.h"
+#include "ipchksum_pub.h"
+#endif
+
 #if (CFG_USE_SOFT_RTC)
 #include "rtc.h"
 #endif
@@ -81,6 +90,17 @@ static DD_INIT_S dd_init_tbl[] =
 	{CAL_DEV_NAME,			cal_init,					cal_exit},
 #endif
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#if(CFG_USE_CHARGE_DEV == 1)
+    {CHARGE_DEV_NAME,       charge_init,                charge_exit},
+#endif // (CFG_USE_CHARGE_DEV == 1)
+    {RTC_REG_DEV_NAME,      rtc_reg_init,               rtc_reg_exit},
+    {UART3_DEV_NAME,        uart3_init,                 uart3_exit},
+    {HPM_DEV_NAME,          hpm_init,                   hpm_exit},
+    {LA_DEV_NAME,           la_init,                    la_exit},
+    {YUV_BUF_DEV_NAME,      yuv_buf_init,               yuv_buf_exit},
+    {IPCHKSUM_DEV_NAME,     ipchksum_init,              ipchksum_exit},
+#endif
     {UART2_DEV_NAME,        uart2_init,                 uart2_exit},
     {UART1_DEV_NAME,        uart1_init,                 uart1_exit},
 
@@ -160,7 +180,7 @@ static DD_INIT_S dd_init_tbl[] =
     {MPB_DEV_NAME,          mpb_init,                   mpb_exit},
 #endif
 
-#if CFG_USE_SDCARD_HOST
+#if 0//todo CFG_USE_SDCARD_HOST
     {SDCARD_DEV_NAME,       sdcard_init,                sdcard_exit},
 #endif
 

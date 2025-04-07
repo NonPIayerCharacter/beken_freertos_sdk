@@ -1131,6 +1131,8 @@ struct gapc_pairing_info
     uint8_t level;
     /// LTK exchanged during pairing.
     bool    ltk_present;
+    /// Secure connection pairing
+    bool    sc_pairing;
 };
 
 /// Bond procedure information data

@@ -258,6 +258,38 @@ typedef union
 	VU32 value;
 }MPB_REG0x8F_TypeDef;
 
+#if (SOC_BK7252N == CFG_SOC_NAME)
+typedef union
+{
+	struct {
+		VU32 txvector16:8;
+		VU32 resv1:24;
+	}bits;
+
+	VU32 value;
+}MPB_REG0x90_TypeDef;
+
+typedef union
+{
+	struct {
+		VU32 txvector17:8;
+		VU32 resv1:24;
+	}bits;
+
+	VU32 value;
+}MPB_REG0x91_TypeDef;
+
+typedef union
+{
+	struct {
+		VU32 txvector18:8;
+		VU32 resv1:24;
+	}bits;
+
+	VU32 value;
+}MPB_REG0x92_TypeDef;
+#endif
+
 struct MPB_TypeDef {
     volatile MPB_REG0x0_TypeDef  *r0;
     volatile MPB_REG0x1_TypeDef  *r1;
@@ -285,6 +317,11 @@ struct MPB_TypeDef {
     volatile MPB_REG0x8D_TypeDef  *r141;
     volatile MPB_REG0x8E_TypeDef  *r142;
     volatile MPB_REG0x8F_TypeDef  *r143;
+#if (SOC_BK7252N == CFG_SOC_NAME)
+    volatile MPB_REG0x90_TypeDef  *r144;
+    volatile MPB_REG0x91_TypeDef  *r145;
+    volatile MPB_REG0x92_TypeDef  *r146;
+#endif
 };
 
 extern UINT32 mpb_ctrl(UINT32 cmd, void *param);

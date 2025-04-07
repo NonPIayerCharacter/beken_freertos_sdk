@@ -45,7 +45,7 @@
 
 #include "BkDriverFlash.h"
 
-#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7238))
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7238)) || (CFG_SOC_NAME == SOC_BK7252N)
 #include "flash_bypass.h"
 #endif
 
@@ -119,7 +119,6 @@ UINT32 func_init_extended(void)
     sdio_trans_init();
 #endif
 
-
 #if CFG_USB
     FUNC_PRT("[FUNC]fusb_init\r\n");
     fusb_init();
@@ -149,6 +148,17 @@ UINT32 func_init_extended(void)
 	FUNC_PRT("int watchdog enabled, period=%u\r\n", CFG_INT_WDG_PERIOD_MS);
 	bk_wdg_initialize(CFG_INT_WDG_PERIOD_MS);
         bk_wdg_reload();
+#else
+    {
+        UINT32 ret;
+        UINT32 parameter;
+        parameter = PWD_ARM_WATCHDOG_CLK_BIT;
+        ret = sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, (void *)&parameter);
+        if(ret !=0 )
+            os_printf("WDT clk powerdown fail\r\n");
+
+    }
+
 #endif //CFG_INT_WDG_ENABLED
 
 #if CFG_TASK_WDG_ENABLED
@@ -172,7 +182,7 @@ UINT32 func_init_basic(void)
 #endif
     hal_flash_init();
 
-#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7238))
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7238)) || (CFG_SOC_NAME == SOC_BK7252N)
 	flash_bypass_operate_sr_init();
 #endif
 

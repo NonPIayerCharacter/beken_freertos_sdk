@@ -82,6 +82,8 @@
 #define CFG_WIFI_AP_HW_MODE                        0
 /* repush txdesc when txl_reset happens */
 #define CFG_WIFI_REPUSH_WHEN_RESET                 0
+/* Send deauth before sending auth to AP */
+#define CFG_WIFI_DEAUTH_BEFORE_AUTH                0
 
 #define CfG_MACRO_MAYBE_UNUSED                     1
 #if CfG_MACRO_MAYBE_UNUSED
@@ -110,6 +112,8 @@
 #define CONFIG_PMKSA_EXISTS                        1
 #define CONFIG_GTK_REKEY                           1
 #endif
+#define CFG_RWNX_REODER                            0
+#define CFG_FORCE_RATE                             0
 
 #define CFG_WPA3                                   0
 #if CFG_WPA3
@@ -232,6 +236,7 @@
 #define SOC_BK7231N                                5
 #define SOC_BK7236                                 6
 #define CFG_SOC_NAME                               SOC_BK7271
+#define CFG_SOC_NAME_STR                           "bk7271"
 
 /*section 7-----calibration*/
 #if (CFG_RUNNING_PLATFORM == FPGA_PLATFORM)

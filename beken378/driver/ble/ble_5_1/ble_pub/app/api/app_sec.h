@@ -33,70 +33,69 @@
 #include <stdint.h>          // Standard Integer Definition
 #include "gap.h"
 #include "gapc_task.h"
+#include "gapm_task.h"
+#include "flash.h"
+#include "BkDriverFlash.h"
+
 /*
  * DEFINES
  ****************************************************************************************
  */
-typedef enum{
-	APP_SEC_ERROR_NO_ERROR,
-	APP_SEC_ERROR_PARAM_INVALID,
-	APP_SEC_ERROR_PARAM_UNSUPPORT,
-}sec_err_t;
+ //store bonding info in flash
+#define APP_SEC_BOND_STORE    1
 
-typedef enum{
-	APP_SEC_PAIRING_SUCCEED,
-	APP_SEC_PAIRING_FAILED,
-	APP_SEC_MAX,
-}sec_notice_t;
+#define MAX_BOND_NUM          BLE_RAL_MAX
+#define MAX_BOND_NUM_MASK    ((1 << MAX_BOND_NUM) - 1)
+#define INVAILD_IDX           MAX_BOND_NUM
 
-typedef void (*sec_notice_cb_t)(sec_notice_t notice, void *param);
+#if (APP_SEC_BOND_STORE)
+#define CRC_DEFAULT_VALUE     0xFFFFFFFF
+#define MAX_CRC_FAIL_TIMES    3
+#endif
 
 /*
  * STRUCTURES DEFINITIONS
  ****************************************************************************************
  */
-struct app_pairing_cfg
+typedef struct
 {
-    /// IO capabilities (@see gap_io_cap)
-    uint8_t iocap;
-    /// Authentication (@see gap_auth)
-    /// Note in BT 4.1 the Auth Field is extended to include 'Key Notification' and
-    /// in BT 4.2 the Secure Connections'.
-    uint8_t auth;
-    ///Initiator key distribution (@see gap_kdist)
-    uint8_t ikey_dist;
-    ///Responder key distribution (@see gap_kdist)
-    uint8_t rkey_dist;
-
-    /// Device security requirements (minimum security level). (@see gap_sec_req)
-    uint8_t sec_req;
-};
+    struct gapc_irk peer_irk;
+    struct gapc_ltk ltk;
+    uint32_t crc;
+}bond_info_t;
 
 struct app_sec_env_tag
 {
-	// Bond status
-	bool bonded;
-	bool peer_pairing_recv;
-	bool peer_encrypt_recv;
+    // Bond status
+    uint8_t bonded;
 
-	uint32_t passkey;
-	/// Long Term Key information (if info = GAPC_LTK_EXCH)
-	//@trc_union parent.info == GAPC_LTK_EXCH
-	struct gapc_ltk ltk;
-	struct gapc_ltk peer_ltk;
+    uint32_t passkey;
+    uint8_t matched_peer_idx;
 
-	/// Identity Resolving Key information (if info = GAPC_IRK_EXCH)
-	//@trc_union parent.info == GAPC_IRK_EXCH
-	struct gapc_irk irk;
-	struct gapc_irk peer_irk;
+    /// Long Term Key information (if info = GAPC_LTK_EXCH)
+    //@trc_union parent.info == GAPC_LTK_EXCH
+    struct gapc_ltk ltk;
+    struct gapc_ltk peer_ltk;
 
-	/// Connection Signature Resolving Key information (if info = GAPC_CSRK_EXCH)
-	//@trc_union parent.info == GAPC_CSRK_EXCH
-	struct gap_sec_key csrk;
-	struct gap_sec_key peer_csrk;
+    /// Identity Resolving Key information (if info = GAPC_IRK_EXCH)
+    //@trc_union parent.info == GAPC_IRK_EXCH
+    struct gapc_irk irk;
+    struct gapc_irk peer_irk;
 
-	struct app_pairing_cfg pairing_param;
-	sec_notice_cb_t sec_notice_cb;
+    /// Connection Signature Resolving Key information (if info = GAPC_CSRK_EXCH)
+    //@trc_union parent.info == GAPC_CSRK_EXCH
+    struct gap_sec_key csrk;
+    struct gap_sec_key peer_csrk;
+
+    struct app_pairing_cfg pairing_param;
+    #if (APP_SEC_BOND_STORE)
+    uint8_t flash_write_idx[MAX_BOND_NUM - 1];
+    uint8_t flash_write_num;
+    bk_logic_partition_t *flash_bond_ptr;
+    #endif
+    bond_info_t bond_info[MAX_BOND_NUM];
+
+    sec_notice_cb_t sec_notice_cb;
 };
 
 /*
@@ -127,14 +126,38 @@ void app_sec_init(void);
  * @brief Set pairing param and cb function
  ****************************************************************************************
  */
-uint8_t app_sec_config(struct app_pairing_cfg *param, sec_notice_cb_t func);
+sec_err_t app_sec_config(struct app_pairing_cfg *param, sec_notice_cb_t func);
+
+#if (APP_SEC_BOND_STORE)
+/**
+ ****************************************************************************************
+ * @brief Store Bond Info In Flash
+ ****************************************************************************************
+ */
+sec_err_t app_sec_store_bond_info_in_flash(void);
+#endif
 
 /**
  ****************************************************************************************
  * @brief Get Application Security Module BOND status
  ****************************************************************************************
  */
-bool app_sec_get_bond_status(void);
+uint8_t app_sec_get_bond_status(void);
+
+/**
+ ****************************************************************************************
+ * @brief Get next availiable bond idx
+ ****************************************************************************************
+ */
+uint8_t app_sec_get_free_bond_idx(void);
+
+/**
+ ****************************************************************************************
+ * @brief Check If Peer Device in bonded list
+    If found, store idx in app_sec_env.matched_peer_idx.
+ ****************************************************************************************
+ */
+sec_err_t app_sec_search_bond_list(uint8_t conidx);
 
 /**
  ****************************************************************************************
@@ -148,7 +171,7 @@ bool app_sec_set_tk_passkey(uint32_t passkey);
  * @brief Remove all bond data stored in NVDS
  ****************************************************************************************
  */
-void app_sec_remove_bond(void);
+sec_err_t app_sec_remove_bond(uint8_t idx);
 
 /**
  ****************************************************************************************
@@ -159,7 +182,7 @@ void app_sec_remove_bond(void);
  * @param[in]   - conidx: Connection Index
  ****************************************************************************************
  */
-void app_sec_send_security_req(uint8_t conidx);
+sec_err_t app_sec_send_security_req(uint8_t conidx);
 
 /**
  ****************************************************************************************
@@ -168,7 +191,7 @@ void app_sec_send_security_req(uint8_t conidx);
  * @param[in]   - conidx: Connection Index
  ****************************************************************************************
  */
-void app_sec_send_bond_cmd(uint8_t conidx);
+sec_err_t app_sec_send_bond_cmd(uint8_t conidx);
 
 /**
  ****************************************************************************************
@@ -177,7 +200,7 @@ void app_sec_send_bond_cmd(uint8_t conidx);
  * @param[in]   - conidx: Connection Index
  ****************************************************************************************
  */
-void app_sec_send_encryption_cmd(uint8_t conidx);
+sec_err_t app_sec_send_encryption_cmd(uint8_t conidx);
 
 #endif //(BLE_APP_SEC)
 

@@ -144,7 +144,7 @@ int vudp_sdp_change_adv_data(UINT8 *adv_data, UINT32 data_len)
         os_memcpy(adv_buf, adv_data, data_len);
 
         GLOBAL_INT_DISABLE();
-        if(vudp_sdp->adv_buf);
+        if(vudp_sdp->adv_buf)
         {
             os_free(vudp_sdp->adv_buf);
             vudp_sdp->adv_buf_len = 0;

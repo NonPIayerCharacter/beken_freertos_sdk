@@ -54,6 +54,60 @@
 #define CFG_WPA_CTRL_IFACE                         1
 #define CFG_RWNX_QOS_MSDU                          1
 #define CFG_WLAN_FAST_CONNECT                      0
+#define CFG_WPA2_ENTERPRISE                        0
+#define CFG_WPA3_ENTERPRISE                        0
+/* WiFi Direct Support, CFG_WIFI_WPS must be enabled */
+#define CFG_WIFI_P2P                               0
+#define CFG_RWNX_REODER                            0
+#define CFG_FORCE_RATE                             0
+
+#if CFG_WIFI_P2P
+/* WPS(WSC) Support */
+#define CFG_WIFI_WPS                               1
+#define CFG_WIFI_P2P_GO                            1
+#else
+/* WPS(WSC) Support */
+#define CFG_WIFI_WPS                               0
+#endif
+
+/* Vendor Specific IEs when STA Probe Req/Association Req*/
+#define CFG_WIFI_STA_VSIE                          0
+/* Vendor Specific IEs when AP Beacon  */
+#define CFG_WIFI_AP_VSIE                           0
+/* Custom softap basic rates, supported rates, ht mcs set */
+#define CFG_WIFI_AP_CUSTOM_RATES                   0
+/* repush txdesc when txl_reset happens */
+#define CFG_WIFI_REPUSH_WHEN_RESET                 0
+/* Send deauth before sending auth to AP */
+#define CFG_WIFI_DEAUTH_BEFORE_AUTH                0
+
+/*Use macro to shut down some unused functions*/
+#define CFG_WPA_MAYBE_UNUSED                       1
+#if CFG_WPA_MAYBE_UNUSED
+#define CONFIG_NOTIFICATION                        1
+#define CONFIG_EID_FLAG                            1
+#define CONFIG_PMKSA_EXISTS                        1
+#define CONFIG_GTK_REKEY                           1
+#endif
+
+/*
+ * Support set softap modes: BGN, BG, B. Macro
+ * CFG_AP_SUPPORT_HT_IE must be enabled to support N mode
+ */
+#define CFG_WIFI_AP_HW_MODE                        0
+
+#define CfG_MACRO_MAYBE_UNUSED                     1
+#if CfG_MACRO_MAYBE_UNUSED
+#define CFG_WIFI_RSSI                              1
+#define CFG_WIFI_VERSION                           1
+#define CFG_WIFI_CHANNEL                           1
+#define CFG_WIFI_SLOTTIME                          1
+#define CFG_WIFI_DBG_TROGGER                       1
+#define CFG_MODE_SET                               1
+#define CFG_FILTER_SET                             1
+#define CFG_RC_STATS                               1
+#endif
+
 /* PMF */
 #define CFG_IEEE80211W                             0
 #if CFG_WPA_CTRL_IFACE
@@ -144,6 +198,7 @@
 #define SOC_BK7221U                                3
 #define SOC_BK7231N                                5
 #define CFG_SOC_NAME                               SOC_BK7221U
+#define CFG_SOC_NAME_STR                           "bk7251"
 
 /*section 7-----calibration*/
 #if (CFG_RUNNING_PLATFORM == FPGA_PLATFORM)
@@ -170,10 +225,17 @@
 #define CFG_USE_TEMPERATURE_DETECT                 0
 
 /*section 12-----for video transfer*/
+#if CFG_WIFI_P2P
+#define CFG_USE_APP_DEMO_VIDEO_TRANSFER            1
+#define CFG_USE_CAMERA_INTF                        1
+#else
 #define CFG_USE_APP_DEMO_VIDEO_TRANSFER            0
 #define CFG_USE_HSLAVE_SPI                         0
 #define CFG_USE_SPIDMA                             0
-#define CFG_USE_CAMERA_INTF                        1
+#if CFG_USE_CAMERA_INTF
+#define CFG_USE_I2C1                               1
+#define CFG_USE_I2C2                               0
+#endif
 
 /*section 13-----for GENERRAL DMA */
 #define CFG_GENERAL_DMA                            1
@@ -224,6 +286,10 @@
 
 /*section 24 ----- less memery in rwnx*/
 #define CFG_LESS_MEMERY_IN_RWNX                    1
+#if CFG_IPERF_TEST_ACCEL
+#undef CFG_LESS_MEMERY_IN_RWNX
+#define CFG_LESS_MEMERY_IN_RWNX                    0
+#endif
 
 /*section 25 ----- use audio*/
 #if (CFG_SOC_NAME == SOC_BK7221U)

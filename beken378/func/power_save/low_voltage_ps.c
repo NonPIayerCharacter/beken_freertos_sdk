@@ -1,7 +1,11 @@
 #include "low_voltage_ps.h"
 #include "power_save_pub.h"
 #include "power_save.h"
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #include "calendar_pub.h"
+#else
+#include "rtc_reg_pub.h"
+#endif
 #include "mcu_ps.h"
 #include "low_voltage_compensation.h"
 #include "ps.h"
@@ -72,13 +76,24 @@ uint8_t lv_ps_rf_pre_pwr_down = 0;
 uint8_t lv_ps_rf_reinit = 0;
 uint8_t lv_ps_wakeup_wifi = 1;
 PS_DEEP_WAKEUP_WAY lv_ps_wake_up_way = PS_DEEP_WAKEUP_NULL;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
+uint8_t lv_ps_mac_pwd_en = 0;
+#else
+uint8_t lv_ps_mac_pwd_en = 1;
+#endif
+uint8_t lv_ps_mac_need_restore = 0;
+UINT32 lv_ps_mac_clock_gating_cfg = 0;
+
+#if (CFG_LOW_VOLTAGE_PS_COEXIST == 1)
+static uint8_t lv_ps_mode_enabled = 0;
+#endif
 
 static LIST_HEAD_DEFINE(lv_element);
 
 /*******************************************************************************
 * LV_PS_INFO DUMP
 *******************************************************************************/
-#if ((1 == CFG_LOW_VOLTAGE_PS) && (1 == CFG_LOW_VOLTAGE_PS_TEST))
+#if (1 == CFG_LOW_VOLTAGE_PS_TEST)
 static struct lv_ps_info_st lv_ps_info;
 static uint64_t lv_ps_rf_start_local_time;
 static uint64_t lv_ps_rf_ready_local_time;
@@ -90,7 +105,11 @@ static uint64_t lv_ps_rec_local_time;
 
 static void lv_ps_info_reinit(void);
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #define LV_PS_INFO_PRINT_TIMEOUT (cal_get_time_us() - lv_ps_info.mgmt.stat_start_time >= lv_ps_info.mgmt.print_period * 1000000)
+#else
+#define LV_PS_INFO_PRINT_TIMEOUT (rtc_reg_get_time_us() - lv_ps_info.mgmt.stat_start_time >= lv_ps_info.mgmt.print_period * 1000000)
+#endif
 #define sqr(x) ((x)*(x))
 /// (u64)us ==> (u32)hour,(u32)min,(u32)second
 #define US_TO_READABLE_VALUE(us) (uint32_t)(us/1000000/3600),(uint32_t)(us/1000000%3600/60),(uint32_t)(us/1000000%60)
@@ -117,7 +136,11 @@ void lv_ps_info_init(void)
 	lv_ps_info.tbtt_to_rxd_m_save = 0;
 
 	lv_ps_info.mgmt.stat_index = 0;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	lv_ps_info.mgmt.stat_start_time = cal_get_time_us();
+#else
+	lv_ps_info.mgmt.stat_start_time = rtc_reg_get_time_us();
+#endif
 
 	memset(&lv_ps_info.beacon, 0, sizeof(LV_PS_BEACON_STAT));
 	memset(&lv_ps_info.runtime, 0, sizeof(LV_PS_RUNTIME_STAT));
@@ -129,7 +152,11 @@ static void lv_ps_info_reinit(void)
 	lv_ps_info.tbtt_to_rxd_m_save = lv_ps_info.beacon.tbtt_to_rxd_m;
 
 	lv_ps_info.mgmt.stat_index += 1;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	lv_ps_info.mgmt.stat_start_time = cal_get_time_us();
+#else
+	lv_ps_info.mgmt.stat_start_time = rtc_reg_get_time_us();
+#endif
 
 	memset(&lv_ps_info.beacon, 0, sizeof(LV_PS_BEACON_STAT));
 	memset(&lv_ps_info.runtime, 0, sizeof(LV_PS_RUNTIME_STAT));
@@ -191,7 +218,11 @@ void lv_ps_info_calc(void)
 	uint32_t bcn_cnt_expected, bcn_cnt_real;
 
 	// accumulate time
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	lv_ps_info.mgmt.stat_end_time = cal_get_time_us();
+#else
+	lv_ps_info.mgmt.stat_end_time = rtc_reg_get_time_us();
+#endif
 	duration = lv_ps_info.mgmt.stat_end_time - lv_ps_info.mgmt.stat_start_time;
 	lv_ps_info.mgmt.total_time += duration;
 
@@ -243,7 +274,11 @@ void lv_ps_info_recv_tim(void)
 	if(0 == lv_ps_info.runtime.rf_sleep_count)
 		return;
 	lv_ps_info.beacon.tim_count += 1;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	lv_ps_info.runtime.rf_to_tim += cal_get_time_us() - lv_ps_rf_ready_local_time;
+#else
+	lv_ps_info.runtime.rf_to_tim += rtc_reg_get_time_us() - lv_ps_rf_ready_local_time;
+#endif
 }
 
 void lv_ps_info_recv_bcn(uint16_t len)
@@ -270,7 +305,11 @@ void lv_ps_info_recv_bcn(uint16_t len)
 void lv_ps_info_disconnect(void)
 {
 	lv_ps_connection_loss_flag = 1;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	lv_ps_disc_local_time = cal_get_time_us();
+#else
+	lv_ps_disc_local_time = rtc_reg_get_time_us();
+#endif
 	lv_ps_info.beacon.disc_count += 1;
 }
 
@@ -279,7 +318,11 @@ void lv_ps_info_reconnect(void)
 	if((lv_ps_info.mgmt.print_enable == 1)&&(lv_ps_connection_loss_flag == 1))
 	{
 		lv_ps_connection_loss_flag = 0;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 		lv_ps_rec_local_time = cal_get_time_us();
+#else
+		lv_ps_rec_local_time = rtc_reg_get_time_us();
+#endif
 		lv_ps_info.beacon.reconn_tcost += lv_ps_rec_local_time - lv_ps_disc_local_time;
 	}
 }
@@ -305,6 +348,7 @@ void lv_ps_info_rf_wakeup(bool restart_flag)
 {
 	if(0 != lv_ps_info.runtime.rf_sleep_count)
 		lv_ps_info.runtime.rf_running_time += lv_ps_rf_pend_local_time - lv_ps_rf_ready_local_time;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	if(0 == restart_flag) {
 		lv_ps_info.runtime.rf_sleep_count += 1;
 		lv_ps_rf_start_local_time = cal_get_time_us();
@@ -312,13 +356,26 @@ void lv_ps_info_rf_wakeup(bool restart_flag)
 		lv_ps_info.runtime.rf_sleep_retry_count += 1;
 		lv_ps_rf_ready_local_time = cal_get_time_us();
 	}
+#else
+	if(0 == restart_flag) {
+		lv_ps_info.runtime.rf_sleep_count += 1;
+		lv_ps_rf_start_local_time = rtc_reg_get_time_us();
+	} else {
+		lv_ps_info.runtime.rf_sleep_retry_count += 1;
+		lv_ps_rf_ready_local_time = rtc_reg_get_time_us();
+	}
+#endif
 }
 
 void lv_ps_info_rf_ready(void)
 {
 	if(0 == lv_ps_info.runtime.rf_sleep_count)
 		return;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	lv_ps_rf_ready_local_time = cal_get_time_us();
+#else
+	lv_ps_rf_ready_local_time = rtc_reg_get_time_us();
+#endif
 	lv_ps_info.runtime.rf_init_tcost += lv_ps_rf_ready_local_time - lv_ps_rf_start_local_time;
 }
 
@@ -326,12 +383,21 @@ void lv_ps_info_rf_sleep(bool pre_flag)
 {
 	if(0 == lv_ps_info.runtime.rf_sleep_count)
 		return;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	if(0 == pre_flag) {
 		lv_ps_rf_end_local_time = cal_get_time_us();
 		lv_ps_info.runtime.rf_sleep_tcost += lv_ps_rf_end_local_time - lv_ps_rf_pend_local_time;
 	} else {
 		lv_ps_rf_pend_local_time = cal_get_time_us();
 	}
+#else
+	if(0 == pre_flag) {
+		lv_ps_rf_end_local_time = rtc_reg_get_time_us();
+		lv_ps_info.runtime.rf_sleep_tcost += lv_ps_rf_end_local_time - lv_ps_rf_pend_local_time;
+	} else {
+		lv_ps_rf_pend_local_time = rtc_reg_get_time_us();
+	}
+#endif
 }
 
 void lv_ps_info_mcu_sleep(uint64_t current_time)
@@ -378,11 +444,13 @@ void lv_ps_init(void)
     lv_ps_last_beacon_rev_timepoint = 0;
     lv_ps_wakeup_wifi = 1;
     lv_ps_wake_up_way = PS_DEEP_WAKEUP_NULL;
-#if ((1 == CFG_LOW_VOLTAGE_PS) && (1 == CFG_LOW_VOLTAGE_PS_TEST))
+#if (1 == CFG_LOW_VOLTAGE_PS_TEST)
     lv_ps_info_init();
 #endif
     lv_ps_sleep_trigger_timer_init();
+#if(CFG_HW_PARSER_TIM_ELEMENT == 1)
     lvc_calc_g_bundle_reset();
+#endif
     GLOBAL_INT_RESTORE();
 }
 
@@ -420,11 +488,15 @@ void lv_ps_check_11b(void)
     }
 }
 
-extern void etharp_reply(void);
+extern void net_send_gratuitous_arp(void);
 extern void rwn_set_tx_low_rate_once(void);
 void lv_ps_send_arp(void)
 {
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     if(cal_get_time_us() - lv_ps_arp_send_time > LOW_VOL_ARP_SEND_INTERVAL * 1000000)
+#else
+    if(rtc_reg_get_time_us() - lv_ps_arp_send_time > LOW_VOL_ARP_SEND_INTERVAL * 1000000)
+#endif
     {
         bmsg_ps_sender(PS_BMSG_IOCTL_ARP_TX);
     }
@@ -432,13 +504,17 @@ void lv_ps_send_arp(void)
 
 void lv_ps_update_arp_send_time(void)
 {
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     lv_ps_arp_send_time = cal_get_time_us();
+#else
+    lv_ps_arp_send_time = rtc_reg_get_time_us();
+#endif
 }
 
 void lv_ps_keepalive_arp_tx(void)
 {
     rwn_set_tx_low_rate_once();
-	etharp_reply();
+    net_send_gratuitous_arp();
 }
 
 /*******************************************************************************
@@ -491,11 +567,10 @@ bool lv_ps_sleep_check( UINT32 sleep_tick)
 		lv_ele_role = lv_elem->lv_type;
 	}
 	#if CFG_SUPPORT_BLE
-	else if (!ble_thread_is_up() && (!bk_wlan_has_role(VIF_STA)))
+	else if (!ble_thread_is_up() && (!bk_wlan_has_role(VIF_STA))) {
 	#else
 	else if (!bk_wlan_has_role(VIF_STA))
 	#endif
-	{
 		/*keep lv sleep mode util wakeup by gpio*/
 		lv_ps_target_time = -1;
 	}
@@ -513,13 +588,21 @@ bool lv_ps_sleep_check( UINT32 sleep_tick)
 	GLOBAL_INT_DISABLE();
 
 	/*save current us, fot sleep duration compensation*/
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	time_saved = cal_get_time_us();
+#else
+	time_saved = rtc_reg_get_time_us();
+#endif
 
 	/*enter lv ps*/
 	lv_ps_sleep(); ////enter lv ps
 
 	/*tick compensation*/
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	delta_ms = (cal_get_time_us() - time_saved) / 1000;
+#else
+	delta_ms = (rtc_reg_get_time_us() - time_saved) / 1000;
+#endif
 	fclk_update_tick( (uint32_t) BK_MS_TO_TICKS(delta_ms) - 1 );
 
 #if CFG_USE_TICK_CAL
@@ -539,8 +622,10 @@ check_exit:
 			if (((lv_ele_role == LV_TYPE_WIFI) && (lv_ps_wake_up_way == PS_DEEP_WAKEUP_GPIO))) {
 				lv_ps_push_element(lv_elem);
 			}
-			else
+			else {
 				lv_elem->object_cb(lv_elem->lv_target_time,false);
+				os_free(lv_elem);
+			}
 	}
 
 		if (lv_ele_role == LV_TYPE_WIFI) {
@@ -550,7 +635,6 @@ check_exit:
 				os_free(next_elem);
 			}
 		}
-		os_free(lv_elem);
 	}
 	lv_ps_element_check_pass();
 	if(debug_print_flag)
@@ -566,13 +650,21 @@ check_exit:
 		os_printf("debug_print5:%d\r\n", power_save_if_ps_can_sleep());//bk_ps_info.ps_can_sleep == 1
 		os_printf("\r\n");*/
 	}
-#if ((1 == CFG_LOW_VOLTAGE_PS) && (1 == CFG_LOW_VOLTAGE_PS_TEST))
+#if (1 == CFG_LOW_VOLTAGE_PS_TEST)
 	if(lv_ps_info.mgmt.print_enable && LV_PS_INFO_PRINT_TIMEOUT) {
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 		time_saved = cal_get_time_us();
+#else
+		time_saved = rtc_reg_get_time_us();
+#endif
 		lv_ps_info_calc();
 		lv_ps_info_dump();
 		lv_ps_info_reinit();
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 		os_printf("ps info dump time cost %d us\r\n\r\n", (uint32_t)(cal_get_time_us() - time_saved));
+#else
+		os_printf("ps info dump time cost %d us\r\n\r\n", (uint32_t)(rtc_reg_get_time_us() - time_saved));
+#endif
 	}
 #endif
 	return ret;
@@ -621,12 +713,21 @@ void lv_ps_sleep(void)
 uint64_t lv_ps_wakeup_set_timepoint(void)
 {
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #if(CFG_LV_PS_WITH_IDLE_TICK == 1)
     lv_ps_wakeup_mcu_timepoint = cal_get_time_us()-MCU_TO_MAC_WAKEUP_DURATION;
 #else
     lv_ps_wakeup_mcu_timepoint = cal_get_time_us();
 #endif
-#if ((1 == CFG_LOW_VOLTAGE_PS) && (1 == CFG_LOW_VOLTAGE_PS_TEST))
+#else
+#if(CFG_LV_PS_WITH_IDLE_TICK == 1)
+    lv_ps_wakeup_mcu_timepoint = rtc_reg_get_time_us()-MCU_TO_MAC_WAKEUP_DURATION;
+#else
+    lv_ps_wakeup_mcu_timepoint = rtc_reg_get_time_us();
+#endif
+
+#endif
+#if (1 == CFG_LOW_VOLTAGE_PS_TEST)
     lv_ps_info_mcu_wakeup();
 #endif
     return lv_ps_wakeup_mcu_timepoint;
@@ -693,22 +794,29 @@ uint32_t lv_ps_recv_beacon(void)
 	lv_ps_loss_bcn_count = 0;
 #endif
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	lv_ps_last_beacon_rev_timepoint = cal_get_time_us();
+#else
+	lv_ps_last_beacon_rev_timepoint = rtc_reg_get_time_us();
+#endif
 	return lv_ps_beacon_cnt_after_wakeup;
 }
 
 void lv_ps_recv_beacon_change(void)
 {
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	lv_ps_first_beacon_change_rev_timepoint = cal_get_time_us();
+#else
+	lv_ps_first_beacon_change_rev_timepoint = rtc_reg_get_time_us();
+#endif
 }
 
 uint32_t lv_ps_set_start_flag(void)
 {
+	nxmac_tsf_mgt_disable_setf(0);
 	if(ps_may_sleep())
 	{
-	    os_null_printf("nxmac_tsf_mgt_enable:0x%x\r\n", nxmac_mac_cntrl_1_get());
-		nxmac_tsf_mgt_disable_setf(0);
-
+		os_null_printf("nxmac_tsf_mgt_enable:0x%x\r\n", nxmac_mac_cntrl_1_get());
 		lv_ps_start_flag += 1;
 	}
 	else
@@ -746,6 +854,27 @@ void lv_ps_clear_anchor_point(void)
 uint32_t lv_ps_is_got_anchor_point(void)
 {
 	return (0 != lv_anchor_flag);
+}
+
+void lv_ps_release_mac_aon_isolate(void)
+{
+	sctrl_ctrl(CMD_SCTRL_MAC_AON_ISOLATE_RELEASE, NULL);
+}
+
+void lv_ps_admit_mac_clock_gating(UINT32 enable)
+{
+	UINT32 param;
+
+	if (enable)
+	{
+		param = 0;
+		lv_ps_mac_clock_gating_cfg = sctrl_ctrl(CMD_SCTRL_MAC_CLOCK_GATING_ADMIT, &param);
+	}
+	else
+	{
+		param = lv_ps_mac_clock_gating_cfg;
+		sctrl_ctrl(CMD_SCTRL_MAC_CLOCK_GATING_ADMIT, &param);
+	}
 }
 
 uint32_t lv_ps_get_sleep_duration(void)
@@ -901,7 +1030,11 @@ static void ps_lv_wifi_cb(uint64_t target_time, bool check_pass)
     }
 #else
     lv_ps_clear_tx_recovery();
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     power_save_dtim_wake ( MAC_ARM_WAKEUP_EN_BIT );
+#else
+    power_save_dtim_wake ( FIQ_MAC_GENERAL_BIT );
+#endif
     lv_ps_wakeup_wifi = 1;
     if(check_pass)
         lv_ps_wakeup_mac_timepoint = target_time;
@@ -937,7 +1070,11 @@ uint32_t lv_ps_calc_sleep_duration(void)
 	listen_interval = power_save_get_listen_int();
 #endif
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	curr_local_time = cal_get_time_us();
+#else
+	curr_local_time = rtc_reg_get_time_us();
+#endif
 	if (lv_ps_beacon_cnt_after_wakeup) {
 		/*The first case: recv beacon after wakeup of low voltage*/
 		if (lv_ps_bcn_cont_miss_bcn_count)
@@ -1127,7 +1264,11 @@ static uint32_t lv_ps_check_beacon_loss(void)
         return 0;
 #endif
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     current_timepoint = cal_get_time_us();
+#else
+    current_timepoint = rtc_reg_get_time_us();
+#endif
 
     if(current_timepoint > lv_ps_last_beacon_rev_timepoint) {
         loss_during = current_timepoint - lv_ps_last_beacon_rev_timepoint;
@@ -1139,7 +1280,7 @@ static uint32_t lv_ps_check_beacon_loss(void)
 
     //os_printf("loss: %u, %u\r\n", loss_during, LV_PS_BEACON_LOSS_TIME_S);
     if (loss_during >= LV_PS_BEACON_LOSS_TIME_S) {
-#if ((1 == CFG_LOW_VOLTAGE_PS) && (1 == CFG_LOW_VOLTAGE_PS_TEST))
+#if (1 == CFG_LOW_VOLTAGE_PS_TEST)
         lv_ps_info_disconnect();
 #endif
         ps_send_connection_loss();
@@ -1154,7 +1295,11 @@ static uint32_t lv_ps_check_beacon_loss(void)
 uint32_t lv_ps_check_beacon_changed(void)
 {
     uint64_t current_timepoint = 0, loss_during;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     current_timepoint = cal_get_time_us();
+#else
+    current_timepoint = rtc_reg_get_time_us();
+#endif
 
     if(current_timepoint > lv_ps_first_beacon_change_rev_timepoint) {
         loss_during = current_timepoint - lv_ps_first_beacon_change_rev_timepoint;
@@ -1259,9 +1404,17 @@ UINT32 lv_ps_calc_rosc_period( UINT32 sleep_tick)
 	{
 		lv_ps_calc_sleep_duration();
 		sleep_time = lv_ps_get_sleep_duration();
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 		sleep_time_cal = cal_get_time_us(); /*record current us*/
+#else
+		sleep_time_cal = rtc_reg_get_time_us(); /*record current us*/
+#endif
 	}
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	curr_time = cal_get_time_us();
+#else
+	curr_time = rtc_reg_get_time_us();
+#endif
 
 	if(sleep_time > 32*(curr_time - sleep_time_cal)/1000)
 	{
@@ -1308,11 +1461,19 @@ UINT32 lv_ps_calc_rosc_period( UINT32 sleep_tick)
 {
     UINT32 sleep_time;
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     if (cal_get_time_us() > (lv_ps_target_time - MCU_SLEEP_DURATION_MIN*1000)) {
+#else
+    if (rtc_reg_get_time_us() > (lv_ps_target_time - MCU_SLEEP_DURATION_MIN*1000)) {
+#endif
         return 0;
     }
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     lv_ps_current_sleep_duration = 32 * (lv_ps_target_time -cal_get_time_us())/1000;
+#else
+    lv_ps_current_sleep_duration = 32 * (lv_ps_target_time -rtc_reg_get_time_us())/1000;
+#endif
     sleep_time = lv_ps_get_sleep_duration();
 
     if(sleep_time < MCU_SLEEP_DURATION_MIN * 32)
@@ -1419,7 +1580,11 @@ void lv_ps_element_check_pass(void)
     GLOBAL_INT_DISABLE();
     if (!list_empty(list)) {
         LV_PS_ELEMENT_ENV *node = (LV_PS_ELEMENT_ENV *)list->next;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
         int32_t diff = (int32_t)(node->lv_target_time - cal_get_time_us());
+#else
+        int32_t diff = (int32_t)(node->lv_target_time - rtc_reg_get_time_us());
+#endif
 
         if ((node->lv_type == LV_TYPE_BT && diff < 5000) || (node->lv_type == LV_TYPE_WIFI && diff < 0)) {
             node = (LV_PS_ELEMENT_ENV *)lv_ps_pop_element();
@@ -1465,6 +1630,17 @@ void lv_ps_element_bt_del(void)
     GLOBAL_INT_RESTORE();
 }
 
+#if (CFG_LOW_VOLTAGE_PS_COEXIST == 1)
+void lv_ps_mode_set_en(bool enable)
+{
+	lv_ps_mode_enabled = !!enable;
+}
+
+bool lv_ps_mode_get_en(void)
+{
+	return lv_ps_mode_enabled;
+}
+#endif
 
 // eof
 

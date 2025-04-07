@@ -2,7 +2,7 @@
 #include "arm_arch.h"
 #include "diskio.h"
 
-#if CFG_USE_SDCARD_HOST
+#if 0//CFG_USE_SDCARD_HOST
 #include "sdio_driver.h"
 #include "sdcard.h"
 #include "sdcard_pub.h"

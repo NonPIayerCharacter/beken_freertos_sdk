@@ -21,6 +21,8 @@ extern void app_demo_softap_exit(void);
 extern void app_demo_p2p_start(char *oob_ssid, char *connect_key);
 extern void app_demo_p2p_exit(void);
 
+extern void tvideo_set_sensor(UINT32 ppi, UINT32 fps);
+
 void video_transfer_usage(void)
 {
     os_printf("Usage: video_transfer [-s|-a ssid key]\n");
@@ -39,6 +41,30 @@ void video_transfer_usage(void)
     return;
 }
 
+static void video_sensor_config(char *ppi, char *fps)
+{
+    UINT32 v_ppi = 0;
+    UINT32 v_fps = 0;
+    if (os_strcmp(ppi, "1280X720") == 0)
+    {
+        v_ppi = 3;
+    }
+    else
+    {
+        v_ppi = 1;  // 640X480
+    }
+
+    if (os_strcmp(fps, "30") == 0)
+    {
+        v_fps = 3;
+    }
+    else
+    {
+        v_fps = 2;  // 20fps
+    }
+    tvideo_set_sensor(v_ppi, v_fps);
+}
+
 static int video_transfer(int argc, char **argv)
 {
     char *oob_ssid = NULL, *tmp_oob_ssid = "beken p2p";
@@ -55,7 +81,12 @@ static int video_transfer(int argc, char **argv)
     }
     else if (os_strcmp(argv[1], "-stop") == 0)
     {
-        os_printf("not implement!\n");
+        app_demo_softap_exit();
+        app_demo_sta_exit();
+        app_demo_p2p_exit();
+        video_transfer_mode = 0;
+
+        return 1;
     }
     else if (os_strcmp(argv[1], "-a") == 0)
     {
@@ -68,10 +99,21 @@ static int video_transfer(int argc, char **argv)
         if ((video_transfer_mode & VIDE_MODE_SOFTAP) == 0)
         {
             oob_ssid = argv[2];
+
+            if (strlen(oob_ssid) == 0)
+            {
+                os_printf("invalid ssid!\n");
+                goto __usage;
+            }
+
             if (argc >= 4)
             {
                 /* video_transfer -s ssid key [options] */
                 connect_key = argv[3];
+                if (argc >= 6)
+                {
+                    video_sensor_config(argv[4], argv[5]);
+                }
             }
 
             app_demo_sta_exit();
@@ -106,10 +148,14 @@ static int video_transfer(int argc, char **argv)
             {
                 /* video_transfer -s ssid key [options] */
                 connect_key = argv[3];
+                if (argc >= 6)
+                {
+                    video_sensor_config(argv[4], argv[5]);
+                }
             }
 
-            app_demo_softap_exit();
-            app_demo_p2p_exit();
+            //app_demo_softap_exit();
+            //app_demo_p2p_exit();
             video_transfer_mode = 0;
 
             app_demo_sta_start(oob_ssid, connect_key);
@@ -142,6 +188,10 @@ static int video_transfer(int argc, char **argv)
             {
                 /* video_transfer -s ssid key [options] */
                 connect_key = argv[3];
+                if (argc >= 6)
+                {
+                    video_sensor_config(argv[4], argv[5]);
+                }
             }
 
             app_demo_softap_exit();

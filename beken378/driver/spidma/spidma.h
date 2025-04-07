@@ -9,7 +9,11 @@
 #define SPI_DMA_WPRT                null_prf
 #endif
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #define SPI_DMA_BASE                    (0x00808000)
+#else
+#define SPI_DMA_BASE                    (0x00A01000)
+#endif
 
 #define SPI_DMA_REG0                    (SPI_DMA_BASE + 0x00*4)
 #define SPIDMA_REG0_SPI_EN                (1 << 0)
@@ -94,7 +98,7 @@
 
 #if CFG_USE_HSLAVE_SPI
 static void spidma_isr(void);
-static void spidma_rx_callback(UINT16 used_data_len);
+// static void spidma_rx_callback(UINT16 used_data_len);
 static UINT32 spidma_open(UINT32 op_flag);
 static UINT32 spidma_close(void);
 static UINT32 spidma_ctrl(UINT32 cmd, void *param);

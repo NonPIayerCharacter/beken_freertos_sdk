@@ -4,8 +4,7 @@
 
 /** @brief Enter a critical session, all interrupts are disabled
 *
- *  @param
- *      - void
+ *  @param void
  *
  *  @return  
  *      - void
@@ -14,8 +13,7 @@ void rtos_enter_critical( void);
 
 /** @brief Exit a critical session, all interrupts are enabled
  *
- *  @param
- *      - void
+ *  @param void
  *
  *  @return  
  *      - void
@@ -25,8 +23,7 @@ void rtos_exit_critical( void);
 
 /** @brief disable os scheduling
 *
- *  @param
- *      - void
+ *  @param void
  *
  *  @return  
  *      - void
@@ -36,8 +33,7 @@ void rtos_lock_scheduling( void );
 
 /** @brief enable os scheduling
  *
- *  @param
- *      - void
+ *  @param void
  *
  *  @return  
  *      - void
@@ -49,8 +45,9 @@ void rtos_unlock_scheduling( void );
   *
   * @param   time_ptr     : the pointer of time value in milliseconds
   *
-  * @return  kNoErr        : on success.
-  * @return  kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus beken_time_get_time(beken_time_t* time_ptr);
 
@@ -91,8 +88,9 @@ OSStatus beken_time_get_time(beken_time_t* time_ptr);
   * @param stack_size : stack size for this thread
   * @param arg        : argument which will be passed to thread function (can be null)
   *
-  * @return    kNoErr          : on success.
-  * @return    kGeneralErr     : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_create_thread( beken_thread_t* thread, uint8_t priority, const char* name, beken_thread_function_t function, uint32_t stack_size, beken_thread_arg_t arg);
 
@@ -102,8 +100,9 @@ OSStatus rtos_create_thread( beken_thread_t* thread, uint8_t priority, const cha
   *
   * @param   thread     : the handle of the thread to delete, NULL is the current thread
   *
-  * @return  kNoErr        : on success.
-  * @return  kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_delete_thread( beken_thread_t* thread);
 
@@ -113,8 +112,9 @@ OSStatus rtos_delete_thread( beken_thread_t* thread);
   *
   * @param   thread     : the handle of the thread
   *
-  * @return  kNoErr        : on success.
-  * @return  kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_thread_set_priority(beken_thread_t *thread, int priority);
 
@@ -123,8 +123,9 @@ OSStatus rtos_thread_set_priority(beken_thread_t *thread, int priority);
   *
   * @param    thread     : the handle of the thread to suspend, NULL is the current thread
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 void rtos_suspend_thread(beken_thread_t* thread);
 
@@ -133,8 +134,9 @@ void rtos_suspend_thread(beken_thread_t* thread);
   *
   * @param    thread     : the handle of the thread to resume, NULL is the current thread
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 void rtos_resume_thread(beken_thread_t *thread);
 
@@ -147,8 +149,9 @@ void rtos_resume_thread(beken_thread_t *thread);
   *
   * @param    thread : the handle of the other thread which will terminate
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_thread_join( beken_thread_t* thread);
 
@@ -161,8 +164,9 @@ OSStatus rtos_thread_join( beken_thread_t* thread);
   *
   * @param    thread : the handle of the other thread which will be woken
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_thread_force_awake( beken_thread_t* thread);
 
@@ -174,8 +178,9 @@ OSStatus rtos_thread_force_awake( beken_thread_t* thread);
   * @param    thread : the handle of the other thread against which the current thread
   *                    will be compared
   *
-  * @return   true   : specified thread is the current thread
-  * @return   false  : specified thread is not currently running
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 BOOL rtos_is_current_thread( beken_thread_t* thread);
 
@@ -209,7 +214,9 @@ void rtos_thread_msleep(uint32_t milliseconds);
  *
  * @param     num_ms : A time interval (Unit: millisecond)
  *
- * @return    kNoErr.
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus rtos_delay_milliseconds( uint32_t num_ms);
 
@@ -219,7 +226,9 @@ OSStatus rtos_delay_milliseconds( uint32_t num_ms);
   * @param    buffer, point to buffer to store thread status
   * @param    length, length of the buffer
   *
-  * @return   none
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_print_thread_status( char* buffer, int length);
 
@@ -239,8 +248,9 @@ OSStatus rtos_print_thread_status( char* buffer, int length);
   * @param    semaphore : a pointer to the semaphore handle to be initialised
   * @param    maxCount  : the max count number of this semaphore
   *
-  * @return   kNoErr        : on success.
-  *           kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount);
 
@@ -251,8 +261,9 @@ OSStatus rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount);
   * @param    maxCount  : the max count number of this semaphore
   * @param    init_count  : the init count number of this semaphore
   *
-  * @return   kNoErr        : on success.
-  *           kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_init_semaphore_adv( beken_semaphore_t* semaphore, int maxCount, int init_count);
 
@@ -261,8 +272,9 @@ OSStatus rtos_init_semaphore_adv( beken_semaphore_t* semaphore, int maxCount, in
   *
   * @param    semaphore : a pointer to the semaphore handle to be set
   *
-  * @return   kNoErr        : on success.
-  *           kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_set_semaphore( beken_semaphore_t* semaphore);
 
@@ -276,8 +288,9 @@ OSStatus rtos_set_semaphore( beken_semaphore_t* semaphore);
   * @param    semaphore : a pointer to the semaphore handle
   * @param    timeout_ms: the number of milliseconds to wait before returning
   *
-  * @return   kNoErr        : on success.
-              kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_get_semaphore( beken_semaphore_t* semaphore, uint32_t timeout_ms);
 
@@ -299,8 +312,9 @@ int rtos_get_sema_count( beken_semaphore_t* semaphore);
   *
   * @param    semaphore : a pointer to the semaphore handle
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_deinit_semaphore( beken_semaphore_t* semaphore);
 
@@ -323,8 +337,9 @@ OSStatus rtos_deinit_semaphore( beken_semaphore_t* semaphore);
   *
   * @param    mutex : a pointer to the mutex handle to be initialised
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_init_mutex( beken_mutex_t* mutex);
 
@@ -337,8 +352,9 @@ OSStatus rtos_init_mutex( beken_mutex_t* mutex);
   *
   * @param    mutex : a pointer to the mutex handle to be locked
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_lock_mutex( beken_mutex_t* mutex);
 
@@ -352,8 +368,9 @@ OSStatus rtos_lock_mutex( beken_mutex_t* mutex);
   *
   * @param    mutex : a pointer to the mutex handle to be locked
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_trylock_mutex( beken_mutex_t* mutex);
 
@@ -365,8 +382,9 @@ OSStatus rtos_trylock_mutex( beken_mutex_t* mutex);
   *
   * @param    mutex : a pointer to the mutex handle to be unlocked
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_unlock_mutex( beken_mutex_t* mutex);
 
@@ -379,8 +397,9 @@ OSStatus rtos_unlock_mutex( beken_mutex_t* mutex);
   *
   * @param    mutex : a pointer to the mutex handle
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_deinit_mutex( beken_mutex_t* mutex);
 
@@ -402,8 +421,9 @@ OSStatus rtos_deinit_mutex( beken_mutex_t* mutex);
   *
   * @param    mutex : a pointer to the mutex handle to be initialised
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_init_recursive_mutex(beken_mutex_t *mutex);
 
@@ -418,8 +438,9 @@ OSStatus rtos_init_recursive_mutex(beken_mutex_t *mutex);
   * @param    mutex : a pointer to the mutex handle to be locked
   *         - timeout: timeout for wait mutex
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_lock_recursive_mutex(beken_mutex_t *mutex, uint32_t timeout);
 
@@ -434,8 +455,9 @@ OSStatus rtos_lock_recursive_mutex(beken_mutex_t *mutex, uint32_t timeout);
   *
   * @param    mutex : a pointer to the mutex handle to be unlocked
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_unlock_recursive_mutex(beken_mutex_t *mutex);
 
@@ -457,8 +479,9 @@ OSStatus rtos_unlock_recursive_mutex(beken_mutex_t *mutex);
   * @param    message_size : size in bytes of objects that will be held in the queue
   * @param    number_of_messages : depth of the queue - i.e. max number of objects in the queue
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_init_queue( beken_queue_t* queue, const char* name, uint32_t message_size, uint32_t number_of_messages);
 
@@ -474,8 +497,9 @@ OSStatus rtos_init_queue( beken_queue_t* queue, const char* name, uint32_t messa
   *                  the size specified in @ref rtos_init_queue
   * @param    timeout_ms: the number of milliseconds to wait before returning
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error or timeout occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_push_to_queue( beken_queue_t* queue, void* message, uint32_t timeout_ms);
 
@@ -488,8 +512,9 @@ OSStatus rtos_push_to_queue( beken_queue_t* queue, void* message, uint32_t timeo
   *                  the size specified in @ref rtos_init_queue
   * @param    timeout_ms: the number of milliseconds to wait before returning
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error or timeout occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_push_to_queue_front(beken_queue_t* queue, void* message, uint32_t timeout_ms);
 
@@ -504,8 +529,9 @@ OSStatus rtos_push_to_queue_front(beken_queue_t* queue, void* message, uint32_t 
   *                     corruption will result
   * @param    timeout_ms: the number of milliseconds to wait before returning
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error or timeout occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_pop_from_queue( beken_queue_t* queue, void* message, uint32_t timeout_ms);
 
@@ -517,8 +543,9 @@ OSStatus rtos_pop_from_queue( beken_queue_t* queue, void* message, uint32_t time
   *
   * @param    queue : a pointer to the queue handle
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_deinit_queue( beken_queue_t* queue);
 
@@ -532,8 +559,9 @@ OSStatus rtos_deinit_queue( beken_queue_t* queue);
   *
   * @param    queue : a pointer to the queue handle
   *
-  * @return   true  : queue is empty.
-  * @return   false : queue is not empty.
+  * @return   
+  *     - true  : queue is empty.
+  *     - false : queue is not empty.
   */
 BOOL rtos_is_queue_empty( beken_queue_t* queue);
 
@@ -547,8 +575,9 @@ BOOL rtos_is_queue_empty( beken_queue_t* queue);
   *
   * @param    queue : a pointer to the queue handle
   *
-  * @return   true  : queue is empty.
-  * @return   false : queue is not empty.
+  * @return   
+  *     - true  : queue is empty.
+  *     - false : queue is not empty.
   */
 BOOL rtos_is_queue_full( beken_queue_t* queue);
 
@@ -596,8 +625,9 @@ uint64_t rtos_get_time_us( void );
   * @param     larg      : an argument that will be passed to the callback function
   * @param     rarg      : an argument that will be passed to the callback function
   *
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer,
 									uint32_t time_ms,
@@ -613,8 +643,9 @@ OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer,
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_deinit_oneshot_timer( beken2_timer_t* timer);
 
@@ -625,8 +656,9 @@ OSStatus rtos_deinit_oneshot_timer( beken2_timer_t* timer);
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_deinit_oneshot_timer_block( beken2_timer_t* timer);
 
@@ -637,8 +669,9 @@ OSStatus rtos_deinit_oneshot_timer_block( beken2_timer_t* timer);
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_stop_oneshot_timer( beken2_timer_t* timer);
 
@@ -648,8 +681,9 @@ OSStatus rtos_stop_oneshot_timer( beken2_timer_t* timer);
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 BOOL rtos_is_oneshot_timer_running( beken2_timer_t* timer);
 
@@ -659,8 +693,9 @@ BOOL rtos_is_oneshot_timer_running( beken2_timer_t* timer);
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_start_oneshot_timer( beken2_timer_t* timer);
 
@@ -670,8 +705,9 @@ OSStatus rtos_start_oneshot_timer( beken2_timer_t* timer);
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 BOOL rtos_is_oneshot_timer_init( beken2_timer_t* timer);
 
@@ -681,8 +717,9 @@ BOOL rtos_is_oneshot_timer_init( beken2_timer_t* timer);
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_oneshot_reload_timer( beken2_timer_t* timer);
 
@@ -692,8 +729,9 @@ OSStatus rtos_oneshot_reload_timer( beken2_timer_t* timer);
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_change_period_1( beken2_timer_t* timer, uint32_t time_ms);
 
@@ -709,8 +747,9 @@ OSStatus rtos_change_period_1( beken2_timer_t* timer, uint32_t time_ms);
   *                       timer expires
   * @param     arg      : an argument that will be passed to the callback function
   *
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_t function, void* arg);
 
@@ -732,8 +771,9 @@ OSStatus rtos_start_timer( beken_timer_t* timer);
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_change_period( beken_timer_t* timer, uint32_t time_ms);
 
@@ -743,8 +783,9 @@ OSStatus rtos_change_period( beken_timer_t* timer, uint32_t time_ms);
   *
   * @param    timer    : a pointer to the timer handle to stop
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_stop_timer( beken_timer_t* timer);
 
@@ -756,8 +797,9 @@ OSStatus rtos_stop_timer( beken_timer_t* timer);
   *
   * @param    timer    : a pointer to the timer handle to reload
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_reload_timer( beken_timer_t* timer);
 
@@ -768,8 +810,9 @@ OSStatus rtos_reload_timer( beken_timer_t* timer);
   *
   * @param    timer : a pointer to the RTOS timer handle
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_deinit_timer( beken_timer_t* timer);
 
@@ -780,8 +823,9 @@ OSStatus rtos_deinit_timer( beken_timer_t* timer);
   *
   * @param    timer : a pointer to the RTOS timer handle
   *
-  * @return   kNoErr        : on success.
-  * @return   kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 OSStatus rtos_deinit_timer_block(beken_timer_t *timer);
 
@@ -790,8 +834,9 @@ OSStatus rtos_deinit_timer_block(beken_timer_t *timer);
   *
   * @param    timer : a pointer to the RTOS timer handle
   *
-  * @return   true        : if running.
-  * @return   false       : if not running
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 BOOL rtos_is_timer_init( beken_timer_t* timer);
 
@@ -801,8 +846,9 @@ BOOL rtos_is_timer_init( beken_timer_t* timer);
   *
   *
   * @param     timer    : a pointer to the timer handle to be initialised
-  * @return    kNoErr        : on success.
-  * @return    kGeneralErr   : if an error occurred
+  * @return    
+  *       - kNoErr        : on success.
+  *       - kGeneralErr   : if an error occurred with any step
   */
 BOOL rtos_is_timer_running( beken_timer_t* timer);
 

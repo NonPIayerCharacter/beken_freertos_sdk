@@ -76,27 +76,27 @@ enum sm_msg_tag
     SM_CONNECT_CFM,
     /// Indicates that the SM associated to the AP
     SM_CONNECT_IND,
-	/// Set operation state req
-	SM_SET_OPER_STATE_REQ,
-	/// Confirmation of Set operation
-	SM_SET_OPER_STATE_CFM,
-	/// Request to authentication with an AP
-	SM_AUTH_REQ,			// 7
-	/// Confirmation of authentication
-	SM_AUTH_CFM,
-	/// Indicates the authentication status
-	SM_AUTH_IND,
-    SM_AUTH_TIMEOUT_IND,	// 10
-	/// Request to assocation with an AP
-	SM_ASSOCIATE_REQ,		// 11
-	/// Confirmation of assocation
-	SM_ASSOCIATE_CFM,
-	/// Indicates the assocation status
-	SM_ASSOCIATE_IND,
+    /// Set operation state req
+    SM_SET_OPER_STATE_REQ,
+    /// Confirmation of Set operation
+    SM_SET_OPER_STATE_CFM,
+    /// Request to authentication with an AP
+    SM_AUTH_REQ,            // 7
+    /// Confirmation of authentication
+    SM_AUTH_CFM,
+    /// Indicates the authentication status
+    SM_AUTH_IND,
+    SM_AUTH_TIMEOUT_IND,    // 10
+    /// Request to assocation with an AP
+    SM_ASSOCIATE_REQ,        // 11
+    /// Confirmation of assocation
+    SM_ASSOCIATE_CFM,
+    /// Indicates the assocation status
+    SM_ASSOCIATE_IND,
     /// Request to disconnect
-    SM_DISCONNECT_REQ,		// 14
+    SM_DISCONNECT_REQ,        // 14
     /// Confirmation of disconnection
-    SM_DISCONNECT_CFM,		// 15
+    SM_DISCONNECT_CFM,        // 15
     /// Indicates that the SM disassociated the AP
     SM_DISCONNECT_IND,
     /// Request to Set power mode in SM
@@ -106,36 +106,38 @@ enum sm_msg_tag
     /// Syncloss Indication
     SM_SYNCLOST_IND,
     /// Timeout message for procedures requiring a response from peer
-    SM_RSP_TIMEOUT_IND,		// 20
+    SM_RSP_TIMEOUT_IND,        // 20
     /// Roaming timer  (start with 10 sec)
     SM_ROAMING_TIMER_IND,
-	/// Request to get bss infomation
-	SM_GET_BSS_INFO_REQ,
-	/// Confirmation of get bss information
-	SM_GET_BSS_INFO_CFM,
-	// Indicates start connection
-	SM_CONNCTION_START_IND,
-	// Indicats that the beacon is lost
-	SM_BEACON_LOSE_IND,
-	// Indicate authentication failure
-	SM_AUTHEN_FAIL_IND,
-	// Indicates association failure
-	SM_ASSOC_FAIL_INID,
+    /// Request to get bss infomation
+    SM_GET_BSS_INFO_REQ,
+    /// Confirmation of get bss information
+    SM_GET_BSS_INFO_CFM,
+    // Indicates start connection
+    SM_CONNCTION_START_IND,
+    // Indicats that the beacon is lost
+    SM_BEACON_LOSE_IND,
+    // Indicate authentication failure
+    SM_AUTHEN_FAIL_IND,
+    // Indicates association failure
+    SM_ASSOC_FAIL_INID,
     /// Indicates that the SM associated the AP
     SM_ASSOC_IND,
     /// Indicates that the SM associated the AP
     SM_DISASSOC_IND,
     /// Indicates that the SM associated the AP
-    SM_ASSOC_FAILED_IND,
+    SM_DEAUTHEN_IND,
     /// Request to start external authentication
     SM_EXTERNAL_AUTH_REQUIRED_IND,
     /// Response to external authentication request
     SM_EXTERNAL_AUTH_REQUIRED_RSP,
+    /// Timeout message for send auth
+    SM_SEND_AUTH_TIMEOUT_IND,
 };
 
 struct sm_fail_stat
 {
-	uint16_t status;
+    uint16_t status;
 };
 
 struct sm_get_bss_info_req
@@ -188,8 +190,8 @@ struct sm_auth_indication
     /// Index of the VIF for which the association process is complete
     uint8_t vif_idx;
 
-	uint16_t auth_transaction;
-	uint16_t auth_type;
+    uint16_t auth_transaction;
+    uint16_t auth_type;
 
     /// Length of the Auth
     uint16_t ie_len;
@@ -263,8 +265,11 @@ struct sm_connect_req
     uint32_t ie_buf[64];
     /// bcn_ie_len
     uint16_t bcn_len;
+    /// bcn rssi
     int8_t rssi;
+    /// AP cap info
     uint16_t cap_info;
+    // AP beacon period
     uint16_t beacon_period;
     /// beacon ie
     uint32_t bcn_buf[0];
@@ -285,16 +290,16 @@ struct sm_auth_req
     /// Buffer containing the additional information elements to be put in the
     /// authentication request
     uint8_t ie[128];
-	uint16_t ie_len;
+    uint16_t ie_len;
 
-	/// SAE data
-	uint16_t sae_data_len;
-	uint32_t sae_data[0];
+    /// SAE data
+    uint16_t sae_data_len;
+    uint32_t sae_data[0];
 };
 
 struct sm_set_oper_state_req {
     uint8_t vif_idx;
-	int state;
+    int state;
 };
 
 struct sm_set_oper_state_cfm {
@@ -330,8 +335,8 @@ struct sm_assoc_req
     /// association request
     uint32_t ie_buf[64];
 
-	uint16_t bcn_len;
-	uint32_t bcn_buf[0];
+    uint16_t bcn_len;
+    uint32_t bcn_buf[0];
 };
 
 /// Structure containing the parameters of the @ref SM_CONNECT_CFM message.

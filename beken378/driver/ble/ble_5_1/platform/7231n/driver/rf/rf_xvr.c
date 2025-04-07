@@ -578,6 +578,7 @@ void rf_init(struct rwip_rf_api *api)
 	ble_radiotxrxtim3_set(0x00000020);
 	#endif
 	//uart_printf("BLE_RADIOTXRXTIM3 addr:0x%08x,val:0x%08x\r\n",BLE_RADIOTXRXTIM3_ADDR,ble_radiotxrxtim3_get());
+	bk_ble_addtion_reg0_set(0x00000007);
 
 #if (BLE_CON_CTE_REQ | BLE_CONLESS_CTE_RX)
 	// Init the DF CNTL

@@ -5,7 +5,7 @@
 #include "icu_pub.h"
 #include "sys_config.h"
 
-#if(CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if(CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #include "spi_bk7231n.h"
 #include "spi_pub.h"
 #include "gpio_pub.h"
@@ -594,7 +594,7 @@ void spi_dma_tx_init(struct spi_message *spi_msg)
 		UINT32 param = 1;
 		sddev_control(SPI_DEV_NAME, CMD_SPI_TXFINISH_EN, (void *)&param);
 	} else {
-		init_cfg.fin_handler = spi_dma_tx_finish_handler;
+		init_cfg.fin_handler = (DMA_ISR_FUNC)spi_dma_tx_finish_handler;
 
 		//disable tx finish int 
 		UINT32 param = 0;
@@ -642,8 +642,8 @@ void spi_dma_rx_init(struct spi_message *spi_msg)
 	init_cfg.u.type5.dst_loop_start_addr = spi_msg->recv_buf;
 	init_cfg.u.type5.dst_loop_end_addr = spi_msg->recv_buf + spi_msg->recv_len;
 
-	init_cfg.half_fin_handler = spi_dma_rx_half_handler;
-	init_cfg.fin_handler = spi_dma_rx_finish_handler;
+	init_cfg.half_fin_handler = (DMA_ISR_FUNC)spi_dma_rx_half_handler;
+	init_cfg.fin_handler = (DMA_ISR_FUNC)spi_dma_rx_finish_handler;
 
 	init_cfg.src_module = GDMA_X_SRC_GSPI_RX_REQ;
 	init_cfg.dst_module = GDMA_X_DST_DTCM_WR_REQ;

@@ -68,8 +68,9 @@
                             in this memory with random numbers after executed
  * @param inByteCount     : Length of the memory buffer (bytes)
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkRandomNumberRead( void *inBuffer, int inByteCount );
 

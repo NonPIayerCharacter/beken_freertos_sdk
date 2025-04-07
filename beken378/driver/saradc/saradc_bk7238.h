@@ -1,7 +1,7 @@
 #ifndef _SARADC_BK7238_H_
 #define _SARADC_BK7238_H_
 
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define SARADC_BASE                     (0x00802C00)
 #define SARADC_ADC_CONFIG0              (SARADC_BASE + 0 * 4)
 #define SARADC_ADC_START_SADC           (0x01UL << 0) //start

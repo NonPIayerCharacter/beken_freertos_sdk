@@ -1,7 +1,7 @@
 #ifndef __REG_EM_BLE_FT_H_
 #define __REG_EM_BLE_FT_H_
 
-extern uint8_t ex_mem[];
+extern uint8_t *ex_mem;
 
 #define REG_EM_BLE_FT_SIZE 40
 

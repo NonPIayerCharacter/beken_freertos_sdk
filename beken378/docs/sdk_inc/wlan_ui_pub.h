@@ -20,7 +20,7 @@
   *     6. This API doesn't validate the per-country rules, it's up to the user to fill in all fields according to
   *               local regulations.
   *
-  * @param     country   the configured country info
+  * @param     country:   the configured country info
   *
   * @return
   *    - kNoErr: succeed
@@ -32,7 +32,7 @@ OSStatus bk_wlan_set_country(const wifi_country_t *country);
 /**
   * @brief     get the current country info
   *
-  * @param     country  country info
+  * @param     country:  country info
   *
   * @return
   *    - kNoErr: succeed
@@ -103,8 +103,7 @@ OSStatus bk_wlan_start(network_InitTypeDef_st* inNetworkInitPara);
 /** @brief  disconect and stop WiFi in sta/ap mode
  *
  *
- *  @param
- *      - mode: Specifies wlan interface.
+ *  @param   mode: Specifies wlan interface.
  *             @arg Soft_AP: soft-ap mode
  *             @arg Station: sta mode
  *
@@ -153,9 +152,8 @@ OSStatus bk_wlan_start_sta_adv(network_InitTypeDef_adv_st* inNetworkInitParaAdv)
 
 /** @brief  Read current IP status on a network interface.
  *
- *  @param
- *      - outNetpara: Point to the buffer to store the IP address.
- *      - inInterface: Specifies wlan interface.
+ *  @param     outNetpara: Point to the buffer to store the IP address.
+ *  @param     inInterface: Specifies wlan interface.
  *             @arg Soft_AP: The soft AP that established by bk_wlan_start()
  *             @arg Station: The interface that connected to an access point
  *
@@ -178,8 +176,10 @@ OSStatus bk_wlan_get_link_status(LinkStatusTypeDef *outStatus);
 
 /**
  * @brief Get the information of connected stations
- * @param stas Pointer to the stations information
- * @return 0 on success, -1 on failure
+ * @param stas: Pointer to the stations information
+ * @return 
+ *    - 0: on success, 
+ *    - -1: on failure
  */
 int wlan_ap_sta_info(wlan_ap_stas_t *stas);
 
@@ -188,8 +188,7 @@ int wlan_ap_sta_info(wlan_ap_stas_t *stas);
  *  @param  ap_info: Point to the buffer to AP info.
  *
  *  @return
- *      - kNoErr        : on success.
- *      - kGeneralErr   : if an error occurred
+ *      - void
  */
 void bk_wlan_ap_para_info_get(network_InitTypeDef_ap_st *ap_info);
 
@@ -199,8 +198,8 @@ void bk_wlan_ap_para_info_get(network_InitTypeDef_ap_st *ap_info);
  *  @param  void
  *
  *  @return
- *      - 0      : AP is working.
- *      - others : AP is not started.
+ *      - kNoErr        : on success.
+ *      - kGeneralErr   : if an error occurred
  */
 OSStatus bk_wlan_ap_is_up(void);
 
@@ -209,14 +208,14 @@ OSStatus bk_wlan_ap_is_up(void);
  *  @param  void
  *
  *  @return
- *      - 0      : AP is working.
- *      - others : AP is not started.
+ *      - kNoErr        : on success.
+ *      - kGeneralErr   : if an error occurred
  */
 OSStatus bk_wlan_sta_is_connected(void);
 
 /** @brief  in soft-ap mode,set the channel for soft-ap
  *
- *  @param  channel the channel for soft-ap
+ *  @param  channel: the channel for soft-ap
  *
  *  @return
  *      - void
@@ -227,8 +226,7 @@ void bk_wlan_ap_set_default_channel(uint8_t channel);
 /**
  * @brief     Register wifi scan event notification callback
  *
- * @param
- *    - ind_cb: scan done event callback
+ * @param   ind_cb: scan done event callback
  *
  * @attention 
  *  1. you must regist it before bk_wlan_start_scan, otherwise you cant get scan done event
@@ -242,14 +240,14 @@ void bk_wlan_scan_ap_reg_cb(FUNC_2PARAM_PTR ind_cb);
 /**
  * @brief     ger wifi scan results
  *
- * @param
- *    - results: scan results
+ * @param  results: scan results
  *
  * @attention 
  *  1. you must use it after  scan done event, otherwise you will get nothing
  *
- * @return
- *    - void
+ * @return 
+ *    - 0: on success, 
+ *    - -1: on failure
  */
 int wlan_sta_scan_result(ScanResult_adv *results);
 
@@ -304,8 +302,7 @@ int wlan_sta_scan_result(ScanResult_adv *results);
  * bk_wlan_scan_ap_reg_cb(scan_cb);
  * bk_wlan_start_scan();
  * @endcode
- *  @param
- *      - void
+ *  @param  void
  *
  *  @return  
  *      - void
@@ -313,9 +310,9 @@ int wlan_sta_scan_result(ScanResult_adv *results);
 void bk_wlan_start_scan(void);
 
 /** @brief  Start a wlan scanning ,which scan the target AP
- *  @param
- *      - ssid_ary Point to the ssids list you want to scan
- *      - ssid_num number of ssids 
+ *
+ *  @param      ssid_ary: Point to the ssids list you want to scan
+ *  @param      ssid_num: number of ssids 
  *  @return  
  *      - void
  */
@@ -323,8 +320,7 @@ void bk_wlan_start_assign_scan(UINT8 **ssid_ary, UINT8 ssid_num);
 
 /** @brief  set filter flag in monitor mode
  *
- *  @param
-        - filter  
+ *  @param  filter:  
             @arg bit0:1:mulicast_brdcast is not filte
             @arg bit1:1: duplicate frame is not filte
  *  @return  
@@ -337,8 +333,7 @@ void bk_wlan_set_monitor_filter(unsigned char filter);
 /**
  * @brief     Register wifi monitor event notification callback
  *
- * @param
- *    - fn: monitor data event callback
+ * @param   fn: monitor data event callback
  *
  * @attention 
  *  1. you must regist it before bk_wlan_start_monitor, otherwise you cant get monitor frame
@@ -364,10 +359,10 @@ void bk_wlan_register_monitor_cb(monitor_cb_t fn);
  *   bk_wlan_start_monitor();
  * @endcode
  *
- *  @param
- *      - void     
- *  @return  
- *      - void
+ *  @param  void     
+ *  @return 
+ *    - 0: on success, 
+ *    - -1: on failure
  */
 int bk_wlan_start_monitor(void);
 
@@ -375,11 +370,11 @@ int bk_wlan_start_monitor(void);
 /** @brief  Stop wifi monitor mode
  *
  *
- *  @param
- *      - void
+ *  @param   void
  *
- *  @return  
- *      - void
+ * @return 
+ *    - 0: on success, 
+ *    - -1: on failure
  */
 int bk_wlan_stop_monitor(void);
 
@@ -389,7 +384,7 @@ int bk_wlan_stop_monitor(void);
  *  @attention 
  *       1. This function change the monitor channel (from 1~13).
  *       2. it can change the channel dynamically, don't need restart monitor mode.
- *  @param  channel set the monitor channel
+ *  @param  channel: set the monitor channel
  *  @return
  *      - 0      : success
  *      - others : failed.
@@ -416,9 +411,9 @@ int bk_wlan_is_monitor_mode(void);
  *     3. The frame sequence will be overwritten by WiFi driver.
  *     4. The API doesn't check the correctness of the raw frame, the
  *               caller need to guarantee the correctness of the frame.
- *  @param
- *       - buffer : the buffer of tx frame
- *       - len    : len of frame data
+ *
+ *  @param       buffer : the buffer of tx frame
+ *  @param       len    : len of frame data
  *  @return
  *      - 0      : success.
  *      - others : failed.
@@ -435,11 +430,10 @@ int bk_wlan_send_80211_raw_frame(uint8_t *buffer, int len);
  *     3. The frame sequence will be overwritten by WiFi driver.
  *     4. after tx done,will notify the result of tx 
  *
- *  @param
- *       - buffer : the buffer of tx frame
- *       - len    : len of frame data
-         - cb     : callback of tx done
-         - param  : param of tx frame,normally set NULL
+ *  @param       buffer : the buffer of tx frame
+ *  @param       len    : len of frame data
+ *  @param       cb     : callback of tx done
+ *  @param       param  : param of tx frame,normally set NULL
  *  @return
  *      - 0      : success.
  *      - others : failed.

@@ -73,8 +73,9 @@ typedef enum
  * @param frequency   : Output signal frequency in Hertz
  * @param duty_cycle  : Set pwm first level reversal time
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 
 OSStatus bk_pwm_initialize(bk_pwm_t pwm, uint32_t frequency, uint32_t duty_cycle);
@@ -85,8 +86,9 @@ OSStatus bk_pwm_initialize(bk_pwm_t pwm, uint32_t frequency, uint32_t duty_cycle
  *
  * @param pwm        : the PWM interface which should be started
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_pwm_start(bk_pwm_t pwm);
 
@@ -98,8 +100,9 @@ OSStatus bk_pwm_start(bk_pwm_t pwm);
  * @param frequency         : pwm frequency
  * @param duty_cycle        : set first level change time
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_pwm_update_param(bk_pwm_t pwm, uint32_t frequency, uint32_t duty_cycle);
 
@@ -121,8 +124,9 @@ OSStatus bk_pwm_stop(bk_pwm_t pwm);
  * @param pwm         : the PWM interface which should be initialised
  * @param cap_mode    : capture mode: 4:posedge, 5:negedge, 6:both
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_pwm_capture_initialize(bk_pwm_t pwm, uint8_t cap_mode);
 
@@ -132,8 +136,9 @@ OSStatus bk_pwm_capture_initialize(bk_pwm_t pwm, uint8_t cap_mode);
  *
  * @param pwm         : the PWM interface which should be started
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_pwm_capture_start(bk_pwm_t pwm);
 
@@ -143,8 +148,9 @@ OSStatus bk_pwm_capture_start(bk_pwm_t pwm);
  *
  * @param pwm         : the PWM interface which should be stopped
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_pwm_capture_stop(bk_pwm_t pwm);
 
@@ -154,8 +160,9 @@ OSStatus bk_pwm_capture_stop(bk_pwm_t pwm);
  *
  * @param pwm         : the PWM interface which should be get
  *
- * @return    other   : Capture value.
- * @return    0       : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 UINT32 bk_pwm_get_capvalue(bk_pwm_t pwm);
 
@@ -170,8 +177,9 @@ UINT32 bk_pwm_get_capvalue(bk_pwm_t pwm);
  * @param duty_cycle2 : Set pwm2 first level reversal time
  * @param dead_band   : Set reversal time between two pwms high level
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_pwm_cw_initialize(bk_pwm_t pwm1, bk_pwm_t pwm2,uint32_t frequency, uint32_t duty_cycle1, uint32_t duty_cycle2, uint32_t dead_band);
 
@@ -182,8 +190,9 @@ OSStatus bk_pwm_cw_initialize(bk_pwm_t pwm1, bk_pwm_t pwm2,uint32_t frequency, u
  * @param pwm1        : the PWM1 interface which should be started
  * @param pwm2        : the PWM2 interface which should be started
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_pwm_cw_start(bk_pwm_t pwm1, bk_pwm_t pwm2);
 
@@ -198,8 +207,9 @@ OSStatus bk_pwm_cw_start(bk_pwm_t pwm1, bk_pwm_t pwm2);
  * @param duty_cycle2 : Set pwm2 first level reversal time
  * @param dead_band   : Set reversal time between two pwms high level
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_pwm_cw_update_param(bk_pwm_t pwm1, bk_pwm_t pwm2,uint32_t frequency, uint32_t duty_cycle1, uint32_t duty_cycle, uint32_t dead_band);
 
@@ -210,8 +220,9 @@ OSStatus bk_pwm_cw_update_param(bk_pwm_t pwm1, bk_pwm_t pwm2,uint32_t frequency,
  * @param pwm1        : the PWM1 interface which should be stopped
  * @param pwm2        : the PWM2 interface which should be stopped
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_pwm_cw_stop(bk_pwm_t pwm1, bk_pwm_t pwm2);
 

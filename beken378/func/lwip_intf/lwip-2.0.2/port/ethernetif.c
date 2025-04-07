@@ -101,7 +101,7 @@
 #endif
 
 extern int bmsg_tx_sender(struct pbuf *p, uint32_t vif_idx);
-    
+
 /* Forward declarations. */
 void ethernetif_input(int iface, struct pbuf *p);
 
@@ -113,30 +113,30 @@ void ethernetif_input(int iface, struct pbuf *p);
  *        for this ethernetif
  */
 
-const char wlan_name[][6] = 
+const char wlan_name[][6] =
 {
     "wlan0\0",
     "wlan1\0",
     "wlan2\0",
-    "wlan3\0",    
+    "wlan3\0",
 };
 static void low_level_init(struct netif *netif)
 {
     VIF_INF_PTR vif_entry = (VIF_INF_PTR)(netif->state);
     u8 *macptr = (u8*)&vif_entry->mac_addr;
-    
+
 #if LWIP_NETIF_HOSTNAME
     /* Initialize interface hostname */
     netif->hostname = (char*)&wlan_name[vif_entry->index];
-#endif /* LWIP_NETIF_HOSTNAME */    
+#endif /* LWIP_NETIF_HOSTNAME */
 
 	//wifi_get_mac_address((char *)wireless_mac, type);
-	
+
     /* set MAC hardware address length */
     ETH_INTF_PRT("enter low level!\r\n");
     ETH_INTF_PRT("mac %2x:%2x:%2x:%2x:%2x:%2x\r\n", macptr[0], macptr[1], macptr[2],
                  macptr[3], macptr[4], macptr[5]);
-    
+
     netif->hwaddr_len = ETHARP_HWADDR_LEN;
     os_memcpy(netif->hwaddr, macptr, ETHARP_HWADDR_LEN);
     /* maximum transfer unit */
@@ -176,7 +176,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 		os_printf("%s: invalid vif:%d!\r\n", __func__, vif_idx);
 		return ERR_ARG;
 	}
-	
+
 	ret = bmsg_tx_sender(p, (uint32_t)vif_idx);
 	if(0 != ret)
 	{
@@ -209,8 +209,8 @@ ethernetif_input(int iface, struct pbuf *p)
 
 	if (p->len <= SIZEOF_ETH_HDR) {
 		pbuf_free(p);
-		return; 
-	}   
+		return;
+	}
 
 	vif = rwm_mgmt_vif_idx2ptr(iface);
 	netif = rwm_mgmt_get_vif2netif((uint8_t)iface);
@@ -220,7 +220,7 @@ ethernetif_input(int iface, struct pbuf *p)
         p = NULL;
         return;
     }
-        
+
     /* points to packet payload, which starts with an Ethernet header */
     ethhdr = p->payload;
 
@@ -259,13 +259,13 @@ ethernetif_input(int iface, struct pbuf *p)
             p = NULL;
         }
         break;
-		
+
     case ETHTYPE_EAPOL:
 	 	ke_l2_packet_tx(p->payload, p->len, iface);
 		pbuf_free(p);
 		p = NULL;
         break;
-		
+
     default:
         pbuf_free(p);
         p = NULL;
@@ -384,5 +384,25 @@ err_t lwip_netif_uap_init(struct netif *netif)
 
 	return ERR_OK;
 }
+
+#if CFG_LWIP_HW_CSUM
+extern uint16_t ipchksum_get_result(uint32_t addr, uint16_t len);
+
+/*
+ * hw ip checksum verison of lwip_standard_chksum.
+ * TODO: use mutex instead of disable interrupt.
+ */
+uint16_t hw_ipcksum_standard_chksum(const void *dataptr, int len)
+{
+    GLOBAL_INT_DECLARATION();
+    u16_t csum;
+
+    GLOBAL_INT_DISABLE();
+    csum = ipchksum_get_result((uint32_t)dataptr, (uint16_t)len);
+    GLOBAL_INT_RESTORE();
+
+    return csum;
+}
+#endif
 
 // eof

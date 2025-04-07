@@ -28,6 +28,10 @@ uint8_t prev_mac_state = 0;
 extern bool rwnxl_get_status_in_doze(void);
 extern void phy_init_after_wakeup(void);
 extern void rwnxl_reset_handle(int dummy);
+extern void sctrl_mac_clock_enable(void);
+extern void sctrl_mac_clock_disable(void);
+extern void sctrl_modem_clock_enable(void);
+extern void sctrl_modem_clock_disable(void);
 
 static void force_mac_ps_recover_mac_modem(void);
 
@@ -88,6 +92,7 @@ static void force_mac_ps_disable_mac_clk(void)
 
 static void force_mac_ps_rf_mac_power_down(void)
 {
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	UINT32 reg = 0;
 
 	if (g_mac_sleep.cfg.off_mac)
@@ -98,6 +103,23 @@ static void force_mac_ps_rf_mac_power_down(void)
 
 	if ((g_mac_sleep.cfg.off_mac) || (g_mac_sleep.cfg.off_modem))
 		REG_WRITE(SCTRL_PWR_MAC_MODEM, reg);
+#else
+	UINT32 param = PWD_ALWAYS_ON_MAGIC;
+
+	/* MAC pwd*/
+	if (g_mac_sleep.cfg.off_mac)
+	{
+		sctrl_ctrl(CMD_SCTRL_MAC_POWERDOWN, &param);
+		sctrl_mac_clock_disable();
+	}
+
+	/* Modem pwd*/
+	if (g_mac_sleep.cfg.off_modem)
+	{
+		sctrl_ctrl(CMD_SCTRL_MODEM_POWERDOWN, &param);
+		sctrl_modem_clock_disable();
+	}
+#endif
 }
 
 static void force_mac_ps_set_wakeup(void)
@@ -174,6 +196,11 @@ static void force_mac_ps_set_mac_to_idle(uint32_t *mac_status)
 						nxmac_hw_fsm_reset_setf(1);
 						#endif
 						y_tmp = 0;
+						os_printf("idle rec\r\n");
+						//long time wait idle interrupt,recover!
+						hal_machw_disable_int();
+						rwnxl_reset_handle(0);
+						os_printf("idle rec over\r\n");
 					}
 					nxmac_next_state_setf(HW_IDLE);
 				}
@@ -190,7 +217,11 @@ int force_mac_ps_entry(uint32_t *mac_status, uint32_t *mac_timer_enbit)
 	GLOBAL_INT_DECLARATION();
 	GLOBAL_INT_DISABLE();
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+	g_mac_sleep.cfg.off_mac = 1;
+#else
 	g_mac_sleep.cfg.off_mac = 0;
+#endif
 	g_mac_sleep.cfg.off_modem = 1;
 	g_mac_sleep.cfg.wakeup_mcu = 0;
 	g_mac_sleep.mac_bakup = 0;
@@ -267,6 +298,7 @@ static void force_mac_ps_enable_mac_clk(void)
 
 static void force_mac_ps_rf_mac_power_up(void)
 {
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	UINT32 reg = 0;
 
 	if (g_mac_sleep.cfg.off_mac)
@@ -277,6 +309,21 @@ static void force_mac_ps_rf_mac_power_up(void)
 
 	if ((g_mac_sleep.cfg.off_mac) || (g_mac_sleep.cfg.off_modem))
 		REG_WRITE(SCTRL_PWR_MAC_MODEM, reg);
+#else
+	/* Modem pwr*/
+	if (g_mac_sleep.cfg.off_modem)
+	{
+		sctrl_modem_clock_enable();
+		sctrl_ctrl(CMD_SCTRL_MODEM_POWERUP, NULL);
+	}
+
+	/* MAC pwr*/
+	if (g_mac_sleep.cfg.off_mac)
+	{
+		sctrl_mac_clock_enable();
+		sctrl_ctrl(CMD_SCTRL_MAC_POWERUP, NULL);
+	}
+#endif
 }
 
 static void force_mac_ps_enable_mac_icu(void)
@@ -292,7 +339,9 @@ static void force_mac_ps_enable_mac_icu(void)
 			| CO_BIT(FIQ_MAC_TX_TRIGGER)
 			| CO_BIT(FIQ_MAC_GENERAL)
 			| CO_BIT(FIQ_MAC_PROT_TRIGGER));
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 	reg &= ~(CO_BIT(FIQ_MAC_WAKEUP));
+#endif
 	REG_WRITE(ICU_INTERRUPT_ENABLE, reg);
 
 	GLOBAL_INT_RESTORE();
@@ -368,7 +417,7 @@ static void force_mac_ps_recover_mac_modem(void)
 		sctrl_fix_dpll_div();
 		phy_wakeup_rf_reinit();
 		phy_wakeup_wifi_reinit();
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 		phy_wakeup_rf_reinit();
 		phy_wakeup_wifi_reinit();
 #else

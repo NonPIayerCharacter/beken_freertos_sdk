@@ -4,7 +4,7 @@
 
 source ./tools/scripts/build_include.sh
 
-PLATFORMS="bk7231n bk7231u bk7251 bk7238"
+PLATFORMS="bk7231n bk7231u bk7251 bk7238 bk7252n"
 COMMENT_STR=""
 
 if [ "$1" != "" ]; then

@@ -271,7 +271,7 @@ static UINT32 saradc_open(UINT32 op_flag)
     REG_WRITE(SARADC_ADC_CONFIG, config_value);
 
 #if (CFG_SOC_NAME == SOC_BK7231N)
-    if (8 == saradc_desc->channel)
+    if (ADC_TSSI_SENSER_CHANNEL == saradc_desc->channel)
     {
         sat_config_value = SARADC_ADC_SAT_ENABLE
             | ((0x03 & SARADC_ADC_SAT_CTRL_MASK) << SARADC_ADC_SAT_CTRL_POSI);
@@ -654,6 +654,43 @@ UINT32 saradc_check_accuracy(void)
 	value = value & SARADC_ADC_SAT_CTRL_MASK;
 #endif
 	return value;
+}
+
+UINT32 saradc_format_data(UINT32 data)
+{
+    // according  SARADC_ADC_SATURATION_CFG, format value to 0-4096
+    UINT32 value;
+    UINT32 filter, sat_ctrl;
+
+    value = REG_READ(SARADC_ADC_CONFIG);
+    filter = (value >> SARADC_ADC_FILTER_POSI) & SARADC_ADC_FILTER_MASK;
+
+    value = REG_READ(SARADC_ADC_SATURATION_CFG);
+    sat_ctrl = (value >> SARADC_ADC_SAT_CTRL_POSI) & SARADC_ADC_SAT_CTRL_MASK;
+
+    if(filter)
+        data = data /(filter + 1);
+
+    switch (sat_ctrl)
+    {
+        case 3:
+            data = data >> 1;  // 0-8192
+            break;
+        case 2:
+            data = data ;      // 0-4096
+            break;
+        case 1:
+            data = data << 1;  // 0-2048
+            break;
+        case 0:
+            data = data << 2;  // 0-1024
+            break;
+        default:
+            data = data ;
+            break;
+    }
+
+    return data;
 }
 
 static UINT32 saradc_recalibrate(void)

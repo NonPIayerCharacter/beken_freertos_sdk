@@ -115,6 +115,7 @@ failed_or_timeout:
 
 int rw_send_me_rc_set_rate(u8 sta_idx, u16 rate_cfg)
 {
+#if RC_ENABLE
 	struct me_rc_set_rate_req *req;
 
 	/* Build the ME_RC_SET_RATE_REQ message */
@@ -129,6 +130,9 @@ int rw_send_me_rc_set_rate(u8 sta_idx, u16 rate_cfg)
 
 	/* Send the ME_RC_SET_RATE_REQ message to FW */
 	return rw_msg_send(req, 0, NULL);
+#else
+    return -1;
+#endif
 }
 
 int rw_msg_send_reset(void)
@@ -697,6 +701,8 @@ int rw_msg_send_scanu_req(SCAN_PARAM_T *scan_param)
 		wpa_handler_signal((void *)SIGSCAN_START, scan_param->vif_idx);
 	}
 #endif
+
+	mhdr_set_station_stage(RW_STG_STA_SCAN);
 
 	/* Send the SCANU_START_REQ message to LMAC FW */
 	return rw_msg_send(req, SCANU_START_CFM, NULL);

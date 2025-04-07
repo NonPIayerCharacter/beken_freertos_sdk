@@ -67,8 +67,9 @@
  * @param time_ms       : time value(unit:ms)
  * @param callback      : callback
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_timer_initialize(uint8_t timer_id, uint32_t time_ms, void *callback);
 
@@ -78,8 +79,9 @@ OSStatus bk_timer_initialize(uint8_t timer_id, uint32_t time_ms, void *callback)
  *
  * @param timer_id      : the timer id
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_timer_stop(uint8_t timer_id);
 

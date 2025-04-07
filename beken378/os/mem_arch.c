@@ -63,7 +63,7 @@ void *os_malloc(size_t size)
         os_printf("malloc_risk\r\n");
     }
 
-#if (CFG_SOC_NAME == SOC_BK7221U)
+#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N))
     void *ptr = psram_malloc(size);
     if (ptr)
     {

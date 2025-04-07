@@ -261,7 +261,7 @@ static void network_datarev_thread( beken_thread_arg_t data )
                 struct sockaddr_in loc_addr;
                 socklen_t len =sizeof(loc_addr);
                 memset(&loc_addr,0,len);
-                if(getsockname(at_network_mg[linkid].handle,(struct sockaddr *)&loc_addr,&len)==0){
+                if(getsockname(at_network_mg[linkid].handle - LWIP_SOCKET_FD_SHIFT,(struct sockaddr *)&loc_addr,&len)==0){
                     at_network_mg[linkid].localport = ntohs(loc_addr.sin_port);
                 }
                 if(at_network_mg[linkid].type == NETWORK_TCP ||  at_network_mg[linkid].type == NETWORK_TLS){

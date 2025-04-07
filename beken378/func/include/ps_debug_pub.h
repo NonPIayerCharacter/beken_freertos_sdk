@@ -21,7 +21,7 @@
 #define PS_BCN_GPIO                (0x0802800 +(9*4))
 #define PS_DOWN_GPIO               (0x0802800 +(20*4))
 #define PS_PWM_GPIO                (0x0802800 +(21*4))
-#elif (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238)
+#elif (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define PS_CK_GPIO                 (0x0802800 +(14*4))
 #define PS_UP_GPIO                 (0x0802800 +(15*4))
 #define PS_RX_GPIO                 (0x0802800 +(16*4))

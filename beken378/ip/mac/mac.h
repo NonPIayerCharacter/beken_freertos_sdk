@@ -117,9 +117,9 @@ enum
 ///hostapd data type
 enum
 {
-	HOSTAPD_MGMT = 0,
-	HOSTAPD_MGMT_ROBUST,
-	HOSTAPD_DATA
+    HOSTAPD_MGMT = 0,
+    HOSTAPD_MGMT_ROBUST,
+    HOSTAPD_DATA
 };
 /**
  ****************************************************************************************
@@ -139,25 +139,28 @@ enum
      (*(((uint8_t*)(addr1_ptr)) + 5) == *(((uint8_t*)(addr2_ptr)) + 5)))
 
 #define MAC_ADDR_NULL(addr1_ptr)                                              \
-		((*(((uint8_t*)(addr1_ptr)) + 0) == 0) &&			  \
-		 (*(((uint8_t*)(addr1_ptr)) + 1) == 0) &&			  \
-		 (*(((uint8_t*)(addr1_ptr)) + 2) == 0) &&			  \
-		 (*(((uint8_t*)(addr1_ptr)) + 3) == 0) &&			  \
-		 (*(((uint8_t*)(addr1_ptr)) + 4) == 0) &&			  \
-		 (*(((uint8_t*)(addr1_ptr)) + 5) == 0))
+        ((*(((uint8_t*)(addr1_ptr)) + 0) == 0) &&              \
+         (*(((uint8_t*)(addr1_ptr)) + 1) == 0) &&              \
+         (*(((uint8_t*)(addr1_ptr)) + 2) == 0) &&              \
+         (*(((uint8_t*)(addr1_ptr)) + 3) == 0) &&              \
+         (*(((uint8_t*)(addr1_ptr)) + 4) == 0) &&              \
+         (*(((uint8_t*)(addr1_ptr)) + 5) == 0))
 
 #define MAC_ADDR_IS_BSCT(addr1_ptr)                              \
-			((*(((uint8_t*)(addr1_ptr)) + 0) == 0xFF) &&		  \
-			 (*(((uint8_t*)(addr1_ptr)) + 1) == 0xFF) &&		  \
-			 (*(((uint8_t*)(addr1_ptr)) + 2) == 0xFF) &&		  \
-			 (*(((uint8_t*)(addr1_ptr)) + 3) == 0xFF) &&		  \
-			 (*(((uint8_t*)(addr1_ptr)) + 4) == 0xFF) &&		  \
-			 (*(((uint8_t*)(addr1_ptr)) + 5) == 0xFF))
+            ((*(((uint8_t*)(addr1_ptr)) + 0) == 0xFF) &&          \
+             (*(((uint8_t*)(addr1_ptr)) + 1) == 0xFF) &&          \
+             (*(((uint8_t*)(addr1_ptr)) + 2) == 0xFF) &&          \
+             (*(((uint8_t*)(addr1_ptr)) + 3) == 0xFF) &&          \
+             (*(((uint8_t*)(addr1_ptr)) + 4) == 0xFF) &&          \
+             (*(((uint8_t*)(addr1_ptr)) + 5) == 0xFF))
 
 #define MAC_ADDR_IS_MULTI(addr1_ptr)                        \
-				((*(((uint8_t*)(addr1_ptr)) + 0) == 0x01) &&		  \
-				 (*(((uint8_t*)(addr1_ptr)) + 1) == 0x00) &&		  \
-				 (*(((uint8_t*)(addr1_ptr)) + 2) == 0x5E))
+                ((*(((uint8_t*)(addr1_ptr)) + 0) == 0x01) &&          \
+                 (*(((uint8_t*)(addr1_ptr)) + 1) == 0x00) &&          \
+                 (*(((uint8_t*)(addr1_ptr)) + 2) == 0x5E))
+
+#define MAC_ADDR_IS_MULTI_A(addr1_ptr)                        \
+                ((*(((uint8_t*)(addr1_ptr)) + 0) & 0x01) == 0x01)
 
 /**
  ****************************************************************************************
@@ -517,17 +520,17 @@ struct mac_scan_result
 
 enum
 {
-	BSS_QOS_VALID     = CO_BIT(0),
-	BSS_HT_VALID      = CO_BIT(1),
-	BSS_VHT_VALID     = CO_BIT(2),
-	BSS_COUNTRY_VALID = CO_BIT(3),
+    BSS_QOS_VALID     = CO_BIT(0),
+    BSS_HT_VALID      = CO_BIT(1),
+    BSS_VHT_VALID     = CO_BIT(2),
+    BSS_COUNTRY_VALID = CO_BIT(3),
 
-	/*
-	CO_BIT(31)
-	warning:  #66-D: enumeration value is out of "int" range
-	solution: from CO_BIT(31) to CO_BIT(30)
-	*/
-	BSS_INFO_VALID    = CO_BIT(30),
+    /*
+    CO_BIT(31)
+    warning:  #66-D: enumeration value is out of "int" range
+    solution: from CO_BIT(31) to CO_BIT(30)
+    */
+    BSS_INFO_VALID    = CO_BIT(30),
 };
 
 /// Protection Status field (Bit indexes, Masks, Offsets)
@@ -569,6 +572,8 @@ enum
     WPA_WPA2_IN_USE = CO_BIT(3),
     /// Flag indicating whether MFP is in use
     MFP_IN_USE = CO_BIT(4),
+    /// Flag indicating whether send Deauth before AUTH
+    DEAUTH_BEFORE_AUTH = CO_BIT(5),
 };
 
 /// Scan result element, parsed from beacon or probe response frames.

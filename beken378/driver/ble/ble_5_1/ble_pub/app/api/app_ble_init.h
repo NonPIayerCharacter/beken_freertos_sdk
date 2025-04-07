@@ -59,6 +59,7 @@ extern ble_err_t set_app_ble_master_conn_dev_timeout(unsigned char con_idx,unsig
 extern int appm_set_connect_dev_addr(unsigned char connidx,struct bd_addr *bdaddr,unsigned char addr_type);
 extern ble_err_t appm_create_initing(uint8_t con_idx,unsigned short con_interval,
                                                 unsigned short con_latency,unsigned short sup_to);
+extern ble_err_t appm_delete_initing(uint8_t actv_idx);
 
 #endif  ///_APP_BLE_INIT_H_
 

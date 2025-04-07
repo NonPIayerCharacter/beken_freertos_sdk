@@ -104,7 +104,8 @@ chip_index = {
     5: 'bk7231n',
     6: 'bk7236',
     7: 'bk7238',
-    8: 'bk7231m'
+    8: 'bk7252n',
+    9: 'bk7231m'
 }
 
 default_info = {
@@ -115,7 +116,9 @@ default_info = {
     'bk7251':  {'boot': 'bootloader_bk7251_uart2_v1.0.13.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7271':  {'boot': 'bootloader_bk7271_uart2_v1.0.11.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7236':  {'boot': 'bootloader_bk7236_uart2_v1.0.11.bin', 'firmware': '../../out/bk7231_bsp.bin'},
-    'bk7238':  {'boot': 'bootloader_bk7238_uart2_v1.0.14.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7238':  {'boot': 'bootloader_bk7238_uart1_v1.0.14.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7252n': {'boot': 'bootloader_bk7252n_uart1_v1.0.14.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7253': {'boot': 'bootloader_bk7253_uart2_v1.0.14.bin', 'firmware': '../../out/bk7231_bsp.bin'},
 }
 
 # parse commandline arguments
@@ -129,7 +132,7 @@ def parse_args():
     parser.add_argument('-i', '--index', type=int,
                         default=-1,
                         choices=chip_index.keys(),
-                        help="chip index: 1: bk7231, 2: bk7231u, 3: bk7251, 4: bk7271, 5: bk7231n 6:bk7236 7:bk7238 8:bk7231m")
+                        help="chip index: 1: bk7231, 2: bk7231u, 3: bk7251, 4: bk7271, 5: bk7231n, 6:bk7236, 7:bk7238, 8:bk7252n, 9:bk7231m")
     parser.add_argument('-b', '--boot',
                         help='specify boot file')
     parser.add_argument('-f', '--firmware',
@@ -166,8 +169,13 @@ else:
 out_path = "tmp.json"
 full_image_old = "all_" + out_json["section"][0]["version"] + ".bin"
 uart_image_old = "bk7231_bsp_uart_" + out_json["section"][0]["version"] + ".bin"
-full_image_new = chip_index[args.index] + "_" + out_json["section"][0]["version"] + ".bin"
-uart_image_new = chip_index[args.index] + "_bsp_uart_" + out_json["section"][0]["version"] + ".bin"
+if args.index >= 0:
+    full_image_new = chip_index[args.index] + "_" + out_json["section"][0]["version"] + ".bin"
+    uart_image_new = chip_index[args.index] + "_bsp_uart_" + out_json["section"][0]["version"] + ".bin"
+else:
+    full_image_new = chip + "_" + out_json["section"][0]["version"] + ".bin"
+    uart_image_new = chip + "_bsp_uart_" + out_json["section"][0]["version"] + ".bin"
+
 
 out_json["section"][0]["firmware"] = bootloader_str
 out_json["section"][1]["firmware"] = firmware_str

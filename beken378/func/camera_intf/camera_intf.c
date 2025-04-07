@@ -19,6 +19,8 @@
 #include "mem_pub.h"
 #include "bk_timer_pub.h"
 #include "gpio_pub.h"
+#include "rtos_pub.h"
+#include "icu_pub.h"
 
 
 #define CAMERA_RESET_GPIO_INDEX		GPIO16
@@ -31,6 +33,19 @@ extern void delay100us(INT32 num);
 #define EJPEG_DELAY_HTIMER_VAL      (2)  // 2ms
 #define USE_JTAG_FOR_DEBUG          0
 #define I2C_WIRTE_TIMEOUT_COUNT     20
+
+#ifdef CAMERA_BITRATE_LOG_PRT
+typedef struct camera_debug_log_t
+{
+    UINT32 frame_cnt;
+    UINT32 byte_size;
+} camera_debug_log_t;
+
+beken_timer_t camera_debug_timer;
+camera_debug_log_t camera_debug_log = {0};
+camera_debug_log_t camera_debug_log_cached = {0};
+#endif
+
 DJPEG_DESC_ST ejpeg_cfg;
 DD_HANDLE i2c_hdl = DD_HANDLE_UNVALID, ejpeg_hdl = DD_HANDLE_UNVALID;
 I2C_OP_ST i2c_operater;
@@ -54,6 +69,10 @@ void camera_intf_delay_timer_hdl(UINT8 param)
     int rec_len = ejpeg_cfg.node_len - left_len;
     UINT32 frame_len = 0;
     frame_len = ddev_control(ejpeg_hdl, EJPEG_CMD_GET_FRAME_LEN, NULL);
+#ifdef CAMERA_BITRATE_LOG_PRT
+    camera_debug_log.byte_size += (frame_len / 1024);
+    camera_debug_log.frame_cnt ++;
+#endif
 
     if ((ejpeg_cfg.node_full_handler != NULL) && (rec_len > 0))
     {
@@ -147,6 +166,17 @@ static void camera_intf_ejpeg_end_handler(void)
 {
     camera_intf_start_delay_timer();
 }
+
+#ifdef CAMERA_BITRATE_LOG_PRT
+static void camera_log_print()
+{
+    os_printf("jpeg fps:[%d] bitrate:[%d KB] \r\n",
+                (camera_debug_log.frame_cnt - camera_debug_log_cached.frame_cnt) / (DEBUG_TIMRT_INTERVAL / 1000),
+                (camera_debug_log.byte_size - camera_debug_log_cached.byte_size) / (DEBUG_TIMRT_INTERVAL / 1000));
+    camera_debug_log_cached.frame_cnt = camera_debug_log.frame_cnt;
+    camera_debug_log_cached.byte_size = camera_debug_log.byte_size;
+}
+#endif
 
 static void camera_intf_init_ejpeg_pixel(UINT32 ppi_type)
 {
@@ -393,12 +423,12 @@ static void camera_inf_cfg_ppi(UINT32 ppi_type)
 {
     switch (ppi_type)
     {
-    case QVGA_320_240:
-        gc2145_init(0);
-        break;
-
     case VGA_640_480:
         gc2145_init(1);
+        break;
+
+    case VGA_1280_720:
+        gc2145_init(2);
         break;
 
     default:
@@ -409,18 +439,28 @@ static void camera_inf_cfg_ppi(UINT32 ppi_type)
 
 static void camera_inf_cfg_fps(UINT32 fps_type)
 {
+    UINT32 jpeg_mclk;
     switch (fps_type)
     {
     case TYPE_10FPS:
         gc2145_fps(12);
         break;
 
-    case TYPE_15FPS:
-        gc2145_fps(15);
-        break;
-
     case TYPE_20FPS:
         gc2145_fps(20);
+        break;
+
+    case TYPE_30FPS:
+        if (CMPARAM_GET_PPI(ejpeg_cfg.sener_cfg) == VGA_1280_720)
+        {
+            jpeg_mclk = 0x2;  //32M
+            sddev_control(ICU_DEV_NAME, CMD_JPEG_MCLK_SEL, &jpeg_mclk);
+            gc2145_fps(20);
+        }
+        else
+        {
+            gc2145_fps(30);
+        }
         break;
 
     default:
@@ -536,7 +576,7 @@ static int camera_intf_config_senser(void)
     }
 
     camera_inf_cfg_gc0328c_ppi(CMPARAM_GET_PPI(ejpeg_cfg.sener_cfg));
-	camera_inf_cfg_gc0328c_fps(TYPE_5FPS);
+    camera_inf_cfg_gc0328c_fps(CMPARAM_GET_FPS(ejpeg_cfg.sener_cfg));
 
     CAMERA_INTF_WPRT("GC0328C init finish\r\n");
     #elif (USE_CAMERA == BF_2013_DEV)
@@ -613,6 +653,7 @@ static int camera_intf_config_senser(void)
     size = size;
     addr = addr;
     data = data;
+    goto config_exit;
     #endif
 
 config_exit:
@@ -673,13 +714,8 @@ int camera_intfer_init(void *data)
     int fail = 0;
     GLOBAL_INT_DECLARATION();
 
+    camera_power_on();
     camera_intf_config_ejpeg(data);
-
-    ejpeg_hdl = ddev_open(EJPEG_DEV_NAME, &status, (UINT32)&ejpeg_cfg);
-    if(ejpeg_hdl == DD_HANDLE_UNVALID)
-    {
-        return 0;
-    }
 
     //camera_reset();
     #if USE_JTAG_FOR_DEBUG
@@ -698,6 +734,11 @@ int camera_intfer_init(void *data)
     #else
     UINT32 oflag = 0;
     i2c_hdl = ddev_open(I2C1_DEV_NAME, &status, oflag);
+
+    // for demo(20pin to 24pin) test
+    UINT32 io_output_en = 1;
+    ddev_control(i2c_hdl, I2C1_CMD_SET_IO_OUTPUT, &io_output_en);
+
     bk_printf("open I2C1\r\n");
     #endif
     if(i2c_hdl == DD_HANDLE_UNVALID)
@@ -713,6 +754,21 @@ int camera_intfer_init(void *data)
         bk_printf("config_senser failed \r\n");
         goto init_exit;
     }
+
+    ejpeg_hdl = ddev_open(EJPEG_DEV_NAME, &status, (UINT32)&ejpeg_cfg);
+    if(ejpeg_hdl == DD_HANDLE_UNVALID)
+    {
+        fail = -3;
+        bk_printf("open jpeg failed \r\n");
+        goto init_exit;
+    }
+
+#ifdef CAMERA_BITRATE_LOG_PRT
+    os_memset(&camera_debug_log, 0, sizeof(camera_debug_log));
+    os_memset(&camera_debug_log_cached, 0, sizeof(camera_debug_log_cached));
+    rtos_init_timer(&camera_debug_timer, DEBUG_TIMRT_INTERVAL, camera_log_print, NULL);
+    rtos_start_timer(&camera_debug_timer);
+#endif
 
     CAMERA_INTF_FATAL("camera_intfer_init,%p-%p\r\n", ejpeg_hdl, i2c_hdl);
     return 1;
@@ -745,6 +801,11 @@ void camera_intfer_deinit(void)
     GLOBAL_INT_DISABLE();
     ejpeg_hdl = i2c_hdl = DD_HANDLE_UNVALID;
     GLOBAL_INT_RESTORE();
+
+#ifdef CAMERA_BITRATE_LOG_PRT
+    rtos_stop_timer(&camera_debug_timer);
+    rtos_deinit_timer(&camera_debug_timer);
+#endif
 
     os_memset(&ejpeg_cfg, 0, sizeof(DJPEG_DESC_ST));
 }

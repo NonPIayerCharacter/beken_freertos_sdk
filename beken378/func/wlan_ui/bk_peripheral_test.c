@@ -20,18 +20,13 @@
 #include "drv_model_pub.h"
 #include "BkDriverGpio.h"
 
-#define BK_LOGW( tag, format, ... ) os_printf(format, ##__VA_ARGS__)
-#define BK_LOGI( tag, format, ... ) os_printf(format, ##__VA_ARGS__)
-#define BK_LOGD( tag, format, ... ) os_printf(format, ##__VA_ARGS__)
-#define BK_LOGV( tag, format, ... ) os_printf(format, ##__VA_ARGS__)
+#if CFG_PERIPHERAL_TEST
 
 #define CFG_LOG_LEVEL			BK_LOG_DEBUG
 
 #define PERI_LOGI				BK_LOGI
 #define PERI_LOGW				BK_LOGW
 #define PERI_LOGD				BK_LOGD
-
-#if CFG_PERIPHERAL_TEST
 
 INT32 os_strcmp(const char *s1, const char *s2);
 
@@ -625,7 +620,7 @@ static void pwm_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
 {
 	UINT8 channel1;
 	UINT32 duty_cycle1, cycle, cap_value;
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 	UINT8 channel2;
 	UINT32 duty_cycle2;
 	UINT32 dead_band;
@@ -636,7 +631,7 @@ static void pwm_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
 	channel1	= atoi(argv[2]);
 	duty_cycle1	= atoi(argv[3]);
 	cycle		= atoi(argv[4]);
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 	channel2	= atoi(argv[5]);
 	duty_cycle2	= atoi(argv[6]);
 	dead_band	= atoi(argv[7]);
@@ -675,7 +670,7 @@ static void pwm_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
 			return;
 		}
 	}
-#if ((CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) ||(CFG_SOC_NAME == SOC_BK7271) || (CFG_SOC_NAME == SOC_BK7238))
+#if ((CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) ||(CFG_SOC_NAME == SOC_BK7271) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N))
 	else if (os_strcmp(argv[1], "update") == 0)
 	{
 		if (5 != argc) {
@@ -705,7 +700,7 @@ static void pwm_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
 			PERI_LOGW(TAG, "init err\r\n");
 			return;
 		}
-		#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7236) && (CFG_SOC_NAME != SOC_BK7238)
+		#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7236) && (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
 		bk_pwm_start(channel1);
 		#else
 		ret = bk_pwm_capture_start(channel1);
@@ -730,7 +725,7 @@ static void pwm_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
 		PERI_LOGI(TAG, "pwm : %d cap_stop\r\n", channel1);
 	}
 
-	#if ((CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238))
+	#if ((CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N))
 	else if (os_strcmp(argv[1], "cw") == 0)
 	{
 

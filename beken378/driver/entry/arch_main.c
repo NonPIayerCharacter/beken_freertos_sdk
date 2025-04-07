@@ -63,7 +63,7 @@ void improve_rx_sensitivity(void)
 	mdm_cfgsmooth_setf(3);
 	rwnx_cal_dis_rx_filter_offset();
 	bk7011_reduce_vdddig_for_rx(1);
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 	rwnx_cal_en_rx_filter_offset();
 #endif
 }
@@ -83,7 +83,7 @@ static void extended_app_task_handler(void *arg)
     else
 #endif
     {
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 		power_save_rf_hold_bit_set(RF_HOLD_RF_SLEEP_BIT);
 		improve_rx_sensitivity();
 		power_save_rf_hold_bit_clear(RF_HOLD_RF_SLEEP_BIT);
@@ -135,7 +135,7 @@ void __attribute__((weak)) OHOS_SystemInit(void)
 
 void entry_main(void)
 {  
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 	uart_fast_init();
 #endif
 

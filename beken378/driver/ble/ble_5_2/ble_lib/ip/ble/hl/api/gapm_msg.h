@@ -134,6 +134,8 @@ enum gapm_msg_id
     /// Indicate size of list indicated in GAPM_GET_DEV_CONFIG_CMD message
     /// @see struct gapm_list_size_ind
     GAPM_LIST_SIZE_IND                  = MSG_ID(GAPM, 0x53),
+    /// white list or resolving list or periodic advertiser list add or remove one device
+    GAPM_LIST_UPDATE_CMD                = MSG_ID(GAPM, 0x54),
 
     /* Air Operations */
     /// Create an advertising, a scanning, an initiating or a periodic synchronization activity
@@ -301,6 +303,10 @@ enum gapm_operation
     GAPM_SET_PAL                                   = 0x55,
     /// Get periodic advertiser list size
     GAPM_GET_PAL_SIZE                              = 0x56,
+    /// Add sepcified device to whitelist
+    GAPM_LIST_ADD_DEVICE                           = 0x57,
+    /// Remove sepcified device to whitelist
+    GAPM_LIST_REMOVE_DEVICE                        = 0x58,
 
     /* Air Operations                                   */
     /* ************************************************ */
@@ -1650,6 +1656,23 @@ struct gapm_list_set_cmd
     uint8_t operation;
     /// Number of entries to be added in the list. 0 means that list content has to be cleared
     uint8_t size;
+};
+
+struct gapm_list_update_cmd
+{
+    /// GAPM LIST request operation:
+    ///  - GAPM_LIST_ADD_DEVICE
+    ///  - GAPM_LIST_REMOVE_DEVICE
+    uint8_t operation;
+    /// GAPM request operation:
+    ///  - GAP_WL: Set white list content
+    ///  - GAP_RAL: Set resolving list content
+    ///  - GAP_PAL: Set periodic advertiser list content
+    uint8_t list_type;
+    /// device address to be added/removed
+    gap_bdaddr_t device_addr;
+    /// Advertising SID
+    uint8_t adv_sid;
 };
 
 /// Set content of white list

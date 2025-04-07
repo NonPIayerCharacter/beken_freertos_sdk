@@ -14,6 +14,9 @@
 #define RX_WAIT                       BEKEN_WAIT_FOREVER
 #define SEND_WAIT                     BEKEN_WAIT_FOREVER
 
+#define CLI_CMD_RSP_SUCCEED               ("RSP:OK\r\n")
+#define CLI_CMD_RSP_ERROR                 ("RSP:ERROR\r\n")
+
 #define RET_CHAR                      '\n'
 #define END_CHAR		              '\r'
 #define PROMPT			              "\r\n# "

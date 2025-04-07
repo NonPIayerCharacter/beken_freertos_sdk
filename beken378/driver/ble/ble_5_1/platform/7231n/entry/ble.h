@@ -39,6 +39,7 @@ UINT32 ble_ctrl( UINT32 cmd, void *param );
 void ble_switch_rf_to_wifi(void);
 void ble_set_ext_wkup(uint8_t enable);
 bool ble_thread_is_up(void);
+void ble_entry(void);
 #if (CFG_SUPPORT_MATTER == 0)
 // should not define in .h, if matter is open
 void ble_thread_exit(void);

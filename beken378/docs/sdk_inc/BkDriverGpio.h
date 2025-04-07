@@ -128,8 +128,9 @@ typedef platform_gpio_irq_callback_t    bk_gpio_irq_handler_t;
  * @param configuration : A structure containing the required
  *                        gpio configuration
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkGpioInitialize( bk_gpio_t gpio, bk_gpio_config_t configuration );
 
@@ -140,8 +141,9 @@ OSStatus BkGpioInitialize( bk_gpio_t gpio, bk_gpio_config_t configuration );
  *
  * @param  gpio          : the gpio pin which should be deinitialised
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkGpioFinalize( bk_gpio_t gpio );
 
@@ -152,8 +154,9 @@ OSStatus BkGpioFinalize( bk_gpio_t gpio );
  *
  * @param gpio          : the gpio pin which should be set high
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkGpioOutputHigh( bk_gpio_t gpio );
 
@@ -164,8 +167,9 @@ OSStatus BkGpioOutputHigh( bk_gpio_t gpio );
  *
  * @param gpio          : the gpio pin which should be set low
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkGpioOutputLow( bk_gpio_t gpio );
 
@@ -176,8 +180,9 @@ OSStatus BkGpioOutputLow( bk_gpio_t gpio );
  *
  * @param gpio          : the gpio pin which should be set low
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkGpioOutputTrigger( bk_gpio_t gpio );
 
@@ -190,8 +195,9 @@ OSStatus BkGpioOutputTrigger( bk_gpio_t gpio );
  *
  * @param gpio          : the gpio pin which should be read
  *
- * @return    true  : if high
- * @return    fasle : if low
+ * @return    
+ *        - 1 : if high
+ *        - 0 : if low
  */
 bool BkGpioInputGet( bk_gpio_t gpio );
 
@@ -208,8 +214,9 @@ bool BkGpioInputGet( bk_gpio_t gpio );
  * @param arg     : an argument that will be passed to the
  *                  interrupt handler
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkGpioEnableIRQ( bk_gpio_t gpio, bk_gpio_irq_trigger_t trigger, bk_gpio_irq_handler_t handler, void *arg );
 
@@ -222,15 +229,12 @@ OSStatus BkGpioEnableIRQ( bk_gpio_t gpio, bk_gpio_irq_trigger_t trigger, bk_gpio
  *
  * @param gpio    : the gpio pin which provided the interrupt trigger
  *
- * @return    kNoErr        : on success.
- * @return    kGeneralErr   : if an error occurred with any step
+ * @return
+ *        - kNoErr        : on success.
+ *        - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkGpioDisableIRQ( bk_gpio_t gpio );
 
-/** @} */
-/** @} */
-OSStatus BKGpioOp(char cmd, uint32_t id, char mode);
-void BKGpioIntcEn(uint8_t cmd, uint8_t id, uint32_t mode, void(*p_handle)(char));
 
 #ifdef __cplusplus
 }

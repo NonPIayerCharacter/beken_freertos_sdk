@@ -23,7 +23,7 @@ void icu_init(void)
     param = PCLK_POSI;
     #else
     param = PCLK_POSI_UART1 | PCLK_POSI_UART2
-		#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+		#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 			| PCLK_POSI_SARADC
 		#endif
             | PCLK_POSI_PWMS | PCLK_POSI_SDIO
@@ -54,6 +54,25 @@ UINT32 icu_ctrl(UINT32 cmd, void *param)
 
     switch(cmd)
     {
+    case CMD_SDIO_CLK_DIV:
+        #if (CFG_SOC_NAME == SOC_BK7252N)
+        reg = REG_READ(ICU_PERI_CLK_MUX);
+        reg &= ~(SDIO_CLK_DIV_MASK << SDIO_CLK_DIV_POSI);
+        reg |= (*(UINT32 *)param) << SDIO_CLK_DIV_POSI;
+        REG_WRITE(ICU_PERI_CLK_MUX, reg);
+        #endif
+        break;
+
+    case CMD_SDIO_CLK_SEL:
+        #if (CFG_SOC_NAME == SOC_BK7252N)
+        reg = REG_READ(ICU_PERI_CLK_MUX);
+        reg &= ~(SDIO_CLK_SEL_MASK << SDIO_CLK_SEL_POSI);
+        reg |= ((*(UINT32 *)param) << SDIO_CLK_SEL_POSI);
+        REG_WRITE(ICU_PERI_CLK_MUX, reg);
+        break;
+        #endif
+        break;
+
     case CMD_CONF_PCLK_26M:
         reg = REG_READ(ICU_PERI_CLK_MUX);
         #if (CFG_SOC_NAME == SOC_BK7231)
@@ -181,20 +200,40 @@ UINT32 icu_ctrl(UINT32 cmd, void *param)
 
     case CMD_ARM_WAKEUP:
 		reg = (*(UINT32*)param);
-		REG_WRITE(ICU_ARM_WAKEUP_EN, reg);            
+		REG_WRITE(ICU_ARM_WAKEUP_EN, reg);
         break;
-		
+
 	case CMD_QSPI_CLK_SEL:
 		reg = REG_READ(ICU_PERI_CLK_MUX);
+#if !(SOC_BK7252N == CFG_SOC_NAME)
         reg &= (~(3 << 16));
+#else
+        reg &= (~(3 << 11));
+#endif
 		reg |= (*(UINT32 *)param);
         REG_WRITE(ICU_PERI_CLK_MUX, reg);
         break;
 
+#if (SOC_BK7252N == CFG_SOC_NAME)
+    case CMD_JPEG_CLK_SEL:
+        reg = REG_READ(ICU_PERI_CLK_MUX);
+        reg &= (~(3 << 16));
+        reg |= ((*(UINT32 *)param) << 16);
+        REG_WRITE(ICU_PERI_CLK_MUX, reg);
+        break;
+
+    case CMD_JPEG_MCLK_SEL:
+        reg = REG_READ(ICU_PERI_CLK_MUX);
+        reg &= (~(7 << 24));
+        reg |= ((*(UINT32 *)param) << 24);
+        REG_WRITE(ICU_PERI_CLK_MUX, reg);
+        break;
+#endif
+
     default:
         break;
     }
-    
+
     GLOBAL_INT_RESTORE();
 
     return ret;

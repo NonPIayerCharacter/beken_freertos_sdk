@@ -55,6 +55,7 @@
 #define BLE_APP_INITING_INDEX(con_idx)      ((con_idx) + BLE_ACTIVITY_MAX)
 #define BLE_APP_INITING_GET_INDEX(conidx)   ((conidx) - BLE_ACTIVITY_MAX)
 #define BLE_APP_INITING_CHECK_INDEX(conidx)   (((conidx) >= BLE_ACTIVITY_MAX) && ((conidx) < APP_IDX_MAX))
+#define BLE_APP_CONHDL_IS_VALID(conhdl)       ((conhdl != UNKNOW_CONN_HDL) && (conhdl != USED_CONN_HDL))
 
 /*
  * DEFINES
@@ -152,22 +153,11 @@ typedef enum {
 	BLE_OP_SCAN_MAX,
 }ble_scan_op;
 
-typedef enum {
-	BLE_OP_UPDATE_CONN_POS,
-	BLE_OP_MTU_CHANGE_POS,
-	BLE_OP_DIS_CONN_POS,
-
-	BLE_OP_CONN_MAX,
-}ble_conn_op;
-
 typedef enum{
 	BLE_OP_CREATE_INIT_POS = 0,
 	BLE_OP_INIT_START_POS,
 	BLE_OP_INIT_STOP_POS,
-	BLE_OP_INIT_DIS_CONN_POS,
-
-	BLE_OP_INIT_READ_CHAR_POS,
-	BLE_OP_INIT_WRITE_CHAR_POS,
+	BLE_OP_INIT_DEL_POS,
 	BLE_OP_INIT_MAX,
 }ble_init_op;
 
@@ -182,7 +172,16 @@ typedef enum {
 
 	ACTV_INIT_CREATED,
 	ACTV_PER_SYNC_CREATED,
+	ACTV_PER_SYNC_STARTED,
 } actv_state_t;
+
+typedef enum {
+	BLE_OP_CREATE_PERIODIC_SYNC_POS,
+	BLE_OP_START_PERIODIC_SYNC_POS,
+	BLE_OP_STOP_PERIODIC_SYNC_POS,
+	BLE_OP_DEL_PERIODIC_SYNC_POS,
+	BLE_OP_PERIODIC_SYNC_MAX,
+} ble_periodic_sync_op;
 
 /// Initing state machine
 enum app_init_state
@@ -231,11 +230,7 @@ struct conn_info {
 		struct{
 			/// Current init state (@see enum app_init_state)
 			uint8_t init_state;
-			/// Scan interval
-			uint16_t scan_intv;
-			/// Scan window
-			uint16_t scan_wd;
-
+			/// connection establishment timeout, in 10ms
 			uint16_t conn_dev_to;
 		}master;
 	}u;
@@ -294,15 +289,27 @@ struct app_env_tag {
 	uint8_t dev_name_len;
 	/// Device Name
 	uint8_t dev_name[APP_DEVICE_NAME_MAX_LEN];
+	/// Device Appearance
+	uint16_t dev_appearance;
 	/// Local device IRK
 	uint8_t loc_irk[KEY_LEN];
 	/// Counter used to generate IRK
 	uint8_t rand_cnt;
-
+	/// Activity information
 	struct actv_info actvs[BLE_ACTIVITY_MAX];
-
+	/// Connection information
 	struct conn_info connections[BLE_CONNECTION_MAX];
+	/// Create connection params for initiator
+	ext_conn_param_t init_conn_par;
+	///Count the number of different activities created.
+	struct actv_type actv_cnt;
 };
+
+typedef struct {
+	/// UUID Type (@see enum gatt_uuid_type)
+	uint8_t  uuid_type;
+	uint8_t  uuid[GATT_UUID_128_LEN];
+} charac_uuid_t;
 
 /*
  * TYPE DEFINITIONS
@@ -331,7 +338,7 @@ extern struct app_env_tag app_ble_env;
 
 ble_status_t app_ble_env_state_get(void);
 actv_state_t app_ble_actv_state_get(uint8_t actv_idx);
-uint8_t app_ble_get_idle_conn_idx_handle(void);
+uint8_t app_ble_get_idle_conn_idx_handle(ACTV_TYPE type);
 uint8_t app_ble_find_conn_idx_handle(uint16_t conhdl);
 uint8_t app_ble_find_actv_idx_handle(uint16_t gap_actv_idx);
 uint8_t app_ble_actv_state_find(uint8_t status);
@@ -354,8 +361,18 @@ ble_err_t app_ble_create_scaning(uint8_t actv_idx);
 ble_err_t app_ble_start_scaning(uint8_t actv_idx, uint16_t scan_intv, uint16_t scan_wd);
 ble_err_t app_ble_stop_scaning(uint8_t actv_idx);
 ble_err_t app_ble_delete_scaning(uint8_t actv_idx);
+ble_err_t app_ble_create_periodic_advertising(uint8_t actv_idx, struct per_adv_param *per_adv);
+ble_err_t app_ble_set_periodic_adv_data(uint8_t actv_idx, unsigned char *per_adv_buff, uint16_t per_adv_len);
 ble_err_t app_ble_set_le_pkt_size(uint8_t conn_idx, uint16_t pkt_size);
 ble_err_t app_ble_get_peer_feature(uint8_t conn_idx);
+ble_err_t app_ble_create_periodic_sync(uint8_t actv_idx);
+ble_err_t app_ble_start_periodic_sync(uint8_t actv_idx, ble_periodic_sync_param_t *param);
+ble_err_t app_ble_stop_periodic_sync(uint8_t actv_idx);
+ble_err_t app_ble_delete_periodic_sync(uint8_t actv_idx);
+ble_err_t app_ble_periodic_adv_sync_transf(uint8_t actv_idx, uint16_t service_data);
+ble_err_t app_ble_list_clear_wl_cmd(void);
+ble_err_t app_ble_update_wl_cmd(uint8_t add_remove, struct bd_addr *addr, uint8_t addr_type);
+ble_err_t app_ble_get_wl_size_cmd(uint8_t *wl_size);
 #ifdef __cplusplus
 extern "C"   ble_err_t app_ble_mtu_get(uint8_t conn_idx, uint16_t *p_mtu);
 #else
@@ -363,9 +380,27 @@ ble_err_t app_ble_mtu_get(uint8_t conn_idx, uint16_t *p_mtu);
 #endif
 
 ble_err_t app_ble_mtu_exchange(uint8_t conn_idx);
-ble_err_t app_ble_gap_set_phy(uint8_t conn_idx, ble_set_phy_t * phy_info);
+ble_err_t app_ble_gap_set_phy(uint8_t conn_idx, ble_set_phy_t *phy);
+ble_err_t app_ble_gap_read_phy(uint8_t conn_idx, ble_read_phy_t *phy);
+ble_err_t app_ble_gatts_remove_service(uint8_t user_lid, uint16_t start_handle);
+ble_err_t app_ble_gatts_app_unregister(uint8_t user_lid, uint16_t service_handle);
+ble_err_t app_ble_gatts_read_response(app_gatts_rsp_t *rsp);
+ble_err_t app_ble_gatts_svc_chg_ind_send(uint16_t start_handle, uint16_t end_handle);
+ble_err_t app_ble_gatts_get_attr_value(uint16_t attr_handle, uint16_t *length, uint8_t **value);
+ble_err_t app_ble_gatts_set_attr_value(uint16_t attr_handle, uint16_t length, uint8_t *value);
+ble_err_t app_ble_gattc_read_by_type(uint8_t conn_idx, uint16_t start_handle, uint16_t end_handle, const charac_uuid_t *p_uuid);
+ble_err_t app_ble_gattc_read_multiple(uint8_t conn_idx, app_gattc_multi_t *read_multi);
+
 void app_ble_send_conn_param_update_cfm(uint8_t con_idx,bool accept);
 ble_err_t app_ble_set_pref_slave_evt_dur(uint8_t con_idx, uint8_t duration);
+ble_err_t app_ble_set_channels(bk_ble_channels_t *channels);
+ble_err_t app_ble_get_bonded_device_num(uint8_t *dev_num);
+ble_err_t app_ble_get_bonded_device_list(uint8_t *dev_num, bk_ble_bond_dev_t *dev_list);
+ble_err_t app_ble_get_sendable_packets_num(uint16_t *pkt_total);
+ble_err_t app_ble_get_cur_sendable_packets_num(uint16_t *pkt_curr);
+ble_err_t app_ble_clear_per_adv_list_cmd(void);
+ble_err_t app_ble_update_per_adv_list_cmd(uint8_t add_remove, gap_per_adv_bdaddr_t *p_pal_info);
+
 uint8_t app_ble_get_connect_status(uint8_t con_idx);
 void app_ble_next_operation(uint8_t idx, uint8_t status);
 

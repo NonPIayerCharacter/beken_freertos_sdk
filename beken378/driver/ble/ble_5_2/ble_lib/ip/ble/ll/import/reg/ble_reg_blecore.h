@@ -9876,6 +9876,15 @@ __INLINE void ble_isotimertgt_setf(int reg_idx, uint32_t isotimertgt)
     REG_BLE_WR(BLE_ISOTIMERTGT_ADDR + reg_idx * 4, (uint32_t)isotimertgt << 0);
 }
 
+#define BKRW_REG0x84_ADDR   (0x00900210)
+#define BKRW_REG0x84_OFFSET 0x00000210
+#define BKRW_REG0x84_INDEX  0x00000084
+#define BKRW_REG0x84_RESET  0x00000000
+
+__INLINE void bkrw_reg0x84_trxabortrst_set(uint32_t value)
+{
+    REG_BLE_WR(BKRW_REG0x84_ADDR, (REG_BLE_RD(BKRW_REG0x84_ADDR) & ~((uint32_t)0x1)) | ((uint32_t)value << 0));
+}
 
 #endif // _REG_BLECORE_H_
 

@@ -6,12 +6,18 @@
 #define INTC_FAILURE                (1)
 #define INTC_SUCCESS                (0)
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
-#define FIQ_BT                           (31)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define FIQ_BLE                          (30)
 #define FIQ_BTDM                         (29)
 #define FIQ_DPLL_UNLOCK                  (28)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define FIQ_RTC                          (31)
+#define FIQ_CHARGE                       (26)
+#define FIQ_YUV                          (24)
+#else
+#define FIQ_BT                           (31)
 #define FIQ_MAC_WAKEUP                   (26)
+#endif
 #define FIQ_MAC_GENERAL                  (22)
 #define FIQ_MAC_PROT_TRIGGER             (21)
 #define FIQ_MAC_TX_TRIGGER               (20)
@@ -21,8 +27,17 @@
 #define FIQ_MODEM                        (16)
 
 #define IRQ_GENERDMA                     (15)
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #define IRQ_LA                           (14)
+#else
+#define IRQ_IPCHKSUM                     (14)
+#endif
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #define IRQ_SEC                          (13)
+#else
+#define IRQ_UART3                        (13)
+#define FIQ_JPEG                         (23)
+#endif
 #define IRQ_SDIO                         (12)
 #define IRQ_SARADC                       (11)
 #define IRQ_PWM                          (9)
@@ -34,6 +49,12 @@
 #define IRQ_I2C1                         (2)
 #define IRQ_UART2                        (1)
 #define IRQ_UART1                        (0)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define IRQ_I2S_PCM                      (4)
+#define IRQ_AUDIO                        (10)
+#define FIQ_SPI_DMA                      (27)
+#define FIQ_QSPI                         (25)
+#endif
 #else
 #define FIQ_PSRAM                        (31) 
 #define FIQ_BLE							 (30)
@@ -79,12 +100,17 @@
 #define IRQ_UART1                        (0) 
 #endif 
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define PRI_FIQ_RTC                          (7)
+#define PRI_FIQ_CHARGE                       (9)
+#else
 #define PRI_FIQ_BT                           (7)
+#define PRI_FIQ_MAC_WAKEUP                   (9)
+#endif
 #define PRI_FIQ_BLE                          (8)
 #define PRI_FIQ_BTDM                         (13)
-#define PRI_FIQ_DPLL_UNLOCK                  (29) 
-#define PRI_FIQ_MAC_WAKEUP                   (9)
+#define PRI_FIQ_DPLL_UNLOCK                  (29)
 #define PRI_FIQ_MAC_GENERAL                  (1)
 #define PRI_FIQ_MAC_PROT_TRIGGER             (6)
 #define PRI_FIQ_MAC_TX_TRIGGER               (3)
@@ -95,7 +121,11 @@
 
 #define PRI_IRQ_GENERDMA                     (28)
 #define PRI_IRQ_LA                           (20)
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #define PRI_IRQ_SEC                          (21)
+#else
+#define PRI_IRQ_UART3                        (27)
+#endif
 #define PRI_IRQ_SDIO                         (22)
 #define PRI_IRQ_SARADC                       (16)
 #define PRI_IRQ_PWM                          (17)
@@ -107,6 +137,15 @@
 #define PRI_IRQ_I2C1                         (24)
 #define PRI_IRQ_UART2                        (25)
 #define PRI_IRQ_UART1                        (26)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define PRI_IRQ_I2S_PCM                      (30)
+#define PRI_IRQ_AUDIO                        (31)
+#define PRI_FIQ_SPI_DMA                      (11)
+#define PRI_IRQ_QSPI                         (12)
+#define PRI_FIQ_JPEG                         (14)
+#define PRI_FIQ_YUV                          (15)
+#define PRI_IRQ_IPCHKSUM                     (32)
+#endif
 #else
 #define PRI_FIQ_BLE                          (31)
 #define PRI_FIQ_JPEG_DECODER                 (30) 

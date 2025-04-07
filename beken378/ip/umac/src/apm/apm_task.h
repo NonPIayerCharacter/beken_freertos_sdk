@@ -76,6 +76,8 @@ enum apm_msg_tag
     APM_ASSOC_FAILED_IND,
     /// Indicate hostapd is started completely
     APM_START_DONE_IND,
+    /// Indicate sta has got ip from AP
+    APM_GOT_IP_IND,
 };
 
 /// Structure containing the parameters of the @ref APM_START_REQ message.
@@ -188,6 +190,14 @@ struct apm_assoc_failed_ind
     uint8_t mac[6];
 };
 
+/// Structure containing the parameters of the @ref APM_GOT_IP_IND message.
+struct apm_got_ip_ind
+{
+    /// Mac of client
+    uint8_t mac[6];
+    /// IP of client
+    uint32_t ipaddr;
+};
 
 struct apm_start_done_ind
 {

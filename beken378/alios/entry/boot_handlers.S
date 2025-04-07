@@ -157,7 +157,7 @@ boot_reset:
 	.word 0x00003133
 
 AFTER_FLAG:
-#elif (CFG_SOC_NAME == SOC_BK7238)
+#elif (CFG_SOC_NAME == SOC_BK7238) ||  (CFG_SOC_NAME == SOC_BK7252N)
 	B AFTER_FLAG
 	.org  0xc0 //0x100 - sizeof(section.vector) = 0x100 - 0x40
 	.word 0x32374B42
@@ -188,13 +188,13 @@ AFTER_FLAG:
     //Stay in Supervisor Mode
     //copy data from binary to ram
     BL _sysboot_copy_data_to_ram
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     BL _sysboot_copy_code_to_itcm
 #endif
     
     ///*Init the BSS section*/
     BL _sysboot_zi_init
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     BL _sysboot_tcmbss_init
 #endif
     
@@ -276,7 +276,7 @@ _sysboot_zi_init:
     BLO 5b
     BX LR
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 /*FUNCTION:     _sysboot_copy_code_to_itcm*/
 /*DESCRIPTION:  copy itcm code from FLASH/ROM to SRAM*/
 _sysboot_copy_code_to_itcm:

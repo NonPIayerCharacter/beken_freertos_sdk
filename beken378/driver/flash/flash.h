@@ -57,6 +57,26 @@
 #define WRSR_DATA_MASK                       (0x00FFFF)
 #define CRC_EN                               (0x01UL << 26)
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define REG_FLASH_DPD_CONF                   (FLASH_BASE + 8 * 4)
+#define TRES_1_TRDP_DELAY_CNT_POSI           (0)
+#define TRES_1_TRDP_DELAY_CNT_MASK           (0xFFF)
+#define TDP_TDPDD_DELAY_CNT_POSI             (12)
+#define TDP_TDPDD_DELAY_CNT_MASK             (0xFFF)
+#define DPD_FBD                              (0x01UL << 24)
+#define PREFETCH_VERSION                     (0x01UL << 25)
+#define DPD_STATUS                           (0x01UL << 31)
+
+#define REG_FLASH_WRSR                       (FLASH_BASE + 0xA * 4)
+#define FLASH_WREN_SEL_POSI                  (17)
+#define FLASH_WRSR_SEL_POSI                  (16)
+#define FLASH_WREN_CMD_POSI                  (8)
+#define FLASH_WREN_CMD_MASK                  (0xFF)
+#define FLASH_WRSR_CMD_POSI                  (0)
+#define FLASH_WRSR_CMD_MASK                  (0xFF)
+#define FLASH_WRSR_EN_VOLATILE_CMD           (0x50)
+#endif
+
 #define REG_FLASH_PW_CONF                    (FLASH_BASE + 9 * 4)
 #define FLASH_PW_MEM_CLR                     (0x01UL << 31)
 #define FLASH_PW_MEM_DATA_POSI               (0)

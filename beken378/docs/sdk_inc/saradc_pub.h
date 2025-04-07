@@ -92,8 +92,7 @@
 *        os_free(p_ADC_drv_desc->pData);
 *        os_free(p_ADC_drv_desc);
 * @endcode
-* @param
-*     - adc_val: it better adc val that after do average
+* @param  adc_val: it better adc val that after do average
 *
 * @return
 *     - Voltage value with float

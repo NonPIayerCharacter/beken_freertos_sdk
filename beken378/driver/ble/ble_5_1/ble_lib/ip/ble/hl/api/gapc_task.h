@@ -1048,6 +1048,8 @@ struct gapc_bond_auth
 
     /// LTK exchanged during pairing.
     bool ltk_present;
+    /// Secure connection pairing
+    bool sc_pairing;
 };
 
 /// Bond procedure information data

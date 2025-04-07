@@ -16843,6 +16843,11 @@ __INLINE void nxmac_rx_req_force_deassertion_setf(uint8_t rxreqforcedeassertion)
 /*lint +e91*/
 
 /// @}
+/// Address of the DEBUG_PHY register
+#define NXMAC_LOCALTSF_L_ADDR   0xC0000568
+#define NXMAC_LOCALTSF_H_ADDR   0xC000056C
+#define NXMAC_PEERTSF_L_ADDR    0xC0000570
+#define NXMAC_PEERTSF_H_ADDR    0xC0000574
 
 #endif // _REG_MAC_CORE_H_
 

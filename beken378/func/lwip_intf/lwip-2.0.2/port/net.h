@@ -21,7 +21,9 @@ extern void net_wlan_remove_netif(void *mac);
 extern int net_get_if_macaddr(void *macaddr, void *intrfc_handle);
 extern int net_get_if_addr(struct wlan_ip_config *addr, void *intrfc_handle);
 extern void ip_address_set(int iface, int dhcp, char *ip, char *mask, char*gw, char*dns);
-
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+extern void net_restart_dhcp(void);
+#endif
 #ifdef __cplusplus
 }
 #endif

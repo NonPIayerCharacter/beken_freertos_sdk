@@ -126,7 +126,7 @@ static uint32 app_demo_softap_alloc_buffer(void)
 
     if (g_demo_softap->wifi_key == NULL)
     {
-        g_demo_softap->wifi_key = os_malloc(sizeof(char) * 64);
+        g_demo_softap->wifi_key = os_malloc(sizeof(char) * 65);
         if (!g_demo_softap->wifi_key)
         {
             APP_DEMO_SOFTAP_FATAL("key fail\r\n");
@@ -563,7 +563,8 @@ void app_demo_softap_start(char *oob_ssid, char *connect_key)
             len = os_strlen(oob_ssid);
             if (len > 32)
             {
-                oob_ssid[31] = '\0';
+                APP_DEMO_SOFTAP_PRT("ssid more than 32 bytes, the excess has been discarded\r\n");
+                oob_ssid[32] = '\0';
             }
             os_strcpy((char *)g_demo_softap->wifi_ssid, oob_ssid);
 
@@ -572,7 +573,8 @@ void app_demo_softap_start(char *oob_ssid, char *connect_key)
                 len = os_strlen(connect_key);
                 if (len > 64)
                 {
-                    connect_key[63] = '\0';
+                    APP_DEMO_SOFTAP_PRT("key more than 64 bytes, the excess has been discarded\r\n");
+                    connect_key[64] = '\0';
                 }
                 os_strcpy((char *)g_demo_softap->wifi_key, connect_key);
             }

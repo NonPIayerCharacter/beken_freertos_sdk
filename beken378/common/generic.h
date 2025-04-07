@@ -87,7 +87,8 @@ extern void bk_printf(const char *fmt, ...);
     	as_printf;							     	\
         while(1);                                   \
     }                                               \
-} 
+}
+#define BK_ASSERT(exp)           ASSERT(exp)
 #else
 #define ASSERT_EQ(exp)
 #define ASSERT_NE(exp)
@@ -96,6 +97,7 @@ extern void bk_printf(const char *fmt, ...);
 #define ASSERT_LT(exp)
 #define ASSERT_LE(exp)
 #define ASSERT(exp)
+#define BK_ASSERT(exp)
 #endif
 
 #define BUG_ON(exp)               ASSERT(!(exp))

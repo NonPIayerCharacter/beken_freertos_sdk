@@ -190,6 +190,45 @@ void demo_softap_app_init(char *ap_ssid, char *ap_key)
 	bk_wlan_start(&wNetConfig);
 }
 
+#if CFG_SUPPORT_BSSID_CONNECT
+void demo_sta_bssid_app_init(uint8_t *bssid, char *connect_key)
+{
+	network_InitTypeDef_st wNetConfig;
+	int key_len;
+	os_memset(&wNetConfig, 0x0, sizeof(network_InitTypeDef_st));
+
+	key_len = os_strlen(connect_key);
+
+	if (STA_KEY_MAX_LEN < key_len)
+	{
+		bk_printf("key more than buffer Bytes(107)\r\n");
+		return;
+	}
+
+	os_memcpy((char *)wNetConfig.wifi_bssid, bssid, sizeof(wNetConfig.wifi_bssid));
+	os_strlcpy((char *)wNetConfig.wifi_key, connect_key, sizeof(wNetConfig.wifi_key));
+
+	wNetConfig.wifi_mode = BK_STATION;
+	wNetConfig.dhcp_mode = DHCP_CLIENT;
+	wNetConfig.wifi_retry_interval = 100;
+#if CFG_STA_AUTO_RECONNECT
+	wNetConfig.auto_reconnect_count = 0;
+	wNetConfig.auto_reconnect_timeout = 0;
+	wNetConfig.disable_auto_reconnect_after_disconnect = 0;
+#endif
+
+#if CFG_QUICK_TRACK
+	wNetConfig.key_mgmt = BIT(1) | BIT(10);  // PSK & SAE         WPA_KEY_MGMT_PSK WPA_KEY_MGMT_SAE
+	wNetConfig.proto = BIT(0) | BIT(1);	// WPA & RSN              WPA_PROTO_WPA & WPA_PROTO_RSN
+	wNetConfig.pairwise_cipher = BIT(3) | BIT(4); // TKIP & CCMP  WPA_CIPHER_CCMP WPA_CIPHER_TKIP
+	wNetConfig.group_cipher = BIT(3) | BIT(4); // TKIP & CCMP     WPA_CIPHER_CCMP WPA_CIPHER_TKIP
+	wNetConfig.ieee80211w = 1; // MFP Optional
+#endif
+
+	bk_wlan_start(&wNetConfig);
+}
+#endif
+
 void demo_sta_app_init(char *oob_ssid,char *connect_key)
 {
 	network_InitTypeDef_st wNetConfig;
@@ -216,6 +255,11 @@ void demo_sta_app_init(char *oob_ssid,char *connect_key)
 	wNetConfig.wifi_mode = BK_STATION;
 	wNetConfig.dhcp_mode = DHCP_CLIENT;
 	wNetConfig.wifi_retry_interval = 100;
+#if CFG_STA_AUTO_RECONNECT
+	wNetConfig.auto_reconnect_count = 0;
+	wNetConfig.auto_reconnect_timeout = 0;
+	wNetConfig.disable_auto_reconnect_after_disconnect = 0;
+#endif
 
 	bk_printf("ssid:%s key:%s\r\n", wNetConfig.wifi_ssid, wNetConfig.wifi_key);
 #if CFG_QUICK_TRACK

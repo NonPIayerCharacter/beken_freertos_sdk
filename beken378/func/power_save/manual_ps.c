@@ -12,6 +12,7 @@
 #include "gpio.h"
 #include "fake_clock_pub.h"
 #include "icu.h"
+#include "force_ps_pub.h"
 #include "force_mcu_ps.h"
 #include "str_pub.h"
 
@@ -548,12 +549,6 @@ void bk_enter_deep_sleep_mode ( PS_DEEP_CTRL_PARAM *deep_param )
 #endif
 
 #if (1 == CFG_USE_FORCE_LOWVOL_PS)
-
-UINT32 bk_wlan_instant_normal_sleep(UINT32 sleep_ms)
-{
-	return force_mcu_ps(1024 * sleep_ms, 0);
-}
-
 UINT32 bk_wlan_instant_lowvol_sleep( PS_DEEP_CTRL_PARAM *lowvol_param )
 {
 	return bk_force_instant_lowvol_sleep(lowvol_param);
@@ -561,34 +556,53 @@ UINT32 bk_wlan_instant_lowvol_sleep( PS_DEEP_CTRL_PARAM *lowvol_param )
 
 void lowvol_Sleep_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
-	PS_DEEP_CTRL_PARAM deep_sleep_param;
+	PS_DEEP_CTRL_PARAM sleep_param;
 
-	deep_sleep_param.gpio_index_map = os_strtoul(argv[1], NULL, 16);
-	deep_sleep_param.gpio_edge_map = os_strtoul(argv[2], NULL, 16);
-	deep_sleep_param.gpio_last_index_map = 0;
-	deep_sleep_param.gpio_last_edge_map = 0;
-	deep_sleep_param.sleep_time = os_strtoul(argv[3], NULL, 16);
-	deep_sleep_param.wake_up_way = os_strtoul(argv[4], NULL, 16);
-	deep_sleep_param.sleep_mode = os_strtoul(argv[5], NULL, 16);
+	sleep_param.gpio_index_map = os_strtoul(argv[1], NULL, 16);
+	sleep_param.gpio_edge_map = os_strtoul(argv[2], NULL, 16);
+	sleep_param.gpio_last_index_map = 0;
+	sleep_param.gpio_last_edge_map = 0;
+	sleep_param.sleep_time = os_strtoul(argv[3], NULL, 16);
+	sleep_param.wake_up_way = os_strtoul(argv[4], NULL, 16);
+	sleep_param.sleep_mode = os_strtoul(argv[5], NULL, 16);
 
 	if(argc == 6)
 	{
-		os_printf("---lowvol sleep test param : 0x%0X 0x%0X %d s  %d\r\n",
-					deep_sleep_param.gpio_index_map,
-					deep_sleep_param.gpio_edge_map,
-					deep_sleep_param.sleep_time,
-					deep_sleep_param.wake_up_way);
-
-		bk_wlan_instant_lowvol_sleep(&deep_sleep_param);
-
-		if(PS_DEEP_WAKEUP_RTC == deep_sleep_param.wake_up_way)
+		if (MCU_NORMAL_SLEEP == sleep_param.sleep_mode)
 		{
-			os_printf("wakeup by RTC %ds\r\n",deep_sleep_param.sleep_time);
+			os_printf("---normal sleep test param : 0x%0X 0x%0X %d s  %x\r\n",
+						sleep_param.gpio_index_map,
+						sleep_param.gpio_edge_map,
+						sleep_param.sleep_time,
+						sleep_param.wake_up_way);
+
+			// use return value to indicate wakeup source
+			os_printf("wakeup by %x\r\n", bk_wlan_instant_lowvol_sleep(&sleep_param));
 		}
-		else if(PS_DEEP_WAKEUP_GPIO == deep_sleep_param.wake_up_way)
+		else if (MCU_LOW_VOLTAGE_SLEEP == sleep_param.sleep_mode)
 		{
-			bk_get_lv_sleep_wakeup_gpio_status();
-			os_printf("wakeup by GPIO%d\r\n",bk_misc_wakeup_get_gpio_num());
+			os_printf("---lowvol sleep test param : 0x%0X 0x%0X %d s  %d\r\n",
+						sleep_param.gpio_index_map,
+						sleep_param.gpio_edge_map,
+						sleep_param.sleep_time,
+						sleep_param.wake_up_way);
+
+			bk_wlan_instant_lowvol_sleep(&sleep_param);
+
+			if(PS_DEEP_WAKEUP_RTC == sleep_param.wake_up_way)
+			{
+				os_printf("wakeup by RTC %ds\r\n",sleep_param.sleep_time);
+			}
+			else if(PS_DEEP_WAKEUP_GPIO == sleep_param.wake_up_way)
+			{
+				bk_get_lv_sleep_wakeup_gpio_status();
+				os_printf("wakeup by GPIO%d\r\n",bk_misc_wakeup_get_gpio_num());
+			}
+		}
+		else
+		{
+			os_printf("---unsupported sleep mode:%d! \r\n", sleep_param.sleep_mode);
+			return;
 		}
 	}
 	else

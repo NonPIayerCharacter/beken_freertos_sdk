@@ -31,7 +31,11 @@
 #include "drv_model_pub.h"
 #include "error.h"
 #include "uart_pub.h"
+#if !(SOC_BK7252N == CFG_SOC_NAME)
 #include "irda_pub.h"
+#else
+#include "irda_pub_bk7252n.h"
+#endif
 #include <stdlib.h>
 #include "mem_pub.h"
 

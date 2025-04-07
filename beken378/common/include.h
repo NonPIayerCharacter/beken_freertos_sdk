@@ -7,6 +7,7 @@
 #include "compiler.h"
 #include "release.h"
 #include "arch.h"
+#include "bk_err.h"
 
 #if CFG_ENABLE_DEMO_TEST
 #include "demos_config.h"

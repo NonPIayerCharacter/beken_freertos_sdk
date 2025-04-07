@@ -57,7 +57,7 @@ RESET_SOURCE_STATUS bk_misc_get_start_type(void)
     return start_type;
 }
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 extern UINT32 sctrl_ctrl(UINT32 cmd, void *param);
 //only can be do once
  RESET_SOURCE_STATUS bk_misc_init_start_type(void)

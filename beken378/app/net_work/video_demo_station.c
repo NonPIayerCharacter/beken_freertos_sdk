@@ -153,7 +153,7 @@ static void app_demo_sta_rw_event_func(void *new_evt)
         //if(g_demo_sta->status == DS_WIFI_DISCONECTED)
         app_demo_sta_send_msg(DAP_WIFI_CONECTED, 0);
     }
-    else if (evt_type == RW_EVT_STA_DISCONNECTED)
+    else
     {
         APP_DEMO_STA_PRT("RW_EVT_STA_DISCONNECTED\r\n");
         //if(g_demo_sta->status != DS_WIFI_DISCONECTED)

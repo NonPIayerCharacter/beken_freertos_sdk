@@ -103,11 +103,11 @@ uint8_t ble_adv_init(void)
 {
 	uint8_t actv_idx;
 	uint8_t adv_data[31];
-	actv_idx = app_ble_get_idle_actv_idx_handle();
+	actv_idx = app_ble_get_idle_actv_idx_handle(ADV_ACTV);
 	bk_ble_create_advertising(actv_idx, 7, 160, 160, bk_ble_cmd_cb);
 	rtos_delay_milliseconds(100);
 
-	#if( (CFG_SOC_NAME == SOC_BK7238))
+	#if( (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N))
 	adv_data[0] = 0x0A;
 	adv_data[1] = 0x09;
 	memcpy(&adv_data[2], "7238_BLE", 9);
@@ -249,7 +249,7 @@ void bk_ble_notice_cb(ble_notice_t notice, void *param)
 	case BLE_5_INIT_CONNECT_EVENT:
 	{
 		conn_ind_t *c_ind = (conn_ind_t *)param;
-		#if (CFG_SOC_NAME == SOC_BK7238)
+		#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 		app_ble_get_peer_feature(c_ind->conn_idx);
 		app_ble_set_le_pkt_size(c_ind->conn_idx,LE_MAX_OCTETS);
 		app_ble_mtu_exchange(c_ind->conn_idx);
@@ -263,7 +263,7 @@ void bk_ble_notice_cb(ble_notice_t notice, void *param)
 	case BLE_5_INIT_DISCONNECT_EVENT:
 	{
 		discon_ind_t *d_ind = (discon_ind_t *)param;
-		#if (CFG_SOC_NAME == SOC_BK7238)
+		#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 		sdp_common_cleanup(d_ind->conn_idx);
 		#endif
 		bk_printf("BLE_5_INIT_DISCONNECT_EVENT:conn_idx:%d,reason:0x%x\r\n", d_ind->conn_idx,d_ind->reason);
@@ -272,10 +272,9 @@ void bk_ble_notice_cb(ble_notice_t notice, void *param)
 	#endif
 	case BLE_5_INIT_CONN_PARAM_UPDATE_REQ_EVENT:
 	{
-		conn_param_t *d_ind = (conn_param_t *)param;
+		conn_param_req_t *d_ind = (conn_param_req_t *)param;
 		bk_printf("BLE_5_INIT_CONN_PARAM_UPDATE_REQ_EVENT:conn_idx:%d,intv_min:%d,intv_max:%d,time_out:%d\r\n",d_ind->conn_idx,
 			d_ind->intv_min,d_ind->intv_max,d_ind->time_out);
-		app_ble_send_conn_param_update_cfm(d_ind->conn_idx,true);
 	}break;
 	
 	case BLE_5_INIT_CONN_PARAM_UPDATE_IND_EVENT:
@@ -283,7 +282,6 @@ void bk_ble_notice_cb(ble_notice_t notice, void *param)
 		conn_update_ind_t *d_ind = (conn_update_ind_t *)param;
 		bk_printf("BLE_5_INIT_CONN_PARAM_UPDATE_IND_EVENT:conn_idx:%d,interval:%d,time_out:%d,latency\r\n",d_ind->conn_idx,
 			d_ind->interval,d_ind->time_out,d_ind->latency);
-		
 	}
 	break;
 	case BLE_5_SDP_REGISTER_FAILED:

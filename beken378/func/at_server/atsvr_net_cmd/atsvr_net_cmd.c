@@ -50,7 +50,9 @@ static void _atsvr_BIPSTART_handle(int argc, char * *argv)
 			atsvr_cmd_rsp_error();
 			return;
 		}
+		memset(&rcvmsg,0,sizeof(pm_socket_info_t));
 
+		os_memset(&rcvmsg, 0, sizeof(pm_socket_info_t));
 		rcvmsg.linkid		= atoi(argv[1]);
 
 		if ((strcmp(argv[2], "TCP") == 0) || (strcmp(argv[2], "tcp") == 0))

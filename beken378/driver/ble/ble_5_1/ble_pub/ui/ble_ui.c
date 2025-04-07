@@ -385,69 +385,26 @@ ble_err_t bk_ble_set_ext_scan_rsp_data(uint8_t actv_idx, unsigned char* scan_buf
 
 /////////////////////////////// ble connected API /////////////////////////////////////////////
 ble_err_t bk_ble_update_param(uint8_t conn_idx, uint16_t intv_min, uint16_t intv_max,
-					uint16_t latency, uint16_t sup_to, ble_cmd_cb_t callback)
+					uint16_t latency, uint16_t sup_to)
 {
-	uint32_t op_mask;
-	ble_err_t ret = ERR_SUCCESS;
 	struct gapc_conn_param conn_param;
 
-	if (app_ble_env_state_get() == APP_BLE_READY) {
-		op_mask = 1 << BLE_OP_UPDATE_CONN_POS;
-		app_ble_run(conn_idx, BLE_CONN_UPDATE_PARAM,op_mask, callback);
-		conn_param.intv_min = intv_min;
-		conn_param.intv_max = intv_max;
-		conn_param.latency = latency;
-		conn_param.time_out = sup_to;
-		ret = app_ble_update_param(conn_idx, &conn_param);
-		if (ret != ERR_SUCCESS) {
-			app_ble_reset();
-		}
-	} else {
-		bk_printf("ble is not ready\r\n");
-		ret = ERR_BLE_STATUS;
-	}
+	conn_param.intv_min = intv_min;
+	conn_param.intv_max = intv_max;
+	conn_param.latency = latency;
+	conn_param.time_out = sup_to;
 
-	return ret;
+	return app_ble_update_param(conn_idx, &conn_param);
 }
 
-ble_err_t bk_ble_disconnect(uint8_t conn_idx, ble_cmd_cb_t callback)
+ble_err_t bk_ble_disconnect(uint8_t conn_idx)
 {
-	uint32_t op_mask;
-	ble_err_t ret = ERR_SUCCESS;
-
-	if (app_ble_env_state_get() == APP_BLE_READY) {
-		op_mask = 1 << BLE_OP_DIS_CONN_POS;
-		app_ble_run(conn_idx, BLE_CONN_DIS_CONN, op_mask, callback);
-		ret = app_ble_disconnect(conn_idx, COMMON_ERROR_REMOTE_USER_TERM_CON);
-		if (ret != ERR_SUCCESS) {
-			app_ble_reset();
-		}
-	} else {
-		bk_printf("ble is not ready\r\n");
-		ret = ERR_BLE_STATUS;
-	}
-
-	return ret;
+	return app_ble_disconnect(conn_idx, COMMON_ERROR_REMOTE_USER_TERM_CON);
 }
 
-ble_err_t bk_ble_gatt_mtu_change(uint8_t conn_idx,ble_cmd_cb_t callback)
+ble_err_t bk_ble_gatt_mtu_change(uint8_t conn_idx)
 {
-	uint32_t op_mask;
-	ble_err_t ret = ERR_SUCCESS;
-
-	if (app_ble_env_state_get() == APP_BLE_READY) {
-		op_mask = 1 << BLE_OP_MTU_CHANGE_POS;
-		app_ble_run(conn_idx, BLE_CONN_UPDATE_MTU, op_mask, callback);
-		ret = app_ble_gatt_mtu_change(conn_idx);
-		if (ret != ERR_SUCCESS) {
-			app_ble_reset();
-		}
-	} else {
-		bk_printf("ble is not ready\r\n");
-		ret = ERR_BLE_STATUS;
-	}
-
-	return ret;
+	return app_ble_gatt_mtu_change(conn_idx);
 }
 
 /////////////////////////////// ble scan API /////////////////////////////////////////////
@@ -616,52 +573,41 @@ ble_err_t bk_ble_init_stop_conn(uint8_t con_idx,ble_cmd_cb_t callback)
 	return ret;
 }
 
+ble_err_t bk_ble_delete_init(uint8_t actv_idx, ble_cmd_cb_t callback)
+{
+	uint32_t op_mask;
+	ble_err_t ret = ERR_SUCCESS;
+
+	if (app_ble_env_state_get() == APP_BLE_READY) {
+		op_mask = 1 << BLE_OP_INIT_DEL_POS;
+		app_ble_run(actv_idx, BLE_INIT_DELETE, op_mask, callback);
+		ret = appm_delete_initing(actv_idx);
+		if (ret != ERR_SUCCESS) {
+			app_ble_reset();
+		}
+	} else {
+		bk_printf("ble is not ready\r\n");
+		ret = ERR_BLE_STATUS;
+	}
+
+	return ret;
+}
+
+
 void bk_ble_sdp_register_filt_service_tab(unsigned char service_tab_nb,app_sdp_service_uuid *service_tab)
 {
 	app_sdp_env.service_tab_nb = service_tab_nb;
 	app_sdp_env.service_tab = service_tab;
 }
 
-ble_err_t bk_ble_read_service_data_by_handle_req(uint8_t conidx,uint16_t handle,ble_cmd_cb_t callback)
+ble_err_t bk_ble_read_service_data_by_handle_req(uint8_t conidx,uint16_t handle)
 {
-	uint32_t op_mask;
-	ble_err_t ret = ERR_SUCCESS;
-
-	if (app_ble_env_state_get() == APP_BLE_READY) {
-		op_mask = 1 << BLE_OP_INIT_READ_CHAR_POS;
-		app_ble_run(conidx, BLE_INIT_READ_CHAR, op_mask, callback);
-		ret = appm_read_service_data_by_handle_req(conidx,handle);
-		if (ret != 0) {
-			app_ble_reset();
-			ret = ERR_INIT_CREATE;
-		}
-	} else {
-		bk_printf("ble is not ready\r\n");
-		ret = ERR_BLE_STATUS;
-	}
-
-	return ret;
+	return appm_read_service_data_by_handle_req(conidx,handle);
 }
 
-ble_err_t bk_ble_write_service_data_req(uint8_t conidx,uint16_t handle,uint16_t data_len,uint8_t *data,ble_cmd_cb_t callback)
+ble_err_t bk_ble_write_service_data_req(uint8_t conidx,uint16_t handle,uint16_t data_len,uint8_t *data)
 {
-	uint32_t op_mask;
-	ble_err_t ret = ERR_SUCCESS;
-
-	if (app_ble_env_state_get() == APP_BLE_READY) {
-		op_mask = 1 << BLE_OP_INIT_WRITE_CHAR_POS;
-		app_ble_run(conidx, BLE_INIT_WRITE_CHAR, op_mask, callback);
-		ret = appc_write_service_data_req(conidx,handle,data_len,data);
-		if (ret != 0) {
-			app_ble_reset();
-			ret = ERR_INIT_CREATE;
-		}
-	} else {
-		bk_printf("ble is not ready\r\n");
-		ret = ERR_BLE_STATUS;
-	}
-
-	return ret;
+	return appc_write_service_data_req(conidx,handle,data_len,data);
 }
 
 #endif

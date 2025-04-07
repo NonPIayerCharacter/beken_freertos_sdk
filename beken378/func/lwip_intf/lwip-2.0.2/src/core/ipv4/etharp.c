@@ -54,7 +54,7 @@
 #include "netif/ethernet.h"
 #include "lwip_netif_address.h"
 #include "net.h"
-
+#include "rtos_pub.h"
 #include <string.h>
 #if (1 == CFG_LOW_VOLTAGE_PS)
 #include "low_voltage_ps.h"
@@ -107,7 +107,9 @@ struct etharp_entry {
 };
 
 static struct etharp_entry arp_table[ARP_TABLE_SIZE];
-
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+static beken2_timer_t arp_conflict_tmr = {0};
+#endif
 #if !LWIP_NETIF_HWADDRHINT
 static u8_t etharp_cached_entry;
 #endif /* !LWIP_NETIF_HWADDRHINT */
@@ -732,6 +734,22 @@ etharp_input(struct pbuf *p, struct netif *netif)
      * @todo How should we handle redundant (fail-over) interfaces? */
     dhcp_arp_reply(netif, &sipaddr);
 #endif /* (LWIP_DHCP && DHCP_DOES_ARP_CHECK) */
+#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+    if (ip4_addr_cmp(&sipaddr, netif_ip4_addr(netif))) {
+        bk_printf("ip conflict!!!\r\n");
+        if (rtos_is_oneshot_timer_init(&arp_conflict_tmr) == 0) {
+            int clk_time = 1000;
+            rtos_init_oneshot_timer(&arp_conflict_tmr,
+                                                    clk_time,
+                                                    (timer_2handler_t)net_restart_dhcp,
+                                                    NULL,
+                                                    NULL);
+        }
+        if (rtos_is_oneshot_timer_running(&arp_conflict_tmr) == 0) {
+            rtos_start_oneshot_timer(&arp_conflict_tmr);
+        }
+    }
+#endif
     break;
   default:
     LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_input: ARP unknown opcode type %"S16_F"\n", lwip_htons(hdr->opcode)));
@@ -1159,7 +1177,10 @@ etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr,
   {
     ethernet_output(netif, p, ethsrc_addr, ethdst_addr, ETHTYPE_ARP);
 #if (1 == CFG_LOW_VOLTAGE_PS)
-    lv_ps_update_arp_send_time();
+    if (LV_PS_ENABLED)
+    {
+      lv_ps_update_arp_send_time();
+    }
 #endif
   }
 

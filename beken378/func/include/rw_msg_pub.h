@@ -8,22 +8,44 @@ typedef enum {
 
 typedef enum {
     /* for station mode */
-	RW_EVT_STA_IDLE = 0,
-	RW_EVT_STA_CONNECTING,
+    RW_EVT_STA_IDLE = 0,
+    RW_EVT_STA_CONNECTING,
     RW_EVT_STA_BEACON_LOSE,
     RW_EVT_STA_PASSWORD_WRONG,
     RW_EVT_STA_NO_AP_FOUND,
     RW_EVT_STA_ASSOC_FULL,
-    RW_EVT_STA_DISCONNECTED,    /* disconnect with server */
-    RW_EVT_STA_CONNECT_FAILED, /* authentication failed */
-	RW_EVT_STA_CONNECTED,	 /* authentication success */
-	RW_EVT_STA_GOT_IP,
+    RW_EVT_STA_DEAUTH,
+    RW_EVT_STA_AUTH_FAILED,
+    RW_EVT_STA_DISASSOC,
+    RW_EVT_STA_ASSOC_FAILED,
+    RW_EVT_STA_ACTIVE_DISCONNECTED,
+    RW_EVT_STA_CONNECTED,
+    RW_EVT_STA_GOT_IP,
     /* for softap mode */
     RW_EVT_AP_CONNECTED,          /* a client association success */
     RW_EVT_AP_DISCONNECTED,    /* a client disconnect */
     RW_EVT_AP_CONNECT_FAILED, /* a client association failed */
+    RW_EVT_AP_GOT_IP,
     RW_EVT_MAX
 }rw_evt_type;
+
+typedef enum {
+    RW_STG_STA_IDLE = 0,
+    RW_STG_STA_SCAN,
+    RW_STG_STA_AUTH,
+    RW_STG_STA_EXT_AUTH,
+    RW_STG_STA_ASSOC,
+    RW_STG_STA_KEY_HANDSHARK,
+    RW_STG_STA_GET_IP,
+    RW_STG_STA_COMPLETE
+}rw_stage_type;
+
+typedef struct wlan_status_s {
+    rw_evt_type evt_type;
+    uint8_t mac[6];
+    uint16_t reason_code;
+    uint32_t ipaddr;
+}wlan_status_t;
 
 /** @brief Structure describing WiFi country-based regional restrictions. */
 typedef struct {
@@ -58,6 +80,8 @@ typedef struct scanu_rst_upload
 
 extern void mhdr_set_station_status(rw_evt_type val);
 extern rw_evt_type mhdr_get_station_status(void);
+extern void mhdr_set_station_stage(rw_stage_type val);
+extern rw_stage_type mhdr_get_station_stage(void);
 UINT32 rw_ieee80211_set_country(const wifi_country_t *country);
 UINT32 rw_ieee80211_get_country(wifi_country_t *country);
 

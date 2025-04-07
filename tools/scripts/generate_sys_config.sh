@@ -34,6 +34,9 @@ case $1 in
 	bk7238)
 		new_sys_config=beken378/app/config/sys_config_bk7238.h
 		;;
+	bk7252n)
+		new_sys_config=beken378/app/config/sys_config_bk7252n.h
+		;;
 	bk7251)
 		new_sys_config=beken378/app/config/sys_config_bk7251.h
 		;;
@@ -41,7 +44,7 @@ case $1 in
 		new_sys_config=beken378/app/config/sys_config_bk7231.h
 		;;
 	*)
-		new_sys_config=beken378/app/config/$1.h
+		new_sys_config=beken378/app/config/sys_config_$1.h
 esac
 
 if [ -f $new_sys_config ]; then

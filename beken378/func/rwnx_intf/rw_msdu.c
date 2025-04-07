@@ -44,6 +44,11 @@
 #define ETH_TYPE_EAPOL	   0x888E
 #endif
 #endif
+#include "ethernetif.h"
+#include <stdio.h>
+#include <string.h>
+#include "netif/etharp.h"
+#include "lwip_netif_address.h"
 
 void ethernetif_input(int iface, struct pbuf *p);
 UINT32 rwm_transfer_node(MSDU_NODE_T *node, u16 flag);
@@ -513,7 +518,8 @@ extern size_t xPortGetFreeHeapSize( void );
     if (rwm_check_tx_bufing(node))
     {
         rwm_tx_bufing_save_data(node);
-        return ret;
+        ret = RW_SUCCESS;
+        goto tx_exit;
     }
 #endif
 
@@ -908,7 +914,191 @@ void ethernetif_input_amsdu(RW_RXIFO_PTR rx_info, struct pbuf *p)
 
     pbuf_free(p);
 }
+#if CFG_RWNX_REODER
+static uint8_t ooo_pkt_cnt = 0;
+static uint16_t win_start = 0;
+static uint8_t rx_status_pos = 0;
+uint32_t sn_rx_time = 0;
+#define RX_REORD_WIN_SIZE 6
 
+struct rwm_reord_elt
+{
+    /// Host Buffer Address
+    struct pbuf *host_address;
+};
+struct rwm_reord_elt Element[RX_REORD_WIN_SIZE] = {NULL};
+
+static void rwm_reorder_update(void)
+{
+    Element[rx_status_pos].host_address = NULL;
+    win_start = (win_start + 1) & MAC_SEQCTRL_NUM_MAX;
+    rx_status_pos = (rx_status_pos + 1) % RX_REORD_WIN_SIZE;
+}
+
+static void rwm_reorder_fwd(uint8_t vif_idx)
+{
+    while (Element[rx_status_pos].host_address != NULL)
+    {
+        //msdu upload directly
+        ethernetif_input(vif_idx, Element[rx_status_pos].host_address);
+
+        // Update the reordering window
+        rwm_reorder_update();
+
+        ooo_pkt_cnt--;
+    }
+}
+
+struct mm_timer_tag rwm_reorder_timer;
+void rwm_reord_timeout_cb(void *env)
+{
+    // Restart reordering timer
+    uint8_t *vif_index = (uint8_t *)env;
+    mm_timer_set(&rwm_reorder_timer, rwm_reorder_timer.time + RX_CNTRL_REORD_MAX_WAIT);
+
+    do
+    {
+        // Check if there is at least a packet waiting
+        if (!ooo_pkt_cnt)
+            break;
+
+        // Check if we spent too much time waiting for an SN
+        if (!hal_machw_time_past(sn_rx_time + RX_CNTRL_REORD_MAX_WAIT))
+            break;
+
+        if (Element[rx_status_pos].host_address == NULL)
+        {
+            // Consider the next waited packet as received
+            rwm_reorder_update();
+        }
+
+        // Send the data
+        rwm_reorder_fwd(*vif_index);
+    } while (0);
+}
+
+static void rwm_reorder_flush(uint8_t vif_idx, uint16_t sn_skipped)
+{
+    // Forward all packets that have already been received
+    for (uint16_t i = 0; (i < sn_skipped) && ooo_pkt_cnt; i++)
+    {
+        uint8_t index = (rx_status_pos + i) % RX_REORD_WIN_SIZE;
+
+        if (Element[index].host_address != NULL)
+        {
+            // Data has already been copied in host memory and can now be forwarded
+            ethernetif_input(vif_idx, Element[index].host_address);
+
+            // Remove the unordered element from the structure
+            Element[index].host_address = NULL;
+
+            ooo_pkt_cnt--;
+        }
+    }
+
+    win_start     = (win_start + sn_skipped) & MAC_SEQCTRL_NUM_MAX;
+    rx_status_pos = (rx_status_pos + sn_skipped) % RX_REORD_WIN_SIZE;
+}
+
+bool is_first_packet = true;
+UINT32 rwm_upload_data(RW_RXIFO_PTR rx_info)
+{
+    struct pbuf *p = (struct pbuf *)rx_info->data;
+    struct eth_hdr *ethhdr;
+    ethhdr = p->payload;
+    STA_INF_PTR sta_entry;
+    uint16_t sn_pos;
+
+    os_null_printf("s:%d, v:%d, sn:%d, d:%d, r:%d, c:%d, l:%d, %p\r\n",
+                   rx_info->sta_idx,
+                   rx_info->vif_idx,
+                   rx_info->sn,
+                   rx_info->dst_idx,
+                   rx_info->rssi,
+                   rx_info->center_freq,
+                   rx_info->length,
+                   rx_info->data);
+
+    sta_entry = rwm_mgmt_sta_idx2ptr(rx_info->sta_idx);
+    if (sta_entry)
+        sta_entry->rssi = rx_info->rssi;
+
+    if (rx_info->rx_dmadesc_flags & RX_FLAGS_IS_AMSDU_BIT)
+    {
+        /* A-MSDU subframe, convert like 'rxu_cntrl_mac2eth_update()' and then pass it to lwip */
+        ethernetif_input_amsdu(rx_info, p);
+        return RW_SUCCESS;
+    }
+
+    if (htons(ethhdr->type) == 0x80) {
+        if(is_first_packet){
+            win_start = rx_info->sn;
+            rx_status_pos = win_start % RX_REORD_WIN_SIZE;
+            is_first_packet = false;
+            rwm_reorder_timer.cb = rwm_reord_timeout_cb;
+            rwm_reorder_timer.env = &rx_info->vif_idx;
+            mm_timer_set(&rwm_reorder_timer, sn_rx_time + RX_CNTRL_REORD_MAX_WAIT);
+        }
+
+        if (rx_info->sn == win_start) {
+
+            //msdu upload directly
+            ethernetif_input(rx_info->vif_idx, p);
+
+            // Store current time
+            extern uint32_t sn_rx_time;
+            sn_rx_time = hal_machw_time();
+
+            //Update the RX Window
+            rwm_reorder_update();
+
+            // And forward any ready frames
+            rwm_reorder_fwd(rx_info->vif_idx);
+
+            return RW_SUCCESS;
+
+        } else {
+
+            sn_pos = (rx_info->sn - win_start) & MAC_SEQCTRL_NUM_MAX;
+
+            if (sn_pos >= RX_REORD_WIN_SIZE) {
+                if (sn_pos < (MAC_SEQCTRL_NUM_MAX >> 1)) {
+
+                    // Move the window
+                    rwm_reorder_flush(rx_info->vif_idx, sn_pos - RX_REORD_WIN_SIZE + 1);
+
+                    // Recompute the SN position
+                    sn_pos = (rx_info->sn - win_start) & MAC_SEQCTRL_NUM_MAX;
+
+                } else {
+
+                    pbuf_free(p);
+                    return RW_FAILURE;
+
+                }
+            }
+
+            sn_pos = (sn_pos + rx_status_pos) % RX_REORD_WIN_SIZE;
+
+            if (Element[sn_pos].host_address != NULL) {
+
+                pbuf_free(p);
+                return RW_FAILURE;
+            }
+
+            //alloc memory and save p_buf address to p
+            Element[sn_pos].host_address = p;
+
+            ooo_pkt_cnt++;
+        }
+    } else {
+
+        ethernetif_input(rx_info->vif_idx, p);
+    }
+
+    return RW_SUCCESS;
+}
+#else
 UINT32 rwm_upload_data(RW_RXIFO_PTR rx_info)
 {
     struct pbuf *p = (struct pbuf *)rx_info->data;
@@ -957,6 +1147,7 @@ UINT32 rwm_upload_data(RW_RXIFO_PTR rx_info)
 
     return RW_SUCCESS;
 }
+#endif
 
 UINT32 rwm_uploaded_data_handle(UINT8 *upper_buf, UINT32 len)
 {

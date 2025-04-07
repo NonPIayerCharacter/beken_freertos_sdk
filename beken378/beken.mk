@@ -166,6 +166,30 @@ $(NAME)_SOURCES +=  driver/spi/spi_bk7231n.c \
 					driver/spi/spi_master_bk7231n.c \
 					driver/spi/spi_slave_bk7231n.c
 endif
+ifeq ($(CFG_SOC_NAME), 8)
+$(NAME)_SOURCES +=  driver/rtc/rtc_reg.c \
+					driver/irda/irda_bk7252n.c \
+					driver/i2s/i2s_bk7252n.c \
+					driver/sdcard/sdcard.c \
+					driver/sdcard/sdio_driver \
+					func/sd_music/sdcard_test.c \
+					driver/charge/charge.c \
+					driver/hpm/hpm.c \
+					driver/audio/audio.c \
+					driver/la/la.c \
+					driver/general_dma/general_dma_bk7252n.c \
+					driver/qspi/qspi_bk7252n.c \
+					driver/jpeg/jpeg.c \
+					driver/yuv_buf/yuv_buf.c \
+					driver/i2c/i2c1_bk7252n.c \
+					driver/ipchksum/ipchksum.c
+$(NAME)_INCLUDES += driver/rtc \
+					driver/sdcard \
+					func/sd_music \
+					driver/audio \
+					driver/yuv_buf \
+					driver/ipchksum
+endif
 
 ifeq ($(CFG_WRAP_LIBC), 1)
 $(NAME)_INCLUDES += func/libc

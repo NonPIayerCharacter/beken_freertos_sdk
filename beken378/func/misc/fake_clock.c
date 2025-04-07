@@ -17,7 +17,11 @@
 #if CFG_SUPPORT_LITEOS
 #include "bk_los_timer.h"
 #endif
+#if !(CFG_SOC_NAME == SOC_BK7252N)
 #include "calendar_pub.h"
+#else
+#include "rtc_reg_pub.h"
+#endif
 
 #if(CFG_OS_FREERTOS && CFG_TASK_WDG_ENABLED)
 #include "BkDriverTimer.h"
@@ -409,7 +413,11 @@ void fclk_cal_init(void)
     UINT64 fclk, time_us;
 
     fclk = BK_TICKS_TO_MS(fclk_get_tick());
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     time_us = cal_get_time_us();
+#else
+    time_us = rtc_reg_get_time_us();
+#endif
 
     cal_tick_save.fclk_tick = fclk;
     cal_tick_save.time_us = time_us;
@@ -424,7 +432,11 @@ void fclk_cal_tick(void)
     GLOBAL_INT_DISABLE();
 
     delta_fclk = fclk_get_tick() - cal_tick_save.fclk_tick;
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     delta_time = cal_get_time_us() - cal_tick_save.time_us;
+#else
+    delta_time = rtc_reg_get_time_us() - cal_tick_save.time_us;
+#endif
 
     lost = (INT32)(delta_time/1000 - BK_TICKS_TO_MS(delta_fclk));
     os_null_printf("tick lost:%d\r\n", lost);
@@ -495,7 +507,7 @@ void fclk_timer_hw_init(BK_HW_TIMER_INDEX timer_id)
 #endif
 
         param.p_Int_Handler   = fclk_hdl;
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
+#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         param.duty_cycle1     = 0;
 #else
         param.duty_cycle      = 0;

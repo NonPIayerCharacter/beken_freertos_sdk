@@ -111,18 +111,20 @@ extern const char  *flash_name[];  /**< A name string of a Flash drive */
 
 /**@brief   Initialises flash driver
 *
-* @param   inPartition: 
-* @return    kNoErr        : On success.
-* @return    kGeneralErr   : If an error occurred with any step
+* @param   none: 
+* @return    
+*       - kNoErr        : on success.
+*       - kGeneralErr   : if an error occurred with any step
 */
 OSStatus BkFlashInit(void);
 
 
 /**@brief   De-initialise flash driver
  *
- * @param   inPartition: 
- * @return    kNoErr        : On success.
- * @return    kGeneralErr   : If an error occurred with any step
+ * @param   none: 
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkFlashUninit(void);
 
@@ -146,8 +148,9 @@ bk_logic_partition_t *bk_flash_get_info( bk_partition_t inPartition );
  * @param  off_set         : Start address of the erased flash area
  * @param  size    	   : Size of the erased flash area
  *
- * @return  kNoErr        : On success.
- * @return  kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_flash_erase(bk_partition_t inPartition, uint32_t off_set, uint32_t size);
 
@@ -158,8 +161,9 @@ OSStatus bk_flash_erase(bk_partition_t inPartition, uint32_t off_set, uint32_t s
  * @param  inBuffer       : point to the data buffer that will be written to flash
  * @param  inBufferLength : The length of the buffer
  *
- * @return  kNoErr        : On success.
- * @return  kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_flash_write( bk_partition_t inPartition, volatile uint32_t off_set, uint8_t *inBuffer , uint32_t inBufferLength);
 
@@ -170,8 +174,9 @@ OSStatus bk_flash_write( bk_partition_t inPartition, volatile uint32_t off_set, 
  * @param    outBuffer      : Point to the data buffer that stores the data read from flash
  * @param    inBufferLength : The length of the buffer
  *
- * @return    kNoErr        : On success.
- * @return    kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_flash_read( bk_partition_t inPartition, volatile uint32_t off_set, uint8_t *outBuffer, uint32_t inBufferLength);
 
@@ -181,8 +186,9 @@ OSStatus bk_flash_read( bk_partition_t inPartition, volatile uint32_t off_set, u
  *
  * @param     type     :  the type of protect, seen PROTECT_TYPE
  *
- * @return    kNoErr        : On success.
- * @return    kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_flash_enable_security(PROTECT_TYPE type );
 
@@ -191,8 +197,9 @@ OSStatus bk_flash_enable_security(PROTECT_TYPE type );
  *
  * @param    protect_flag   : the type of protect, seen PROTECT_TYPE
  *
- * @return    kNoErr        : On success.
- * @return    kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus bk_flash_get_security(PROTECT_TYPE *protect_flag);
 
@@ -204,8 +211,9 @@ OSStatus bk_flash_get_security(PROTECT_TYPE *protect_flag);
  * @param  size           : The length of the buffer
  * @param  eraseflag      : whether erase flash before Write
  *
- * @return  kNoErr        : On success.
- * @return  kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 int bk_flash_abs_addr_write(unsigned int  off_set, const unsigned char *inBuffer , unsigned int  size,unsigned char eraseflag);
 
@@ -220,8 +228,9 @@ int bk_flash_abs_addr_write(unsigned int  off_set, const unsigned char *inBuffer
  * @param  flashOffset     : Start address of the erased flash address
  * @param  size            : Size of the erased flash 
  *
- * @return  kNoErr        : On success.
- * @return  kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 int bk_flash_abs_addr_erase(unsigned int flashOffset, unsigned int size);
 
@@ -233,8 +242,9 @@ int bk_flash_abs_addr_erase(unsigned int flashOffset, unsigned int size);
  * @param    outBuffer      : Point to the data buffer that stores the data read from flash
  * @param    size           : The length of the buffer
  *
- * @return    kNoErr        : On success.
- * @return    kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 int bk_flash_abs_addr_read(unsigned int off_set, unsigned char *outBuffer, unsigned int size);
 
@@ -248,8 +258,9 @@ int bk_flash_abs_addr_read(unsigned int off_set, unsigned char *outBuffer, unsig
  *                          update this start address.
  * @param    size          : Size of disabled flash area
  *
- * @return   kNoErr        : On success.
- * @return   kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 OSStatus BkFlashDisableSecurity( bk_partition_t partition, uint32_t off_set, uint32_t size );
 #endif
@@ -260,8 +271,9 @@ OSStatus BkFlashDisableSecurity( bk_partition_t partition, uint32_t off_set, uin
  * @param    out_buf        : Point to the data buffer that stores the data read from otp
  * @param    buf_len        : The length of the buffer
  *
- * @return    kNoErr        : On success.
- * @return    kGeneralErr   : If an error occurred with any step
+ * @return    
+ *       - kNoErr        : on success.
+ *       - kGeneralErr   : if an error occurred with any step
  */
 uint32_t bk_flash_read_otp(uint32_t off_set, uint8_t *out_buf, uint32_t buf_len);
 

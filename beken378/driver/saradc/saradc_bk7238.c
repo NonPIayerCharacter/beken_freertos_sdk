@@ -9,9 +9,12 @@
 #include "uart_pub.h"
 #include "mcu_ps_pub.h"
 #include "sys_ctrl_pub.h"
+#if ((CFG_SOC_NAME == SOC_BK7252N) || (CFG_SOC_NAME == SOC_BK7238))
+#include "temp_detect_pub.h"
+#endif
 #include <string.h>
 
-#if (CFG_SOC_NAME == SOC_BK7238)
+#if ((CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N))
 #define SARADC_XTAL_FREQUENCE_IN_MHZ (CFG_XTAL_FREQUENCE/1000000)
 #define SARADC_ANALOG_STABLE_TIME_US 32
 
@@ -139,6 +142,13 @@ static void saradc_gpio_config(void)
 		sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
 		break;
 	}
+#if (CFG_SOC_NAME == SOC_BK7252N)
+    case 7: {
+		param = GFUNC_MODE_ADC7;
+		sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+		break;
+	}
+#endif
 
 	default:
 		break;
@@ -214,17 +224,20 @@ static UINT32 saradc_open(UINT32 op_flag)
                     | (SARADC_ADC_DROP_NUM_MASK << SARADC_ADC_DROP_NUM_POSI));
     config_value |= ((saradc_desc->channel & SARADC_ADC_CHNL_MASK) << SARADC_ADC_CHNL_POSI)
                     | ((4 & SARADC_ADC_DROP_NUM_MASK) << SARADC_ADC_DROP_NUM_POSI);
-    if ((7 == saradc_desc->channel) || (8 == saradc_desc->channel))
+    if ((ADC_TEMP_SENSER_CHANNEL == saradc_desc->channel) || (ADC_TSSI_SENSER_CHANNEL == saradc_desc->channel))
     {
         config_value |= SARADC_ADC_SAT_ENABLE
             | ((0x00 & SARADC_ADC_SAT_CTRL_MASK) << SARADC_ADC_SAT_CTRL_POSI);
+        config_value &= ~(SARADC_ADC_SUM_FILTER_MASK << SARADC_ADC_SUM_FILTER_POSI);
+        config_value |= ((0x00 & SARADC_ADC_SUM_FILTER_MASK) << SARADC_ADC_SUM_FILTER_POSI);
     }
     else
     {
         /* zhangheng20221014: sum(v0,v1,v2,v3) as value for voltage */
         config_value |= SARADC_ADC_SAT_ENABLE
-            | ((0x00 & SARADC_ADC_SAT_CTRL_MASK) << SARADC_ADC_SAT_CTRL_POSI)
-            | ((0x03 & SARADC_ADC_SUM_FILTER_MASK) << SARADC_ADC_SUM_FILTER_POSI);
+            | ((0x00 & SARADC_ADC_SAT_CTRL_MASK) << SARADC_ADC_SAT_CTRL_POSI);
+        config_value &= ~(SARADC_ADC_SUM_FILTER_MASK << SARADC_ADC_SUM_FILTER_POSI);
+        config_value |= ((0x03 & SARADC_ADC_SUM_FILTER_MASK) << SARADC_ADC_SUM_FILTER_POSI);
     }
     REG_WRITE(SARADC_ADC_CONFIG2, config_value);
 

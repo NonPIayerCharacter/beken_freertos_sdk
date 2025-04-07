@@ -4,6 +4,9 @@
 #if CFG_USE_SDCARD_HOST
 
 #include "sdio_driver.h"
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#include "sdcard_pub.h"
+#endif
 
 #include "drv_model_pub.h"
 #include "sys_ctrl_pub.h"
@@ -71,7 +74,12 @@ void sdio_register_reset(void)
     REG_WRITE(REG_SDCARD_CMD_RSP_INT_SEL, reg);
 
     /* Clear tx/rx fifo */
+#if !(CFG_SOC_NAME == SOC_BK7252N)
     reg = SDCARD_FIFO_RX_FIFO_RST | SDCARD_FIFO_TX_FIFO_RST;
+#else
+    reg &= ~(SDCARD_FIFO_RX_FIFO_RST | SDCARD_FIFO_TX_FIFO_RST | SDCARD_FIFO_SD_STA_RST);
+    reg |=  (0x01 & SDCARD_FIFO_SD_CLK_SEL_MASK)<< SDCARD_FIFO_SD_CLK_SEL_POSI;
+#endif
     REG_WRITE(REG_SDCARD_FIFO_THRESHOLD, reg);
 
     /* Disabe all sdio interrupt */
@@ -269,6 +277,96 @@ SDIO_Error sdcard_wait_receive_data(UINT8 *receive_buf)
 
     return SD_OK;
 }
+
+#if (CFG_SOC_NAME == SOC_BK7252N)
+__maybe_unused static void sdio_set_write_data(UINT32 size)
+{
+    UINT32 reg;
+
+    reg = REG_READ(REG_SDCARD_FIFO_THRESHOLD);
+    reg = reg | SDCARD_FIFO_TX_FIFO_RST | SDCARD_FIFO_SD_STA_RST;
+    REG_WRITE(REG_SDCARD_FIFO_THRESHOLD, reg);
+
+    reg = REG_READ(REG_SDCARD_DATA_REC_CTRL);
+#ifdef CONFIG_SDCARD_BUSWIDTH_4LINE
+    reg = reg | SDCARD_DATA_REC_CTRL_DATA_BUS;
+#else
+    reg = reg & ~SDCARD_DATA_REC_CTRL_DATA_BUS;
+#endif
+    reg = reg & ~SDCARD_DATA_REC_CTRL_DATA_MUL_BLK;
+    reg = reg | ((size & SDCARD_DATA_REC_CTRL_BLK_SIZE_MASK)
+                 << SDCARD_DATA_REC_CTRL_BLK_SIZE_POSI)
+              | SDCARD_DATA_REC_CTRL_DATA_BYTE_SEL;
+    REG_WRITE(REG_SDCARD_DATA_REC_CTRL, reg);
+}
+
+__maybe_unused static void sdio_set_write_multi_block_data(UINT32 size)
+{
+    UINT32 reg;
+
+    reg = REG_READ(REG_SDCARD_FIFO_THRESHOLD);
+    reg = reg | SDCARD_FIFO_TX_FIFO_RST | SDCARD_FIFO_SD_STA_RST;
+    REG_WRITE(REG_SDCARD_FIFO_THRESHOLD, reg);
+
+    reg = REG_READ(REG_SDCARD_DATA_REC_CTRL);
+#ifdef CONFIG_SDCARD_BUSWIDTH_4LINE
+    reg = reg | SDCARD_DATA_REC_CTRL_DATA_BUS;
+#else
+    reg = reg & ~SDCARD_DATA_REC_CTRL_DATA_BUS;
+#endif
+    reg = reg | SDCARD_DATA_REC_CTRL_DATA_MUL_BLK;
+    reg = reg | ((size & SDCARD_DATA_REC_CTRL_BLK_SIZE_MASK)
+                 << SDCARD_DATA_REC_CTRL_BLK_SIZE_POSI)
+              | SDCARD_DATA_REC_CTRL_DATA_BYTE_SEL;
+    REG_WRITE(REG_SDCARD_DATA_REC_CTRL, reg);
+}
+
+__maybe_unused static void sdio_set_read_data(UINT32 block_size)
+{
+    UINT32 reg;
+
+    reg = REG_READ(REG_SDCARD_FIFO_THRESHOLD);
+    reg = reg | SDCARD_FIFO_RX_FIFO_RST | SDCARD_FIFO_SD_STA_RST;
+    REG_WRITE(REG_SDCARD_FIFO_THRESHOLD, reg);
+
+    reg = REG_READ(REG_SDCARD_DATA_REC_CTRL);
+#ifdef CONFIG_SDCARD_BUSWIDTH_4LINE
+    reg = reg | SDCARD_DATA_REC_CTRL_DATA_BUS;
+#else
+    reg = reg & ~SDCARD_DATA_REC_CTRL_DATA_BUS;
+#endif
+
+    reg = reg & ~SDCARD_DATA_REC_CTRL_DATA_MUL_BLK;
+    reg = reg | ((block_size & SDCARD_DATA_REC_CTRL_BLK_SIZE_MASK)
+                 << SDCARD_DATA_REC_CTRL_BLK_SIZE_POSI)
+              | SDCARD_DATA_REC_CTRL_DATA_BYTE_SEL;
+    REG_WRITE(REG_SDCARD_DATA_REC_CTRL, reg);
+}
+
+__maybe_unused static void sdio_set_read_multi_block_data(UINT32 block_size)
+{
+    UINT32 reg;
+
+    reg = REG_READ(REG_SDCARD_FIFO_THRESHOLD);
+    reg = reg | SDCARD_FIFO_RX_FIFO_RST | SDCARD_FIFO_SD_STA_RST;
+    REG_WRITE(REG_SDCARD_FIFO_THRESHOLD, reg);
+
+    reg = REG_READ(REG_SDCARD_DATA_REC_CTRL);
+#ifdef CONFIG_SDCARD_BUSWIDTH_4LINE
+    reg = reg | SDCARD_DATA_REC_CTRL_DATA_BUS;
+#else
+    reg = reg & ~SDCARD_DATA_REC_CTRL_DATA_BUS;
+#endif
+
+    reg = reg | SDCARD_DATA_REC_CTRL_DATA_MUL_BLK;
+    reg = reg | ((block_size & SDCARD_DATA_REC_CTRL_BLK_SIZE_MASK)
+                 << SDCARD_DATA_REC_CTRL_BLK_SIZE_POSI)
+    //WARNING:sdio wires transfer data with little-endian, but FATFS and windows File-system uses big-endian
+    //so switch byte sequence when receive data
+              | SDCARD_DATA_REC_CTRL_DATA_BYTE_SEL;
+    REG_WRITE(REG_SDCARD_DATA_REC_CTRL, reg);
+}
+#endif
 
 #if 0
 SDIO_Error sdcard_write_data(UINT8 *writebuff, UINT32 block)

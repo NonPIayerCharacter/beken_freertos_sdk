@@ -66,7 +66,14 @@ enum gatt_db_access
  * TYPE DEFINITIONS
  ****************************************************************************************
  */
-
+/// Database attribute value
+typedef struct gatt_db_attr_val
+{
+    /// the value length
+    uint16_t                length;
+    /// the attribute value
+    uint8_t                 *value;
+} gatt_db_attr_val_t;
 
 /// Attribute description
 typedef struct gatt_db_att
@@ -81,6 +88,8 @@ typedef struct gatt_db_att
     ///   - For Characteristic Extended Properties, this field contains 2 byte value
     ///   - For Client Characteristic Configuration and Server Characteristic Configuration, this field is not used.
     uint16_t                ext_info;
+    /// Attribute value
+    gatt_db_attr_val_t      attr_val;
 } gatt_db_att_t;
 
 /// Database service description
@@ -146,6 +155,18 @@ uint16_t gatt_db_att_get(uint16_t hdl, gatt_db_svc_t** pp_svc, gatt_db_att_t** p
  */
 uint16_t gatt_db_att_find(uint16_t start_hdl, uint16_t end_hdl, bool by_uuid, uint8_t uuid_type, uint8_t* p_uuid,
                           uint16_t* p_hdl, uint16_t* p_end_grp_hdl, gatt_db_svc_t** pp_svc, gatt_db_att_t** pp_att);
+
+/**
+ ****************************************************************************************
+ * @brief  Retrieve service in database from handle
+ *
+ * @param[in]  hdl        Handle of the service
+ * @param[out] pp_svc     Pointer to service
+ *
+ * @return @ref GAP_ERR_NO_ERROR if access is permitted, otherwise the ATT error code.
+ *****************************************************************************************
+ */
+uint16_t gatt_db_svc_find(uint16_t hdl, gatt_db_svc_t** pp_svc);
 
 /**
  ****************************************************************************************

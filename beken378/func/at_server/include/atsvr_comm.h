@@ -210,8 +210,8 @@ extern ENV_PARAM g_env_param;
     }
 #endif
 
-#define REG_READ(addr)          (*((volatile UINT32 *)(addr)))
-#define REG_WRITE(addr, _data)  (*((volatile UINT32 *)(addr)) = (_data))
+//#define REG_READ(addr)          (*((volatile UINT32 *)(addr)))
+//#define REG_WRITE(addr, _data)  (*((volatile UINT32 *)(addr)) = (_data))
 
 int write_env_to_flash(AT_ENV_TAG tag, int datalen ,uint8* buf);
 int read_env_from_flash(AT_ENV_TAG tag, int len ,uint8* buf);

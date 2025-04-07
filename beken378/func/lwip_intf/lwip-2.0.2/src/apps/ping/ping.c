@@ -42,6 +42,7 @@
 #include "net.h"
 #include "timeouts.h"
 #include "raw.h"
+#include "wlan_cli_pub.h"
 
 /**
  * PING_DEBUG: Enable debugging for PING.
@@ -252,6 +253,9 @@ int ping(char* target_name, uint32_t times, size_t size)
     struct addrinfo hint, *res = NULL;
     struct sockaddr_in *h = NULL;
     struct in_addr ina;
+	char *msg = NULL;
+	int sent_cnt=0, recv_cnt=0, drop_cnt=0;
+	double droppercent=0;
 
     send_times = 0;
     ping_seq_num = 0;
@@ -265,12 +269,16 @@ int ping(char* target_name, uint32_t times, size_t size)
     if (!sta_ip_is_start() && !uap_ip_is_start())
     {
         LWIP_DEBUGF( PING_DEBUG, ("ping: unknown host\n"));
+		msg = CLI_CMD_RSP_ERROR;
+		LWIP_DEBUGF( PING_DEBUG, ("%s\r\n", msg));
         return -1;
     }
     /* convert URL to IP */
     if (lwip_getaddrinfo(target_name, NULL, &hint, &res) != 0)
     {
         LWIP_DEBUGF( PING_DEBUG, ("ping: unknown host\n"));
+		msg = CLI_CMD_RSP_ERROR;
+		LWIP_DEBUGF( PING_DEBUG, ("%s\r\n", msg));
         return -1;
     }
     memcpy(&h, &res->ai_addr, sizeof(struct sockaddr_in *));
@@ -284,12 +292,16 @@ int ping(char* target_name, uint32_t times, size_t size)
 	#endif
     {
 		LWIP_DEBUGF( PING_DEBUG, ("ping: unknown host\n"));
+		msg = CLI_CMD_RSP_ERROR;
+		LWIP_DEBUGF( PING_DEBUG, ("%s\r\n", msg));
         return -1;
     }
     /* new a socket */
     if ((s = lwip_socket(AF_INET, SOCK_RAW, IP_PROTO_ICMP)) < 0)
     {
 		LWIP_DEBUGF( PING_DEBUG, ("ping: create socket failed\n"));
+		msg = CLI_CMD_RSP_ERROR;
+		LWIP_DEBUGF( PING_DEBUG, ("%s\r\n", msg));
         return -1;
     }
 
@@ -300,20 +312,26 @@ int ping(char* target_name, uint32_t times, size_t size)
         if (ping_send(s, &target_addr, size) == ERR_OK)
         {
 			recv_start_tick = sys_now();
+			sent_cnt++;
 		
             if ((recv_len = ping_recv(s, &ttl)) >= 0)
             {
                 LWIP_DEBUGF( PING_DEBUG, ("%d bytes from %s icmp_seq=%d ttl=%d time=%d ticks\n", recv_len, inet_ntoa(ina), send_times,
                         ttl, sys_now() - recv_start_tick));
+				recv_cnt++;
+				msg = CLI_CMD_RSP_SUCCEED;
             }
             else
             {
 				LWIP_DEBUGF( PING_DEBUG, ("From %s icmp_seq=%d timeout\n", inet_ntoa(ina), send_times));
+				drop_cnt++;
+				msg = CLI_CMD_RSP_SUCCEED;
             }
         }
         else
         {
 			LWIP_DEBUGF( PING_DEBUG, ("Send %s - error\n", inet_ntoa(ina)));
+			msg = CLI_CMD_RSP_ERROR;
         }
 
         send_times++;
@@ -326,6 +344,13 @@ int ping(char* target_name, uint32_t times, size_t size)
     }
 
     lwip_close(s);
+	if (sent_cnt)
+		droppercent = (double)(drop_cnt / sent_cnt * 100);
+
+	LWIP_DEBUGF( PING_DEBUG, ("ping end, sent cnt: %d, recv cnt: %d, drop cnt: %d(%1.1lf%%)\n", sent_cnt, recv_cnt, 
+	drop_cnt, droppercent));
+	if (msg)
+		LWIP_DEBUGF( PING_DEBUG, ("%s\r\n", msg));
 
     return 0;
 }

@@ -5,7 +5,7 @@
 #include "fifo.h"
 #include "uart_pub.h"
 
-#define UART_DEBUG               0     
+#define UART_DEBUG               0
 
 #if UART_DEBUG
 #define UART_PRT                 os_printf
@@ -17,11 +17,16 @@
 
 #define UART_INDEX_1              (1)
 #define UART_INDEX_2              (2)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define UART_INDEX_3              (3)
+#endif
 
 #if (CFG_RUNNING_PLATFORM == FPGA_PLATFORM)
 #define UART_SELECT_CFG            UART_INDEX_1
-#else
+#elif (CFG_RUNNING_PLATFORM == SOC_PLATFORM)
 #define UART_SELECT_CFG            UART_INDEX_2
+#else
+#define UART_SELECT_CFG            UART_INDEX_3
 #endif
 
 #if (UART_SELECT_CFG == UART_INDEX_1)
@@ -30,12 +35,18 @@
 #define PWD_UART_CLK_BIT           PWD_UART1_CLK_BIT
 #define GFUNC_MODE_UART            GFUNC_MODE_UART1
 #define IRQ_UART_BIT               IRQ_UART1_BIT
-#else  /* UART_INDEX_2 */
+#elif (UART_SELECT_CFG == UART_INDEX_2) /* UART_INDEX_2 */
 #define IRQ_UART                   IRQ_UART2
 #define PRI_IRQ_UART               PRI_IRQ_UART2
 #define PWD_UART_CLK_BIT           PWD_UART2_CLK_BIT
 #define GFUNC_MODE_UART            GFUNC_MODE_UART2
 #define IRQ_UART_BIT               IRQ_UART2_BIT
+#else /* UART_INDEX_3 */
+#define IRQ_UART                   IRQ_UART3
+#define PRI_IRQ_UART               PRI_IRQ_UART3
+#define PWD_UART_CLK_BIT           PWD_UART3_CLK_BIT
+#define GFUNC_MODE_UART            GFUNC_MODE_UART3
+#define IRQ_UART_BIT               IRQ_UART3_BIT
 #endif
 
 #define DEBUG_PRT_MAX_CNT          (16)
@@ -68,12 +79,22 @@
 #ifndef UART2_BAUD_RATE
 #define UART2_BAUD_RATE              UART_BAUD_RATE
 #endif
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#ifndef UART3_BAUD_RATE
+#define UART3_BAUD_RATE              UART_BAUD_RATE
+#endif
+#endif
 
 #ifndef UART1_USE_FIFO_REC
 #define UART1_USE_FIFO_REC           1
 #endif
 #ifndef UART2_USE_FIFO_REC
 #define UART2_USE_FIFO_REC           1
+#endif
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#ifndef UART3_USE_FIFO_REC
+#define UART3_USE_FIFO_REC           1
+#endif
 #endif
 
 #define UART_CLOCK_FREQ_10M          10000000
@@ -131,15 +152,23 @@ typedef struct _uart_
 
 #if (UART_SELECT_CFG == UART_INDEX_1)
 #define UART_BASE_ADDR                       (0x0802100)
-#else
+#elif (UART_SELECT_CFG == UART_INDEX_2)
 #define UART_BASE_ADDR                       (0x0802200)
+#else
+#define UART_BASE_ADDR                       (0x0802500)
 #endif
 
 #define UART1_BASE_ADDR			            (0x0802100)
 #define UART2_BASE_ADDR			            (0x0802200)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define UART3_BASE_ADDR			            (0x0802500)
+#endif
 
 #define REG_UART1_CONFIG                     (UART1_BASE_ADDR + 4 * 0)
 #define REG_UART2_CONFIG                     (UART2_BASE_ADDR + 4 * 0)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define REG_UART3_CONFIG                     (UART3_BASE_ADDR + 4 * 0)
+#endif
 
 #define UART_TX_ENABLE                         (1 << 0)
 #define UART_RX_ENABLE                         (1 << 1)
@@ -154,6 +183,9 @@ typedef struct _uart_
 
 #define REG_UART1_FIFO_CONFIG                 (UART1_BASE_ADDR + 4 * 1)
 #define REG_UART2_FIFO_CONFIG                 (UART2_BASE_ADDR + 4 * 1)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define REG_UART3_FIFO_CONFIG                 (UART3_BASE_ADDR + 4 * 1)
+#endif
 #define TX_FIFO_THRESHOLD_MASK                 (0xFF)
 #define TX_FIFO_THRESHOLD_POSI                 (0)
 #define RX_FIFO_THRESHOLD_MASK                 (0xFF)
@@ -167,6 +199,9 @@ typedef struct _uart_
 
 #define REG_UART1_FIFO_STATUS                 (UART1_BASE_ADDR + 4 * 2)
 #define REG_UART2_FIFO_STATUS                 (UART2_BASE_ADDR + 4 * 2)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define REG_UART3_FIFO_STATUS                 (UART3_BASE_ADDR + 4 * 2)
+#endif
 #define TX_FIFO_COUNT_MASK                     (0xFF)
 #define TX_FIFO_COUNT_POSI                     (0)
 #define RX_FIFO_COUNT_MASK                     (0xFF)
@@ -180,6 +215,9 @@ typedef struct _uart_
 
 #define REG_UART1_FIFO_PORT                   (UART1_BASE_ADDR + 4 * 3)
 #define REG_UART2_FIFO_PORT                   (UART2_BASE_ADDR + 4 * 3)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define REG_UART3_FIFO_PORT                   (UART3_BASE_ADDR + 4 * 3)
+#endif
 #define UART_TX_FIFO_DIN_MASK                  (0xFF)
 #define UART_TX_FIFO_DIN_POSI                  (0)
 #define UART_RX_FIFO_DOUT_MASK                 (0xFF)
@@ -187,6 +225,9 @@ typedef struct _uart_
 
 #define REG_UART1_INTR_ENABLE                 (UART1_BASE_ADDR + 4 * 4)
 #define REG_UART2_INTR_ENABLE                 (UART2_BASE_ADDR + 4 * 4)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define REG_UART3_INTR_ENABLE                 (UART3_BASE_ADDR + 4 * 4)
+#endif
 #define TX_FIFO_NEED_WRITE_EN                  (1 << 0)
 #define RX_FIFO_NEED_READ_EN                   (1 << 1)
 #define RX_FIFO_OVER_FLOW_EN                   (1 << 2)
@@ -198,6 +239,9 @@ typedef struct _uart_
 
 #define REG_UART1_INTR_STATUS                 (UART1_BASE_ADDR + 4 * 5)
 #define REG_UART2_INTR_STATUS                 (UART2_BASE_ADDR + 4 * 5)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define REG_UART3_INTR_STATUS                 (UART3_BASE_ADDR + 4 * 5)
+#endif
 #define TX_FIFO_NEED_WRITE_STA                  (1 << 0)
 #define RX_FIFO_NEED_READ_STA                   (1 << 1)
 #define RX_FIFO_OVER_FLOW_STA                   (1 << 2)
@@ -209,6 +253,9 @@ typedef struct _uart_
 
 #define REG_UART1_FLOW_CONFIG                 (UART1_BASE_ADDR + 4 * 6)
 #define REG_UART2_FLOW_CONFIG                 (UART2_BASE_ADDR + 4 * 6)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define REG_UART3_FLOW_CONFIG                 (UART3_BASE_ADDR + 4 * 6)
+#endif
 #define FLOW_CTRL_LOW_CNT_MASK                   (0xFF)
 #define FLOW_CTRL_LOW_CNT_POSI                   (0)
 #define FLOW_CTRL_HIGH_CNT_MASK                  (0xFF)
@@ -220,6 +267,9 @@ typedef struct _uart_
 
 #define REG_UART1_WAKE_CONFIG                 (UART1_BASE_ADDR + 4 * 7)
 #define REG_UART2_WAKE_CONFIG                 (UART2_BASE_ADDR + 4 * 7)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define REG_UART3_WAKE_CONFIG                 (UART3_BASE_ADDR + 4 * 7)
+#endif
 #define UART_WAKE_COUNT_MASK                   (0x3FF)
 #define UART_WAKE_COUNT_POSI                   (0)
 #define UART_TXD_WAIT_CNT_MASK                 (0x3FF)
@@ -230,42 +280,92 @@ typedef struct _uart_
 
 #define UART1_TX_WRITE_READY             (REG_READ(REG_UART1_FIFO_STATUS) & FIFO_WR_READY)
 #define UART2_TX_WRITE_READY             (REG_READ(REG_UART2_FIFO_STATUS) & FIFO_WR_READY)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define UART3_TX_WRITE_READY             (REG_READ(REG_UART3_FIFO_STATUS) & FIFO_WR_READY)
+#endif
 #define UART1_TX_FIFO_COUNT             (((REG_READ(REG_UART1_FIFO_STATUS)) >> TX_FIFO_COUNT_POSI) & TX_FIFO_COUNT_MASK)
 #define UART2_TX_FIFO_COUNT             (((REG_READ(REG_UART2_FIFO_STATUS)) >> TX_FIFO_COUNT_POSI) & TX_FIFO_COUNT_MASK)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define UART3_TX_FIFO_COUNT             (((REG_READ(REG_UART3_FIFO_STATUS)) >> TX_FIFO_COUNT_POSI) & TX_FIFO_COUNT_MASK)
+#endif
 
-
-
+#if (CFG_SOC_NAME == SOC_BK7252N)
 #define UART_WRITE_BYTE(ch,v)           do                                   \
 										{                                     \
 											v = (v & UART_TX_FIFO_DIN_MASK)   \
 													<< UART_TX_FIFO_DIN_POSI; \
 											if(0 == ch)						\
 												REG_WRITE(REG_UART1_FIFO_PORT, v); \
+											else if(1 == ch)					\
+												REG_WRITE(REG_UART2_FIFO_PORT, v);\
 											else					\
+												REG_WRITE(REG_UART3_FIFO_PORT, v);\
+										}while(0)
+#else
+#define UART_WRITE_BYTE(ch,v)           do                                   \
+										{                                     \
+											v = (v & UART_TX_FIFO_DIN_MASK)   \
+													<< UART_TX_FIFO_DIN_POSI; \
+											if(0 == ch)						\
+												REG_WRITE(REG_UART1_FIFO_PORT, v); \
+											else if(1 == ch)					\
 												REG_WRITE(REG_UART2_FIFO_PORT, v);\
 										}while(0)
+#endif // (CFG_SOC_NAME == SOC_BK7252N)
+
+#if (CFG_SOC_NAME == SOC_BK7252N)
 #define UART_READ_BYTE(ch,v)            do                                    \
 										{                                     \
 											if(0 == ch)			\
 												v = (REG_READ(REG_UART1_FIFO_PORT) \
 													>> UART_RX_FIFO_DOUT_POSI) \
 													& UART_RX_FIFO_DOUT_MASK;\
+											else if(1 == ch)					\
+												v = (REG_READ(REG_UART2_FIFO_PORT) \
+													>> UART_RX_FIFO_DOUT_POSI) \
+													& UART_RX_FIFO_DOUT_MASK;\
 											else					\
+												v = (REG_READ(REG_UART3_FIFO_PORT) \
+													>> UART_RX_FIFO_DOUT_POSI) \
+													& UART_RX_FIFO_DOUT_MASK;\
+										}while(0)
+#else
+#define UART_READ_BYTE(ch,v)            do                                    \
+										{                                     \
+											if(0 == ch)			\
+												v = (REG_READ(REG_UART1_FIFO_PORT) \
+													>> UART_RX_FIFO_DOUT_POSI) \
+													& UART_RX_FIFO_DOUT_MASK;\
+											else if(1 == ch)					\
 												v = (REG_READ(REG_UART2_FIFO_PORT) \
 													>> UART_RX_FIFO_DOUT_POSI) \
 													& UART_RX_FIFO_DOUT_MASK;\
 										}while(0)
+#endif // (CFG_SOC_NAME == SOC_BK7252N)
 
+#if (CFG_SOC_NAME == SOC_BK7252N)
 #define UART_READ_BYTE_DISCARD(ch)      do                                    \
 										{                                     \
 											if(0 == ch)			\
 												REG_READ(REG_UART1_FIFO_PORT);\
+											else if(1 == ch)					\
+												REG_READ(REG_UART2_FIFO_PORT);\
 											else					\
+												REG_READ(REG_UART3_FIFO_PORT);\
+										}while(0)
+#else
+#define UART_READ_BYTE_DISCARD(ch)      do                                    \
+										{                                     \
+											if(0 == ch)			\
+												REG_READ(REG_UART1_FIFO_PORT);\
+											else if(1 == ch)					\
 												REG_READ(REG_UART2_FIFO_PORT);\
 										}while(0)
+#endif // (CFG_SOC_NAME == SOC_BK7252N)
 
-
-
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define UART3_TX_FIFO_EMPTY_GET()       ((REG_READ(REG_UART3_FIFO_STATUS) & TX_FIFO_EMPTY)>>17)
+#endif
 #define UART2_TX_FIFO_EMPTY_GET()       ((REG_READ(REG_UART2_FIFO_STATUS) & TX_FIFO_EMPTY)>>17)
 #define UART1_TX_FIFO_EMPTY_GET()       ((REG_READ(REG_UART1_FIFO_STATUS) & TX_FIFO_EMPTY)>>17)
 
@@ -293,6 +393,14 @@ extern UINT32 uart2_close(void);
 extern UINT32 uart2_read(char *user_buf, UINT32 count, UINT32 op_flag);
 extern UINT32 uart2_write(char *user_buf, UINT32 count, UINT32 op_flag);
 extern UINT32 uart2_ctrl(UINT32 cmd, void *parm);
+
+#if (CFG_SOC_NAME == SOC_BK7252N)
+extern UINT32 uart3_open(UINT32 op_flag);
+extern UINT32 uart3_close(void);
+extern UINT32 uart3_read(char *user_buf, UINT32 count, UINT32 op_flag);
+extern UINT32 uart3_write(char *user_buf, UINT32 count, UINT32 op_flag);
+extern UINT32 uart3_ctrl(UINT32 cmd, void *parm);
+#endif
 
 int uart_read_byte(int uport);
 int uart_write_byte(int uport, char c);

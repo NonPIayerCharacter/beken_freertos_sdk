@@ -144,6 +144,7 @@ void ble_icu_init(void)
     REG_WIFI_PWD = 0x0;
     REG_DSP_PWD  = 0x0;
     REG_USB_PWD  = 0x0;
+// ble_icu does not comfigured in bk7252n
     (*((volatile unsigned long *) 0x01050000)) = 0x09;
 
     DelayUS(100);
