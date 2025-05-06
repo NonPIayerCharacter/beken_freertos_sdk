@@ -568,7 +568,7 @@ LIBFLAGS += -L./beken378/lib -lrf_use
 LIBFLAGS += -L./ -lwolfssl
 LIBFLAGS += -L./ -los -llwip -lmbedtls -ldriver -lfunc -lmisc -lsrc_s
 
-LIBFLAGS += -lapp
+LIBFLAGS += -Wl,--whole-archive -lapp -Wl,--no-whole-archive -Wl,--allow-multiple-definition
 -include ../../platforms/BK723x/OpenBeken.mk
 
 .PHONY: application
