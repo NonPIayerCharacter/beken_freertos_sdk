@@ -122,6 +122,7 @@ SECTIONS
 	    *(.gnu.warning)
 	    *(.gnu.linkonce.t*)
 	    *(.glue_7t) *(.glue_7)
+	    __flash_txt_end = .;
 	} > flash
 
 /* read only data.for example: const int rom_data[3]={1,2,3}; */
@@ -134,8 +135,10 @@ SECTIONS
 
 	.ARM.exidx :
 	{
+		__exidx_start = .;
 	    *(.ARM.exidx*)
 	    *(.gnu.linkonce.armexidx.*)
+		__exidx_end = .;
 	} > flash
 
 	. = ORIGIN(ram);
@@ -165,6 +168,7 @@ SECTIONS
 	.bss ALIGN(8):
 	{
 		_bss_start = .;
+		__bss_start__ = .;
 		*(.bss .bss.*)
 		*(.scommon)
 		*(.sbss)
@@ -175,6 +179,7 @@ SECTIONS
 		.bss section disappears because there are no input sections.  */
 		. = ALIGN(32 / 8);
 		_bss_end = .;
+		__bss_end__ = .;
 	} > ram						/* in RAM */
 
 	. = ALIGN (8);

@@ -31,7 +31,7 @@
 #define FREERTOS_V9                                1
 #define FREERTOS_V10                               2
 #define CFG_FREERTOS_VER                           FREERTOS_V9
-#define CfG_ENABLE_HEAP_5                          (0)
+#define CfG_ENABLE_HEAP_5                          (1)
 
 #define ENC_METHOD_NULL                            1
 #define ENC_METHOD_XOR                             2
@@ -55,8 +55,8 @@
 /*section 2-----function macro config-----*/
 #define CFG_SUPPORT_MATTER                         0
 
-#define CFG_TX_EVM_TEST                            1
-#define CFG_RX_SENSITIVITY_TEST                    1
+#define CFG_TX_EVM_TEST                            0
+#define CFG_RX_SENSITIVITY_TEST                    0
 #define CFG_AP_MONITOR_COEXIST                     0
 #if CFG_AP_MONITOR_COEXIST
 #define CFG_AP_MONITOR_COEXIST_DEMO                0
@@ -140,11 +140,7 @@
 #define CFG_QUICK_TRACK                            0
 
 /* use mbedtls as wpa crypto functions */
-#if( ( CFG_SUPPORT_ALIOS ) || ( CFG_SUPPORT_RTT ) )
-#define CFG_USE_MBEDTLS                            0
-#else
 #define CFG_USE_MBEDTLS                            1
-#endif
 #if CFG_USE_MBEDTLS
 #define CFG_MBEDTLS                                1
 #endif
@@ -186,7 +182,7 @@
 
 /*section 4-----DEBUG macro config-----*/
 #define CFG_UART_DEBUG                             0
-#define CFG_SUPPORT_BKREG                          1
+#define CFG_SUPPORT_BKREG                          0
 #define CFG_ENABLE_WPA_LOG                         0
 #define CFG_TCP_SERVER_TEST                        0
 #define CFG_AIRKISS_TEST                           0
@@ -237,14 +233,14 @@
 #define CFG_USE_DHCPD                              1 // for servicers in ap mode
 
 /*section 11-----temperature detect*/
-#define CFG_USE_TEMPERATURE_DETECT                 1
+#define CFG_USE_TEMPERATURE_DETECT                 0
 #define CFG_USE_VOLTAGE_DETECT                     0
 
 /*section 12-----for video transfer*/
 #define IPERF_CLOSE                                0  /* close iperf */
 #define IPERF_OPEN_WITH_ACCEL                      1  /* open iperf and accel */
 #define IPERF_OPEN_ONLY                            2  /* open iperf, but no open accel */
-#define CFG_IPERF_TEST                             IPERF_OPEN_ONLY
+#define CFG_IPERF_TEST                             IPERF_CLOSE
 
 #if CFG_WIFI_P2P
 #define CFG_USE_APP_DEMO_VIDEO_TRANSFER            1
@@ -267,7 +263,7 @@
 // #undef CFG_IEEE80211N
 // #define CFG_IEEE80211N                             0
 #undef CFG_IPERF_TEST
-#define CFG_IPERF_TEST                             IPERF_OPEN_WITH_ACCEL
+#define CFG_IPERF_TEST                             IPERF_CLOSE
 #endif
 
 #if (CFG_IPERF_TEST == IPERF_OPEN_WITH_ACCEL)
@@ -288,7 +284,7 @@
 #define CFG_USE_MCU_PS                             1
 
 #define CFG_USE_DEEP_PS                            1
-#define CFG_USE_BLE_PS                             1
+#define CFG_USE_BLE_PS                             0
 #define CFG_USE_AP_IDLE                            0
 #define CFG_USE_FAKERTC_PS                         0
 #define CFG_LOW_VOLTAGE_PS                         1
@@ -322,33 +318,29 @@
 #define CONFIG_APP_MP3PLAYER                       0
 
 /*section 21 ----- support ota*/
-#if( ( CFG_SUPPORT_ALIOS ) || ( CFG_SUPPORT_RTT ) || (CFG_SUPPORT_MATTER == 1))
-#define CFG_SUPPORT_OTA_HTTP                       0
-#else
 #define CFG_SUPPORT_OTA_HTTP                       1
-#endif
 #define CFG_SUPPORT_OTA_TFTP                       0
 
 /*section 23 ----- support reduce nomal power*/
 #define CFG_SYS_REDUCE_NORMAL_POWER                0
 
 /*section 24 ----- less memery in rwnx*/
-#define CFG_LESS_MEMERY_IN_RWNX                    1
+#define CFG_LESS_MEMERY_IN_RWNX                    0
 #if CFG_IPERF_TEST_ACCEL
 #undef CFG_LESS_MEMERY_IN_RWNX
 #define CFG_LESS_MEMERY_IN_RWNX                    0
 #endif
 
 /*section 25 ----- use audio*/
-#define CFG_USE_AUDIO                              1
-#define CFG_USE_AUD_DAC                            1
-#define CFG_USE_AUD_ADC                            1
+#define CFG_USE_AUDIO                              0
+#define CFG_USE_AUD_DAC                            0
+#define CFG_USE_AUD_ADC                            0
 
 /*section 25 ----- use tick time calibrate*/
 #define CFG_USE_TICK_CAL                           1
 
-#define CFG_SUPPORT_BLE                            1
-#define CFG_BLE_USE_CLI                            1
+#define CFG_SUPPORT_BLE                            0
+#define CFG_BLE_USE_CLI                            0
 #define CFG_SUPPORT_BLE_MESH                       0
 #define CFG_USE_PTA                                1
 
@@ -360,30 +352,30 @@
 #define BLE_VERSION_5_1                            2
 #define BLE_VERSION_5_2                            3
 
-#define CFG_BLE_VERSION                            BLE_VERSION_5_2
+#define CFG_BLE_VERSION                            BLE_VERSION_4_2
 
 #define WIFI_DEFAULT_BLE_REQUEST                   1
 #define BLE_DEFAULT_WIFI_REQUEST                   2
 #define BLE_WIFI_CO_REQUEST                        3
 #define RF_USE_POLICY                              WIFI_DEFAULT_BLE_REQUEST
 
-#define CFG_BLE_ADV_NUM                            1
-#define CFG_BLE_SCAN_NUM                           1
-#define CFG_BLE_USE_DYN_RAM                        1
-#define CFG_BLE_DIAGNOSTIC_PORT                    0
+//#define CFG_BLE_ADV_NUM                            1
+//#define CFG_BLE_SCAN_NUM                           1
+//#define CFG_BLE_USE_DYN_RAM                        1
+//#define CFG_BLE_DIAGNOSTIC_PORT                    0
 
 // 0 mean do not support ble master
-#define CFG_BLE_INIT_NUM                           1
+//#define CFG_BLE_INIT_NUM                           1
 
-#define CFG_BLE_CONN_NUM                           1
+//#define CFG_BLE_CONN_NUM                           1
 
-#if (CFG_BLE_ADV_NUM == 0)
-#error "ADV NUM should not be 0"
-#endif
-
-#if (CFG_BLE_CONN_NUM == 0)
-#error "CONN NUM should not be 0"
-#endif
+//#if (CFG_BLE_ADV_NUM == 0)
+//#error "ADV NUM should not be 0"
+//#endif
+//
+//#if (CFG_BLE_CONN_NUM == 0)
+//#error "CONN NUM should not be 0"
+//#endif
 
 #define CFG_XTAL_FREQUENCE_40M                     40000000 //40MHz
 #define CFG_XTAL_FREQUENCE_26M                     26000000 //26MHz
@@ -401,12 +393,7 @@
 
 #define LWIP_DEFAULT_MEM_POLICY                    1
 #define LWIP_REDUCE_THE_PLAN                       2
-#if CFG_IPERF_TEST
-/* for iperf test, temporary enlarge lwip MEM_SIZE */
 #define CFG_LWIP_MEM_POLICY                        LWIP_DEFAULT_MEM_POLICY
-#else
-#define CFG_LWIP_MEM_POLICY                        LWIP_REDUCE_THE_PLAN
-#endif
 /* enable hw ip checksum */
 #define CFG_LWIP_HW_CSUM                           1
 
@@ -417,10 +404,6 @@
 #define FLASH_SELECTION_TYPE_8M                    0x800000 //8MBytes
 #define CFG_FLASH_SELECTION_TYPE                   FLASH_SELECTION_TYPE_2M
 
-#if (1 == CFG_SUPPORT_MATTER)
-#undef CFG_MBEDTLS
-#define CFG_MBEDTLS                                1
-#endif
 #define CFG_USE_I2S                                1
 
 /* watchdog, freertos only */
@@ -432,14 +415,14 @@
 /*section 29 -----  peripheral interface open  */
 #define CFG_USE_SPI                                1
 #define CFG_USE_SPI_MASTER                         1
-#define CFG_USE_SPI_SLAVE                          1
+#define CFG_USE_SPI_SLAVE                          0
 #define CFG_USE_SPI_DMA                            1
 
 /*section 30 ----- peripheral interface test case */
 #define CFG_PERIPHERAL_TEST                        0
 #define CFG_SUPPORT_SPI_TEST                       0
 
-#define CFG_USE_FORCE_LOWVOL_PS                    1
+#define CFG_USE_FORCE_LOWVOL_PS                    0
 
 #define CFG_NO_POWTBL                              1
 #define CFG_BK7252N_WORKAROUND                     1
