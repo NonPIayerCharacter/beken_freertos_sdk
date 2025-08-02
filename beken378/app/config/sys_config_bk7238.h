@@ -271,7 +271,7 @@
 #define CFG_USE_BLE_PS                             0
 #define CFG_USE_AP_IDLE                            0
 #define CFG_USE_FAKERTC_PS                         0
-#define CFG_LOW_VOLTAGE_PS                         1
+#define CFG_LOW_VOLTAGE_PS                         0
 #define CFG_LOW_VOLTAGE_PS_32K_DIV                 0
 #define CFG_LOW_VOLTAGE_PS_COEXIST                 0
 #define CFG_LOW_VOLTAGE_PS_TEST                    0
@@ -281,11 +281,11 @@
 #define CFG_LOW_VOLTAGE_PS                         0
 #endif
 
-#if(CFG_LOW_VOLTAGE_PS == 1)
+//#if(CFG_LOW_VOLTAGE_PS == 1)
 #define CFG_HW_PARSER_TIM_ELEMENT                  1
-#else
-#define CFG_HW_PARSER_TIM_ELEMENT                  0
-#endif
+//#else
+//#define CFG_HW_PARSER_TIM_ELEMENT                  0
+//#endif
 
 #define CFG_LV_PS_WITH_IDLE_TICK                   0
 
@@ -397,9 +397,9 @@
 #define CFG_USE_I2C2                               0
 
 #define CFG_USE_SPI                                1
-#define CFG_USE_SPI_MASTER                         0
-#define CFG_USE_SPI_SLAVE                          0
-#define CFG_USE_SPI_DMA                            0
+#define CFG_USE_SPI_MASTER                         1
+#define CFG_USE_SPI_SLAVE                          1
+#define CFG_USE_SPI_DMA                            1
 
 /*section 30 ----- peripheral interface test case */
 #define CFG_PERIPHERAL_TEST                        0

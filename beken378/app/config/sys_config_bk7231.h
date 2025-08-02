@@ -317,6 +317,13 @@
 #define RF_USE_POLICY                              WIFI_DEFAULT_BLE_REQUEST
 #endif
 
+/*section 26 ----- general spi master/slave */
+#define CFG_USE_SPI                                1
+#define CFG_USE_SPI_MASTER                         1
+#define CFG_USE_SPI_MST_FLASH                      0
+#define CFG_USE_SPI_MST_PSRAM                      0
+#define CFG_USE_SPI_SLAVE                          1
+
 #define CFG_XTAL_FREQUENCE_40M                     40000000 //40MHz
 #define CFG_XTAL_FREQUENCE_26M                     26000000 //26MHz
 #if (CFG_SOC_NAME == SOC_BK7231N)

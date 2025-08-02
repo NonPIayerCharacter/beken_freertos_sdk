@@ -415,7 +415,7 @@
 /*section 29 -----  peripheral interface open  */
 #define CFG_USE_SPI                                1
 #define CFG_USE_SPI_MASTER                         1
-#define CFG_USE_SPI_SLAVE                          0
+#define CFG_USE_SPI_SLAVE                          1
 #define CFG_USE_SPI_DMA                            1
 
 /*section 30 ----- peripheral interface test case */

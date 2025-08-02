@@ -622,6 +622,9 @@ endif
 ifeq ($(CFG_LOW_VOLTAGE_PS), 1)
 SRC_FUNC_C += ./beken378/func/power_save/low_voltage_ps.c
 SRC_FUNC_C += ./beken378/func/power_save/low_voltage_compensation.c
+else ifeq ($(CFG_SOC_NAME_STR), "bk7238")
+SRC_FUNC_C += ./beken378/func/power_save/low_voltage_ps.c
+SRC_FUNC_C += ./beken378/func/power_save/low_voltage_compensation.c
 endif
 
 

@@ -338,7 +338,7 @@
 #define CFG_USE_SPI_MASTER                         1
 #define CFG_USE_SPI_MST_FLASH                      1
 #define CFG_USE_SPI_MST_PSRAM                      0
-#define CFG_USE_SPI_SLAVE                          0
+#define CFG_USE_SPI_SLAVE                          1
 
 /*section 27 ----- hardware security: aes/sha/rsa */
 #define CFG_USE_SECURITY                           0
