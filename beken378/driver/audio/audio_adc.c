@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -12,6 +26,7 @@
 #include "ring_buffer.h"
 #include "ring_buffer_dma_write.h"
 #include "gpio_pub.h"
+#include "common_reg_rw.h"
 
 #if CFG_GENERAL_DMA
 #include "general_dma_pub.h"
@@ -31,16 +46,18 @@ typedef struct aud_adc_desc
 {
     UINT8 *buf;
     UINT16 buf_len;
+    UINT16 inter_thre;
     UINT16 freq;
-    UINT16 channels;
-    UINT16 mode;
+    UINT8 channels;
+    UINT8 mode;
     UINT32 linein_detect_pin;
+    adc_rx_callback rx_cb;
 
     UINT32 status;
     union {
         RB_ST rb;
         RB_DMA_WR_ST rb_dma_wr;
-    }u;
+    } u;
 } AUD_ADC_DESC_ST, *AUD_ADC_DESC_PTR;
 
 static UINT32 audio_adc_open(UINT32 op_flag);
@@ -69,7 +86,7 @@ static void audio_adc_set_enable_bit(UINT32 enable)
         reg_val |= (ADC_ENABLE | LINEIN_ENABLE);
     else
         reg_val &= ~(ADC_ENABLE | LINEIN_ENABLE);
-    REG_WRITE(reg_addr, reg_val);
+    REG_WRITE_PROTECT(reg_addr, reg_val);
 }
 
 static void audio_adc_set_int_enable_bit(UINT32 enable)
@@ -81,7 +98,7 @@ static void audio_adc_set_int_enable_bit(UINT32 enable)
         reg_val |= ADC_INT_EN;
     else
         reg_val &= ~ADC_INT_EN;
-    REG_WRITE(reg_addr, reg_val);
+    REG_WRITE_PROTECT(reg_addr, reg_val);
 }
 
 static void audio_adc_get_l_sample(INT16 *left)
@@ -112,7 +129,7 @@ static void audio_adc_set_hpf2_bypass_bit(UINT32 enable)
         reg_val |= ADC_HPF2_BYPASS;
     else
         reg_val &= ~ADC_HPF2_BYPASS;
-    REG_WRITE(reg_addr, reg_val);
+    REG_WRITE_PROTECT(reg_addr, reg_val);
 }
 
 static void audio_adc_set_gain(UINT32 gain)
@@ -126,7 +143,7 @@ static void audio_adc_set_gain(UINT32 gain)
     reg_val &= ~(ADC_SET_GAIN_MASK << ADC_SET_GAIN_POSI);
     reg_val |= ((gain & ADC_SET_GAIN_MASK)  << ADC_SET_GAIN_POSI);
 
-    REG_WRITE(reg_addr, reg_val);
+    REG_WRITE_PROTECT(reg_addr, reg_val);
 }
 
 static void audio_adc_set_write_thred_bit(UINT32 thred)
@@ -142,7 +159,7 @@ static void audio_adc_set_write_thred_bit(UINT32 thred)
     reg_val |= ((thred & ADC_WR_THRED_MASK) << ADC_WR_THRED_POSI);
     reg_val |= ((thred & DTMF_WR_THRED_MASK) << DTMF_WR_THRED_POSI);
 
-    REG_WRITE(reg_addr, reg_val);
+    REG_WRITE_PROTECT(reg_addr, reg_val);
 }
 
 static void audio_adc_set_sample_rate(UINT32 sample_rate)
@@ -152,96 +169,96 @@ static void audio_adc_set_sample_rate(UINT32 sample_rate)
     /* disable adc handset bit again, to make sure this bit unset */
     reg = REG_READ(AUD_EXTEND_CFG);
     reg &= ~(ADC_FRACMOD_MANUAL);
-    REG_WRITE(AUD_EXTEND_CFG, reg);
+    REG_WRITE_QSPI_EN(AUD_EXTEND_CFG, reg);
 
     switch (sample_rate)
     {
     case 11025:
         reg = REG_READ(AUD_EXTEND_CFG);
         reg |= ADC_FRACMOD_MANUAL;
-        REG_WRITE(AUD_EXTEND_CFG, reg);
+        REG_WRITE_QSPI_EN(AUD_EXTEND_CFG, reg);
         reg = (CONST_DIV_441K);
-        REG_WRITE(AUD_ADC_FRACMOD, reg);
+        REG_WRITE_PROTECT(AUD_ADC_FRACMOD, reg);
         reg = REG_READ(AUDIO_CONFIG);
         reg &= ~(SAMPLE_RATE_ADC_MASK << SAMPLE_RATE_ADC_POSI);
         reg |= ((SAMPLE_RATE_44_1_K & SAMPLE_RATE_ADC_MASK) << SAMPLE_RATE_ADC_POSI);
-        REG_WRITE(AUDIO_CONFIG, reg);
+        REG_WRITE_PROTECT(AUDIO_CONFIG, reg);
         break;
 
     case 22050: //
         reg = REG_READ(AUD_EXTEND_CFG);
         reg |= ADC_FRACMOD_MANUAL;
-        REG_WRITE(AUD_EXTEND_CFG, reg);
+        REG_WRITE_QSPI_EN(AUD_EXTEND_CFG, reg);
         reg = (CONST_DIV_441K >> 1);
-        REG_WRITE(AUD_ADC_FRACMOD, reg);
+        REG_WRITE_PROTECT(AUD_ADC_FRACMOD, reg);
         reg = REG_READ(AUDIO_CONFIG);
         reg &= ~(SAMPLE_RATE_ADC_MASK << SAMPLE_RATE_ADC_POSI);
         reg |= ((SAMPLE_RATE_44_1_K & SAMPLE_RATE_ADC_MASK) << SAMPLE_RATE_ADC_POSI);
-        REG_WRITE(AUDIO_CONFIG, reg);
+        REG_WRITE_PROTECT(AUDIO_CONFIG, reg);
         break;
 
     case 44100:
         reg = REG_READ(AUDIO_CONFIG);
         reg &= ~(SAMPLE_RATE_ADC_MASK << SAMPLE_RATE_ADC_POSI);
         reg |= ((SAMPLE_RATE_44_1_K & SAMPLE_RATE_ADC_MASK) << SAMPLE_RATE_ADC_POSI);
-        REG_WRITE(AUDIO_CONFIG, reg);
+        REG_WRITE_PROTECT(AUDIO_CONFIG, reg);
         break;
 
     case 12000:
         reg = REG_READ(AUD_EXTEND_CFG);
         reg |= ADC_FRACMOD_MANUAL;
-        REG_WRITE(AUD_EXTEND_CFG, reg);
+        REG_WRITE_QSPI_EN(AUD_EXTEND_CFG, reg);
         reg = (CONST_DIV_48K);
-        REG_WRITE(AUD_ADC_FRACMOD, reg);
+        REG_WRITE_PROTECT(AUD_ADC_FRACMOD, reg);
         reg = REG_READ(AUDIO_CONFIG);
         reg &= ~(SAMPLE_RATE_ADC_MASK << SAMPLE_RATE_ADC_POSI);
         reg |= ((SAMPLE_RATE_48K & SAMPLE_RATE_ADC_MASK) << SAMPLE_RATE_ADC_POSI);
-        REG_WRITE(AUDIO_CONFIG, reg);
+        REG_WRITE_PROTECT(AUDIO_CONFIG, reg);
         break;
 
     case 24000:
         reg = REG_READ(AUD_EXTEND_CFG);
         reg |= ADC_FRACMOD_MANUAL;
-        REG_WRITE(AUD_EXTEND_CFG, reg);
+        REG_WRITE_QSPI_EN(AUD_EXTEND_CFG, reg);
         reg = (CONST_DIV_48K >> 1);
-        REG_WRITE(AUD_ADC_FRACMOD, reg);
+        REG_WRITE_PROTECT(AUD_ADC_FRACMOD, reg);
         reg = REG_READ(AUDIO_CONFIG);
         reg &= ~(SAMPLE_RATE_ADC_MASK << SAMPLE_RATE_ADC_POSI);
         reg |= ((SAMPLE_RATE_48K & SAMPLE_RATE_ADC_MASK) << SAMPLE_RATE_ADC_POSI);
-        REG_WRITE(AUDIO_CONFIG, reg);
+        REG_WRITE_PROTECT(AUDIO_CONFIG, reg);
         break;
 
     case 48000:
         reg = REG_READ(AUDIO_CONFIG);
         reg &= ~(SAMPLE_RATE_ADC_MASK << SAMPLE_RATE_ADC_POSI);
         reg |= ((SAMPLE_RATE_48K & SAMPLE_RATE_ADC_MASK) << SAMPLE_RATE_ADC_POSI);
-        REG_WRITE(AUDIO_CONFIG, reg);
+        REG_WRITE_PROTECT(AUDIO_CONFIG, reg);
         break;
 
     case 8000:
         reg = REG_READ(AUDIO_CONFIG);
         reg &= ~(SAMPLE_RATE_ADC_MASK << SAMPLE_RATE_ADC_POSI);
         reg |= ((SAMPLE_RATE_8K & SAMPLE_RATE_ADC_MASK) << SAMPLE_RATE_ADC_POSI);
-        REG_WRITE(AUDIO_CONFIG, reg);
+        REG_WRITE_PROTECT(AUDIO_CONFIG, reg);
         break;
 
     case 16000:
         reg = REG_READ(AUDIO_CONFIG);
         reg &= ~(SAMPLE_RATE_ADC_MASK << SAMPLE_RATE_ADC_POSI);
         reg |= ((SAMPLE_RATE_16K & SAMPLE_RATE_ADC_MASK) << SAMPLE_RATE_ADC_POSI);
-        REG_WRITE(AUDIO_CONFIG, reg);
+        REG_WRITE_PROTECT(AUDIO_CONFIG, reg);
         break;
 
     case 32000:
         reg = REG_READ(AUD_EXTEND_CFG);
         reg |= ADC_FRACMOD_MANUAL;
-        REG_WRITE(AUD_EXTEND_CFG, reg);
+        REG_WRITE_QSPI_EN(AUD_EXTEND_CFG, reg);
         reg = (CONST_DIV_32K);
-        REG_WRITE(AUD_ADC_FRACMOD, reg);
+        REG_WRITE_PROTECT(AUD_ADC_FRACMOD, reg);
         reg = REG_READ(AUDIO_CONFIG);
         reg &= ~(SAMPLE_RATE_ADC_MASK << SAMPLE_RATE_ADC_POSI);
         reg |= ((SAMPLE_RATE_48K & SAMPLE_RATE_ADC_MASK) << SAMPLE_RATE_ADC_POSI);
-        REG_WRITE(AUDIO_CONFIG, reg);
+        REG_WRITE_PROTECT(AUDIO_CONFIG, reg);
         break;
 
     default:
@@ -251,9 +268,14 @@ static void audio_adc_set_sample_rate(UINT32 sample_rate)
 }
 
 #if CFG_GENERAL_DMA
-void audio_adc_dma_handler(UINT32 param)
+void audio_adc_dma_fin_handler(UINT32 param)
 {
-    //AUD_PRT("audio_dac_dma_handler:%d\r\n", param);
+    if((aud_adc.rx_cb) && (aud_adc.inter_thre)) {
+        UINT32 fill_size = rb_get_fill_size_dma_write(&aud_adc.u.rb_dma_wr);
+        if(fill_size >= aud_adc.inter_thre) {
+            aud_adc.rx_cb(fill_size);
+        }
+    }
 }
 
 static void audio_adc_config_dma(void)
@@ -263,7 +285,7 @@ static void audio_adc_config_dma(void)
 
     if(!aud_adc.buf)
         return;
-    
+
     os_memset(&cfg, 0, sizeof(GDMACFG_TPYES_ST));
 
     cfg.dstdat_width = 32;
@@ -271,32 +293,43 @@ static void audio_adc_config_dma(void)
         cfg.srcdat_width = 16;
     else
         cfg.srcdat_width = 32;
-    
+
     cfg.dstptr_incr = 1;
     cfg.srcptr_incr = 0;
-    
+
     cfg.src_start_addr = (void*)AUD_ADC_FIFO_PORT;
     cfg.dst_start_addr = aud_adc.buf;
 
     cfg.channel = AUD_ADC_DEF_DMA_CHANNEL;
     cfg.prio = 0;
     cfg.u.type5.dst_loop_start_addr = aud_adc.buf;
-    cfg.u.type5.dst_loop_end_addr = aud_adc.buf + aud_adc.buf_len; 
+    cfg.u.type5.dst_loop_end_addr = aud_adc.buf + aud_adc.buf_len;
 
     //cfg.fin_handler = audio_dac_dma_handler;
-    cfg.fin_handler = NULL;
+    if((aud_adc.rx_cb) && (aud_adc.inter_thre)) {
+        cfg.fin_handler = audio_adc_dma_fin_handler;
+    }
+    else {
+        cfg.fin_handler = NULL;
+    }
 
     cfg.src_module = GDMA_X_SRC_AUDIO_RX_REQ;
     cfg.dst_module = GDMA_X_DST_DTCM_WR_REQ;
 
     sddev_control(GDMA_DEV_NAME, CMD_GDMA_CFG_TYPE5, &cfg);
 
-    en_cfg.channel = AUD_ADC_DEF_DMA_CHANNEL;
-    en_cfg.param = aud_adc.buf_len; // dma translen
-    sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_TRANS_LENGTH, &en_cfg);
+    if((aud_adc.rx_cb) && (aud_adc.inter_thre)) {
+        en_cfg.channel = AUD_ADC_DEF_DMA_CHANNEL;
+        en_cfg.param = aud_adc.inter_thre; // dma translen
+        sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_TRANS_LENGTH, &en_cfg);
+    } else {
+        en_cfg.channel = AUD_ADC_DEF_DMA_CHANNEL;
+        en_cfg.param = aud_adc.buf_len; // dma translen
+        sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_TRANS_LENGTH, &en_cfg);
+    }
 
     en_cfg.channel = AUD_ADC_DEF_DMA_CHANNEL;
-    en_cfg.param = (UINT32)(aud_adc.buf); 
+    en_cfg.param = (UINT32)(aud_adc.buf);
     sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_DST_PAUSE_ADDR, &en_cfg);
 
     //en_cfg.channel = AUD_ADC_DEF_DMA_CHANNEL;
@@ -360,22 +393,22 @@ static void audio_adc_linein_detect(void)
 {
     UINT32 param;
 
-    if(aud_adc.status != AUD_ADC_STA_CLOSED) 
+    if(aud_adc.status != AUD_ADC_STA_CLOSED)
     {
         UINT32 gpio_val;
-        
+
         param = aud_adc.linein_detect_pin;
         gpio_val = sddev_control(GPIO_DEV_NAME, CMD_GPIO_INPUT, &param);
         //AUD_PRT("%d\r\n", gpio_val);
         if((gpio_val == AUD_ADC_LINEIN_ENABLE_LEVEL)
-            &&(!(aud_adc.mode & AUD_ADC_MODE_LINEIN)))
+                &&(!(aud_adc.mode & AUD_ADC_MODE_LINEIN)))
         {
             audio_adc_enable_linein();
             aud_adc.mode |= AUD_ADC_MODE_LINEIN;
             AUD_PRT("enable line in: %d\r\n", aud_adc.mode);
         }
         else if((gpio_val != AUD_ADC_LINEIN_ENABLE_LEVEL)
-            &&(aud_adc.mode & AUD_ADC_MODE_LINEIN))
+                &&(aud_adc.mode & AUD_ADC_MODE_LINEIN))
         {
             audio_adc_disable_linein();
             aud_adc.mode &= ~AUD_ADC_MODE_LINEIN;
@@ -387,7 +420,7 @@ static void audio_adc_linein_detect(void)
 static UINT32 audio_adc_open(UINT32 op_flag)
 {
     AUD_ADC_DESC_PTR cfg;
-   
+
     if(!op_flag) {
         AUD_PRT("audio_adc_open is NULL\r\n");
         return AUD_FAILURE;
@@ -405,12 +438,14 @@ static UINT32 audio_adc_open(UINT32 op_flag)
 
     aud_adc.status = AUD_ADC_STA_CLOSED;
     aud_adc.buf = cfg->buf;
-    aud_adc.buf_len = cfg->buf_len;    
+    aud_adc.buf_len = cfg->buf_len;
     aud_adc.channels = cfg->channels;
     aud_adc.freq= cfg->freq;
     aud_adc.mode = cfg->mode;
     aud_adc.linein_detect_pin = cfg->linein_detect_pin;
-    
+    aud_adc.inter_thre = cfg->inter_thre;
+    aud_adc.rx_cb = cfg->rx_cb;
+
     audio_adc_set_enable_bit(0);
     audio_adc_set_sample_rate(aud_adc.freq);
     audio_adc_set_hpf2_bypass_bit(1);
@@ -418,8 +453,8 @@ static UINT32 audio_adc_open(UINT32 op_flag)
     audio_adc_init_linein_detect_pin(aud_adc.linein_detect_pin);
 
     #if !AUD_ADC_DAC_HARDWARD_LOOPBACK
-    if(!(aud_adc.mode & AUD_ADC_MODE_DMA_BIT)) {       
-        audio_adc_set_write_thred_bit(AUD_ADC_DEF_WR_THRED); 
+    if(!(aud_adc.mode & AUD_ADC_MODE_DMA_BIT)) {
+        audio_adc_set_write_thred_bit(AUD_ADC_DEF_WR_THRED);
         audio_adc_set_int_enable_bit(1);
         audio_enable_interrupt();
 
@@ -427,17 +462,17 @@ static UINT32 audio_adc_open(UINT32 op_flag)
     } else {
         audio_adc_set_int_enable_bit(0);
         //audio_disable_interrupt();
-        
+
         #if (CFG_GENERAL_DMA)
         audio_adc_config_dma();
-        
+
         rb_init_dma_write(&aud_adc.u.rb_dma_wr, aud_adc.buf, aud_adc.buf_len, AUD_ADC_DEF_DMA_CHANNEL);
         #endif
     }
     #else
-    REG_WRITE(AUD_FIFO_CONFIG, (REG_READ(AUD_FIFO_CONFIG) | LOOP_ADC2DAC));
+    REG_WRITE_PROTECT(AUD_FIFO_CONFIG, (REG_READ(AUD_FIFO_CONFIG) | LOOP_ADC2DAC));
     #endif
-    
+
     audio_adc_open_analog_regs();
     audio_power_up();
     #if AUD_ADC_DAC_HARDWARD_LOOPBACK
@@ -454,7 +489,7 @@ static UINT32 audio_adc_close(void)
 {
     audio_adc_set_enable_bit(0);
     audio_adc_set_int_enable_bit(0);
-    
+
     if(aud_adc.status == AUD_ADC_STA_CLOSED)
         return AUD_SUCCESS;
 
@@ -464,7 +499,7 @@ static UINT32 audio_adc_close(void)
         //rb_clear_dma_read(&aud_dac.u.rb_dma_rd);
     }
     #endif
-    
+
     //audio_disable_interrupt();
     //audio_power_down();
     audio_adc_close_analog_regs();
@@ -535,7 +570,7 @@ static void audio_adc_pause(void)
     if(aud_adc.status == AUD_ADC_STA_PAUSE)
         return;
 
-    if(aud_adc.mode & AUD_ADC_MODE_DMA_BIT) 
+    if(aud_adc.mode & AUD_ADC_MODE_DMA_BIT)
     {
         #if CFG_GENERAL_DMA
         audio_adc_set_dma(0);
@@ -543,7 +578,7 @@ static void audio_adc_pause(void)
     }
 
     audio_adc_set_enable_bit(0);
-    
+
     aud_adc.status = AUD_ADC_STA_PAUSE;
 }
 
@@ -552,7 +587,7 @@ static void audio_adc_play(void)
     if(aud_adc.status == AUD_ADC_STA_PLAYING)
         return;
 
-    if(aud_adc.mode & AUD_ADC_MODE_DMA_BIT) 
+    if(aud_adc.mode & AUD_ADC_MODE_DMA_BIT)
     {
         #if CFG_GENERAL_DMA
         audio_adc_set_dma(1);
@@ -560,7 +595,7 @@ static void audio_adc_play(void)
     }
 
     audio_adc_set_enable_bit(1);
-    
+
     aud_adc.status = AUD_ADC_STA_PLAYING;
 }
 
@@ -585,9 +620,18 @@ static void audio_adc_set_volume(UINT32 volume)
     reg_val &= ~(MANUAL_PGA_VAL_MASK << MANUAL_PGA_VAL_POSI);
     reg_val |= ((act_vol & MANUAL_PGA_VAL_MASK) << MANUAL_PGA_VAL_POSI);
 
-    REG_WRITE(reg_addr, reg_val);
+    REG_WRITE_PROTECT(reg_addr, reg_val);
 
     AUD_PRT("set adc vol: %d - %d\r\n", volume, act_vol);
+}
+
+static void audio_adc_set_rx_call_back(UINT32 *cb)
+{
+    struct audio_adc_rx_cb_des *des = (struct audio_adc_rx_cb_des *)cb;
+    if(des) {
+        aud_adc.inter_thre = des->inter_thre;
+        aud_adc.rx_cb = des->rx_cb;
+    }
 }
 
 static UINT32 audio_adc_ctrl(UINT32 cmd, void *param)
@@ -596,40 +640,45 @@ static UINT32 audio_adc_ctrl(UINT32 cmd, void *param)
 
     switch(cmd)
     {
-        case AUD_ADC_CMD_GET_FILL_BUF_SIZE:
-            ret = audio_adc_get_fill_buf_size();
-            break;
-            
-        case AUD_ADC_CMD_PLAY:
-            audio_adc_play();
-            break;
-            
-        case AUD_ADC_CMD_PAUSE:
-            audio_adc_pause();
-            break;
+    case AUD_ADC_CMD_GET_FILL_BUF_SIZE:
+        ret = audio_adc_get_fill_buf_size();
+        break;
 
-        case AUD_ADC_CMD_DO_LINEIN_DETECT:
-            audio_adc_linein_detect();
-            break;
+    case AUD_ADC_CMD_PLAY:
+        audio_adc_play();
+        break;
 
-        case AUD_ADC_CMD_SET_SAMPLE_RATE:
-            ASSERT(param);
-            if (aud_adc.status == AUD_ADC_STA_PLAYING) {
-                audio_adc_set_enable_bit(0);
-            }
-            audio_adc_set_sample_rate(*((UINT32 *)param));
-            if (aud_adc.status == AUD_ADC_STA_PLAYING) {
-                audio_adc_set_enable_bit(1);
-            }
-            break;
+    case AUD_ADC_CMD_PAUSE:
+        audio_adc_pause();
+        break;
 
-        case AUD_ADC_CMD_SET_VOLUME:
-            ASSERT(param);
-            audio_adc_set_volume(*((UINT32 *)param));
-            break;
-            
-        default:
-            break;
+    case AUD_ADC_CMD_DO_LINEIN_DETECT:
+        audio_adc_linein_detect();
+        break;
+
+    case AUD_ADC_CMD_SET_SAMPLE_RATE:
+        ASSERT(param);
+        if (aud_adc.status == AUD_ADC_STA_PLAYING) {
+            audio_adc_set_enable_bit(0);
+        }
+        audio_adc_set_sample_rate(*((UINT32 *)param));
+        if (aud_adc.status == AUD_ADC_STA_PLAYING) {
+            audio_adc_set_enable_bit(1);
+        }
+        break;
+
+    case AUD_ADC_CMD_SET_VOLUME:
+        ASSERT(param);
+        audio_adc_set_volume(*((UINT32 *)param));
+        break;
+
+    case AUD_ADC_CMD_SET_RX_CB:
+        ASSERT(param);
+        audio_adc_set_rx_call_back(param);
+    break;
+
+    default:
+        break;
     }
     return ret;
 }
@@ -637,7 +686,7 @@ static UINT32 audio_adc_ctrl(UINT32 cmd, void *param)
 void audio_adc_software_init(void)
 {
     ddev_register_dev(AUD_ADC_DEV_NAME, &adu_adc_op);
-    
+
     os_memset(&aud_adc, 0, sizeof(AUD_ADC_DESC_ST));
     aud_adc.status = AUD_ADC_STA_CLOSED;
 }
@@ -653,14 +702,20 @@ void audio_adc_isr(void)
     {
         rb = &aud_adc.u.rb;
         channel = aud_adc.channels;
-        if(status & ADC_INT_FLAG) 
+        if(status & ADC_INT_FLAG)
         {
-            if(channel == 2) 
+            if(channel == 2)
             {
                 while(!(status & (ADC_FIFO_EMPTY)))
                 {
                     audio_adc_get_l_and_r_samples(&sample[0], &sample[1]);
                     ret = rb_write(rb, (UINT8*)&sample[0], sizeof(int16), 2);
+                    if((aud_adc.rx_cb) && (aud_adc.inter_thre)) {
+                        UINT32 fill_size =  rb_get_fill_size(rb);
+                        if(fill_size >= aud_adc.inter_thre) {
+                            aud_adc.rx_cb(fill_size);
+                        }
+                    }
                     //AUD_PRT("%d\r\n", ret);
                     if(!ret)
                         break;
@@ -671,6 +726,11 @@ void audio_adc_isr(void)
                 {
                     audio_adc_get_l_sample(&sample[0]);
                     ret = rb_write(rb, (UINT8*)&sample[0], sizeof(int16), 1);
+                    if((aud_adc.rx_cb) && (aud_adc.inter_thre)) {
+                         UINT32 fill_size =  rb_get_fill_size(rb);
+                         if(fill_size >= aud_adc.inter_thre)
+                            aud_adc.rx_cb(fill_size);
+                    }
                     //AUD_PRT("%d\r\n", ret);
                     if(!ret)
                         break;
@@ -680,7 +740,7 @@ void audio_adc_isr(void)
         }
     }
 
-    if(ret == 0) 
+    if(ret == 0)
     {
         while(!(status & (ADC_FIFO_EMPTY)))
         {

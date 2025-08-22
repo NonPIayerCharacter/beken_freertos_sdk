@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "bk_airkiss.h"
 #include "airkiss.h"
@@ -116,22 +130,22 @@ uint32_t bk_airkiss_resource_create(void)
 
     BK_AIRKISS_PRT("bk_airkiss_resource_create\r\n");
     result = rtos_init_timer(&airkiss_switch_channel_timer,
-		                        BK_AIRKISS_SWITCH_TIMER,
-		                        bk_airkiss_switch_channel_timer_handler,
-		                        (void *)0);
+                             BK_AIRKISS_SWITCH_TIMER,
+                             bk_airkiss_switch_channel_timer_handler,
+                             (void *)0);
     ASSERT(kNoErr == result);
 
     result = rtos_init_timer(&airkiss_lock_channel_timer,
-		                        BK_AIRKISS_CYCLE_TIMER,
-		                        bk_airkiss_lock_timeout_handler,
-		                        (void *)0);
+                             BK_AIRKISS_CYCLE_TIMER,
+                             bk_airkiss_lock_timeout_handler,
+                             (void *)0);
     ASSERT(kNoErr == result);
-	
-	if(NULL == airkiss_decode_over_sema) 
-	{
-		result = rtos_init_semaphore(&airkiss_decode_over_sema, 1);
-		ASSERT(kNoErr == result);
-	}
+
+    if(NULL == airkiss_decode_over_sema)
+    {
+        result = rtos_init_semaphore(&airkiss_decode_over_sema, 1);
+        ASSERT(kNoErr == result);
+    }
 
     airkiss_context_ptr = (airkiss_context_t *)os_malloc(sizeof(airkiss_context_t));
     if (!airkiss_context_ptr)
@@ -168,37 +182,37 @@ static void bk_airkiss_wifi_connect(airkiss_result_t *airkiss_result)
 void bk_airkiss_start_udp_boardcast(u8 random_data)
 {
     int err, i;
-    int udp_broadcast_fd = -1; 
+    int udp_broadcast_fd = -1;
     struct sockaddr_in remote_skt;
 
-	BK_AIRKISS_PRT("bk_airkiss_start_udp_boardcast\n");
+    BK_AIRKISS_PRT("bk_airkiss_start_udp_boardcast\n");
     udp_broadcast_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if(udp_broadcast_fd == -1)
-	{
-		BK_AIRKISS_WARN("Socket failed\r\n");
-		return;
-	}
+    if(udp_broadcast_fd == -1)
+    {
+        BK_AIRKISS_WARN("Socket failed\r\n");
+        return;
+    }
     os_memset(&remote_skt, 0, sizeof(struct sockaddr_in));
     remote_skt.sin_family = AF_INET;
     remote_skt.sin_addr.s_addr = INADDR_BROADCAST;//INADDR_ANY;
     remote_skt.sin_port = htons(10000);
-	
- 	i = MAX_UDP_RANDOM_SEND;
-    while(i --) 
-    {    	
-		BK_AIRKISS_PRT("udp-sendto:%d\r\n", i);
-		
+
+    i = MAX_UDP_RANDOM_SEND;
+    while(i --)
+    {
+        BK_AIRKISS_PRT("udp-sendto:%d\r\n", i);
+
         err = sendto(udp_broadcast_fd, &random_data, 1, 0, (struct sockaddr *)&remote_skt, sizeof(remote_skt));
-		rtos_thread_msleep(10);
-		
-        if(err == -1) 
+        rtos_thread_msleep(10);
+
+        if(err == -1)
         {
             BK_AIRKISS_WARN("send udp boardcast failed\r\n");
         }
     }
 
-	BK_AIRKISS_PRT("close socket\r\n");
-	close(udp_broadcast_fd);
+    BK_AIRKISS_PRT("close socket\r\n");
+    close(udp_broadcast_fd);
 }
 
 void bk_airkiss_decode_complete_handle(void)
@@ -225,13 +239,13 @@ void bk_airkiss_decode_complete_handle(void)
     BK_AIRKISS_PRT("bk_airkiss_wifi_connecting\r\n");
     bk_airkiss_wifi_connect(&airkiss_result);
     BK_AIRKISS_PRT("bk_airkiss_wifi_connect\r\n");
-	
+
     do
     {
         chunk ++;
         rtos_delay_milliseconds(1000);
-		
-    	BK_AIRKISS_PRT("airkiss is waiting for network connection\r\n");
+
+        BK_AIRKISS_PRT("airkiss is waiting for network connection\r\n");
         if (chunk >= 30)
         {
             BK_AIRKISS_PRT("GET IP Time Out!!! \n");
@@ -244,12 +258,12 @@ void bk_airkiss_decode_complete_handle(void)
 
 uint32_t bk_airkiss_get_decode_status(void)
 {
-	return bk_airkiss_decode_status;
+    return bk_airkiss_decode_status;
 }
 
 uint32_t bk_airkiss_decode_isnot_over(void)
 {
-	return (AIRKISS_STATUS_COMPLETE != bk_airkiss_decode_status);
+    return (AIRKISS_STATUS_COMPLETE != bk_airkiss_decode_status);
 }
 
 static void bk_airkiss_thread_entry(void *parameter)
@@ -265,8 +279,8 @@ static void bk_airkiss_thread_entry(void *parameter)
 
     /*step 1: init the parameter of switching channel, and then monitor*/
     airkiss_current_channel = 1;
-	bk_wlan_set_channel_sync(airkiss_current_channel);
-	
+    bk_wlan_set_channel_sync(airkiss_current_channel);
+
     bk_wlan_register_monitor_cb(bk_airkiss_monitor_callback);
     bk_wlan_start_monitor();
 
@@ -279,7 +293,7 @@ static void bk_airkiss_thread_entry(void *parameter)
     }
 
     /*step 3: handle decode phase*/
-	bk_wlan_stop_monitor();
+    bk_wlan_stop_monitor();
     if (AIRKISS_STATUS_COMPLETE == bk_airkiss_decode_status)
     {
         bk_airkiss_decode_complete_handle();
@@ -288,24 +302,24 @@ static void bk_airkiss_thread_entry(void *parameter)
 _exit:
     bk_airkiss_clear_start_flag();
     bk_airkiss_resource_destroy();
-	#if CFG_OS_FREERTOS
-	BK_AIRKISS_PRT("bk_airkiss_thread_entry exit:%d\r\n", xPortGetFreeHeapSize());
-	#endif
+    #if CFG_OS_FREERTOS
+    BK_AIRKISS_PRT("bk_airkiss_thread_entry exit:%d\r\n", xPortGetFreeHeapSize());
+    #endif
 
-	airkiss_thread_handle = NULL;
-	rtos_delete_thread(NULL);
+    airkiss_thread_handle = NULL;
+    rtos_delete_thread(NULL);
 }
 
 uint32_t bk_airkiss_init(void)
-{	
-	OSStatus ret;
+{
+    OSStatus ret;
 
-#if CFG_OS_FREERTOS
-	BK_AIRKISS_PRT("bk_airkiss_init:%d\r\n", xPortGetFreeHeapSize());
-#endif
+    #if CFG_OS_FREERTOS
+    BK_AIRKISS_PRT("bk_airkiss_init:%d\r\n", xPortGetFreeHeapSize());
+    #endif
 
     bk_wlan_stop_monitor();
-	bk_airkiss_set_start_flag();
+    bk_airkiss_set_start_flag();
 
     if(NULL == airkiss_thread_handle)
     {
@@ -318,64 +332,64 @@ uint32_t bk_airkiss_init(void)
         if (ret != kNoErr)
         {
             BK_AIRKISS_PRT("Error: airkiss_start_process: %d\r\n", ret);
-			
+
             return -1;
         }
     }
-	
-	return AIRKISS_SUCCESS;
+
+    return AIRKISS_SUCCESS;
 }
 
 uint32_t bk_airkiss_uninit(void)
 {
-	BK_AIRKISS_PRT("bk_airkiss_uninit\r\n");
-	return AIRKISS_SUCCESS;
+    BK_AIRKISS_PRT("bk_airkiss_uninit\r\n");
+    return AIRKISS_SUCCESS;
 }
 
 uint32_t bk_airkiss_stop(void)
 {
-	BK_AIRKISS_PRT("bk_airkiss_stop\r\n");
+    BK_AIRKISS_PRT("bk_airkiss_stop\r\n");
 
-	if(rtos_is_timer_init(&airkiss_switch_channel_timer) 
-		&& rtos_is_timer_running(&airkiss_switch_channel_timer))
-	{
-		rtos_stop_timer(&airkiss_switch_channel_timer);
-	}
+    if(rtos_is_timer_init(&airkiss_switch_channel_timer)
+            && rtos_is_timer_running(&airkiss_switch_channel_timer))
+    {
+        rtos_stop_timer(&airkiss_switch_channel_timer);
+    }
 
-	if(rtos_is_timer_init(&airkiss_lock_channel_timer) 
-		&& rtos_is_timer_running(&airkiss_lock_channel_timer))
-	{
-		rtos_stop_timer(&airkiss_lock_channel_timer);
-	}
+    if(rtos_is_timer_init(&airkiss_lock_channel_timer)
+            && rtos_is_timer_running(&airkiss_lock_channel_timer))
+    {
+        rtos_stop_timer(&airkiss_lock_channel_timer);
+    }
 
-	if(bk_airkiss_is_start() && bk_airkiss_decode_isnot_over())
-	{
-		rtos_set_semaphore(&airkiss_decode_over_sema);
-	}
-	
-	return AIRKISS_SUCCESS;
+    if(bk_airkiss_is_start() && bk_airkiss_decode_isnot_over())
+    {
+        rtos_set_semaphore(&airkiss_decode_over_sema);
+    }
+
+    return AIRKISS_SUCCESS;
 }
 
 uint32_t bk_airkiss_start(void)
 {
-	BK_AIRKISS_PRT("bk_airkiss_start\r\n");
-	return bk_airkiss_init();
+    BK_AIRKISS_PRT("bk_airkiss_start\r\n");
+    return bk_airkiss_init();
 }
 
 uint32_t bk_airkiss_process(uint32_t start)
 {
-	uint32_t ret;
-	
-	if(start)
-	{
-		ret = bk_airkiss_start();
-	}
-	else
-	{
-		ret = bk_airkiss_stop();
-	}
-	
-	return ret;	
+    uint32_t ret;
+
+    if(start)
+    {
+        ret = bk_airkiss_start();
+    }
+    else
+    {
+        ret = bk_airkiss_stop();
+    }
+
+    return ret;
 }
 
 // eof

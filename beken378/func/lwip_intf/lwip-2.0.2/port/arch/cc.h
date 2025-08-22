@@ -1,6 +1,20 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /*
  * cc.h       - Architecture environment, some compiler specific, some
- *             environment specific (probably should move env stuff 
+ *             environment specific (probably should move env stuff
  *             to sys_arch.h.)
  *
  * Typedefs for the types used by lwip -
@@ -30,7 +44,7 @@
  * the standard *nix error codes, or it should #define LWIP_PROVIDE_ERRNO
  * to make lwip/arch.h define the codes which are used throughout.
  */
- 
+
 #ifndef __CC_H__
 #define __CC_H__
 
@@ -56,24 +70,24 @@ typedef uint16_t  u16_t;
 typedef int16_t   s16_t;
 typedef uint32_t  u32_t;
 typedef int32_t   s32_t;
-#endif 
+#endif
 
 typedef int			       intptr_t;
 typedef unsigned int       uintptr_t;
 typedef int sys_prot_t;
 
 #if defined(__GNUC__)
- #define PACK_STRUCT_BEGIN
- #define PACK_STRUCT_STRUCT __attribute__((packed))
- #define PACK_STRUCT_FIELD(x) x
+#define PACK_STRUCT_BEGIN
+#define PACK_STRUCT_STRUCT __attribute__((packed))
+#define PACK_STRUCT_FIELD(x) x
 #elif defined(__ICCARM__)
- #define PACK_STRUCT_BEGIN __packed
- #define PACK_STRUCT_STRUCT
- #define PACK_STRUCT_FIELD(x) x
+#define PACK_STRUCT_BEGIN __packed
+#define PACK_STRUCT_STRUCT
+#define PACK_STRUCT_FIELD(x) x
 #else
- #define PACK_STRUCT_BEGIN
- #define PACK_STRUCT_STRUCT
- #define PACK_STRUCT_FIELD(x) x
+#define PACK_STRUCT_BEGIN
+#define PACK_STRUCT_STRUCT
+#define PACK_STRUCT_FIELD(x) x
 #endif
 
 
@@ -93,8 +107,8 @@ typedef int sys_prot_t;
 
 #ifndef LWIP_PLATFORM_DIAG
 #define LWIP_PLATFORM_DIAG(x) do {fatal_prf x ;} while(0)
-#endif 
- 
+#endif
+
 #define U16_F "4d"
 #define S16_F "4d"
 #define X16_F "4x"
@@ -105,7 +119,7 @@ typedef int sys_prot_t;
 /*
  * unknow defination
  */
-// cup byte order 
+// cup byte order
 #ifndef BYTE_ORDER
 #define BYTE_ORDER          LITTLE_ENDIAN
 #endif

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include <string.h>
@@ -23,10 +37,10 @@ void *os_memset(void *b, int c, UINT32 len)
 {
     return (void *)memset(b, c, (unsigned int)len);
 }
-#if (CFG_SUPPORT_RTT) && (CFG_SOC_NAME == SOC_BK7221U)
+#if (CFG_SUPPORT_RTT) && ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N))
 void *dtcm_malloc(size_t size)
 {
-	extern void *tcm_malloc(unsigned long size); 
+    extern void *tcm_malloc(unsigned long size);
     return (void *)tcm_malloc(size);
 }
 #endif
@@ -37,24 +51,24 @@ void *os_malloc(size_t size)
 
 void * os_zalloc(size_t size)
 {
-	void *n = (void *)rt_malloc(size);
-	if (n)
-		os_memset(n, 0, size);
-	return n;
+    void *n = (void *)rt_malloc(size);
+    if (n)
+        os_memset(n, 0, size);
+    return n;
 }
 
 void *os_realloc(void *ptr, size_t size)
 {
-	void *tmp;
+    void *tmp;
 
-	tmp = (void *)rt_malloc(size);
-	if(tmp)
-	{
-		os_memcpy(tmp, ptr, size);
-		rt_free(ptr);
-	}
+    tmp = (void *)rt_malloc(size);
+    if(tmp)
+    {
+        os_memcpy(tmp, ptr, size);
+        rt_free(ptr);
+    }
 
-	return tmp;
+    return tmp;
 }
 
 void os_free(void *ptr)

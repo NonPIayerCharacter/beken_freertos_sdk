@@ -1,9 +1,24 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "drv_model_pub.h"
 #include "la_pub.h"
 #include "la.h"
 #include "target_util_pub.h"
+#include "common_reg_rw.h"
 
 #if (CFG_SOC_NAME == SOC_BK7252N)
 
@@ -26,7 +41,7 @@ __maybe_unused static void la_soft_rstn(UINT8 enable)
         value &= ~LA_REG0X2_SOFT_RST;
     }
 
-    REG_WRITE(LA_REG0X2_ADDR, value);
+    REG_WRITE_QSPI_RST(LA_REG0X2_ADDR, value);
 }
 
 __maybe_unused static void la_cfg_init_value(UINT32 val)
@@ -35,7 +50,7 @@ __maybe_unused static void la_cfg_init_value(UINT32 val)
 
     reg = REG_READ(LA_REG0X3_ADDR);
     reg = val;
-    REG_WRITE(LA_REG0X3_ADDR, reg);
+    REG_WRITE_PROTECT(LA_REG0X3_ADDR, reg);
 }
 
 __maybe_unused static void la_set_smp_enable(UINT8 enable)
@@ -53,7 +68,7 @@ __maybe_unused static void la_set_smp_enable(UINT8 enable)
         value &= ~LA_REG0X3_LA_SMP_EN;
     }
 
-    REG_WRITE(LA_REG0X3_ADDR, value);
+    REG_WRITE_PROTECT(LA_REG0X3_ADDR, value);
 }
 
 __maybe_unused static void la_set_smp_clk_inv(UINT8 enable)
@@ -71,7 +86,7 @@ __maybe_unused static void la_set_smp_clk_inv(UINT8 enable)
         value &= ~LA_REG0X3_LA_SMP_CLK_INV;
     }
 
-    REG_WRITE(LA_REG0X3_ADDR, value);
+    REG_WRITE_PROTECT(LA_REG0X3_ADDR, value);
 }
 
 __maybe_unused static void la_set_trig_mode(UINT8 mode)
@@ -89,7 +104,7 @@ __maybe_unused static void la_set_trig_mode(UINT8 mode)
         value &= ~(LA_REG0X3_LA_SMP_MOD_MASK << LA_REG0X3_LA_SMP_MOD_POSI);;
     }
 
-    REG_WRITE(LA_REG0X3_ADDR, value);
+    REG_WRITE_PROTECT(LA_REG0X3_ADDR, value);
 }
 
 __maybe_unused static void la_set_smp_int_en(UINT8 mode)
@@ -114,7 +129,7 @@ __maybe_unused static void la_set_smp_int_en(UINT8 mode)
         value |= (LA_SMP_INT_EN_MODE_BOTH << LA_REG0X3_LA_SMP_INT_EN_POSI);
     }
 
-    REG_WRITE(LA_REG0X3_ADDR, value);
+    REG_WRITE_PROTECT(LA_REG0X3_ADDR, value);
 }
 
 __maybe_unused static void la_set_mem_secu_attr(UINT8 enable)
@@ -132,7 +147,7 @@ __maybe_unused static void la_set_mem_secu_attr(UINT8 enable)
         value &= ~LA_REG0X3_MEM_SECU_ATTR;
     }
 
-    REG_WRITE(LA_REG0X3_ADDR, value);
+    REG_WRITE_PROTECT(LA_REG0X3_ADDR, value);
 }
 
 __maybe_unused static void la_set_smp_source(UINT8 source)
@@ -142,7 +157,7 @@ __maybe_unused static void la_set_smp_source(UINT8 source)
     reg = REG_READ(LA_REG0X3_ADDR);
     reg &= ~(LA_REG0X3_LA_SMP_SOURCE_MASK << LA_REG0X3_LA_SMP_SOURCE_POSI);
     reg |= ((source & LA_REG0X3_LA_SMP_SOURCE_MASK) << LA_REG0X3_LA_SMP_SOURCE_POSI);
-    REG_WRITE(LA_REG0X3_ADDR, reg);
+    REG_WRITE_PROTECT(LA_REG0X3_ADDR, reg);
 }
 
 __maybe_unused static void la_set_smp_len(UINT32 len)
@@ -152,7 +167,7 @@ __maybe_unused static void la_set_smp_len(UINT32 len)
     reg = REG_READ(LA_REG0X3_ADDR);
     reg &= ~(LA_REG0X3_LA_SMP_LEN_MASK << LA_REG0X3_LA_SMP_LEN_POSI);
     reg |= ((len & LA_REG0X3_LA_SMP_LEN_MASK) << LA_REG0X3_LA_SMP_LEN_POSI);
-    REG_WRITE(LA_REG0X3_ADDR, reg);
+    REG_WRITE_PROTECT(LA_REG0X3_ADDR, reg);
 }
 
 __maybe_unused static void la_set_smp_trigger_value(UINT32 val)
@@ -161,7 +176,7 @@ __maybe_unused static void la_set_smp_trigger_value(UINT32 val)
 
     reg = REG_READ(LA_REG0X4_LA_SMP_VALUE);
     reg = val;
-    REG_WRITE(LA_REG0X4_LA_SMP_VALUE, reg);
+    REG_WRITE_PROTECT(LA_REG0X4_LA_SMP_VALUE, reg);
 }
 
 __maybe_unused static void la_set_smp_data_mask(UINT32 val)
@@ -170,7 +185,7 @@ __maybe_unused static void la_set_smp_data_mask(UINT32 val)
 
     reg = REG_READ(LA_REG0X5_LA_SMP_MASK);
     reg = val;
-    REG_WRITE(LA_REG0X5_LA_SMP_MASK, reg);
+    REG_WRITE_PROTECT(LA_REG0X5_LA_SMP_MASK, reg);
 }
 
 __maybe_unused static UINT32 la_get_smp_data(void)
@@ -184,13 +199,13 @@ __maybe_unused static void la_set_smp_start_addr(UINT32 val)
 
     reg = REG_READ(LA_REG0X7_LA_SMP_START_ADDR);
     reg = val;
-    REG_WRITE(LA_REG0X7_LA_SMP_START_ADDR, reg);
+    REG_WRITE_PROTECT(LA_REG0X7_LA_SMP_START_ADDR, reg);
 }
 
 __maybe_unused static LA_BUS_ERR_FLAG la_get_bus_err_flag(void)
 {
     return ((REG_READ(LA_REG0X8_ADDR) & LA_REG0X8_BUS_ERR_FLAG)
-             >> LA_REG0X8_BUS_ERR_FLAG_POSI);
+            >> LA_REG0X8_BUS_ERR_FLAG_POSI);
 }
 
 __maybe_unused static void la_clr_smp_int_status(UINT8 mode)
@@ -215,7 +230,7 @@ __maybe_unused static void la_clr_smp_int_status(UINT8 mode)
         value |= (LA_SMP_INT_EN_MODE_BOTH << LA_REG0X8_LA_SMP_INT_STATUS_POSI);
     }
 
-    REG_WRITE(LA_REG0X8_ADDR, value);
+    REG_WRITE_PROTECT(LA_REG0X8_ADDR, value);
 }
 
 void la_init(void)
@@ -230,12 +245,12 @@ void la_exit(void)
 
 UINT32 la_ctrl(UINT32 cmd, void *param)
 {
-	switch (cmd) {
-	default:
-		break;
-	}
+    switch (cmd) {
+    default:
+        break;
+    }
 
-	return 0;
+    return 0;
 }
 
 #endif

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 
 #if (CFG_USE_APP_DEMO_VIDEO_TRANSFER)
@@ -79,7 +93,7 @@ int vudp_sdp_pub_init(VUDP_SDP_INIT_PTR param)
         VUPD_SDP_FATAL("parm err\r\n");
         return kParamErr;
     }
-    
+
     if(vudp_sdp == NULL)
     {
         vudp_sdp = os_malloc(sizeof(VUDP_SDP_ST));
@@ -99,13 +113,13 @@ int vudp_sdp_pub_init(VUDP_SDP_INIT_PTR param)
                 os_free(vudp_sdp);
                 vudp_sdp = NULL;
                 return kNoMemoryErr;
-            } 
-            
+            }
+
             os_memcpy(adv_buf, param->adv_buf,param->adv_buf_len);
             vudp_sdp->adv_buf = adv_buf;
             vudp_sdp->adv_buf_len = param->adv_buf_len;
         }
-        
+
         if(vudp_sdp_init_socket(&vudp_sdp->sock, param->local_port) != 0)
         {
             VUPD_SDP_FATAL("socket fail\r\n");
@@ -115,7 +129,7 @@ int vudp_sdp_pub_init(VUDP_SDP_INIT_PTR param)
             vudp_sdp = NULL;
             return kGeneralErr;
         }
-        
+
         vudp_sdp->sock_remote.sin_family = AF_INET;
         vudp_sdp->sock_remote.sin_port = htons(param->remote_port);
         vudp_sdp->sock_remote.sin_addr.s_addr = INADDR_BROADCAST;
@@ -152,9 +166,9 @@ int vudp_sdp_change_adv_data(UINT8 *adv_data, UINT32 data_len)
         vudp_sdp->adv_buf = adv_buf;
         vudp_sdp->adv_buf_len = data_len;
         GLOBAL_INT_RESTORE();
-        
-        VUPD_SDP_PRT("succeed: %s, %d\r\n", vudp_sdp->adv_buf, 
-            vudp_sdp->adv_buf_len);
+
+        VUPD_SDP_PRT("succeed: %s, %d\r\n", vudp_sdp->adv_buf,
+                     vudp_sdp->adv_buf_len);
 
         return kNoErr;
     }
@@ -168,7 +182,7 @@ int vudp_sdp_get_adv_data(UINT8 **adv_data, UINT32 *data_len)
     {
         if(adv_data)
             *adv_data = vudp_sdp->adv_buf;
-        
+
         if(data_len)
             *data_len = vudp_sdp->adv_buf_len;
 
@@ -183,16 +197,16 @@ static void vudp_sdp_timer_handler(void *data)
 {
     if((vudp_sdp) && (vudp_sdp->adv_buf != NULL) && (vudp_sdp->adv_buf_len != 0))
     {
-    if (uap_ip_start_flag == 1)
-		ap_set_default_netif();
-        sendto(vudp_sdp->sock, 
-            vudp_sdp->adv_buf, 
-            vudp_sdp->adv_buf_len, 
-            0,
-            (struct sockaddr *)&vudp_sdp->sock_remote, 
-            sizeof(struct sockaddr));
+        if (uap_ip_start_flag == 1)
+            ap_set_default_netif();
+        sendto(vudp_sdp->sock,
+               vudp_sdp->adv_buf,
+               vudp_sdp->adv_buf_len,
+               0,
+               (struct sockaddr *)&vudp_sdp->sock_remote,
+               sizeof(struct sockaddr));
         VUPD_SDP_PRT("sendto anyone %s, %d\r\n", vudp_sdp->adv_buf,
-            vudp_sdp->adv_buf_len);
+                     vudp_sdp->adv_buf_len);
     }
 }
 
@@ -207,16 +221,16 @@ int vudp_sdp_start_timer(UINT32 time_ms)
         {
             if((org_ms != time_ms))
             {
-                if(vudp_sdp->timer.handle != NULL) 
+                if(vudp_sdp->timer.handle != NULL)
                 {
-                    err = rtos_deinit_timer(&vudp_sdp->timer); 
+                    err = rtos_deinit_timer(&vudp_sdp->timer);
                     if(kNoErr != err)
                     {
                         VUPD_SDP_FATAL("deinit time fail\r\n");
                         return kGeneralErr;
                     }
-                    vudp_sdp->timer.handle = NULL; 
-                } 
+                    vudp_sdp->timer.handle = NULL;
+                }
             }
             else
             {
@@ -226,9 +240,9 @@ int vudp_sdp_start_timer(UINT32 time_ms)
         }
 
         err = rtos_init_timer(&vudp_sdp->timer,
-                                time_ms,
-                                vudp_sdp_timer_handler,
-                                NULL);
+                              time_ms,
+                              vudp_sdp_timer_handler,
+                              NULL);
         if(kNoErr != err)
         {
             VUPD_SDP_FATAL("init timer fail\r\n");
@@ -270,28 +284,28 @@ int vudp_sdp_stop_timer(void)
 int vudp_sdp_pub_deinit(void)
 {
     VUPD_SDP_PRT("vudp_sdp_deint\r\n");
-    
+
     if(vudp_sdp != NULL)
     {
         OSStatus err;
-        if(vudp_sdp->timer.handle != NULL) 
+        if(vudp_sdp->timer.handle != NULL)
         {
-            err = rtos_deinit_timer(&vudp_sdp->timer); 
+            err = rtos_deinit_timer(&vudp_sdp->timer);
             if(kNoErr != err)
             {
                 VUPD_SDP_FATAL("deinit time fail\r\n");
                 return kGeneralErr;
             }
-        } 
+        }
 
         closesocket(vudp_sdp->sock);
 
         if(vudp_sdp->adv_buf)
             os_free(vudp_sdp->adv_buf);
-        
+
         os_free(vudp_sdp);
         vudp_sdp = NULL;
-        
+
         VUPD_SDP_PRT("vudp_sdp_deint ok\r\n");
         return kNoErr;
     }

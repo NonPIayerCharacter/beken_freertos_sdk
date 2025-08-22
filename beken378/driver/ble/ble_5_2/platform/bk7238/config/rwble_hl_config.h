@@ -74,6 +74,8 @@
 /// SMP L2CAP transaction Timer duration in milliseconds  30 s: (30 000 ms)
 #define GAP_SMP_TRANS_TIMEOUT_MS                          (30000)
 
+#define CFG_MAX_LE_MTU                                    (512)
+
 /// Maximal authorized MTU / MPS value - Depends on memory size available
 #ifndef CFG_MAX_LE_MTU
 #define GAP_LE_MTU_MAX                                     (2048)

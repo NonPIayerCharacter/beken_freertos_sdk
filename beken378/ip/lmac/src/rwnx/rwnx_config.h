@@ -603,6 +603,7 @@ extern int rwnx_get_noht_rssi_thresold(void) __attribute__ ((weak));
  */
 extern UINT32 rwnx_setting_for_single_rate(INT32 rate) __attribute__ ((weak));
 extern INT32 rwnx_printf_fun(const char *fmt, ...) __attribute__ ((weak));
+extern UINT32 rwnx_check_bcn_ie_hidden_ssid(void) __attribute__ ((weak));
 
 #if (1 == CFG_BK_NX_GET_WIFI_SNR)
 #define BK_NX_GET_RF_SNR            1

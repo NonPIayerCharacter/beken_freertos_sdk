@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 
 #if CFG_USB
@@ -63,26 +77,26 @@ UINT32 fusb_init(void)
     UINT32 status;
     UINT32 op_flag;
     DD_HANDLE usb_handler;
-#if CFG_USE_USB_DEVICE_CARD_READER
+    #if CFG_USE_USB_DEVICE_CARD_READER
     DD_HANDLE sdcard_handler;
-#endif
+    #endif
 
     ret = FUSB_SUCCESS;
 
     FUSB_PRT("fusb_init\r\n");
 
-#ifdef FMSC_TEST
+    #ifdef FMSC_TEST
     fmsc_test_init();
-#elif defined(FUVC_TEST)
+    #elif defined(FUVC_TEST)
     //fuvc_test_init();
-#else
-#endif
+    #else
+    #endif
 
-#if CFG_USE_USB_HOST
+    #if CFG_USE_USB_HOST
     op_flag = USB_HOST_MODE;
-#elif CFG_USE_USB_DEVICE
+    #elif CFG_USE_USB_DEVICE
     op_flag = USB_DEVICE_MODE;
-#endif
+    #endif
     usb_handler = ddev_open(USB_DEV_NAME, &status, op_flag);
     if(DD_HANDLE_UNVALID == usb_handler)
     {
@@ -92,26 +106,26 @@ UINT32 fusb_init(void)
     {
         FUSB_PRT("usb_open_success\r\n");
     }
-    
-#if CFG_USE_USB_DEVICE_CARD_READER
+
+    #if CFG_USE_USB_DEVICE_CARD_READER
     sdcard_handler = ddev_open(SDCARD_DEV_NAME, &status, 0);
-    if(DD_HANDLE_UNVALID == sdcard_handler){
+    if(DD_HANDLE_UNVALID == sdcard_handler) {
         FUSB_PRT("sdcard_open_failed\r\n");
     }
     else if(SDCARD_SUCCESS == status)
     {
         FUSB_PRT("sdcard_open_success\r\n");
     }
-#endif
+    #endif
 
-#ifdef FUSB_ENABLE_USER_MAIN
+    #ifdef FUSB_ENABLE_USER_MAIN
     ret = rtos_create_thread(&usb_host_test_thread_handle,
                              5,
                              "usb_host_test_thread",
                              (beken_thread_function_t)usb_host_test_udisk_thread_main,
                              (unsigned short)2048,
                              (beken_thread_arg_t)0);
-#endif // FUSB_ENABLE_USER_MAIN
+    #endif // FUSB_ENABLE_USER_MAIN
 
     return ret;
 }
@@ -186,10 +200,10 @@ void fuvc_test_init( uint8_t LinkType )
     param = LinkType;
     ddev_control(usb_hdl, UCMD_UVC_REGISTER_LINK, &param);
 
-#ifdef UVC_DEMO_SUPPORT100
+    #ifdef UVC_DEMO_SUPPORT100
     param = UVC_MUX_PARAM(U1_FRAME_640_480, FPS_30);
     ddev_control(usb_hdl, UCMD_UVC_SET_PARAM, &param);
-#endif
+    #endif
 
     process_start(&fuvc_test, NULL);
 
@@ -223,13 +237,13 @@ PROCESS_THREAD(fuvc_test, ev, data)
 
         if(PROCESS_EVENT_MSG == ev)
         {
-#ifdef UVC_DEMO_SUPPORT102
+            #ifdef UVC_DEMO_SUPPORT102
             UINT32 param;
 
             ddev_control(usb_hdl, UCMD_UVC_ENABLE_H264, 0);
             param = UVC_MUX_PARAM(UVC_FRAME_640_480, FPS_30);
             ddev_control(usb_hdl, UCMD_UVC_SET_PARAM, &param);
-#endif
+            #endif
 
             ddev_control(usb_hdl, UCMD_UVC_START_STREAM, 0);
         }

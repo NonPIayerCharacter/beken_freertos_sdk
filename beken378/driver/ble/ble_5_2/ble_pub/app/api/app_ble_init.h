@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _APP_BLE_INIT_H_
 #define _APP_BLE_INIT_H_
 
@@ -24,28 +38,24 @@
 #define APP_CONN_CE_LEN_MIN                (10)
 #define APP_CONN_CE_LEN_MAX                (20)
 
-#define APP_INIT_REUSE_ACTV_IDX            0
 #define APP_INIT_SET_STOP_CONN_TIMER       1
 #define APP_INIT_STOP_CONN_TIMER_EVENT     1
 
 //////////////////////////////////////////////////////
 typedef struct app_ble_initing_env_tag
 {
-	struct gap_bdaddr g_bdaddr;
-	struct{
-		unsigned char actv_idx;
-		#define BLE_INIT_IDX_NONE     0
-		#define BLE_INIT_IDX_USED     1
-		#define BLE_INIT_IDX_STOPED   2
-		unsigned char state;   ///0:none,1.used,2:stoped
-	}init_idx[BLE_CONNECTION_MAX];
-}app_ble_initing_env_t;
+    struct gap_bdaddr g_bdaddr;
+    struct {
+        unsigned char actv_idx;
+#define BLE_INIT_IDX_NONE     0
+#define BLE_INIT_IDX_USED     1
+#define BLE_INIT_IDX_STOPED   2
+        unsigned char state;   ///0:none,1.used,2:stoped
+    } init_idx[BLE_CONNECTION_MAX];
+} app_ble_initing_env_t;
 
 extern int app_ble_master_appm_disconnect(uint8_t conidx);
 extern void app_ble_initing_init(void);
-#if APP_INIT_REUSE_ACTV_IDX
-extern void appm_set_initing_actv_idx(unsigned char conidx,unsigned char actv_idx,unsigned char state);
-#endif
 #endif  ////BLE_CENTRAL
 
 extern void appm_set_gap_prefer_ext_connect_params(ext_conn_param_t *pref_par);

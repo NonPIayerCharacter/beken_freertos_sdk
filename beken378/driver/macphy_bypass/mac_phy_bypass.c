@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -19,15 +33,15 @@ UINT32 g_band = 0;
 
 void mpb_regs_reset(void)
 {
-#if !(CFG_SOC_NAME == SOC_BK7252N)
-	int index;
-	for (index = 0; index <= 0xB; index++) {
-		REG_WRITE(MPB_ADDR_BASE + index * 4, 0);
-	}
-	for (index = 0x80; index <= 0x92; index++) {
-		REG_WRITE(MPB_ADDR_BASE + index * 4, 0);
-	}
-#endif
+    #if !(CFG_SOC_NAME == SOC_BK7252N)
+    int index;
+    for (index = 0; index <= 0xB; index++) {
+        REG_WRITE(MPB_ADDR_BASE + index * 4, 0);
+    }
+    for (index = 0x80; index <= 0x92; index++) {
+        REG_WRITE(MPB_ADDR_BASE + index * 4, 0);
+    }
+    #endif
 }
 
 #if CFG_MAC_PHY_BAPASS
@@ -40,9 +54,9 @@ struct MPB_TypeDef mpb_regs =
     (volatile MPB_REG0x4_TypeDef  *)(MPB_ADDR_BASE + 4 * 4),
     (volatile MPB_REG0x8_TypeDef  *)(MPB_ADDR_BASE + 8 * 4),
     (volatile MPB_REG0x9_TypeDef  *)(MPB_ADDR_BASE + 9 * 4),
-    (volatile MPB_REG0xA_TypeDef  *)(MPB_ADDR_BASE + 10 * 4),    
+    (volatile MPB_REG0xA_TypeDef  *)(MPB_ADDR_BASE + 10 * 4),
     (volatile MPB_REG0xB_TypeDef  *)(MPB_ADDR_BASE + 11 * 4),
-    
+
     (volatile MPB_REG0x80_TypeDef  *)(MPB_ADDR_BASE + 128 * 4),
     (volatile MPB_REG0x81_TypeDef  *)(MPB_ADDR_BASE + 129 * 4),
     (volatile MPB_REG0x82_TypeDef  *)(MPB_ADDR_BASE + 130 * 4),
@@ -59,25 +73,25 @@ struct MPB_TypeDef mpb_regs =
     (volatile MPB_REG0x8D_TypeDef  *)(MPB_ADDR_BASE + 141 * 4),
     (volatile MPB_REG0x8E_TypeDef  *)(MPB_ADDR_BASE + 142 * 4),
     (volatile MPB_REG0x8F_TypeDef  *)(MPB_ADDR_BASE + 143 * 4),
-#if (SOC_BK7252N == CFG_SOC_NAME)
+    #if (SOC_BK7252N == CFG_SOC_NAME)
     (volatile MPB_REG0x90_TypeDef  *)(MPB_ADDR_BASE + 144 * 4),
     (volatile MPB_REG0x91_TypeDef  *)(MPB_ADDR_BASE + 145 * 4),
     (volatile MPB_REG0x92_TypeDef  *)(MPB_ADDR_BASE + 146 * 4),
-#endif
+    #endif
 };
 
 static SDD_OPERATIONS mpb_op = {
-            mpb_ctrl
+    mpb_ctrl
 };
 
 void mpb_init(void)
 {
-	sddev_register_dev(MPB_DEV_NAME, &mpb_op);
+    sddev_register_dev(MPB_DEV_NAME, &mpb_op);
 }
 
 void mpb_exit(void)
 {
-	sddev_unregister_dev(MPB_DEV_NAME);
+    sddev_unregister_dev(MPB_DEV_NAME);
 }
 
 void mpb_tx_mode(void)
@@ -106,19 +120,19 @@ void mpb_tx_mode(void)
 
 void mpb_rx_mode(void)
 {
-	mpb_regs.r0->value = 0x00;
-	mpb_regs.r1->value = 0x05;
-	mpb_regs.r0->value = 0x21;
+    mpb_regs.r0->value = 0x00;
+    mpb_regs.r1->value = 0x05;
+    mpb_regs.r0->value = 0x21;
 }
 
 void mpb_stop_trx(void)
 {
-	mpb_regs.r0->value &= (~0x01);
+    mpb_regs.r0->value &= (~0x01);
 }
 
 void mpb_start_trx(void)
 {
-	mpb_regs.r0->value |= 0x01;
+    mpb_regs.r0->value |= 0x01;
     //REG_WRITE((0x0802800 + (18 * 4)), 0x02);
 }
 
@@ -132,7 +146,7 @@ void mpb_set_txdelay(UINT32 delay_us)
         delay_us_value = delay_us * 30;
 
     if(delay_us_value > 0xfffff)
-    delay_us_value = 0xfffff;
+        delay_us_value = 0xfffff;
 
     mpb_regs.r3->value = delay_us_value;
 }
@@ -161,29 +175,53 @@ void mpb_set_txdelay_precision(float delay_us)
 static UINT32 mpb_select_tx_rate(UINT32 rate)
 {
     UINT32 param = rate;
-    
+
     switch(rate)
     {
-        case 1 :	param = 0x0;	break;  // 1Mbps
-        case 2 :	param = 0x1;	break;  // 2Mbps
-        case 5 :	param = 0x2;	break;	// 5.5Mbps
-        case 11:	param = 0x3;	break;	// 11Mbps
-        case 6 :	param = 0xb;	break;	// 6Mbps
-        case 9 :	param = 0xf;	break;	// 9Mbps
-        case 12:	param = 0xa;	break;	// 12Mbps
-        case 18:	param = 0xe;	break;	// 18Mbps
-        case 24:	param = 0x9;	break;	// 24Mbps
-        case 36:	param = 0xd;	break;	// 36Mbps
-        case 48:	param = 0x8;	break;	// 48Mbps
-        case 54:	param = 0xc;	break;	// 54Mbps
-        default: {
-            if(rate >= 128 && rate <=135)
-                param -= 128;
-            else {
-                os_printf("mpb_select_tx_rate wrong rate:%d\r\n", rate);
-            }
+    case 1 :
+        param = 0x0;
+        break;  // 1Mbps
+    case 2 :
+        param = 0x1;
+        break;  // 2Mbps
+    case 5 :
+        param = 0x2;
+        break;	// 5.5Mbps
+    case 11:
+        param = 0x3;
+        break;	// 11Mbps
+    case 6 :
+        param = 0xb;
+        break;	// 6Mbps
+    case 9 :
+        param = 0xf;
+        break;	// 9Mbps
+    case 12:
+        param = 0xa;
+        break;	// 12Mbps
+    case 18:
+        param = 0xe;
+        break;	// 18Mbps
+    case 24:
+        param = 0x9;
+        break;	// 24Mbps
+    case 36:
+        param = 0xd;
+        break;	// 36Mbps
+    case 48:
+        param = 0x8;
+        break;	// 48Mbps
+    case 54:
+        param = 0xc;
+        break;	// 54Mbps
+    default: {
+        if(rate >= 128 && rate <=135)
+            param -= 128;
+        else {
+            os_printf("mpb_select_tx_rate wrong rate:%d\r\n", rate);
         }
-    }  
+    }
+    }
 
     os_printf("mpb_select_tx_rate rate:%d\r\n", param);
     return param;
@@ -191,90 +229,90 @@ static UINT32 mpb_select_tx_rate(UINT32 rate)
 
 UINT32 mpb_ctrl(UINT32 cmd, void *param)
 {
-	UINT32 len;
-	
-	switch(cmd)
-	{
-		case MCMD_TX_LEGACY_SET_LEN:
-			len = (*(UINT32*)param);
-            reg_134 &= ~(0xff);
-            reg_135 &= ~(0xf);
-			reg_134 |= len & 0xff;
-			reg_135 |= (len >> 8) & 0xf;
-			break;
+    UINT32 len;
 
-		case MCMD_TX_HT_VHT_SET_LEN:
-			len = (*(UINT32*)param);
-            reg_138 &= ~(0xff);
-            reg_139 &= ~(0xff);
-            reg_140 &= ~(0xf);
-			reg_138 |= len & 0xff;
-			reg_139 |= (len >> 8) & 0xff;
-			reg_140 |= (len >> 16) & 0xf;
-			break;
-			
-		case MCMD_TX_MODE_BYPASS_MAC:
-			mpb_tx_mode();
-			break;
-			
-		case MCMD_RX_MODE_BYPASS_MAC:
-			mpb_rx_mode();
-			break;
+    switch(cmd)
+    {
+    case MCMD_TX_LEGACY_SET_LEN:
+        len = (*(UINT32*)param);
+        reg_134 &= ~(0xff);
+        reg_135 &= ~(0xf);
+        reg_134 |= len & 0xff;
+        reg_135 |= (len >> 8) & 0xf;
+        break;
 
-        case MCMD_STOP_BYPASS_MAC:
-            mpb_stop_trx();
-            break;
+    case MCMD_TX_HT_VHT_SET_LEN:
+        len = (*(UINT32*)param);
+        reg_138 &= ~(0xff);
+        reg_139 &= ~(0xff);
+        reg_140 &= ~(0xf);
+        reg_138 |= len & 0xff;
+        reg_139 |= (len >> 8) & 0xff;
+        reg_140 |= (len >> 16) & 0xf;
+        break;
 
-        case MCMD_START_BYPASS_MAC:
-            mpb_start_trx();
-            break;
+    case MCMD_TX_MODE_BYPASS_MAC:
+        mpb_tx_mode();
+        break;
 
-        case MCMD_SET_BANDWIDTH:
-            reg_129 &= (~(PPDU_BANDWIDTH_MASK << PPDU_BANDWIDTH_POSI));
-            reg_129 |= (((*(UINT32*)param)&&PPDU_BANDWIDTH_MASK)<< PPDU_BANDWIDTH_POSI); 
-            g_band = (*(UINT32*)param);
-            break; 
+    case MCMD_RX_MODE_BYPASS_MAC:
+        mpb_rx_mode();
+        break;
 
-        case MCMD_SET_GI:  //0x0: 800ns;  0x1: 400ns
-            reg_140 &= (~(0x1 << 6));
-            reg_140 |= (((*(UINT32*)param)&&0x1)<< 6);
-            break;
+    case MCMD_STOP_BYPASS_MAC:
+        mpb_stop_trx();
+        break;
 
-        // for modulate format: 0x0: Non-HT; 0x1:Non-HT-DUP; 0x2: HT-MM;  0x3: HT-GF    
-        // for rate:  0-11: b to g,  mcs 0-7:  MCS0 =128, MCS1=129 to CS7=135.
- 		case MCMD_BYPASS_TX_SET_RATE_MFORMAT: {
-            MBPS_TXS_MFR_ST st =(*(MBPS_TXS_MFR_PTR)param);
+    case MCMD_START_BYPASS_MAC:
+        mpb_start_trx();
+        break;
 
-            st.rate =  mpb_select_tx_rate(st.rate);
+    case MCMD_SET_BANDWIDTH:
+        reg_129 &= (~(PPDU_BANDWIDTH_MASK << PPDU_BANDWIDTH_POSI));
+        reg_129 |= (((*(UINT32*)param)&&PPDU_BANDWIDTH_MASK)<< PPDU_BANDWIDTH_POSI);
+        g_band = (*(UINT32*)param);
+        break;
 
-            reg_132 &= ~(0xff);
-            reg_132 |= (0x80 | st.rate);
+    case MCMD_SET_GI:  //0x0: 800ns;  0x1: 400ns
+        reg_140 &= (~(0x1 << 6));
+        reg_140 |= (((*(UINT32*)param)&&0x1)<< 6);
+        break;
 
-            reg_135 &= ~(0xf0);
-            if(st.mod_format >= 0x2) {
-                reg_135 |= 0xb0;
-            }
-            else {
-			    reg_135 |= (st.rate & PPDU_RATE_MASK) << PPDU_RATE_POSI;
-            }
+    // for modulate format: 0x0: Non-HT; 0x1:Non-HT-DUP; 0x2: HT-MM;  0x3: HT-GF
+    // for rate:  0-11: b to g,  mcs 0-7:  MCS0 =128, MCS1=129 to CS7=135.
+    case MCMD_BYPASS_TX_SET_RATE_MFORMAT: {
+        MBPS_TXS_MFR_ST st =(*(MBPS_TXS_MFR_PTR)param);
 
-            reg_133 = st.mod_format;
-			break; 
- 		    }
-        
-        case MCMD_SET_TXDELAY:
-            mpb_set_txdelay(*(UINT32*)param);
-            break;
+        st.rate =  mpb_select_tx_rate(st.rate);
 
-        case MCMD_IS_BYPASS_MAC_EN:
-            *(UINT32*)param = (mpb_regs.r0->value & 0x01);
-            break;
-			
-		default:
-			break;
-	}
-	
-	return 0;
+        reg_132 &= ~(0xff);
+        reg_132 |= (0x80 | st.rate);
+
+        reg_135 &= ~(0xf0);
+        if(st.mod_format >= 0x2) {
+            reg_135 |= 0xb0;
+        }
+        else {
+            reg_135 |= (st.rate & PPDU_RATE_MASK) << PPDU_RATE_POSI;
+        }
+
+        reg_133 = st.mod_format;
+        break;
+    }
+
+    case MCMD_SET_TXDELAY:
+        mpb_set_txdelay(*(UINT32*)param);
+        break;
+
+    case MCMD_IS_BYPASS_MAC_EN:
+        *(UINT32*)param = (mpb_regs.r0->value & 0x01);
+        break;
+
+    default:
+        break;
+    }
+
+    return 0;
 }
 
 #endif

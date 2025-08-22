@@ -1,16 +1,30 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /* BKAWARE Example
 
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
+This example code is in the Public Domain (or CC0 licensed, at your option.)
 
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
+Unless required by applicable law or agreed to in writing, this
+software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied.
 */
 
 /*
-   This example shows how to use BKAWARE.
-   Prepare two device, one for sending BKAWARE data and another for receiving
-   BKAWARE data.
+This example shows how to use BKAWARE.
+Prepare two device, one for sending BKAWARE data and another for receiving
+BKAWARE data.
 */
 #include <stdlib.h>
 #include <time.h>
@@ -45,8 +59,8 @@ static void example_wifi_init(void)
 }
 
 /* BK_AWARE sending or receiving callback function is called in WiFi task.
- * Users should not do lengthy operations from this task. Instead, post
- * necessary data to a queue and handle it from a lower priority task. */
+* Users should not do lengthy operations from this task. Instead, post
+* necessary data to a queue and handle it from a lower priority task. */
 void example_bk_aware_send_cb(const uint8_t *mac_addr, bk_aware_send_status_t status)
 {
     example_bk_aware_event_t evt;
@@ -60,7 +74,7 @@ void example_bk_aware_send_cb(const uint8_t *mac_addr, bk_aware_send_status_t st
     evt.id = EXAMPLE_BK_AWARE_SEND_CB;
     os_memcpy(send_cb->mac_addr, mac_addr, BK_AWARE_ETH_ALEN);
     send_cb->status = status;
-	//os_printf("%s %d: %pm\n", __func__, __LINE__, mac_addr);
+    //os_printf("%s %d: %pm\n", __func__, __LINE__, mac_addr);
     if (rtos_push_to_queue(&s_example_bk_aware_queue, &evt, BEKEN_NO_WAIT) != kNoErr) {
         os_printf("Send send queue fail: %p\n", s_example_bk_aware_queue);
     }
@@ -76,7 +90,7 @@ static void example_bk_aware_recv_cb(const uint8_t *mac_addr, const uint8_t *dat
         return;
     }
 
-	//os_printf("XXX %s: mac_addr %pM\n", __func__, mac_addr);
+    //os_printf("XXX %s: mac_addr %pM\n", __func__, mac_addr);
     evt.id = EXAMPLE_BK_AWARE_RECV_CB;
     os_memcpy(recv_cb->mac_addr, mac_addr, BK_AWARE_ETH_ALEN);
     recv_cb->data = os_malloc(len);
@@ -103,7 +117,7 @@ int example_bk_aware_data_parse(uint8_t *data, uint16_t data_len, uint8_t *state
         return -1;
     }
 
-	//print_hex_dump("DATA: ", data, data_len);
+    //print_hex_dump("DATA: ", data, data_len);
 
     *state = buf->state;
     *seq = buf->seq_num;
@@ -144,155 +158,155 @@ static void example_bk_aware_task(void *pvParameter)
     int recv_magic = 0;
     bool is_broadcast = false;
     int ret;
-	bk_err_t err;
+    bk_err_t err;
 
-	rtos_delay_milliseconds(1);
+    rtos_delay_milliseconds(1);
     os_printf("Start sending broadcast data\n");
 
     /* Start sending broadcast BK_AWARE data. */
     example_bk_aware_send_param_t *send_param = (example_bk_aware_send_param_t *)pvParameter;
     if ((err = bk_aware_send(send_param->dest_mac, send_param->buffer, send_param->len)) != BK_OK) {
         os_printf("Send error 1, err %d\n", err);
-		goto exit;
+        goto exit;
     }
 
     while (rtos_pop_from_queue(&s_example_bk_aware_queue, &evt, BEKEN_WAIT_FOREVER) == kNoErr) {
         switch (evt.id) {
-            case EXAMPLE_BK_AWARE_SEND_CB:
-            {
-                example_bk_aware_event_send_cb_t *send_cb = &evt.info.send_cb;
-                is_broadcast = IS_BROADCAST_ADDR(send_cb->mac_addr);
+        case EXAMPLE_BK_AWARE_SEND_CB:
+        {
+            example_bk_aware_event_send_cb_t *send_cb = &evt.info.send_cb;
+            is_broadcast = IS_BROADCAST_ADDR(send_cb->mac_addr);
 
-                //os_printf("Send data to "MACSTR", status1: %d\n", MAC2STR(send_cb->mac_addr), send_cb->status);
+            //os_printf("Send data to "MACSTR", status1: %d\n", MAC2STR(send_cb->mac_addr), send_cb->status);
 
-                if (is_broadcast && (send_param->broadcast == false)) {
-                    break;
-                }
-
-                if (!is_broadcast) {
-                    send_param->count--;
-                    if (send_param->count == 0) {
-                        os_printf("Send done\n");
-						goto exit;
-                    }
-                }
-
-                /* Delay a while before sending the next data. */
-                if (send_param->delay > 0) {
-					rtos_delay_milliseconds(send_param->delay);
-                }
-
-                os_printf("send data to "MACSTR"\n", MAC2STR(send_cb->mac_addr));
-
-                os_memcpy(send_param->dest_mac, send_cb->mac_addr, BK_AWARE_ETH_ALEN);
-                example_bk_aware_data_prepare(send_param);
-
-                /* Send the next data after the previous data is sent. */
-                if (bk_aware_send(send_param->dest_mac, send_param->buffer, send_param->len) != BK_OK) {
-                    os_printf("Send error 2\n");
-					goto exit;
-                }
+            if (is_broadcast && (send_param->broadcast == false)) {
                 break;
             }
-            case EXAMPLE_BK_AWARE_RECV_CB:
-            {
-                example_bk_aware_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
 
-                ret = example_bk_aware_data_parse(recv_cb->data, recv_cb->data_len, &recv_state, &recv_seq, &recv_magic);
-                os_free(recv_cb->data);
-                if (ret == EXAMPLE_BK_AWARE_DATA_BROADCAST) {
-                    os_printf("Receive %dth broadcast data from: "MACSTR", len: %d\n", recv_seq, MAC2STR(recv_cb->mac_addr), recv_cb->data_len);
+            if (!is_broadcast) {
+                send_param->count--;
+                if (send_param->count == 0) {
+                    os_printf("Send done\n");
+                    goto exit;
+                }
+            }
 
-                    /* If MAC address does not exist in peer list, add it to peer list. */
-                    if (bk_aware_is_peer_exist(recv_cb->mac_addr) == false) {
-                        bk_aware_peer_info_t *peer = os_malloc(sizeof(bk_aware_peer_info_t));
-                        if (peer == NULL) {
-                            os_printf("Malloc peer information fail\n");
-							goto exit;
-                        }
-                        os_memset(peer, 0, sizeof(bk_aware_peer_info_t));
-                        peer->channel = CONFIG_BK_AWARE_CHANNEL;
-                        peer->ifidx = BK_AWARE_WIFI_IF;
-                        peer->encrypt = true;
-                        os_memcpy(peer->lmk, CONFIG_BK_AWARE_LMK, BK_AWARE_KEY_LEN);
-                        os_memcpy(peer->peer_addr, recv_cb->mac_addr, BK_AWARE_ETH_ALEN);
-                        bk_aware_add_peer(peer);
-                        os_free(peer);
-                    } else {
+            /* Delay a while before sending the next data. */
+            if (send_param->delay > 0) {
+                rtos_delay_milliseconds(send_param->delay);
+            }
 
-					}
+            os_printf("send data to "MACSTR"\n", MAC2STR(send_cb->mac_addr));
 
-                    /* Indicates that the device has received broadcast BK_AWARE data. */
-					//os_printf("recv_state %d, unicast %d, magic 0x%x/0x%x\n", recv_state,
-					//	send_param->unicast, send_param->magic, recv_magic);
-                    if (send_param->state == 0) {
-                        send_param->state = 1;
+            os_memcpy(send_param->dest_mac, send_cb->mac_addr, BK_AWARE_ETH_ALEN);
+            example_bk_aware_data_prepare(send_param);
+
+            /* Send the next data after the previous data is sent. */
+            if (bk_aware_send(send_param->dest_mac, send_param->buffer, send_param->len) != BK_OK) {
+                os_printf("Send error 2\n");
+                goto exit;
+            }
+            break;
+        }
+        case EXAMPLE_BK_AWARE_RECV_CB:
+        {
+            example_bk_aware_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
+
+            ret = example_bk_aware_data_parse(recv_cb->data, recv_cb->data_len, &recv_state, &recv_seq, &recv_magic);
+            os_free(recv_cb->data);
+            if (ret == EXAMPLE_BK_AWARE_DATA_BROADCAST) {
+                os_printf("Receive %dth broadcast data from: "MACSTR", len: %d\n", recv_seq, MAC2STR(recv_cb->mac_addr), recv_cb->data_len);
+
+                /* If MAC address does not exist in peer list, add it to peer list. */
+                if (bk_aware_is_peer_exist(recv_cb->mac_addr) == false) {
+                    bk_aware_peer_info_t *peer = os_malloc(sizeof(bk_aware_peer_info_t));
+                    if (peer == NULL) {
+                        os_printf("Malloc peer information fail\n");
+                        goto exit;
                     }
-
-                    /* If receive broadcast BK_AWARE data which indicates that the other device has received
-                     * broadcast BK_AWARE data and the local magic number is bigger than that in the received
-                     * broadcast BK_AWARE data, stop sending broadcast BK_AWARE data and start sending unicast
-                     * BK_AWARE data.
-                     */
-                    if (recv_state == 1) {
-                        /* The device which has the bigger magic number sends BK_AWARE data, the other one
-                         * receives BK_AWARE data.
-                         */
-                        if (send_param->unicast == false && send_param->magic >= recv_magic) {
-                    	    os_printf("Start sending unicast data\n");
-                    	    os_printf("send data to "MACSTR"\n", MAC2STR(recv_cb->mac_addr));
-
-                    	    /* Start sending unicast BK_AWARE data. */
-                            os_memcpy(send_param->dest_mac, recv_cb->mac_addr, BK_AWARE_ETH_ALEN);
-                            example_bk_aware_data_prepare(send_param);
-                            if (bk_aware_send(send_param->dest_mac, send_param->buffer, send_param->len) != BK_OK) {
-                                os_printf("Send error 3\n");
-								goto exit;
-                            } else {
-                                send_param->broadcast = false;
-                                send_param->unicast = true;
-                            }
-                        }
-                    }
-                } else if (ret == EXAMPLE_BK_AWARE_DATA_UNICAST) {
-                    os_printf("Receive %dth unicast data from: "MACSTR", len: %d\n", recv_seq, MAC2STR(recv_cb->mac_addr), recv_cb->data_len);
-
-                    /* If receive unicast BK_AWARE data, also stop sending broadcast BK_AWARE data. */
-                    send_param->broadcast = false;
+                    os_memset(peer, 0, sizeof(bk_aware_peer_info_t));
+                    peer->channel = CONFIG_BK_AWARE_CHANNEL;
+                    peer->ifidx = BK_AWARE_WIFI_IF;
+                    peer->encrypt = true;
+                    os_memcpy(peer->lmk, CONFIG_BK_AWARE_LMK, BK_AWARE_KEY_LEN);
+                    os_memcpy(peer->peer_addr, recv_cb->mac_addr, BK_AWARE_ETH_ALEN);
+                    bk_aware_add_peer(peer);
+                    os_free(peer);
                 } else {
-                    os_printf("Receive error data from: "MACSTR"\n", MAC2STR(recv_cb->mac_addr));
-                }
-                break;
-            }
-			case EXAMPLE_BK_AWARE_EXIT:
-				os_printf("Exiting BK AWARE\n");
-				goto exit;
 
-            default:
-                os_printf("Callback type error: %d\n", evt.id);
-                break;
+                }
+
+                /* Indicates that the device has received broadcast BK_AWARE data. */
+                //os_printf("recv_state %d, unicast %d, magic 0x%x/0x%x\n", recv_state,
+                //	send_param->unicast, send_param->magic, recv_magic);
+                if (send_param->state == 0) {
+                    send_param->state = 1;
+                }
+
+                /* If receive broadcast BK_AWARE data which indicates that the other device has received
+                * broadcast BK_AWARE data and the local magic number is bigger than that in the received
+                * broadcast BK_AWARE data, stop sending broadcast BK_AWARE data and start sending unicast
+                * BK_AWARE data.
+                */
+                if (recv_state == 1) {
+                    /* The device which has the bigger magic number sends BK_AWARE data, the other one
+                    * receives BK_AWARE data.
+                    */
+                    if (send_param->unicast == false && send_param->magic >= recv_magic) {
+                        os_printf("Start sending unicast data\n");
+                        os_printf("send data to "MACSTR"\n", MAC2STR(recv_cb->mac_addr));
+
+                        /* Start sending unicast BK_AWARE data. */
+                        os_memcpy(send_param->dest_mac, recv_cb->mac_addr, BK_AWARE_ETH_ALEN);
+                        example_bk_aware_data_prepare(send_param);
+                        if (bk_aware_send(send_param->dest_mac, send_param->buffer, send_param->len) != BK_OK) {
+                            os_printf("Send error 3\n");
+                            goto exit;
+                        } else {
+                            send_param->broadcast = false;
+                            send_param->unicast = true;
+                        }
+                    }
+                }
+            } else if (ret == EXAMPLE_BK_AWARE_DATA_UNICAST) {
+                os_printf("Receive %dth unicast data from: "MACSTR", len: %d\n", recv_seq, MAC2STR(recv_cb->mac_addr), recv_cb->data_len);
+
+                /* If receive unicast BK_AWARE data, also stop sending broadcast BK_AWARE data. */
+                send_param->broadcast = false;
+            } else {
+                os_printf("Receive error data from: "MACSTR"\n", MAC2STR(recv_cb->mac_addr));
+            }
+            break;
+        }
+        case EXAMPLE_BK_AWARE_EXIT:
+            os_printf("Exiting BK AWARE\n");
+            goto exit;
+
+        default:
+            os_printf("Callback type error: %d\n", evt.id);
+            break;
         }
     }
 
 exit:
-	example_bk_aware_deinit(send_param);
-	bk_aware_demo_started = false;
-	rtos_delete_thread(NULL);
+    example_bk_aware_deinit(send_param);
+    bk_aware_demo_started = false;
+    rtos_delete_thread(NULL);
 }
 
 static bk_err_t example_bk_aware_init(void)
 {
     example_bk_aware_send_param_t *send_param;
-	beken_thread_t thd;
+    beken_thread_t thd;
 
-	rtos_init_queue(&s_example_bk_aware_queue, "bk_aware_queue", sizeof(example_bk_aware_event_t), BK_AWARE_QUEUE_SIZE);
+    rtos_init_queue(&s_example_bk_aware_queue, "bk_aware_queue", sizeof(example_bk_aware_event_t), BK_AWARE_QUEUE_SIZE);
 
     /* Initialize BK_AWARE and register sending and receiving callback function. */
-	bk_aware_init();
-	bk_aware_register_send_cb(example_bk_aware_send_cb);
-	bk_aware_register_recv_cb(example_bk_aware_recv_cb);
+    bk_aware_init();
+    bk_aware_register_send_cb(example_bk_aware_send_cb);
+    bk_aware_register_recv_cb(example_bk_aware_recv_cb);
     /* Set primary master key. */
-	bk_aware_set_pmk((uint8_t *)CONFIG_BK_AWARE_PMK);
+    bk_aware_set_pmk((uint8_t *)CONFIG_BK_AWARE_PMK);
 
     /* Add broadcast peer information to peer list. */
     bk_aware_peer_info_t *peer = os_malloc(sizeof(bk_aware_peer_info_t));
@@ -338,11 +352,11 @@ static bk_err_t example_bk_aware_init(void)
     os_memcpy(send_param->dest_mac, s_example_broadcast_mac, BK_AWARE_ETH_ALEN);
     example_bk_aware_data_prepare(send_param);
 
-	rtos_create_thread(&thd, THD_APPLICATION_PRIORITY, "example_bk_aware_task",
-				(beken_thread_function_t)example_bk_aware_task,
-				2048, send_param);
+    rtos_create_thread(&thd, THD_APPLICATION_PRIORITY, "example_bk_aware_task",
+                (beken_thread_function_t)example_bk_aware_task,
+                2048, send_param);
 
-	bk_aware_demo_started = true;
+    bk_aware_demo_started = true;
 
     return BK_OK;
 }
@@ -357,25 +371,25 @@ static void example_bk_aware_deinit(example_bk_aware_send_param_t *send_param)
 
 void bk_aware_demo_main(void)
 {
-	if (bk_aware_demo_started) {
-		os_printf("Already started, use `bk_aware stop` to stop it first\n");
-		return;
-	}
+    if (bk_aware_demo_started) {
+        os_printf("Already started, use `bk_aware stop` to stop it first\n");
+        return;
+    }
     example_wifi_init();
     example_bk_aware_init();
 }
 
 void bk_aware_demo_stop()
 {
-	if (bk_aware_demo_started) {
-	    example_bk_aware_event_t evt;
+    if (bk_aware_demo_started) {
+        example_bk_aware_event_t evt;
 
-	    evt.id = EXAMPLE_BK_AWARE_EXIT;
+        evt.id = EXAMPLE_BK_AWARE_EXIT;
 
-	    if (rtos_push_to_queue(&s_example_bk_aware_queue, &evt, BEKEN_WAIT_FOREVER) != kNoErr) {
-	        os_printf("Exit bk aware demo failed\n");
-	    }
-	}
+        if (rtos_push_to_queue(&s_example_bk_aware_queue, &evt, BEKEN_WAIT_FOREVER) != kNoErr) {
+            os_printf("Exit bk aware demo failed\n");
+        }
+    }
 }
 
 #endif

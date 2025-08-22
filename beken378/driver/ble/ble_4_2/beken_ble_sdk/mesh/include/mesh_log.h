@@ -1,9 +1,9 @@
-// Copyright (C) Beken 2019-2020
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
@@ -29,13 +29,13 @@
 #define MESH_APP_LOG_LEVEL       MESH_TRACE_LEVEL_INFO
 
 #define MESH_NET_LOG_LEVEL       MESH_TRACE_LEVEL_INFO  /* Define the Mesh Network log default value to Warning. */
- 
+
 //#define MESH_MODEL_LOG_LEVEL     MESH_TRACE_LEVEL_NONE  /* Define the Mesh Model log default value to Warning. */
 #define MESH_MODEL_LOG_LEVEL     MESH_TRACE_LEVEL_INFO  /* Define the Mesh Model log default value to Warning. */
 
 #define MESH_PRO_LOG_LEVEL       MESH_TRACE_LEVEL_INFO  /* Define the Mesh Provisioning log default value to Warning. */
 #define MESH_TRANS_LOG_LEVEL     MESH_TRACE_LEVEL_INFO  /* Define the Mesh Transation log default value to Warning. */
- 
+
 #define MESH_BEAR_LOG_LEVEL      MESH_TRACE_LEVEL_INFO  /* Define the Mesh Bearer log default value to Warning. */
 #define MESH_ACCESS_LOG_LEVEL    MESH_TRACE_LEVEL_INFO  /* Define the Mesh Access log default value to Warning. */
 #define MESH_TB_LOG_LEVEL        MESH_TRACE_LEVEL_INFO  /* Define the Mesh TB log default value to Warning. */

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "typedef.h"
 #include "arm_arch.h"
@@ -8,7 +22,7 @@
 #if CFG_ENABLE_BUTTON
 
 #define EVENT_CB(ev)   if(handle->cb[ev])handle->cb[ev]((BUTTON_S*)handle)
-	
+
 //button handle list head.
 static BUTTON_S* head_handle = NULL;
 extern beken_mutex_t g_key_mutex;
@@ -22,13 +36,13 @@ extern beken_mutex_t g_key_mutex;
   */
 void button_init(BUTTON_S* handle, uint8_t(*pin_level)(struct _button_ *), uint8_t active_level, void *user_data)
 {
-	memset(handle, 0, sizeof(BUTTON_S));
-	
-	handle->event = (uint8_t)NONE_PRESS;
-	handle->active_level = active_level;
-	handle->user_data = user_data;
-	handle->hal_button_Level = pin_level;
-	handle->button_level = handle->hal_button_Level(handle);
+    memset(handle, 0, sizeof(BUTTON_S));
+
+    handle->event = (uint8_t)NONE_PRESS;
+    handle->active_level = active_level;
+    handle->user_data = user_data;
+    handle->hal_button_Level = pin_level;
+    handle->button_level = handle->hal_button_Level(handle);
 }
 
 /**
@@ -40,7 +54,7 @@ void button_init(BUTTON_S* handle, uint8_t(*pin_level)(struct _button_ *), uint8
   */
 void button_attach(BUTTON_S* handle, PRESS_EVT event, btn_callback cb)
 {
-	handle->cb[event] = cb;
+    handle->cb[event] = cb;
 }
 
 /**
@@ -50,7 +64,7 @@ void button_attach(BUTTON_S* handle, PRESS_EVT event, btn_callback cb)
   */
 PRESS_EVT button_get_event(BUTTON_S* handle)
 {
-	return (PRESS_EVT)(handle->event);
+    return (PRESS_EVT)(handle->event);
 }
 
 /**
@@ -60,98 +74,98 @@ PRESS_EVT button_get_event(BUTTON_S* handle)
   */
 void button_handler(BUTTON_S* handle)
 {
-	uint8_t read_gpio_level = handle->hal_button_Level(handle);
+    uint8_t read_gpio_level = handle->hal_button_Level(handle);
 
-	//ticks counter working..
-	if((handle->state) > 0) handle->ticks++;
+    //ticks counter working..
+    if((handle->state) > 0) handle->ticks++;
 
-	/*------------button debounce handle---------------*/
-	if(read_gpio_level != handle->button_level) { //not equal to prev one
-		//continue read 3 times same new level change
-		if(++(handle->debounce_cnt) >= DEBOUNCE_TICKS) {
-			handle->button_level = read_gpio_level;
-			handle->debounce_cnt = 0;
-		}
-	} else { //leved not change ,counter reset.
-		handle->debounce_cnt = 0;
-	}
+    /*------------button debounce handle---------------*/
+    if(read_gpio_level != handle->button_level) { //not equal to prev one
+        //continue read 3 times same new level change
+        if(++(handle->debounce_cnt) >= DEBOUNCE_TICKS) {
+            handle->button_level = read_gpio_level;
+            handle->debounce_cnt = 0;
+        }
+    } else { //leved not change ,counter reset.
+        handle->debounce_cnt = 0;
+    }
 
-	/*-----------------State machine-------------------*/
-	switch (handle->state) {
-	case 0:
-		if(handle->button_level == handle->active_level) {	//start press down
-			handle->event = (uint8_t)PRESS_DOWN;
-			EVENT_CB(PRESS_DOWN);
-			handle->ticks = 0;
-			handle->repeat = 1;
-			handle->state = 1;
-		} else {
-			handle->event = (uint8_t)NONE_PRESS;
-		}
-		break;
+    /*-----------------State machine-------------------*/
+    switch (handle->state) {
+    case 0:
+        if(handle->button_level == handle->active_level) {	//start press down
+            handle->event = (uint8_t)PRESS_DOWN;
+            EVENT_CB(PRESS_DOWN);
+            handle->ticks = 0;
+            handle->repeat = 1;
+            handle->state = 1;
+        } else {
+            handle->event = (uint8_t)NONE_PRESS;
+        }
+        break;
 
-	case 1:
-		if(handle->button_level != handle->active_level) { //released press up
-			handle->event = (uint8_t)PRESS_UP;
-			EVENT_CB(PRESS_UP);
-			handle->ticks = 0;
-			handle->state = 2;
+    case 1:
+        if(handle->button_level != handle->active_level) { //released press up
+            handle->event = (uint8_t)PRESS_UP;
+            EVENT_CB(PRESS_UP);
+            handle->ticks = 0;
+            handle->state = 2;
 
-		} else if(handle->ticks > LONG_TICKS) {
-			handle->event = (uint8_t)LONG_PRESS_START;
-			EVENT_CB(LONG_PRESS_START);
-			handle->state = 5;
-		}
-		break;
+        } else if(handle->ticks > LONG_TICKS) {
+            handle->event = (uint8_t)LONG_PRESS_START;
+            EVENT_CB(LONG_PRESS_START);
+            handle->state = 5;
+        }
+        break;
 
-	case 2:
-		if(handle->button_level == handle->active_level) { //press down again
-			handle->event = (uint8_t)PRESS_DOWN;
-			EVENT_CB(PRESS_DOWN);
-			handle->repeat++;
-			if(handle->repeat == 2) {
-				EVENT_CB(DOUBLE_CLICK); // repeat hit
-			} 
-			EVENT_CB(PRESS_REPEAT); // repeat hit
-			handle->ticks = 0;
-			handle->state = 3;
-		} else if(handle->ticks > SHORT_TICKS) { //released timeout
-			if(handle->repeat == 1) {
-				handle->event = (uint8_t)SINGLE_CLICK;
-				EVENT_CB(SINGLE_CLICK);
-			} else if(handle->repeat == 2) {
-				handle->event = (uint8_t)DOUBLE_CLICK;
-			}
-			handle->state = 0;
-		}
-		break;
+    case 2:
+        if(handle->button_level == handle->active_level) { //press down again
+            handle->event = (uint8_t)PRESS_DOWN;
+            EVENT_CB(PRESS_DOWN);
+            handle->repeat++;
+            if(handle->repeat == 2) {
+                EVENT_CB(DOUBLE_CLICK); // repeat hit
+            }
+            EVENT_CB(PRESS_REPEAT); // repeat hit
+            handle->ticks = 0;
+            handle->state = 3;
+        } else if(handle->ticks > SHORT_TICKS) { //released timeout
+            if(handle->repeat == 1) {
+                handle->event = (uint8_t)SINGLE_CLICK;
+                EVENT_CB(SINGLE_CLICK);
+            } else if(handle->repeat == 2) {
+                handle->event = (uint8_t)DOUBLE_CLICK;
+            }
+            handle->state = 0;
+        }
+        break;
 
-	case 3:
-		if(handle->button_level != handle->active_level) { //released press up
-			handle->event = (uint8_t)PRESS_UP;
-			EVENT_CB(PRESS_UP);
-			if(handle->ticks < SHORT_TICKS) {
-				handle->ticks = 0;
-				handle->state = 2; //repeat press
-			} else {
-				handle->state = 0;
-			}
-		}
-		break;
+    case 3:
+        if(handle->button_level != handle->active_level) { //released press up
+            handle->event = (uint8_t)PRESS_UP;
+            EVENT_CB(PRESS_UP);
+            if(handle->ticks < SHORT_TICKS) {
+                handle->ticks = 0;
+                handle->state = 2; //repeat press
+            } else {
+                handle->state = 0;
+            }
+        }
+        break;
 
-	case 5:
-		if(handle->button_level == handle->active_level) {
-			//continue hold trigger
-			handle->event = (uint8_t)LONG_PRESS_HOLD;
-			EVENT_CB(LONG_PRESS_HOLD);
+    case 5:
+        if(handle->button_level == handle->active_level) {
+            //continue hold trigger
+            handle->event = (uint8_t)LONG_PRESS_HOLD;
+            EVENT_CB(LONG_PRESS_HOLD);
 
-		} else { //releasd
-			handle->event = (uint8_t)PRESS_UP;
-			EVENT_CB(PRESS_UP);
-			handle->state = 0; //reset
-		}
-		break;
-	}
+        } else { //releasd
+            handle->event = (uint8_t)PRESS_UP;
+            EVENT_CB(PRESS_UP);
+            handle->state = 0; //reset
+        }
+        break;
+    }
 }
 
 /**
@@ -161,20 +175,20 @@ void button_handler(BUTTON_S* handle)
   */
 int button_start(BUTTON_S* handle)
 {
-	BUTTON_S* target;
-	rtos_lock_mutex(&g_key_mutex);
-	target = head_handle;
-	while(target) {
-		if(target == handle) {
-		    rtos_unlock_mutex(&g_key_mutex);
-		    return -1;	//already exist.
-		}
-		target = target->next;
-	}
-	handle->next = head_handle;
-	head_handle = handle;
-	rtos_unlock_mutex(&g_key_mutex);
-	return 0;
+    BUTTON_S* target;
+    rtos_lock_mutex(&g_key_mutex);
+    target = head_handle;
+    while(target) {
+        if(target == handle) {
+            rtos_unlock_mutex(&g_key_mutex);
+            return -1;	//already exist.
+        }
+        target = target->next;
+    }
+    handle->next = head_handle;
+    head_handle = handle;
+    rtos_unlock_mutex(&g_key_mutex);
+    return 0;
 }
 
 /**
@@ -184,32 +198,32 @@ int button_start(BUTTON_S* handle)
   */
 void button_stop(BUTTON_S* handle)
 {
-	BUTTON_S** curr;
-	
-	rtos_lock_mutex(&g_key_mutex);
-	for(curr = &head_handle; *curr; ) {
-		BUTTON_S* entry = *curr;
-		if (entry == handle) {
-			*curr = entry->next;
-		} else
-			curr = &entry->next;
-	}
-	rtos_unlock_mutex(&g_key_mutex);
+    BUTTON_S** curr;
+
+    rtos_lock_mutex(&g_key_mutex);
+    for(curr = &head_handle; *curr; ) {
+        BUTTON_S* entry = *curr;
+        if (entry == handle) {
+            *curr = entry->next;
+        } else
+            curr = &entry->next;
+    }
+    rtos_unlock_mutex(&g_key_mutex);
 }
 
 BUTTON_S *button_find_with_user_data(void *user_data)
 {
-	BUTTON_S* entry = NULL;
+    BUTTON_S* entry = NULL;
 
-	rtos_lock_mutex(&g_key_mutex);
-	for(entry = head_handle; entry; entry = entry->next) {
-		if (entry->user_data == user_data) {
-			break;
-		}
-	}
-	rtos_unlock_mutex(&g_key_mutex);
+    rtos_lock_mutex(&g_key_mutex);
+    for(entry = head_handle; entry; entry = entry->next) {
+        if (entry->user_data == user_data) {
+            break;
+        }
+    }
+    rtos_unlock_mutex(&g_key_mutex);
 
-	return entry;
+    return entry;
 }
 
 /**
@@ -219,11 +233,11 @@ BUTTON_S *button_find_with_user_data(void *user_data)
   */
 void button_ticks(void *param)
 {
-	BUTTON_S* target;
-	rtos_lock_mutex(&g_key_mutex);
-	for(target=head_handle; target; target=target->next) {
-		button_handler(target);
-	}
-	rtos_unlock_mutex(&g_key_mutex);
+    BUTTON_S* target;
+    rtos_lock_mutex(&g_key_mutex);
+    for(target=head_handle; target; target=target->next) {
+        button_handler(target);
+    }
+    rtos_unlock_mutex(&g_key_mutex);
 }
 #endif

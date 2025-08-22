@@ -1,13 +1,16 @@
-/**
- ****************************************************************************************
- * @file m_fnd_BLOB_Transfer.h
- *
- * @brief Header file for Mesh BLOB Transfer Server Model
- *
- * Copyright (C) Beken 2018-2019
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef _M_FND_BLOB_TRANSFER_H_
 #define _M_FND_BLOB_TRANSFER_H_
@@ -288,11 +291,11 @@ typedef struct m_fnd_blob_obj_info_status
 typedef struct nvds_mesh_ota_tag
 {
     uint8_t Object_ID[8];
-    uint16_t Block_Num; //  Õý³£½øÐÐtrans µÄBlock Num
+    uint16_t Block_Num; //  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½trans ï¿½ï¿½Block Num
 
     uint16_t company_id;
     uint8_t firmware_id[4];
-    uint16_t Current_Block_Size; //  Õý³£½øÐÐtrans µÄ Block size
+    uint16_t Current_Block_Size; //  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½trans ï¿½ï¿½ Block size
 
     uint16_t Receive_Chunk_Mask;
 

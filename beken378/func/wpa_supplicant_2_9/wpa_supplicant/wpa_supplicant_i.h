@@ -17,6 +17,8 @@
 #include "wps/wps_defs.h"
 #include "config_ssid.h"
 #include "wmm_ac.h"
+#include "p2p/p2p_i.h"
+
 #if CFG_WPA_CTRL_IFACE
 #include "notifier_pub.h"
 #endif

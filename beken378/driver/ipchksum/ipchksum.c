@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "include.h"
 
@@ -78,22 +92,22 @@ UINT16 ipchksum_get_result(UINT32 addr, UINT16 len)
 
 void ipchksum_init(void)
 {
-#if CFG_IPCHKSUM_INT_ENABLE
+    #if CFG_IPCHKSUM_INT_ENABLE
     UINT32 param;
-#endif
+    #endif
 
     ipchksum_set_base_addr(0);
     ipchksum_set_length(0);
     ipchksum_active(0);
     ipchksum_clr_int(1);
 
-#if CFG_IPCHKSUM_INT_ENABLE
+    #if CFG_IPCHKSUM_INT_ENABLE
     intc_service_register(IRQ_IPCHKSUM, PRI_IRQ_IPCHKSUM, ipchksum_isr);
     // sddev_register_dev(IPCHKSUM_DEV_NAME, &ipchksum_op);
 
     param = IRQ_IPCHKSUM_BIT;
     sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
-#endif
+    #endif
 }
 
 void ipchksum_exit(void)
@@ -113,9 +127,9 @@ UINT32 ipchksum_ctrl(UINT32 cmd, void *param)
 
 void ipchksum_isr(void)
 {
-#if CFG_IPCHKSUM_INT_ENABLE
+    #if CFG_IPCHKSUM_INT_ENABLE
     ipchksum_clr_int(1);
-#endif
+    #endif
 }
 
 #if IPCHKSUM_UNIT_TEST

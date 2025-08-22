@@ -1,24 +1,25 @@
-/**
- ****************************************************************************************
- *
- * @file sdp_service.h
- *
- * @brief Header file - sdp  Role.
- *
- * Copyright (C) Beken 2009-2015
- *
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef _SDP_SERVICE_H_
 #define _SDP_SERVICE_H_
 
 /**
  ****************************************************************************************
- * @addtogroup SDP_SERVICE  
+ * @addtogroup SDP_SERVICE
  * @ingroup SDP
- * @brief SDP Service 
+ * @brief SDP Service
  * @{
  ****************************************************************************************
  */
@@ -58,21 +59,21 @@
 
 struct sdp_db_env
 {
-	 ///Number of  instances added
-		uint8_t prf_nb;
+    ///Number of  instances added
+    uint8_t prf_nb;
     /// on-going operation
     struct sdp_cnx_env *cnx_env;
-    
+
 };
 
 /// Environment variable for each Connections
 struct sdp_cnx_env
-{   
-	
-		
+{
+
+
     ///SDP characteristics
     struct sdp_content sdp;
-	
+
     ///Number of BAS instances found
 };
 
@@ -81,11 +82,11 @@ struct sdp_env_tag
 {
     /// profile environment
     prf_env_t prf_env;
-	
-	uint16_t use_status;
-	/// on-going operation
+
+    uint16_t use_status;
+    /// on-going operation
     struct kernel_msg * operation;
-	
+
     /// Environment variable pointer for each connections
     struct sdp_db_env db_env[SDP_IDX_MAX];
     /// State of different task instances
@@ -118,7 +119,7 @@ const struct prf_task_cbs* sdp_prf_itf_get(void);
  * @brief Send ATT DB discovery results to BASC host.
  ****************************************************************************************
  */
- 
+
 void sdp_discover_all_service(void);
 void sdp_service_init_env(void);
 void sdp_add_profiles(struct sdp_db_env *env);

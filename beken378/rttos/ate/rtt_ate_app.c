@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "rtt_ate_app.h"
 #if ATE_APP_FUN
 
@@ -28,16 +42,16 @@ void ate_gpio_init(void)
     uint32_t param;
     char *name = RT_NULL;
     rt_device_t dev = RT_NULL;
-#if 1
+    #if 1
     dev = rt_console_get_device();
     if (dev != RT_NULL)
     {
         name = dev->parent.name;
         ATE_DBG("L:%d name:%s\n", __LINE__, name);
     }
-#else
+    #else
     name = finsh_get_device();
-#endif
+    #endif
     if (name == RT_NULL)
     {
         name = RT_CONSOLE_DEVICE_NAME;
@@ -122,9 +136,9 @@ void ate_app_init(void)
 
     mode = ate_mode_check();
     ATE_DBG("L:%d mode:%d\n", __LINE__, mode);
-#ifdef ATE_USE_DEGUB
+    #ifdef ATE_USE_DEGUB
     ate_status = mode;
-#endif
+    #endif
     if(mode)
     {
         ate_mode_state = (char)1;
@@ -146,17 +160,17 @@ void ate_app_init(void)
 uint32_t get_ate_mode_state(void)
 {
     //ATE_PRT("ateflag:%d\r\n", ate_mode_state);
-#if 0
+    #if 0
     rt_kprintf("test... the state is 1\n");
     return 1;
-#else
+    #else
     if(ate_mode_state != (char)0)
     {
         return 1;
     }
 
     return 0;
-#endif
+    #endif
 }
 
 void ate_start(void)
@@ -178,7 +192,7 @@ FINSH_FUNCTION_EXPORT_ALIAS(ate_status_dump, __cmd_ate_dump, ate status dump);
 #else
 uint32_t get_ate_mode_state(void)
 {
-	return 0;
+    return 0;
 }
 #endif /*ATE_APP_FUN */
 // eof

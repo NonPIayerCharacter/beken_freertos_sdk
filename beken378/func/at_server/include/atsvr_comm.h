@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _ATSVR_COMM_H_
 #define _ATSVR_COMM_H_
 #include "typedef.h"
@@ -53,7 +67,7 @@ typedef struct __WIFI_MODE_INFO
 {
     uint8 mode;
     uint8 autoconnect;
-}WIFI_MODE_INFO;
+} WIFI_MODE_INFO;
 
 typedef struct _SOFTAP_ENV_INFO
 {
@@ -67,7 +81,7 @@ typedef struct _SOFTAP_ENV_INFO
     char ap_mask[16];
     char ap_gate[16];
     uint8 dhcp;
-}SOFTAP_ENV_INFO;
+} SOFTAP_ENV_INFO;
 
 typedef struct _STA_ENV_INFO
 {
@@ -77,7 +91,7 @@ typedef struct _STA_ENV_INFO
     char sta_local_ip[16];
     char sta_mask[16];
     char sta_gate[16];
-}STA_ENV_INFO;
+} STA_ENV_INFO;
 
 typedef struct _SERIAL_ENV_INFO
 {
@@ -86,7 +100,7 @@ typedef struct _SERIAL_ENV_INFO
     uint8 stopbits;
     uint8 parity;
     uint8 flow_control;
-}SERIAL_ENV_INFO;
+} SERIAL_ENV_INFO;
 
 
 typedef struct {
@@ -96,26 +110,26 @@ typedef struct {
 } DEV_INFO;
 
 
-typedef struct _NTP_INFO{
+typedef struct _NTP_INFO {
     char enable;
     char hostname[MAX_SIZE_OF_HOSTNMAE];
     int  timezone;
 } NTP_INFO;
 
-typedef struct _DNS_INFO{
+typedef struct _DNS_INFO {
     char enable;
     char dns1[16];
     char  dns2[16];
     char  dns3[16];
 } DNS_INFO;
 
-typedef struct __PSK_INFO{
+typedef struct __PSK_INFO {
     int linkid;
     char psk[MAX_SIZE_OF_DEVICE_SECRET +1];
     char hint[MAX_SIZE_OF_DEVICE_SECRET +1];
-}PSK_INFO;
+} PSK_INFO;
 
-typedef struct _ENV_PARAM{
+typedef struct _ENV_PARAM {
     uint8 sysstore;
     uint8 workmode;  //0:factory mode,1:common mode
     WIFI_MODE_INFO wifimode;
@@ -128,7 +142,7 @@ typedef struct _ENV_PARAM{
     DNS_INFO dnsinfo;
     PSK_INFO pskinfo;
     BLE_PARAM_T ble_param;
-}ENV_PARAM;
+} ENV_PARAM;
 
 
 #pragma pack ()
@@ -213,8 +227,8 @@ extern ENV_PARAM g_env_param;
 //#define REG_READ(addr)          (*((volatile UINT32 *)(addr)))
 //#define REG_WRITE(addr, _data)  (*((volatile UINT32 *)(addr)) = (_data))
 
-int write_env_to_flash(AT_ENV_TAG tag, int datalen ,uint8* buf);
-int read_env_from_flash(AT_ENV_TAG tag, int len ,uint8* buf);
+int write_env_to_flash(AT_ENV_TAG tag, int datalen,uint8* buf);
+int read_env_from_flash(AT_ENV_TAG tag, int len,uint8* buf);
 
 void *at_malloc(unsigned int size);
 void at_free(void *p);

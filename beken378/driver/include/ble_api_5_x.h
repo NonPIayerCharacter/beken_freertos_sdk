@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _BLE_API_5_X_H_
 #define _BLE_API_5_X_H_
 #include <stdbool.h>
@@ -127,7 +141,7 @@ typedef enum
     /// Read trigger Indication
     RI_MASK          = 0x8000,
     RI_POS           = 15,
-}bk_ext_perm_mask;
+} bk_ext_perm_mask;
 
 /**
  * Service permissions
@@ -164,7 +178,7 @@ typedef enum
     /// Service type Secondary
     SVC_SECONDARY_MASK = 0x80,
     SVC_SECONDARY_POS  = 7,
-}bk_svc_perm_mask;
+} bk_svc_perm_mask;
 
 /// Attribute & Service access mode
 enum
@@ -202,112 +216,116 @@ enum
 };
 
 typedef enum  {
-	BLE_CMD_NONE,
-	// ADV_CMD:FOR BLE 5.1
-	BLE_CREATE_ADV,
-	BLE_SET_ADV_DATA,
-	BLE_SET_RSP_DATA,
-	BLE_START_ADV,
-	BLE_STOP_ADV,
-	BLE_DELETE_ADV,
-	// ADV_CMD:FOR BLE 4.2
-	BLE_INIT_ADV,
-	BLE_DEINIT_ADV,
-	// SCAN_CMD:FOR BLE 5.1
-	BLE_CREATE_SCAN,
-	BLE_START_SCAN,
-	BLE_STOP_SCAN,
-	BLE_DELETE_SCAN,
-	// SCAN_CMD:FOR BLE 4.2
-	BLE_INIT_SCAN,
-	BLE_DEINIT_SCAN,
-	/////conn
-	BLE_CONN_UPDATE_MTU,
-	BLE_CONN_UPDATE_PARAM,
-	BLE_CONN_DIS_CONN,
-	BLE_CONN_SET_PHY,
+    BLE_CMD_NONE,
+    // ADV_CMD:FOR BLE 5.1
+    BLE_CREATE_ADV,
+    BLE_SET_ADV_DATA,
+    BLE_SET_RSP_DATA,
+    BLE_START_ADV,
+    BLE_STOP_ADV,
+    BLE_DELETE_ADV,
+    // ADV_CMD:FOR BLE 4.2
+    BLE_INIT_ADV,
+    BLE_DEINIT_ADV,
+    // SCAN_CMD:FOR BLE 5.1
+    BLE_CREATE_SCAN,
+    BLE_START_SCAN,
+    BLE_STOP_SCAN,
+    BLE_DELETE_SCAN,
+    // SCAN_CMD:FOR BLE 4.2
+    BLE_INIT_SCAN,
+    BLE_DEINIT_SCAN,
+    /////conn
+    BLE_CONN_UPDATE_MTU,
+    BLE_CONN_UPDATE_PARAM,
+    BLE_CONN_DIS_CONN,
+    BLE_CONN_SET_PHY,
 
-	////init
-	BLE_INIT_CREATE,
-	BLE_INIT_DELETE,
-	BLE_INIT_START_CONN,
-	BLE_INIT_STOP_CONN,
+    ////init
+    BLE_INIT_CREATE,
+    BLE_INIT_DELETE,
+    BLE_INIT_START_CONN,
+    BLE_INIT_STOP_CONN,
+    BLE_CONN_ENABLE_ENC, //0x17
 
-	//PERIODIC SYNC
-	BLE_CREATE_PERIODIC_SYNC,
-	BLE_START_PERIODIC_SYNC,
-	BLE_STOP_PERIODIC_SYNC,
-	BLE_DELETE_PERIODIC_SYNC,
+    //PERIODIC SYNC
+    BLE_CREATE_PERIODIC_SYNC,
+    BLE_START_PERIODIC_SYNC,
+    BLE_STOP_PERIODIC_SYNC,
+    BLE_DELETE_PERIODIC_SYNC,
 
-	BLE_CMD_MAX,
+    BLE_CMD_MAX,
 } ble_cmd_t;
 
 typedef enum  {
-	BLE_5_STACK_OK,
-	BLE_5_WRITE_EVENT,
-	BLE_5_READ_EVENT,
-	BLE_5_REPORT_ADV,
-	BLE_5_REPORT_PER_ADV,
-	BLE_5_MTU_CHANGE,
-	BLE_5_PHY_IND_EVENT,
-	BLE_5_CONNECT_EVENT,
-	BLE_5_DISCONNECT_EVENT,
-	BLE_5_ATT_INFO_REQ,
-	BLE_5_CREATE_DB,
+    BLE_5_STACK_OK,
+    BLE_5_WRITE_EVENT,
+    BLE_5_READ_EVENT,
+    BLE_5_REPORT_ADV,
+    BLE_5_REPORT_PER_ADV,
+    BLE_5_MTU_CHANGE,
+    BLE_5_PHY_IND_EVENT,
+    BLE_5_CONNECT_EVENT,
+    BLE_5_DISCONNECT_EVENT,
+    BLE_5_ATT_INFO_REQ,
+    BLE_5_CREATE_DB,
 
-	BLE_5_TX_DONE,
+    BLE_5_TX_DONE,
 
-	BLE_5_INIT_CONNECT_EVENT,
-	BLE_5_INIT_DISCONNECT_EVENT,
-	BLE_5_INIT_CONNECT_FAILED_EVENT,
-	BLE_5_INIT_CONN_PARAM_UPDATE_REQ_EVENT,
-	BLE_5_INIT_CONN_PARAM_UPDATE_IND_EVENT,
-	BLE_5_SDP_REGISTER_FAILED,
-	BLE_5_GAP_CMD_CMP_EVENT,
+    BLE_5_INIT_CONNECT_EVENT,
+    BLE_5_INIT_DISCONNECT_EVENT,
+    BLE_5_INIT_CONNECT_FAILED_EVENT,
+    BLE_5_INIT_CONN_PARAM_UPDATE_REQ_EVENT,
+    BLE_5_INIT_CONN_PARAM_UPDATE_IND_EVENT,
+    BLE_5_SDP_REGISTER_FAILED,
+    BLE_5_GAP_CMD_CMP_EVENT,
 } ble_notice_t;
 
-typedef enum{
+typedef enum {
+    APP_SEC_BONDLIST_COMPARISON_CMP_IND,
+    APP_SEC_ATT_ERR_INSUFF_AUTHEN,
     APP_SEC_SECURITY_REQ_IND,
     APP_SEC_PAIRING_REQ_IND,
     APP_SEC_PASSKEY_REPLY,
     APP_SEC_CONFIRM_REPLY,
     APP_SEC_PAIRING_SUCCEED,
-    APP_SEC_PAIRING_FAILED,
+    APP_SEC_PAIRING_FAIL,
     APP_SEC_ENCRYPT_SUCCEED,
+    APP_SEC_ENCRYPT_FAIL,
     APP_SEC_MAX,
-}sec_notice_t;
+} sec_notice_t;
 
 typedef enum {
-	ERR_SUCCESS = 0,
-	ERR_PROFILE,
-	ERR_CREATE_DB,
-	ERR_CMD_NOT_SUPPORT,
-	ERR_UNKNOW_IDX,
-	ERR_BLE_STATUS,
-	ERR_ADV_DATA,
-	ERR_CMD_RUN,
-	ERR_NO_MEM,
-	ERR_INIT_CREATE,
-	ERR_INIT_STATE,
+    ERR_SUCCESS = 0,
+    ERR_PROFILE,
+    ERR_CREATE_DB,
+    ERR_CMD_NOT_SUPPORT,
+    ERR_UNKNOW_IDX,
+    ERR_BLE_STATUS,
+    ERR_ADV_DATA,
+    ERR_CMD_RUN,
+    ERR_NO_MEM,
+    ERR_INIT_CREATE,
+    ERR_INIT_STATE,
 
-	ERR_ATTC_WRITE,
-	ERR_ATTC_WRITE_UNREGISTER,
-	ERR_INVALID_PARAM,
-	ERR_INVALID_HANDLE,
-	ERR_REQUEST_NOT_SUPPORTED,
+    ERR_ATTC_WRITE,
+    ERR_ATTC_WRITE_UNREGISTER,
+    ERR_INVALID_PARAM,
+    ERR_INVALID_HANDLE,
+    ERR_REQUEST_NOT_SUPPORTED,
 } ble_err_t;
 
 typedef enum {
-	APP_SEC_ERROR_NO_ERROR,
-	APP_SEC_ERROR_NO_MEM,
-	APP_SEC_ERROR_UNKNOWN_CONN,
-	APP_SEC_ERROR_ROLE,
-	APP_SEC_ERROR_CRC_FAIL,
-	APP_SEC_ERROR_MAX_BOND_NUM,
-	APP_SEC_ERROR_DEV_ALREADY_BOND,
-	APP_SEC_ERROR_TK,
-	APP_SEC_ERROR_PARAM_INVALID,
-	APP_SEC_ERROR_PARAM_UNSUPPORT,
+    APP_SEC_ERROR_NO_ERROR,
+    APP_SEC_ERROR_NO_MEM,
+    APP_SEC_ERROR_UNKNOWN_CONN,
+    APP_SEC_ERROR_ROLE,
+    APP_SEC_ERROR_CRC_FAIL,
+    APP_SEC_ERROR_MAX_BOND_NUM,
+    APP_SEC_ERROR_DEV_ALREADY_BOND,
+    APP_SEC_ERROR_TK,
+    APP_SEC_ERROR_PARAM_INVALID,
+    APP_SEC_ERROR_PARAM_UNSUPPORT,
 } sec_err_t;
 
 typedef enum {
@@ -340,154 +358,158 @@ typedef enum {
     /// Valid only if created advertising is an extended advertising
     ADV_PROP_ANONYMOUS_POS       = 5,
     ADV_PROP_ANONYMOUS_BIT       = 0x20,
-}adv_prop_bf_t;
+} adv_prop_bf_t;
 
-typedef struct{
-	uint8_t cmd_idx;
-	ble_err_t status;
-}ble_cmd_param_t;
+typedef struct {
+    uint8_t cmd_idx;
+    ble_err_t status;
+} ble_cmd_param_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	uint16_t prf_id;
-	uint16_t att_idx;
-	uint8_t status;
+    uint8_t conn_idx;
+    uint16_t prf_id;
+    uint16_t att_idx;
+    uint8_t status;
 } atts_tx_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	uint16_t prf_id;
-	uint16_t att_idx;
-	uint16_t length;
-	uint8_t status;
+    uint8_t conn_idx;
+    uint16_t prf_id;
+    uint16_t att_idx;
+    uint16_t length;
+    uint8_t status;
 } att_info_req_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	uint16_t prf_id;
-	uint16_t att_idx;
-	uint8_t *value;
-	uint16_t len;
+    uint8_t conn_idx;
+    uint16_t prf_id;
+    uint16_t att_idx;
+    uint8_t *value;
+    uint16_t len;
 } write_req_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	uint16_t prf_id;
-	uint16_t att_idx;
-	uint8_t *value;
-	uint16_t size;
-	uint16_t length;
-	uint16_t hdl;
-	uint16_t token;
+    uint8_t conn_idx;
+    uint16_t prf_id;
+    uint16_t att_idx;
+    uint8_t *value;
+    uint16_t size;
+    uint16_t length;
+    uint16_t offset;
+    uint16_t max_length;
+    uint16_t hdl;
+    uint16_t token;
 } read_req_t;
 
 typedef struct
 {
-	uint8_t actv_idx;
-	uint8_t evt_type;
-	uint8_t adv_addr_type;
-	uint8_t adv_addr[6];
-	uint8_t data_len;
-	uint8_t *data;
-	uint8_t rssi;
+    uint8_t actv_idx;
+    uint8_t evt_type;
+    uint8_t adv_addr_type;
+    uint8_t adv_addr[6];
+    uint8_t data_len;
+    uint8_t *data;
+    uint8_t rssi;
 } recv_adv_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	uint16_t mtu_size;
+    uint8_t conn_idx;
+    uint16_t mtu_size;
 } mtu_change_t;
 
 typedef struct
 {
-	uint8_t tx_phy;                       /**< The transmitter PHY (@see enum gap_phy)*/
-	uint8_t rx_phy;                       /**< The receiver PHY (@see enum gap_phy)*/
-	uint8_t phy_opt;                      /**< PHY options  (@see enum le_coded_phy_option)*/
+    uint8_t tx_phy;                       /**< The transmitter PHY (@see enum gap_phy)*/
+    uint8_t rx_phy;                       /**< The receiver PHY (@see enum gap_phy)*/
+    uint8_t phy_opt;                      /**< PHY options  (@see enum le_coded_phy_option)*/
 } ble_set_phy_t;
 
 enum le_coded_phy_option {
-	CODED_NO_PREFERRED = 0,               /**the host no preferred */
-	CODED_500K_RATE,
-	CODED_125K_RATE,
+    CODED_NO_PREFERRED = 0,               /**the host no preferred */
+    CODED_500K_RATE,
+    CODED_125K_RATE,
 };
 
 typedef struct
 {
-	uint8_t tx_phy;                       /**< The transmitter PHY (@see enum gap_phy)*/
-	uint8_t rx_phy;                       /**< The receiver PHY (@see enum gap_phy)*/
+    uint8_t tx_phy;                       /**< The transmitter PHY (@see enum gap_phy)*/
+    uint8_t rx_phy;                       /**< The receiver PHY (@see enum gap_phy)*/
 } ble_read_phy_t;
 
 typedef struct
 {
-	/// BD Address of device
-	uint8_t  addr[6];
-	/// Address type of the device 0=public/1=private random
-	uint8_t addr_type;
-} bk_ble_bond_dev_t;
+    /// BD Address of device
+    uint8_t  addr[GAP_BD_ADDR_LEN];
+    /// Address type of the device 0=public/1=private random
+    uint8_t addr_type;
+    /// The index of bond information
+    uint8_t bond_idx;
+} bond_device_addr_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	uint32_t num_value;
+    uint8_t conn_idx;
+    uint32_t num_value;
 } numeric_cmp_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	/// Peer address type
-	uint8_t peer_addr_type;
-	/// Peer BT address
-	uint8_t peer_addr[6];
+    uint8_t conn_idx;
+    /// Peer address type
+    uint8_t peer_addr_type;
+    /// Peer BT address
+    uint8_t peer_addr[GAP_BD_ADDR_LEN];
 } conn_ind_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	/// Reason of disconnection
+    uint8_t conn_idx;
+    /// Reason of disconnection
     uint8_t reason;
 } discon_ind_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	/// Connection interval minimum
-	uint16_t intv_min;
-	/// Connection interval maximum
-	uint16_t intv_max;
-	/// Latency
-	uint16_t latency;
-	/// Supervision timeout
-	uint16_t time_out;
+    uint8_t conn_idx;
+    /// Connection interval minimum
+    uint16_t intv_min;
+    /// Connection interval maximum
+    uint16_t intv_max;
+    /// Latency
+    uint16_t latency;
+    /// Supervision timeout
+    uint16_t time_out;
 } conn_param_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	/// Connection interval minimum
-	uint16_t intv_min;
-	/// Connection interval maximum
-	uint16_t intv_max;
-	/// Latency
-	uint16_t latency;
-	/// Supervision timeout
-	uint16_t time_out;
-	///True to accept connection params,False else.
-	bool accept;
+    uint8_t conn_idx;
+    /// Connection interval minimum
+    uint16_t intv_min;
+    /// Connection interval maximum
+    uint16_t intv_max;
+    /// Latency
+    uint16_t latency;
+    /// Supervision timeout
+    uint16_t time_out;
+    ///True to accept connection params,False else.
+    bool accept;
 } conn_param_req_t;
 
 typedef struct
 {
-	uint8_t conn_idx;
-	/// Connection interval
-	uint16_t interval;
-	/// Latency
-	uint16_t latency;
-	/// Supervision timeout
-	uint16_t time_out;
+    uint8_t conn_idx;
+    /// Connection interval
+    uint16_t interval;
+    /// Latency
+    uint16_t latency;
+    /// Supervision timeout
+    uint16_t time_out;
 } conn_update_ind_t;
 
 typedef struct
@@ -501,8 +523,8 @@ typedef struct
 
 typedef struct
 {
-	uint8_t status;
-	uint8_t prf_id;
+    uint8_t status;
+    uint8_t prf_id;
 } create_db_t;
 
 typedef struct
@@ -515,114 +537,136 @@ typedef struct
     uint8_t status;
 } ble_cmd_cmp_evt_t;
 
-typedef struct{
-	uint8_t status;
-	uint8_t operation;  ///0:INDICATE; 1:notify
-	uint8_t prf_id;
-	uint16_t att_id;
-	uint16_t up_con_idx;
-}ble_slave_con_ind_nty_t;
+typedef struct {
+    uint8_t status;
+    uint8_t operation;  ///0:INDICATE; 1:notify
+    uint8_t prf_id;
+    uint16_t att_id;
+    uint16_t up_con_idx;
+} ble_slave_con_ind_nty_t;
 
 typedef struct
 {
-	uint8_t channels[BLE_CHANNELS_LEN];
-}bk_ble_channels_t;
+    uint8_t channels[BLE_CHANNELS_LEN];
+} bk_ble_channels_t;
 
 #if (CFG_BLE_VERSION == BLE_VERSION_5_1)
 typedef struct
 {
-	/// 16 bits UUID LSB First
-	uint8_t uuid[16];
-	/// Attribute Permissions (@see enum attm_perm_mask)
-	uint16_t perm;
-	/// Attribute Extended Permissions (@see enum attm_value_perm_mask)
-	uint16_t ext_perm;
-	/// Attribute Max Size
-	/// note: for characteristic declaration contains handle offset
-	/// note: for included service, contains target service handle
-	uint16_t max_size;
-}bk_attm_desc_t;
+    /// 16 bits UUID LSB First
+    uint8_t uuid[16];
+    /// Attribute Permissions (@see enum attm_perm_mask)
+    uint16_t perm;
+    /// Attribute Extended Permissions (@see enum attm_value_perm_mask)
+    uint16_t ext_perm;
+    /// Attribute Max Size
+    /// note: for characteristic declaration contains handle offset
+    /// note: for included service, contains target service handle
+    uint16_t max_size;
+} bk_attm_desc_t;
 
 #elif (CFG_BLE_VERSION == BLE_VERSION_5_2)
-typedef struct
-{
-	/// Attribute UUID (LSB First)
-	uint8_t  uuid[16];
-	/// Attribute information bit field (@see enum gatt_att_info_bf)
-	uint16_t info;
-	/// Attribute extended information bit field (@see enum gatt_att_ext_info_bf)
-	/// Note:
-	///   - For Included Services and Characteristic Declarations, this field contains targeted handle.
-	///   - For Characteristic Extended Properties, this field contains 2 byte value
-	///   - For Client Characteristic Configuration and Server Characteristic Configuration, this field is not used.
-	uint16_t ext_info;
-}bk_attm_desc_t;
 
 typedef struct
 {
-	/// bit field that contains list of reports that are enabled or not (@see enum gapm_report_en_bf)
-	uint8_t    report_en_bf;
-	/// Advertising SID
-	uint8_t    adv_sid;
-	/// BD Address of advertiser with which synchronization has to be established (used only if use_pal is false)
-	gap_addr_t adv_addr;
-	// Address type of the device 0 = public/1 = private random
-	uint8_t    adv_addr_type;
-	/// Number of periodic advertising that can be skipped after a successful receive. Maximum authorized.value is 499
-	uint16_t   skip;
-	/// Synchronization timeout for the periodic advertising (in unit of 10ms between 100ms and 163.84s)
-	uint16_t   sync_to;
-	/// Type of Constant Tone Extension device should sync on (@see enum gapm_sync_cte_type).
-	uint8_t    cte_type;
-	/// Periodic synchronization type (@see enum gapm_per_sync_type)
-	uint8_t    per_sync_type;
+    uint32_t msg_id;
+    uint8_t type;
+    uint16_t len;
+    void *data;
+} BLE_TO_HOST_MSG_T;
+
+/**
+ * @brief hci type enum
+ */
+typedef enum
+{
+    BK_BLE_HCI_TYPE_CMD = 1,
+    BK_BLE_HCI_TYPE_ACL = 2,
+    BK_BLE_HCI_TYPE_SCO = 3,
+    BK_BLE_HCI_TYPE_EVT = 4,
+} BK_BLE_HCI_TYPE;
+
+typedef ble_err_t (*ble_hci_to_host_cb)(uint8_t *buf, uint16_t len);
+
+typedef struct
+{
+    /// Attribute UUID (LSB First)
+    uint8_t  uuid[16];
+    /// Attribute information bit field (@see enum gatt_att_info_bf)
+    uint16_t info;
+    /// Attribute extended information bit field (@see enum gatt_att_ext_info_bf)
+    /// Note:
+    ///   - For Included Services and Characteristic Declarations, this field contains targeted handle.
+    ///   - For Characteristic Extended Properties, this field contains 2 byte value
+    ///   - For Client Characteristic Configuration and Server Characteristic Configuration, this field is not used.
+    uint16_t ext_info;
+} bk_attm_desc_t;
+
+typedef struct
+{
+    /// bit field that contains list of reports that are enabled or not (@see enum gapm_report_en_bf)
+    uint8_t    report_en_bf;
+    /// Advertising SID
+    uint8_t    adv_sid;
+    /// BD Address of advertiser with which synchronization has to be established (used only if use_pal is false)
+    gap_addr_t adv_addr;
+    // Address type of the device 0 = public/1 = private random
+    uint8_t    adv_addr_type;
+    /// Number of periodic advertising that can be skipped after a successful receive. Maximum authorized.value is 499
+    uint16_t   skip;
+    /// Synchronization timeout for the periodic advertising (in unit of 10ms between 100ms and 163.84s)
+    uint16_t   sync_to;
+    /// Type of Constant Tone Extension device should sync on (@see enum gapm_sync_cte_type).
+    uint8_t    cte_type;
+    /// Periodic synchronization type (@see enum gapm_per_sync_type)
+    uint8_t    per_sync_type;
 } ble_periodic_sync_param_t;
 
 #endif //(CFG_BLE_VERSION == BLE_VERSION_5_2)
 
 struct bk_ble_db_cfg
 {
-	uint16_t prf_task_id;
-	///Service uuid
-	uint8_t uuid[16];
-	///Number of db
-	uint8_t att_db_nb;
-	///Start handler, 0 means autoalloc
-	uint16_t start_hdl;
-	///Attribute database
-	bk_attm_desc_t* att_db;
-	///Service config
-	uint8_t svc_perm;
+    uint16_t prf_task_id;
+    ///Service uuid
+    uint8_t uuid[16];
+    ///Number of db
+    uint8_t att_db_nb;
+    ///Start handler, 0 means autoalloc
+    uint16_t start_hdl;
+    ///Attribute database
+    bk_attm_desc_t* att_db;
+    ///Service config
+    uint8_t svc_perm;
 };
 
 struct adv_param {
-	uint8_t  advData[MAX_ADV_DATA_LEN];
-	uint8_t  advDataLen;
-	uint8_t  respData[MAX_ADV_DATA_LEN];
-	uint8_t  respDataLen;
-	uint8_t  channel_map;
-	uint16_t interval_min;
-	uint16_t interval_max;
-	uint16_t duration;
-	uint8_t prop;
+    uint8_t  advData[MAX_ADV_DATA_LEN];
+    uint8_t  advDataLen;
+    uint8_t  respData[MAX_ADV_DATA_LEN];
+    uint8_t  respDataLen;
+    uint8_t  channel_map;
+    uint16_t interval_min;
+    uint16_t interval_max;
+    uint16_t duration;
+    uint8_t prop;
 };
 
 typedef struct ext_adv_param_cfg {
-	uint8_t  channel_map;
-	uint16_t interval_min;
-	uint16_t interval_max;
-	uint16_t duration;
-	uint8_t sid;
-	uint8_t prop;
-}ext_adv_param_cfg_t;
+    uint8_t  channel_map;
+    uint16_t interval_min;
+    uint16_t interval_max;
+    uint16_t duration;
+    uint8_t sid;
+    uint8_t prop;
+} ext_adv_param_cfg_t;
 
 struct scan_param {
-	uint8_t  filter_en;
-	uint8_t  channel_map;
-	uint16_t interval;
-	uint16_t window;
-	uint8_t filter_type;
-	uint8_t filter_param[32];
+    uint8_t  filter_en;
+    uint8_t  channel_map;
+    uint16_t interval;
+    uint16_t window;
+    uint8_t filter_type;
+    uint8_t filter_param[32];
 };
 
 struct appm_create_conn_param
@@ -659,104 +703,104 @@ typedef struct set_ext_conn_param
     struct appm_create_conn_param       conn_param_2m;
     /// Connection parameters for LE Coded PHY
     struct appm_create_conn_param       conn_param_coded;
-}ext_conn_param_t;
+} ext_conn_param_t;
 
 struct per_adv_param {
-	/// Own address type
-	uint8_t  own_addr_type;
-	/// Bit field indicating the channel mapping
-	uint8_t  chnl_map;
-	/// Provide advertising properties
-	uint16_t adv_prop;
-	/// Minimum advertising interval (in unit of 625us). Must be greater than 20ms
-	uint32_t adv_intv_min;
-	/// Maximum advertising interval (in unit of 625us). Must be greater than 20ms
-	uint32_t adv_intv_max;
-	/// Indicate on which PHY primary advertising has to be performed
-	uint8_t  prim_phy;
-	/// Indicate on which PHY secondary advertising has to be performed
-	uint8_t  second_phy;
+    /// Own address type
+    uint8_t  own_addr_type;
+    /// Bit field indicating the channel mapping
+    uint8_t  chnl_map;
+    /// Provide advertising properties
+    uint16_t adv_prop;
+    /// Minimum advertising interval (in unit of 625us). Must be greater than 20ms
+    uint32_t adv_intv_min;
+    /// Maximum advertising interval (in unit of 625us). Must be greater than 20ms
+    uint32_t adv_intv_max;
+    /// Indicate on which PHY primary advertising has to be performed
+    uint8_t  prim_phy;
+    /// Indicate on which PHY secondary advertising has to be performed
+    uint8_t  second_phy;
 };
 
 #define MST_ATT_UUID_128_LEN                        0x0010
 struct mst_sdp_svc_ind
 {
-	uint8_t  svr_id;
-	/// Service UUID Length
-	uint8_t  uuid_len;
-	/// Service UUID
-	uint8_t  uuid[MST_ATT_UUID_128_LEN];
-	/// Service start handle
-	uint16_t start_hdl;
-	/// Service end handle
-	uint16_t end_hdl;
+    uint8_t  svr_id;
+    /// Service UUID Length
+    uint8_t  uuid_len;
+    /// Service UUID
+    uint8_t  uuid[MST_ATT_UUID_128_LEN];
+    /// Service start handle
+    uint16_t start_hdl;
+    /// Service end handle
+    uint16_t end_hdl;
 };
 
 /// characteristic info
 struct mst_sdp_char_inf
 {
-	uint8_t  svr_id;
-	uint8_t uuid_len;
-	uint8_t uuid[MST_ATT_UUID_128_LEN]; // add by sean 2016.11.15 refer 3431n Master
-	/// Characteristic handle
-	uint16_t char_hdl;
-	/// Value handle
-	uint16_t val_hdl;
-	/// Characteristic properties
-	uint8_t prop;
-	/// End of characteristic offset
-	uint8_t char_ehdl_off;
+    uint8_t  svr_id;
+    uint8_t uuid_len;
+    uint8_t uuid[MST_ATT_UUID_128_LEN]; // add by sean 2016.11.15 refer 3431n Master
+    /// Characteristic handle
+    uint16_t char_hdl;
+    /// Value handle
+    uint16_t val_hdl;
+    /// Characteristic properties
+    uint8_t prop;
+    /// End of characteristic offset
+    uint8_t char_ehdl_off;
 };
 
 /// characteristic description
 struct mst_sdp_char_desc_inf
 {
-	uint8_t  svr_id;
-	/// UUID length
-	uint8_t uuid_len;
-	/// UUID
-	uint8_t uuid[MST_ATT_UUID_128_LEN];
+    uint8_t  svr_id;
+    /// UUID length
+    uint8_t uuid_len;
+    /// UUID
+    uint8_t uuid[MST_ATT_UUID_128_LEN];
 
-	uint8_t char_code;
-	/// Descriptor handle
-	uint16_t desc_hdl;
+    uint8_t char_code;
+    /// Descriptor handle
+    uint16_t desc_hdl;
 };
 
-typedef enum{
-	MST_TYPE_SVR_UUID = 0,
-	MST_TYPE_ATT_UUID,
-	MST_TYPE_ATT_DESC,
-	MST_TYPE_SDP_END,
+typedef enum {
+    MST_TYPE_SVR_UUID = 0,
+    MST_TYPE_ATT_UUID,
+    MST_TYPE_ATT_DESC,
+    MST_TYPE_SDP_END,
 
-	MST_TYPE_ATTC_SVR_UUID,  ///Service the UUID
-	MST_TYPE_ATTC_ATT_UUID,  ///ATT of a service
-	MST_TYPE_ATTC_ATT_DESC,  ///ATT DESC of a service
-	MST_TYPS_ATTC_PARAM_ERR,  ///The delivered parameter is abnormal or unknown
-	MST_TYPE_ATTC_ERR,	 ///if appm_get_init_attc_info return is ok && ble is disconnect,so update the event
-	MST_TYPE_ATTC_END,	 ///End of the operation
-	MST_TYPE_ATTC_WRITE_RSP,
-	MST_TYPE_ATTC_WRITE_NO_RESPONSE,
-	MST_TYPE_ATTC_CHARAC_READ_DONE,
+    MST_TYPE_ATTC_SVR_UUID,  ///Service the UUID
+    MST_TYPE_ATTC_ATT_UUID,  ///ATT of a service
+    MST_TYPE_ATTC_ATT_DESC,  ///ATT DESC of a service
+    MST_TYPS_ATTC_PARAM_ERR,  ///The delivered parameter is abnormal or unknown
+    MST_TYPE_ATTC_ERR,	 ///if appm_get_init_attc_info return is ok && ble is disconnect,so update the event
+    MST_TYPE_ATTC_END,	 ///End of the operation
+    MST_TYPE_ATTC_WRITE_RSP,
+    MST_TYPE_ATTC_WRITE_NO_RESPONSE,
+    MST_TYPE_ATTC_CHARAC_READ_DONE,
 
-	MST_TYPE_MTU_EXC = 0x10,
-	MST_TYPE_MTU_EXC_DONE,
+    MST_TYPE_MTU_EXC = 0x10,
+    MST_TYPE_MTU_EXC_DONE,
 
-	MST_TYPE_UPP_ASK = 0x20,   ///Ask if you agree to update the parameter
-	MST_TYPE_UPDATA_STATUS,    ////updata param status
+    MST_TYPE_UPP_ASK = 0x20,   ///Ask if you agree to update the parameter
+    MST_TYPE_UPDATA_STATUS,    ////updata param status
 
 
-	MST_TYPE_INIT_CREATE_OK = 0x80,
-}MASTER_COMMON_TYPE;
+    MST_TYPE_INIT_CREATE_OK = 0x80,
+} MASTER_COMMON_TYPE;
 
 typedef struct
 {
-	uint8_t   con_idx;
-	uint16_t  att_length;
-	uint16_t  value_length;
-	uint8_t   *value;
-	uint16_t  attr_handle;
-	uint16_t  token;
-	uint16_t  status;
+    uint8_t   con_idx;
+    uint16_t  att_length;
+    uint16_t  value_length;
+    uint8_t   *value;
+    uint16_t  attr_handle;
+    uint16_t  token;
+    uint16_t  status;
 } app_gatts_rsp_t;
 
 struct app_pairing_cfg
@@ -776,20 +820,20 @@ struct app_pairing_cfg
     uint8_t sec_req;
 };
 
-typedef enum{
-	ADV_ACTV = 0,
-	SCAN_ACTV,
-	INIT_ACTV,
-	CONN_ACTV,
-	PER_SYNC_ACTV,
-}ACTV_TYPE;
+typedef enum {
+    ADV_ACTV = 0,
+    SCAN_ACTV,
+    INIT_ACTV,
+    CONN_ACTV,
+    PER_SYNC_ACTV,
+} ACTV_TYPE;
 
 struct actv_type {
-	uint8_t adv_actv;
-	uint8_t scan_actv;
-	uint8_t init_actv;
-	uint8_t conn_actv;
-	uint8_t per_sync_actv;
+    uint8_t adv_actv;
+    uint8_t scan_actv;
+    uint8_t init_actv;
+    uint8_t conn_actv;
+    uint8_t per_sync_actv;
 };
 
 typedef void (*app_sdp_comm_callback)(MASTER_COMMON_TYPE type,uint8 conidx,void *param);
@@ -804,6 +848,8 @@ ble_err_t bk_ble_create_db (struct bk_ble_db_cfg* ble_db_cfg);
 void ble_set_notice_cb(ble_notice_cb_t func);
 uint8_t ble_appm_get_dev_name(uint8_t* name, uint32_t buf_len);
 uint8_t ble_appm_set_dev_name(uint8_t len, uint8_t* name);
+void bk_ble_local_pub_addr(uint8_t *addr);
+void bk_ble_local_rand_addr(uint8_t *addr);
 ble_err_t bk_ble_adv_start(uint8_t actv_idx, struct adv_param *adv, ble_cmd_cb_t callback);
 ble_err_t bk_ble_adv_stop(uint8_t actv_idx, ble_cmd_cb_t callback);
 ble_err_t bk_ble_scan_start(uint8_t actv_idx, struct scan_param *scan, ble_cmd_cb_t callback);
@@ -818,7 +864,7 @@ ble_err_t bk_ble_set_ext_adv_data(uint8_t actv_idx, unsigned char * adv_buff, ui
 ble_err_t bk_ble_set_scan_rsp_data(uint8_t actv_idx, unsigned char* scan_buff, unsigned char scan_len, ble_cmd_cb_t callback);
 ble_err_t bk_ble_set_ext_scan_rsp_data(uint8_t actv_idx, unsigned char * scan_buff, uint16_t scan_len, ble_cmd_cb_t callback);
 ble_err_t bk_ble_update_param(uint8_t conn_idx, uint16_t intv_min, uint16_t intv_max,
-					uint16_t latency, uint16_t sup_to);
+                              uint16_t latency, uint16_t sup_to);
 ble_err_t bk_ble_disconnect(uint8_t conn_idx);
 ble_err_t bk_ble_gatt_mtu_change(uint8_t conn_idx);
 ble_err_t bk_ble_create_scaning(uint8_t actv_idx, ble_cmd_cb_t callback);
@@ -827,10 +873,10 @@ ble_err_t bk_ble_stop_scaning(uint8_t actv_idx, ble_cmd_cb_t callback);
 ble_err_t bk_ble_delete_scaning(uint8_t actv_idx, ble_cmd_cb_t callback);
 ble_err_t bk_ble_send_ind_value(uint32_t len, uint8_t *buf, uint16_t prf_id, uint16_t att_idx);
 ble_err_t bk_ble_send_ntf_value( uint32_t len, uint8_t *buf, uint16_t prf_id, uint16_t att_idx);
-int bk_ble_get_con_mtu(unsigned char con_idx,uint16_t *mtu);
+ble_err_t bk_ble_get_con_mtu(uint8_t con_idx,uint16_t *mtu);
 #if (CFG_BLE_VERSION == BLE_VERSION_5_2)
 ble_err_t bk_ble_gap_prefer_ext_connect_params_set(uint8_t phy_mask, struct appm_create_conn_param *phy_1m_conn_params,
-                                                struct appm_create_conn_param *phy_2m_conn_params, struct appm_create_conn_param *phy_coded_conn_params);
+        struct appm_create_conn_param *phy_2m_conn_params, struct appm_create_conn_param *phy_coded_conn_params);
 ble_err_t bk_ble_gap_config_local_icon(uint16_t appearance);
 ble_err_t bk_ble_gap_set_channels(bk_ble_channels_t *channels);
 ble_err_t bk_ble_gap_read_phy(uint8_t conn_idx, ble_read_phy_t *phy);
@@ -838,9 +884,14 @@ ble_err_t bk_ble_gap_set_phy(uint8_t conn_idx, ble_set_phy_t *phy);
 ble_err_t bk_ble_gatts_read_response(app_gatts_rsp_t *rsp);
 ble_err_t bk_ble_gatts_app_unregister(uint16_t service_handle);
 ble_err_t bk_ble_gatts_remove_service(uint16_t start_handle);
+ble_err_t bk_ble_gatts_remove_service_by_prf_id(uint16_t prf_task_id);
 ble_err_t bk_ble_gatts_set_attr_value(uint16_t attr_handle, uint16_t length, uint8_t *value);
 ble_err_t bk_ble_gatts_get_attr_value(uint16_t attr_handle, uint16_t *length, uint8_t **value);
 ble_err_t bk_ble_gatts_send_service_change_indication(uint16_t start_handle, uint16_t end_handle);
+ble_err_t bk_ble_set_pref_mtu(uint8_t conn_idx,uint16_t pref_mtu);
+bool app_ble_init_is_created(uint8_t conn_idx);
+uint8_t app_ble_get_connect_status_by_peer_addr(struct bd_addr *peer_addr);
+uint8_t app_ble_find_conn_idx_by_peer_addr(struct bd_addr *peer_addr);
 #if (CFG_BLE_PER_ADV)
 ble_err_t bk_ble_create_periodic_advertising(uint8_t actv_idx, struct per_adv_param *per_adv, ble_cmd_cb_t callback);
 ble_err_t bk_ble_set_periodic_adv_data(uint8_t actv_idx, unsigned char *adv_buff, uint16_t adv_len, ble_cmd_cb_t callback);
@@ -857,15 +908,6 @@ ble_err_t bk_ble_delete_periodic_sync(uint8_t actv_idx, ble_cmd_cb_t callback);
 #if (CFG_BLE_PER_ADV) | (CFG_BLE_PER_SYNC)
 ble_err_t bk_ble_periodic_adv_sync_transf(uint8_t actv_idx, uint16_t service_data);
 #endif
-#if (BLE_APP_SEC)
-ble_err_t bk_ble_get_bond_device_num(uint8_t *dev_num);
-ble_err_t bk_ble_get_bonded_device_list(uint8_t *dev_num, bk_ble_bond_dev_t *dev_list);
-sec_err_t bk_ble_gap_set_security_param(struct app_pairing_cfg *param, sec_notice_cb_t func);
-sec_err_t bk_ble_gap_security_rsp(uint8_t conn_idx, bool accept);
-sec_err_t bk_ble_gap_pairing_rsp(uint8_t conn_idx, bool accept);
-sec_err_t bk_ble_passkey_reply(uint8_t conn_idx, bool accept, uint32_t passkey);
-sec_err_t bk_ble_confirm_reply(uint8_t conn_idx, bool accept);
-#endif
 ble_err_t bk_ble_gap_get_whitelist_size(uint8_t *wl_size);
 ble_err_t bk_ble_gap_clear_whitelist(void);
 ble_err_t bk_ble_gap_update_whitelist(uint8_t add_remove, struct bd_addr *addr, uint8_t addr_type);
@@ -873,7 +915,23 @@ ble_err_t bk_ble_gap_update_per_adv_list(uint8_t add_remove, struct bd_addr *add
 ble_err_t bk_ble_gap_clear_per_adv_list(void);
 ble_err_t bk_ble_get_sendable_packets_num(uint16_t *pkt_total);
 ble_err_t bk_ble_get_cur_sendable_packets_num(uint16_t *pkt_curr);
+ble_err_t bk_ble_reg_hci_recv_callback(ble_hci_to_host_cb evt_cb, ble_hci_to_host_cb acl_cb);
+ble_err_t bk_ble_hci_acl_to_controller(uint8_t *buf, uint16_t len);
+ble_err_t bk_ble_hci_cmd_to_controller(uint8_t *buf, uint16_t len);
+ble_err_t bk_ble_hci_to_controller(uint8_t type, uint8_t *buf, uint16_t len);
 #endif // (CFG_BLE_VERSION == BLE_VERSION_5_2)
+
+#if (BLE_APP_SEC)
+ble_err_t bk_ble_get_bond_device_num(uint8_t *dev_num);
+ble_err_t bk_ble_get_bonded_device_list(uint8_t *dev_num, bond_device_addr_t *dev_list);
+sec_err_t bk_ble_remove_bond_device(uint8_t idx, bool disconnect);
+sec_err_t bk_ble_gap_set_security_param(struct app_pairing_cfg *param, sec_notice_cb_t func);
+sec_err_t bk_ble_security_req(uint8_t conn_idx);
+sec_err_t bk_ble_security_start(uint8_t conn_idx);
+sec_err_t bk_ble_pairing_rsp(uint8_t conn_idx, bool accept);
+sec_err_t bk_ble_passkey_reply(uint8_t conn_idx, bool accept, uint32_t passkey);
+sec_err_t bk_ble_confirm_reply(uint8_t conn_idx, bool accept);
+#endif
 
 extern void ble_ps_enable_set(void);
 extern void ble_ps_enable_clear(void);

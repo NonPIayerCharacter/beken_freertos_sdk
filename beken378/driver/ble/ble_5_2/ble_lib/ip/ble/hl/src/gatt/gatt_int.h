@@ -135,6 +135,10 @@ typedef struct gatt_con_env
     uint8_t                 nb_bearer_rsvd;
     /// Latest bearer granted
     uint8_t                 last_grant_bearer_lid;
+    #if (BLE_CON_MTU_INCLUDE)
+    ///This connection pref_mtu
+    uint16_t                pref_mtu;
+    #endif //(BLE_CON_MTU_INCLUDE)
 } gatt_con_env_t;
 
 /// GATT Environment structure

@@ -1,14 +1,17 @@
-/**
- ****************************************************************************************
- *
- * @file arch_main.c
- *
- * @brief Main loop of the application.
- *
- * Copyright (C) Beken Corp 2011-2020
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "driver_pub.h"
 #include "func_pub.h"
@@ -36,12 +39,12 @@ static int test_cnt;
 
 void task_test3(void *arg)
 {
-	beken_semaphore_t sem;
+    beken_semaphore_t sem;
 
-	rtos_init_semaphore(&sem, 0);
+    rtos_init_semaphore(&sem, 0);
     while (1) {
         os_printf("test_cnt is %d\r\n", test_cnt++);
-		rtos_get_semaphore(&sem, 1000);
+        rtos_get_semaphore(&sem, 1000);
     }
 }
 
@@ -52,13 +55,13 @@ void entry_main(void)
 
 void soc_driver_init(void)
 {
-	#if ATE_APP_FUN
+    #if ATE_APP_FUN
     ate_app_init();
-	#endif
+    #endif
 
-#if CFG_USE_DEEP_PS
+    #if CFG_USE_DEEP_PS
     bk_init_deep_wakeup_gpio_status();
-#endif
+    #endif
     bk_misc_init_start_type();
 
     driver_init();
@@ -68,18 +71,18 @@ void soc_driver_init(void)
 void soc_system_init(void)
 {
     func_init_basic();
-	
-	func_init_extended();
+
+    func_init_extended();
 
     fclk_init();
 
     hal_init();
 
-#ifndef AOS_NO_WIFI
+    #ifndef AOS_NO_WIFI
     app_start();
 
     hw_start_hal();
-#endif
+    #endif
 }
 
 // eof

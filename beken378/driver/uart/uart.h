@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _UART_H_
 #define _UART_H_
 
@@ -72,7 +86,11 @@
 #define UART_BAUDRATE_3000           3250
 #define UART_BAUDRATE_19200          19200
 
+#if CFG_SARADC_VERIFY
+#define UART_BAUD_RATE               UART_BAUDRATE_921600
+#else
 #define UART_BAUD_RATE               UART_BAUDRATE_115200
+#endif
 #ifndef UART1_BAUD_RATE
 #define UART1_BAUD_RATE              UART_BAUD_RATE
 #endif
@@ -86,10 +104,10 @@
 #endif
 
 #ifndef UART1_USE_FIFO_REC
-#define UART1_USE_FIFO_REC           1
+#define UART1_USE_FIFO_REC           0
 #endif
 #ifndef UART2_USE_FIFO_REC
-#define UART2_USE_FIFO_REC           1
+#define UART2_USE_FIFO_REC           0
 #endif
 #if (CFG_SOC_NAME == SOC_BK7252N)
 #ifndef UART3_USE_FIFO_REC

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "sys_rtos.h"
 #include "rtos_pub.h"
 #include "error.h"
@@ -32,7 +46,7 @@ void sec_Command(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv
                                         0x1c, 0x38, 0x2a, 0x09, 0x5b, 0x6f, 0x47, 0xd0, 0x2c, 0x9e, 0x1a, 0xf3, 0x0b, 0x54, 0x6d, 0x82
                                        };
         unsigned char aes256_block[16] = {0xa1, 0x2e, 0x84, 0x5c, 0x10, 0x93, 0xa6, 0x9f, 0x4e, 0xb0, 0x6d, 0xa4, 0x85, 0xa3, 0x8f, 0x5d};
-        unsigned char aes256_ex_enc_expected[16] = {0x1b , 0x1e , 0x55 , 0x4e , 0x65, 0xcb , 0x8d , 0x10 , 0x9d , 0x95 , 0x4e , 0xd4 , 0x8d , 0xc2 , 0xad , 0x6f};
+        unsigned char aes256_ex_enc_expected[16] = {0x1b, 0x1e, 0x55, 0x4e, 0x65, 0xcb, 0x8d, 0x10, 0x9d, 0x95, 0x4e, 0xd4, 0x8d, 0xc2, 0xad, 0x6f};
 
 
         unsigned char aes256_enc_expected[16];

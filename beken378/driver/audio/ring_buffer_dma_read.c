@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "ring_buffer_dma_read.h"
 #include "arch.h"
@@ -8,6 +22,7 @@
 #if CFG_GENERAL_DMA
 #include "general_dma_pub.h"
 
+// can't set to 0, otherwise dma pause no work
 #define RWP_SAFE_INTERVAL           (4)
 
 #define RB_DMA_RD_MEMCPY                   os_memcpy
@@ -45,9 +60,9 @@ void rb_init_dma_read(RB_DMA_RD_PTR rb, UINT8 *addr, UINT32 capacity, UINT32 ch)
 
 void rb_clear_dma_read(RB_DMA_RD_PTR rb)
 {
-    RB_DMA_RD_INT_DECLARATION();    
- 
-    RB_DMA_RD_INT_DISABLE();   
+    RB_DMA_RD_INT_DECLARATION();
+
+    RB_DMA_RD_INT_DISABLE();
     rb->wp    = 0;
     rb->rp    = 0;
     RB_DMA_RD_INT_RESTORE();
@@ -60,10 +75,10 @@ UINT32 rb_write_dma_read(RB_DMA_RD_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
     UINT32 write_bytes = size * count;
     UINT32 rp;
     GDMA_CFG_ST en_cfg;
-    
+
     RB_DMA_RD_INT_DECLARATION();
-    
-    if(write_bytes == 0) 
+
+    if(write_bytes == 0)
         return 0;
 
     en_cfg.channel = rb->dma_ch;
@@ -86,6 +101,8 @@ UINT32 rb_write_dma_read(RB_DMA_RD_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
                 RB_DMA_RD_MEMCPY(&rb->address[rb->wp], buffer, write_bytes);
                 RB_DMA_RD_INT_DISABLE();
                 rb->wp += write_bytes;
+                if(rb->wp >= rb->capacity)
+                    rb->wp = 0;
                 RB_DMA_RD_INT_RESTORE();
             }
             else
@@ -93,6 +110,8 @@ UINT32 rb_write_dma_read(RB_DMA_RD_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
                 RB_DMA_RD_MEMCPY(&rb->address[rb->wp], buffer, remain_bytes);
                 RB_DMA_RD_INT_DISABLE();
                 rb->wp = write_bytes - remain_bytes;
+                if(rb->wp >= rb->capacity)
+                    rb->wp = 0;
                 RB_DMA_RD_INT_RESTORE();
                 RB_DMA_RD_MEMCPY(&rb->address[0], &buffer[remain_bytes], rb->wp);
             }
@@ -111,19 +130,14 @@ UINT32 rb_write_dma_read(RB_DMA_RD_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
             RB_DMA_RD_MEMCPY(&rb->address[rb->wp], buffer, write_bytes);
             RB_DMA_RD_INT_DISABLE();
             rb->wp += write_bytes;
+            if(rb->wp >= rb->capacity)
+                rb->wp = 0;
             RB_DMA_RD_INT_RESTORE();
         }
         else
         {
             return 0;
         }
-    }
-
-    if(rb->wp >= rb->capacity && rb->rp)
-    {
-        RB_DMA_RD_INT_DISABLE();
-        rb->wp = 0;
-        RB_DMA_RD_INT_RESTORE();
     }
 
     en_cfg.channel = rb->dma_ch;

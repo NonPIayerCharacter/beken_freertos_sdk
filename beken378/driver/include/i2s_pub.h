@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _I2S_PUB_H_
 #define _I2S_PUB_H_
 
@@ -9,15 +23,15 @@
 #define I2S_CMD_MAGIC              (0xe280000)
 enum
 {
-	I2S_CMD_UNIT_ENABLE = I2S_CMD_MAGIC + 1,
-	I2S_CMD_SET_MSTEN,
-	I2S_CMD_SELECT_MODE,
-	I2S_CMD_SET_LRCK,
-	I2S_CMD_SET_SCK_INV,
-	I2S_CMD_SET_SCK_LSB,
-	I2S_CMD_SET_SCK_SYNCLEN,
-	I2S_CMD_SET_PCM_DLEN,	
-	I2S_CMD_SET_FREQ_DATAWIDTH,
+    I2S_CMD_UNIT_ENABLE = I2S_CMD_MAGIC + 1,
+    I2S_CMD_SET_MSTEN,
+    I2S_CMD_SELECT_MODE,
+    I2S_CMD_SET_LRCK,
+    I2S_CMD_SET_SCK_INV,
+    I2S_CMD_SET_SCK_LSB,
+    I2S_CMD_SET_SCK_SYNCLEN,
+    I2S_CMD_SET_PCM_DLEN,
+    I2S_CMD_SET_FREQ_DATAWIDTH,
     I2S_CMD_RXINT_EN,
     I2S_CMD_TXINT_EN,
     I2S_CMD_RXOVR_EN,
@@ -67,11 +81,11 @@ enum
 };
 struct i2s_message
 {
-	UINT32 *send_buf;
-	UINT32 send_len;
-		
-	UINT32 *recv_buf;
-	UINT32 recv_len;
+    UINT32 *send_buf;
+    UINT32 send_len;
+
+    UINT32 *recv_buf;
+    UINT32 recv_len;
 };
 
 typedef struct
@@ -79,7 +93,7 @@ typedef struct
     UINT32 *p_tx_buf;
     UINT32 *p_rx_buf;
     UINT32 trans_done;
-	volatile UINT32 tx_remain_data_cnt;
+    volatile UINT32 tx_remain_data_cnt;
     volatile UINT32 rx_remain_data_cnt;
 } i2s_trans_t;
 

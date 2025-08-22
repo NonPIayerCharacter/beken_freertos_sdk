@@ -41,14 +41,23 @@
 #define CFG_EMB
 #define CFG_BLE
 #define CFG_HCITL
+#define ALIGNED_ONE
+
+#if CFG_BLE_HOST_RW
 #define CFG_HOST
+#endif
+
 #define CFG_APP
 #define CFG_GAIA
 #define CFG_PRF
 #define CFG_EXT_ADV
 #define CFG_PHY_UPD
+#define CFG_BK_BLE_FEATURE
+// Only 2M and 4M flash alloced space for bonding
+#if (CFG_FLASH_SELECTION_TYPE == FLASH_SELECTION_TYPE_2M) || (CFG_FLASH_SELECTION_TYPE == FLASH_SELECTION_TYPE_4M)
 #define CFG_SMP
 #define CFG_SMP_SEC_CON
+#endif
 #define CFG_SMP_RPA
 //#define CFG_EATT
 //#define CFG_CLK_ACC
@@ -111,6 +120,7 @@
 #if (CFG_BLE_SMP)
 #define BLE_APP_SEC				1
 #define BK_BLE_ENCRYPT_PATCH	1
+#define BLE_APP_SIGN_WRITE		0
 #else
 #define BLE_APP_SEC				0
 #endif
@@ -168,7 +178,7 @@
 
 //   <o> CFG_RAL <1-8>
 //   <i> CFG NUMBER OF DEVICE IN RAL (1 -- 8)
-#define CFG_RAL                 4
+#define CFG_RAL                 8
 
 #define CFG_NB_PRF              10
 
@@ -199,7 +209,7 @@
 #define BLE_HOST_PRESENT            0
 #endif // defined(CFG_BLE) && defined(CFG_HOST)
 
-#if defined(CFG_BLE) && defined(CFG_APP)
+#if defined(CFG_BLE) && defined(CFG_APP) && defined(CFG_HOST)
 #define BLE_APP_PRESENT             1
 #else // defined(CFG_BLE) && defined(CFG_APP)
 #define BLE_APP_PRESENT             0

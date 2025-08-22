@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "diskio.h"		/* Declarations of low level disk I/O functions */
 #if CFG_USE_SDCARD_HOST
 #include "ff.h"
@@ -424,7 +438,7 @@ static uint32 initfatsystem(uint8 type)
         FAT_PRT("Fat Init Err:%d!!!\r\n", ret);
         return 1;
     }
-#if 1
+    #if 1
     //if(driver_sdcard_get_init_status())
     {
         //dir_buf=(DIR_QUEUE*)jmalloc(MAX_DIR_SUPPORT*sizeof(DIR_QUEUE),0);//最大支持的文件夹
@@ -471,7 +485,7 @@ static uint32 initfatsystem(uint8 type)
         //jfree(dir_buf);
         // dir_buf = NULL;
     }
-#endif
+    #endif
     return 0;
 }
 

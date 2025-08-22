@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "bk7011_cal_pub.h"
 #include "mac_config.h"
 #include "drv_model_pub.h"
@@ -18,18 +32,18 @@ uint8_t system_mac[] = DEFAULT_MAC_ADDR;
 
 void cfg_load_mac(u8 *mac)
 {
-#if (WIFI_MAC_POS == MAC_EFUSE)
+    #if (WIFI_MAC_POS == MAC_EFUSE)
     if(!wifi_get_mac_address_from_efuse((UINT8 *)mac))
-#elif (WIFI_MAC_POS == MAC_RF_OTP_FLASH)
+    #elif (WIFI_MAC_POS == MAC_RF_OTP_FLASH)
     if(!manual_cal_get_macaddr_from_flash((UINT8 *)mac))
-#elif (WIFI_MAC_POS == MAC_ITEM)
-	uint8_t tmp_mac[8] = {0};
-	if(get_info_item(WIFI_MAC_ITEM, (UINT8 *)tmp_mac, NULL, NULL))
-	{
-		os_memcpy(mac, tmp_mac, 6);
-	}
-	else
-#endif
+    #elif (WIFI_MAC_POS == MAC_ITEM)
+    uint8_t tmp_mac[8] = {0};
+    if(get_info_item(WIFI_MAC_ITEM, (UINT8 *)tmp_mac, NULL, NULL))
+    {
+        os_memcpy(mac, tmp_mac, 6);
+    }
+    else
+    #endif
     {
         os_memcpy(mac, DEFAULT_MAC_ADDR, 6);
         if(mac[0] & 0x01)
@@ -85,15 +99,15 @@ int wifi_set_mac_address(char *mac)
         return 0;
     }
 
-   os_memcpy(system_mac, mac, 6);
+    os_memcpy(system_mac, mac, 6);
 
-#if (WIFI_MAC_POS == MAC_EFUSE)
+    #if (WIFI_MAC_POS == MAC_EFUSE)
     //wifi_set_mac_address_to_efuse((UINT8 *)system_mac);
-#elif (WIFI_MAC_POS == MAC_RF_OTP_FLASH)
+    #elif (WIFI_MAC_POS == MAC_RF_OTP_FLASH)
     manual_cal_write_macaddr_to_flash((UINT8 *)system_mac);
-#elif (WIFI_MAC_POS == MAC_ITEM)
+    #elif (WIFI_MAC_POS == MAC_ITEM)
     save_info_item(WIFI_MAC_ITEM, (UINT8 *)system_mac, NULL, NULL);
-#endif
+    #endif
 
     return 0;
 }
@@ -107,7 +121,7 @@ int wifi_set_mac_address_to_efuse(UINT8 *mac)
 
     if(!mac)
         return 0;
-    
+
     for(i=0; i<EFUSE_MAC_LEN; i++) {
         efuse.addr = EFUSE_MAC_START_ADDR + i;
         efuse.data = mac[i];
@@ -116,12 +130,12 @@ int wifi_set_mac_address_to_efuse(UINT8 *mac)
             // ensure mac[0]-bit0 in efuse not '1'
             efuse.data &= ~(0x01);
         }
-        
+
         ret = sddev_control(SCTRL_DEV_NAME, CMD_EFUSE_WRITE_BYTE, &efuse);
         if(ret != 0) {
             os_printf("efuse set MAC failed\r\n");
             return 0;
-        } 
+        }
     }
 
     os_printf("efuse set MAC ok\r\n");
@@ -132,14 +146,14 @@ int wifi_get_mac_address_from_efuse(UINT8 *mac)
 {
     EFUSE_OPER_ST efuse;
     int i = 0, ret;
-    
+
     if(!mac)
         return 0;
-    
+
     for(i=0; i<EFUSE_MAC_LEN; i++) {
         efuse.addr = EFUSE_MAC_START_ADDR + i;
         efuse.data = 0;
-        
+
         ret = sddev_control(SCTRL_DEV_NAME, CMD_EFUSE_READ_BYTE, &efuse);
         if(ret == 0) {
             mac[i] = efuse.data;
@@ -151,10 +165,10 @@ int wifi_get_mac_address_from_efuse(UINT8 *mac)
     }
 
     os_printf("efuse get MAC:%02x:%02x:%02x:%02x:%02x:%02x\r\n",
-        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-    if((mac[0] == 0) && (mac[1] == 0) && (mac[2] == 0) && 
-        (mac[3] == 0) && (mac[4] == 0) && (mac[5] == 0)){
+    if((mac[0] == 0) && (mac[1] == 0) && (mac[2] == 0) &&
+            (mac[3] == 0) && (mac[4] == 0) && (mac[5] == 0)) {
         os_printf("efuse MAC all zero, see as error\r\n");
         return 0;
     }
@@ -171,15 +185,15 @@ int wifi_write_efuse(UINT8 addr, UINT8 data)
         os_printf("efuse addr:0x%x out of range(0-0x1F)\r\n", addr);
         return 0;
     }
-    
+
     efuse.addr = addr;
     efuse.data = data;
-        
+
     ret = sddev_control(SCTRL_DEV_NAME, CMD_EFUSE_WRITE_BYTE, &efuse);
     if(ret != 0) {
         os_printf("efuse write failed, aready write this addr 0x%x\r\n", addr);
         return 0;
-    } 
+    }
 
     return 1;
 }
@@ -193,10 +207,10 @@ UINT8 wifi_read_efuse(UINT8 addr)
         os_printf("efuse addr:0x%x out of range(0-0x1F)\r\n", addr);
         return 0;
     }
-    
+
     efuse.addr = addr;
     efuse.data = 0;
-        
+
     ret = sddev_control(SCTRL_DEV_NAME, CMD_EFUSE_READ_BYTE, &efuse);
     if(ret == 0) {
         return efuse.data;

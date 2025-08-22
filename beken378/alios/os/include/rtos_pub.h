@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __RTOS_PUB__
 #define __RTOS_PUB__
 
@@ -64,7 +78,7 @@ typedef struct
     void *          handle;
     timer_handler_t function;
     void *          arg;
-}beken_timer_t;
+} beken_timer_t;
 
 typedef struct
 {
@@ -89,8 +103,8 @@ typedef struct
     timer_2handler_t function;
     void *          left_arg;
     void *          right_arg;
-	uint32_t        beken_magic;
-}beken2_timer_t;
+    uint32_t        beken_magic;
+} beken2_timer_t;
 
 typedef void (*beken_thread_function_t)( beken_thread_arg_t arg );
 
@@ -117,7 +131,7 @@ extern OSStatus rtos_unlock_scheduling( void );
 
 /** @defgroup BEKEN_RTOS_Thread _BK_ RTOS Thread Management Functions
  *  @brief Provide thread creation, delete, suspend, resume, and other RTOS management API
- *  @verbatim   
+ *  @verbatim
  *   _BK_ thread priority table
  *
  * +----------+-----------------+
@@ -134,7 +148,7 @@ extern OSStatus rtos_unlock_scheduling( void );
  * |     7    |   Application   |
  * |     8    |                 |
  * |     9    |      Idle       |   Lowest priority
- * +----------+-----------------+ 
+ * +----------+-----------------+
  *  @endverbatim
  * @{
  */
@@ -251,7 +265,7 @@ OSStatus rtos_thread_force_awake( beken_thread_t* thread );
   *
   * @Details  Checks if a specified thread is the currently running thread
   *
-  * @param    thread : the handle of the other thread against which the current thread 
+  * @param    thread : the handle of the other thread against which the current thread
   *                    will be compared
   *
   * @return   true   : specified thread is the current thread
@@ -304,7 +318,7 @@ OSStatus rtos_print_thread_status( char* buffer, int length );
   */
 
 /** @defgroup BEKEN_RTOS_SEM _BK_ RTOS Semaphore Functions
-  * @brief Provide management APIs for semaphore such as init,set,get and dinit. 
+  * @brief Provide management APIs for semaphore such as init,set,get and dinit.
   * @{
   */
 
@@ -381,7 +395,7 @@ OSStatus rtos_init_mutex( beken_mutex_t* mutex );
 /** @brief    Obtains the lock on a mutex
   *
   * @Details  Attempts to obtain the lock on a mutex. If the lock is already held
-  *           by another thead, the calling thread will be suspended until the mutex 
+  *           by another thead, the calling thread will be suspended until the mutex
   *           lock is released by the other thread.
   *
   * @param    mutex : a pointer to the mutex handle to be locked
@@ -576,7 +590,7 @@ uint64_t rtos_get_time_us( void );
   *
   * @param     timer    : a pointer to the timer handle to be initialised
   * @param     time_ms  : Timer period in milliseconds
-  * @param     function : the callback handler function that is called each time the 
+  * @param     function : the callback handler function that is called each time the
   *                       timer expires
   * @param     arg      : an argument that will be passed to the callback function
   *

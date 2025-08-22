@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Beken
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -202,6 +202,25 @@ bk_err_t bk_sdio_host_read_fifo(uint32_t *save_v_p);
  *    - *read_data:if success, will save read value to this pointer.
  */
 bk_err_t bk_sdio_host_read_blks_fifo(uint8_t *read_data, uint32_t blk_cnt);
+
+
+
+/**
+ * @brief     Continious read many blocks data from rx fifo with timeout mode.
+ *            Maybe send one CMD18 to read some blocks data without stop CMD(CMD12),
+ *            and then the APPLICATION(FATFS...) needs to read data again after
+ *            previous round read, so read the first block no needs any delay
+ *            because SDIO hardware(ASIC) has read data in FIFO, so no needs to
+ *            wait the FIFO full semaphore.
+ *
+ * @param blk_cnt:read how many blocks data out from SDIO FIFO.
+ *                  the block_size is 512 bytes.
+ * @return
+ *    - BK_OK: succeed
+ *    - BK_ERR_SDIO_HOST_READ_DATA_FAIL: sdio host read data from FIFO timeout
+ *    - *read_data:if success, will save read value to this pointer.
+ */
+bk_err_t bk_sdio_host_continious_read_blks_fifo(uint8_t *read_data, uint32_t blk_cnt);
 
 #ifdef __cplusplus
 }

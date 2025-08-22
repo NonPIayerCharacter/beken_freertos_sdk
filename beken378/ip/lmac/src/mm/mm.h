@@ -49,7 +49,7 @@
 #define MM_BEACON_LOSS_THD          (180)
 
 /// Periodicity of keep-alive NULL frame transmission
-#define MM_KEEP_ALIVE_PERIOD        (1000000)   // 1s
+#define MM_KEEP_ALIVE_PERIOD        (1000000 * power_save_get_keep_alive_per())   // 1s = 1000000us
 
 /// Mask of the TBTT interrupts
 #define MM_TBTT_IRQ_MASK            (NXMAC_IMP_PRI_DTIM_BIT | NXMAC_IMP_PRI_TBTT_BIT)

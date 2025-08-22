@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "doubly_list.h"
 #include "rw_msdu.h"
@@ -22,6 +36,7 @@
 #include "lwip/prot/udp.h"
 #include "lwip/prot/dhcp.h"
 #endif
+#include "lwip/sockets.h"
 
 #include "arm_arch.h"
 #if CFG_GENERAL_DMA
@@ -113,35 +128,35 @@ void rwm_flush_rx_list(void)
 
 void rwm_tx_confirm(void *param)
 {
-	struct txdesc *txdesc = (struct txdesc *)param;
+    struct txdesc *txdesc = (struct txdesc *)param;
 
-	if(txdesc && txdesc->host.msdu_node)
-	{
-#if CFG_NX_SOFTWARE_TX_RETRY
-		if(rwn_check_sw_tx_retry(txdesc))
-		{
-			return;
-		}
-#endif
-		if(txdesc->host.callback)
-		{
-			(*txdesc->host.callback)(txdesc->host.param);
-		}
-		os_null_printf("flush_desc:0x%x\r\n", txdesc->host.msdu_node);
+    if(txdesc && txdesc->host.msdu_node)
+    {
+        #if CFG_NX_SOFTWARE_TX_RETRY
+        if(rwn_check_sw_tx_retry(txdesc))
+        {
+            return;
+        }
+        #endif
+        if(txdesc->host.callback)
+        {
+            (*txdesc->host.callback)(txdesc->host.param);
+        }
+        os_null_printf("flush_desc:0x%x\r\n", txdesc->host.msdu_node);
 
-		os_free(txdesc->host.msdu_node);
-		txdesc->host.msdu_node = NULL;
-		txdesc->status = TXDESC_STA_IDLE;
-	}
+        os_free(txdesc->host.msdu_node);
+        txdesc->host.msdu_node = NULL;
+        txdesc->status = TXDESC_STA_IDLE;
+    }
 }
 
 void rwm_tx_msdu_renew(UINT8 *buf, UINT32 len, UINT8 *orig_addr)
 {
-#if CFG_GENERAL_DMA && (CFG_SOC_NAME != SOC_BK7231N)
+    #if CFG_GENERAL_DMA && (CFG_SOC_NAME != SOC_BK7231N)
     gdma_memcpy((void *)((UINT32)orig_addr + CFG_MSDU_RESV_HEAD_LEN), buf, len);
-#else
+    #else
     os_memmove((void *)((UINT32)orig_addr + CFG_MSDU_RESV_HEAD_LEN), buf, len);
-#endif
+    #endif
 }
 
 UINT8 *rwm_get_msdu_content_ptr(MSDU_NODE_T *node)
@@ -161,121 +176,121 @@ void rwm_txdesc_copy(struct txdesc *dst_local, ETH_HDR_PTR eth_hdr_ptr)
 
 void * rwm_raw_frame_prepare_space(uint8_t *buffer, int length)
 {
-	MSDU_NODE_T *node;
-	uint8_t *pkt = buffer;
+    MSDU_NODE_T *node;
+    uint8_t *pkt = buffer;
 
-	node = rwm_tx_node_alloc(length);
-	if (node == NULL) {
-		bk_printf("rwm_raw_frame_prepare_space failed\r\n");
-		goto prepare_exit;
-	}
+    node = rwm_tx_node_alloc(length);
+    if (node == NULL) {
+        bk_printf("rwm_raw_frame_prepare_space failed\r\n");
+        goto prepare_exit;
+    }
 
-	rwm_tx_msdu_renew(pkt, length, node->msdu_ptr);
+    rwm_tx_msdu_renew(pkt, length, node->msdu_ptr);
 prepare_exit:
 
-	return node;
+    return node;
 }
 
 int rwm_raw_frame_destroy_space(void *node)
 {
-	if(node)
-	{
-		rwm_node_free((MSDU_NODE_T *)node);
-	}
+    if(node)
+    {
+        rwm_node_free((MSDU_NODE_T *)node);
+    }
 
-	return 0;
+    return 0;
 }
 
 int rwm_raw_frame_with_cb(uint8_t *buffer, int len, void *cb, void *param)
 {
-	int ret = 0;
-	MSDU_NODE_T *node;
-	UINT8 *content_ptr;
-	UINT32 queue_idx = AC_VI;
-	struct txdesc *txdesc_new;
-	struct umacdesc *umac;
+    int ret = 0;
+    MSDU_NODE_T *node;
+    UINT8 *content_ptr;
+    UINT32 queue_idx = AC_VI;
+    struct txdesc *txdesc_new;
+    struct umacdesc *umac;
 
-	/*the input parameter :buffer is the node pointer*/
-	node = (MSDU_NODE_T *)buffer;
-	content_ptr = rwm_get_msdu_content_ptr(node);
+    /*the input parameter :buffer is the node pointer*/
+    node = (MSDU_NODE_T *)buffer;
+    content_ptr = rwm_get_msdu_content_ptr(node);
 
-	txdesc_new = tx_txdesc_prepare(queue_idx);
-	if(txdesc_new == NULL || TXDESC_STA_USED == txdesc_new->status) {
-		rwm_node_free(node);
+    txdesc_new = tx_txdesc_prepare(queue_idx);
+    if(txdesc_new == NULL || TXDESC_STA_USED == txdesc_new->status) {
+        rwm_node_free(node);
 
-		os_printf("rwm_raw_frame_with_cb failed\r\n");
-		ret = -1;
-		goto exit;
-	}
+        os_printf("rwm_raw_frame_with_cb failed\r\n");
+        ret = -1;
+        goto exit;
+    }
 
-	txdesc_new->status = TXDESC_STA_USED;
-	txdesc_new->host.flags = TXU_CNTRL_MGMT;
-	txdesc_new->host.orig_addr = (UINT32)node->msdu_ptr;
-	txdesc_new->host.packet_addr = (UINT32)content_ptr;
-#if CFG_NX_SOFTWARE_TX_RETRY
-	// record total retry times, used for rate contrl in low mac
-	txdesc_new->host.status_desc_addr = 0;
-	txdesc_new->host.access_category = queue_idx;
-	txdesc_new->host.flags |= TXU_CNTRL_EN_SW_RETRY_CHECK;
-	txdesc_new->lmac.hw_desc->thd.statinfo = 0;
-#else
-	txdesc_new->host.status_desc_addr = (UINT32)content_ptr;
-#endif
-	txdesc_new->host.packet_len = len;
-	txdesc_new->host.tid = 0xff;
-	txdesc_new->host.callback = (mgmt_tx_cb_t)cb;
-#if CFG_BK_AWARE
-	txdesc_new->host.param = txdesc_new;
-#else
-	txdesc_new->host.param = param;
-#endif
-	txdesc_new->host.msdu_node = (void *)node;
+    txdesc_new->status = TXDESC_STA_USED;
+    txdesc_new->host.flags = TXU_CNTRL_MGMT;
+    txdesc_new->host.orig_addr = (UINT32)node->msdu_ptr;
+    txdesc_new->host.packet_addr = (UINT32)content_ptr;
+    #if CFG_NX_SOFTWARE_TX_RETRY
+    // record total retry times, used for rate contrl in low mac
+    txdesc_new->host.status_desc_addr = 0;
+    txdesc_new->host.access_category = queue_idx;
+    txdesc_new->host.flags |= TXU_CNTRL_EN_SW_RETRY_CHECK;
+    txdesc_new->lmac.hw_desc->thd.statinfo = 0;
+    #else
+    txdesc_new->host.status_desc_addr = (UINT32)content_ptr;
+    #endif
+    txdesc_new->host.packet_len = len;
+    txdesc_new->host.tid = 0xff;
+    txdesc_new->host.callback = (mgmt_tx_cb_t)cb;
+    #if CFG_BK_AWARE
+    txdesc_new->host.param = txdesc_new;
+    #else
+    txdesc_new->host.param = param;
+    #endif
+    txdesc_new->host.msdu_node = (void *)node;
 
-	umac = &txdesc_new->umac;
-	umac->payl_len = len;
-	umac->head_len = 0;
-	umac->tail_len = 0;
-	umac->hdr_len_802_2 = 0;
+    umac = &txdesc_new->umac;
+    umac->payl_len = len;
+    umac->head_len = 0;
+    umac->tail_len = 0;
+    umac->hdr_len_802_2 = 0;
 
-	umac->buf_control = &txl_buffer_control_24G;
+    umac->buf_control = &txl_buffer_control_24G;
 
-	txdesc_new->lmac.agg_desc = NULL;
-	txdesc_new->lmac.hw_desc->cfm.status = 0;
+    txdesc_new->lmac.agg_desc = NULL;
+    txdesc_new->lmac.hw_desc->cfm.status = 0;
 
-	ps_set_data_prevent();
-	nxmac_pwr_mgt_setf(0);
+    ps_set_data_prevent();
+    nxmac_pwr_mgt_setf(0);
 
-	bmsg_ps_handler_rf_ps_mode_real_wakeup();
+    bmsg_ps_handler_rf_ps_mode_real_wakeup();
 
-	txl_cntrl_push(txdesc_new, queue_idx);
+    txl_cntrl_push(txdesc_new, queue_idx);
 
-	ret = len;
+    ret = len;
 
 exit:
-	return ret;
+    return ret;
 }
 
 MSDU_NODE_T *rwm_tx_node_alloc(UINT32 len)
 {
     UINT8 *buff_ptr;
     MSDU_NODE_T *node_ptr = 0;
-#if (CFG_SUPPORT_RTT) && (CFG_SOC_NAME == SOC_BK7221U)
+    #if (CFG_SUPPORT_RTT) && ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7252N))
     extern void *dtcm_malloc(size_t size);
     node_ptr = (MSDU_NODE_T *)dtcm_malloc(sizeof(MSDU_NODE_T)
-                                        + CFG_MSDU_RESV_HEAD_LEN
-                                        + len
-                                        + CFG_MSDU_RESV_TAIL_LEN);
-#elif (CFG_OS_FREERTOS) && (CFG_SOC_NAME == SOC_BK7221U)
+                                          + CFG_MSDU_RESV_HEAD_LEN
+                                          + len
+                                          + CFG_MSDU_RESV_TAIL_LEN);
+    #elif (CFG_OS_FREERTOS) && (CFG_SOC_NAME == SOC_BK7221U)
     node_ptr = (MSDU_NODE_T *)pvPortMalloc(sizeof(MSDU_NODE_T)
-                                        + CFG_MSDU_RESV_HEAD_LEN
-                                        + len
-                                        + CFG_MSDU_RESV_TAIL_LEN);
-#else
+                                           + CFG_MSDU_RESV_HEAD_LEN
+                                           + len
+                                           + CFG_MSDU_RESV_TAIL_LEN);
+    #else
     node_ptr = (MSDU_NODE_T *)os_malloc(sizeof(MSDU_NODE_T)
                                         + CFG_MSDU_RESV_HEAD_LEN
                                         + len
                                         + CFG_MSDU_RESV_TAIL_LEN);
-#endif
+    #endif
 
     if(NULL == node_ptr)
     {
@@ -368,14 +383,14 @@ void rwm_set_tid(UINT8 tid)
 void rwm_p2p_ps_change_ind_handler(void *msg)
 {
     struct ke_msg *msg_ptr = (struct ke_msg *)msg;
-#if CFG_WIFI_P2P
+    #if CFG_WIFI_P2P
     struct mm_p2p_vif_ps_change_ind *ind;
-#endif
+    #endif
 
     if(!msg_ptr || !msg_ptr->param)
         return;
 
-#if CFG_WIFI_P2P
+    #if CFG_WIFI_P2P
     ind = (struct mm_p2p_vif_ps_change_ind *)msg_ptr->param;
     if (ind->ps_state == PS_MODE_OFF)
     {
@@ -385,7 +400,7 @@ void rwm_p2p_ps_change_ind_handler(void *msg)
     {
         rwm_trigger_tx_bufing_start(TX_BUFING_SRC_P2P_PS, ind->vif_index);
     }
-#endif
+    #endif
 }
 #endif
 #if CFG_USE_AP_PS
@@ -411,12 +426,12 @@ void rwm_msdu_ps_change_ind_handler(void *msg)
 
 void rwm_msdu_init(void)
 {
-#if CFG_TX_BUFING
+    #if CFG_TX_BUFING
     rwm_tx_bufing_init();
-#endif
-#if !CFG_RWNX_QOS_MSDU
+    #endif
+    #if !CFG_RWNX_QOS_MSDU
     g_tid = 0xFF;
-#endif
+    #endif
 }
 
 #ifdef CFG_WFA_CERTIFICATION
@@ -425,23 +440,23 @@ void rwm_msdu_init(void)
  */
 uint8_t ipv4_ieee8023_dscp(UINT8 *buf)
 {
-	uint8_t tos;
-	struct ip_hdr *hdr = (struct ip_hdr *)buf;
+    uint8_t tos;
+    struct ip_hdr *hdr = (struct ip_hdr *)buf;
 
-	tos = IPH_TOS(hdr);
+    tos = IPH_TOS(hdr);
 
-	return (tos & 0xfc) >> 5;
+    return (tos & 0xfc) >> 5;
 }
 
 /* extract flow control field */
 uint8_t ipv6_ieee8023_dscp(UINT8 *buf)
 {
-	uint8_t tos;
-	struct ip6_hdr *hdr = (struct ip6_hdr *)buf;
+    uint8_t tos;
+    struct ip6_hdr *hdr = (struct ip6_hdr *)buf;
 
-	tos = IP6H_FL(hdr);
+    tos = IP6H_FL(hdr);
 
-	return (tos & 0xfc) >> 5;
+    return (tos & 0xfc) >> 5;
 }
 #endif
 
@@ -451,22 +466,22 @@ uint8_t ipv6_ieee8023_dscp(UINT8 *buf)
  */
 uint8_t classify8021d(UINT8 *buf)
 {
-#ifdef CFG_WFA_CERTIFICATION
-	struct eth_hdr *ethhdr = (struct eth_hdr *)buf;
+    #ifdef CFG_WFA_CERTIFICATION
+    struct eth_hdr *ethhdr = (struct eth_hdr *)buf;
 
-	switch (PP_HTONS(ethhdr->type)) {
-	case ETHTYPE_IP:
-		return ipv4_ieee8023_dscp(ethhdr + 1);
-	case ETHTYPE_IPV6:
-		return ipv6_ieee8023_dscp(ethhdr + 1);
-	case ETH_P_PAE:
-		return 7;	/* TID7 highest user priority */
-	default:
-		return 0;
-	}
-#else
-	return 4;		// TID4: mapped to AC_VI
-#endif
+    switch (PP_HTONS(ethhdr->type)) {
+    case ETHTYPE_IP:
+        return ipv4_ieee8023_dscp(ethhdr + 1);
+    case ETHTYPE_IPV6:
+        return ipv6_ieee8023_dscp(ethhdr + 1);
+    case ETH_P_PAE:
+        return 7;	/* TID7 highest user priority */
+    default:
+        return 0;
+    }
+    #else
+    return 4;		// TID4: mapped to AC_VI
+    #endif
 }
 
 static bool tx_use_low_rate_once = false;
@@ -477,51 +492,51 @@ UINT32 rwm_transfer(UINT8 vif_idx, UINT8 *buf, UINT32 len, int sync, void *args)
     ETH_HDR_PTR eth_hdr_ptr;
 
     ret = RW_FAILURE;
-#ifdef CFG_USE_APP_DEMO_VIDEO_TRANSFER
-#if CFG_OS_FREERTOS
-extern size_t xPortGetFreeHeapSize( void );
+    #ifdef CFG_USE_APP_DEMO_VIDEO_TRANSFER
+    #if CFG_OS_FREERTOS
+    extern size_t xPortGetFreeHeapSize( void );
 #define MEMORY_LIMIT 7000
     if (xPortGetFreeHeapSize() < MEMORY_LIMIT) {
         os_printf("%s, %d, no mem!\n", __func__, __LINE__);
         goto tx_exit;
     }
-#else
-   /* Add other OS support */
-#endif
-#endif
+    #else
+    /* Add other OS support */
+    #endif
+    #endif
     node = rwm_tx_node_alloc(len);
     if(NULL == node)
     {
         #if NX_POWERSAVE
         txl_cntrl_dec_pck_cnt();
         #endif
-#if CFG_SUPPORT_RTT
-#if !defined(PKG_NETUTILS_IPERF)
+        #if CFG_SUPPORT_RTT
+        #if !defined(PKG_NETUTILS_IPERF)
         os_printf("rwm_transfer no node\r\n");
-#endif
-#else
-#if !defined(CFG_IPERF_TEST_ACCEL) || (CFG_IPERF_TEST_ACCEL==0)
+        #endif
+        #else
+        #if !defined(CFG_IPERF_TEST_ACCEL) || (CFG_IPERF_TEST_ACCEL==0)
         os_printf("rwm_transfer no node\r\n");
-#endif
-#endif
+        #endif
+        #endif
         goto tx_exit;
     }
     rwm_tx_msdu_renew(buf, len, node->msdu_ptr);
 
     eth_hdr_ptr = (ETH_HDR_PTR)buf;
     node->vif_idx = vif_idx;
-	node->sync = sync;
-	node->args = args;
+    node->sync = sync;
+    node->args = args;
     node->sta_idx = rwm_mgmt_tx_get_staidx(vif_idx,
-                             &eth_hdr_ptr->e_dest);
-#if CFG_TX_BUFING
+                                           &eth_hdr_ptr->e_dest);
+    #if CFG_TX_BUFING
     if (rwm_check_tx_bufing(node))
     {
         rwm_tx_bufing_save_data(node);
         ret = RW_SUCCESS;
         goto tx_exit;
     }
-#endif
+    #endif
 
     if ( true == tx_use_low_rate_once )
     {
@@ -540,69 +555,69 @@ tx_exit:
 
 void ieee80211_data_tx_cb(void *param)
 {
-	struct txdesc *txdesc_new = (struct txdesc *)param;
-	MSDU_NODE_T *node = (MSDU_NODE_T *)txdesc_new->host.msdu_node;
-	struct tx_hd *txhd = &txdesc_new->lmac.hw_desc->thd;
-	struct ieee80211_tx_cb *cb = (struct ieee80211_tx_cb *)node->args;
-	uint32_t status = txhd->statinfo;
-	struct l2_packet_node *item, *n;
-	struct l2_packet_head *l2_packet = get_l2_packet_entity();
-	bool set = false;
+    struct txdesc *txdesc_new = (struct txdesc *)param;
+    MSDU_NODE_T *node = (MSDU_NODE_T *)txdesc_new->host.msdu_node;
+    struct tx_hd *txhd = &txdesc_new->lmac.hw_desc->thd;
+    struct ieee80211_tx_cb *cb = (struct ieee80211_tx_cb *)node->args;
+    uint32_t status = txhd->statinfo;
+    struct l2_packet_node *item, *n;
+    struct l2_packet_head *l2_packet = get_l2_packet_entity();
+    bool set = false;
 
-	if (0 == node) {
-		os_printf("zero_node\r\n");
-		return;
-	}
+    if (0 == node) {
+        os_printf("zero_node\r\n");
+        return;
+    }
 
-	rtos_lock_mutex(&l2_packet->l2_mutex);
-	dl_list_for_each_safe(item, n, &l2_packet->head_list, struct l2_packet_node, list) {
-		if (item->cb.l2_tag == cb->l2_tag) {
-			if (status & FRAME_SUCCESSFUL_TX_BIT /*DESC_DONE_SW_TX_BIT*/)
-				cb->result = RW_SUCCESS;
-			else
-				cb->result = RW_FAILURE;
-			rtos_set_semaphore(&item->cb.sema);
-			set = true;
-			break;
-		}
-	}
-	rtos_unlock_mutex(&l2_packet->l2_mutex);
+    rtos_lock_mutex(&l2_packet->l2_mutex);
+    dl_list_for_each_safe(item, n, &l2_packet->head_list, struct l2_packet_node, list) {
+        if (item->cb.l2_tag == cb->l2_tag) {
+            if (status & FRAME_SUCCESSFUL_TX_BIT /*DESC_DONE_SW_TX_BIT*/)
+                cb->result = RW_SUCCESS;
+            else
+                cb->result = RW_FAILURE;
+            rtos_set_semaphore(&item->cb.sema);
+            set = true;
+            break;
+        }
+    }
+    rtos_unlock_mutex(&l2_packet->l2_mutex);
 
-	if (!set)
-		os_printf("XXX: dobule callback for node %p\n", node);
+    if (!set)
+        os_printf("XXX: dobule callback for node %p\n", node);
 }
 
 
 #if CFG_RWNX_QOS_MSDU
 int sta_11n_nss(uint8_t *mcs_set)
 {
-	int i;
-	int nss = 0;	/* spartial stream num */
+    int i;
+    int nss = 0;	/* spartial stream num */
 
-	// Go through the MCS map to find out one valid mcs
-	for (i = 0; i < 4; i++) {	// 4 == sizeof(rc_ss->rate_map.ht)
-		if (mcs_set[i] != 0)
-			nss++;
-	}
+    // Go through the MCS map to find out one valid mcs
+    for (i = 0; i < 4; i++) {	// 4 == sizeof(rc_ss->rate_map.ht)
+        if (mcs_set[i] != 0)
+            nss++;
+    }
 
-	return nss;
+    return nss;
 }
 
 int qos_need_enabled(struct sta_info_tag *sta)
 {
-	if(rwn_mgmt_is_valid_sta(sta) == 0)
-		return 0;
-#if CFG_TKIP_SW_CRYPT
-	if(sta->sta_sec_info.cur_key == NULL)
-		return 0;
-	struct key_info_tag *key = *(sta->sta_sec_info.cur_key);
-	if ((NULL != key) && (key->cipher == MAC_RSNIE_CIPHER_TKIP))
-		return 0; /* disable QOS for TKIP */
-#endif
-	if (!(sta->info.capa_flags & STA_QOS_CAPA))
-		return 0;
+    if(rwn_mgmt_is_valid_sta(sta) == 0)
+        return 0;
+    #if CFG_TKIP_SW_CRYPT
+    if(sta->sta_sec_info.cur_key == NULL)
+        return 0;
+    struct key_info_tag *key = *(sta->sta_sec_info.cur_key);
+    if ((NULL != key) && (key->cipher == MAC_RSNIE_CIPHER_TKIP))
+        return 0; /* disable QOS for TKIP */
+    #endif
+    if (!(sta->info.capa_flags & STA_QOS_CAPA))
+        return 0;
 
-	return 1;
+    return 1;
 }
 #endif
 
@@ -610,29 +625,31 @@ int qos_need_enabled(struct sta_info_tag *sta)
 // EAPoL, DHCP, ARP
 bool rwm_use_lowest_rate(ETH_HDR_T *eth)
 {
-	bool use = false;
+    bool use = false;
 
-	switch (htons(eth->e_proto)) {
-	case ETHTYPE_ARP:
-		/* fall through */
-	case ETHTYPE_EAPOL:
-		use = true;
-		break;
+    switch (htons(eth->e_proto)) {
+    case ETHTYPE_ARP:
+    /* fall through */
+    case ETHTYPE_EAPOL:
+        use = true;
+        break;
 
-	case ETHTYPE_IP: {
-		struct ip_hdr *ip = (struct ip_hdr *)(eth + 1);
+    case ETHTYPE_IP: {
+        struct ip_hdr *ip = (struct ip_hdr *)(eth + 1);
 
-		switch (IPH_PROTO(ip)) {
-		case IP_PROTO_UDP: {
-			struct udp_hdr *udp = (struct udp_hdr *)((uint8_t *)ip + IPH_HL(ip) * 4);
-			if (ntohs(udp->dest) == DHCP_SERVER_PORT)
-				use = true;
-		}	break;
-		}
-	}	break;
-	}
+        switch (IPH_PROTO(ip)) {
+        case IP_PROTO_UDP: {
+            struct udp_hdr *udp = (struct udp_hdr *)((uint8_t *)ip + IPH_HL(ip) * 4);
+            if (ntohs(udp->dest) == DHCP_SERVER_PORT)
+                use = true;
+        }
+        break;
+        }
+    }
+    break;
+    }
 
-	return use;
+    return use;
 }
 #endif
 
@@ -646,10 +663,10 @@ UINT32 rwm_transfer_node(MSDU_NODE_T *node, u16 flag)
 
     ETH_HDR_PTR eth_hdr_ptr;
     struct txdesc *txdesc_new;
-#if CFG_RWNX_QOS_MSDU
-	struct sta_info_tag *sta;
-	struct vif_info_tag *vif;
-#endif
+    #if CFG_RWNX_QOS_MSDU
+    struct sta_info_tag *sta;
+    struct vif_info_tag *vif;
+    #endif
 
     if(!node) {
         goto tx_exit;
@@ -658,57 +675,57 @@ UINT32 rwm_transfer_node(MSDU_NODE_T *node, u16 flag)
     content_ptr = rwm_get_msdu_content_ptr(node);
     eth_hdr_ptr = (ETH_HDR_PTR)content_ptr;
 
-#if CFG_RWNX_QOS_MSDU
-	vif = rwm_mgmt_vif_idx2ptr(node->vif_idx);
-	if (NULL == vif)
-	{
-		os_printf("%s: vif is NULL!\r\n", __func__);
-		goto tx_exit;
-	}
-	if (likely(vif->active)) {
-		sta = &sta_info_tab[vif->u.sta.ap_id];
-		if (qos_need_enabled(sta)) {
-			int i;
-			tid = classify8021d((UINT8 *)eth_hdr_ptr);
-			/* check admission ctrl */
-			for (i = mac_tid2ac[tid]; i >= 0; i--)
-				if (!(vif->bss_info.edca_param.acm & BIT(i)))
-					break;
-			if (i < 0)
-				goto tx_exit;
-			queue_idx = i;	/* AC_* */
-		} else {
-			/*
-			 * non-WMM STA
-			 *
-			 * CWmin 15, CWmax 1023, AIFSN 2, TXOP 0. set these values when joining with this BSS.
-			 */
-			tid = 0xFF;
-			queue_idx = AC_VI;
-		}
-	} else {
-		tid = 0xFF;
-	    queue_idx = AC_VI;
-	}
-#else /* !CFG_RWNX_QOS_MSDU */
+    #if CFG_RWNX_QOS_MSDU
+    vif = rwm_mgmt_vif_idx2ptr(node->vif_idx);
+    if (NULL == vif)
+    {
+        os_printf("%s: vif is NULL!\r\n", __func__);
+        goto tx_exit;
+    }
+    if (likely(vif->active)) {
+        sta = &sta_info_tab[vif->u.sta.ap_id];
+        if (qos_need_enabled(sta)) {
+            int i;
+            tid = classify8021d((UINT8 *)eth_hdr_ptr);
+            /* check admission ctrl */
+            for (i = mac_tid2ac[tid]; i >= 0; i--)
+                if (!(vif->bss_info.edca_param.acm & BIT(i)))
+                    break;
+            if (i < 0)
+                goto tx_exit;
+            queue_idx = i;	/* AC_* */
+        } else {
+            /*
+             * non-WMM STA
+             *
+             * CWmin 15, CWmax 1023, AIFSN 2, TXOP 0. set these values when joining with this BSS.
+             */
+            tid = 0xFF;
+            queue_idx = AC_VI;
+        }
+    } else {
+        tid = 0xFF;
+        queue_idx = AC_VI;
+    }
+    #else /* !CFG_RWNX_QOS_MSDU */
     tid = rwm_get_tid();
 
     queue_idx = AC_VI;
-#endif /* CFG_RWNX_QOS_MSDU */
+    #endif /* CFG_RWNX_QOS_MSDU */
 
     txdesc_new = tx_txdesc_prepare(queue_idx);
     if(TXDESC_STA_USED == txdesc_new->status)
     {
-#if CFG_SUPPORT_RTT
-#if !defined(PKG_NETUTILS_IPERF)
+        #if CFG_SUPPORT_RTT
+        #if !defined(PKG_NETUTILS_IPERF)
         os_printf("rwm_transfer no txdesc \r\n");
 
-#endif
-#else
-#if !defined(CFG_IPERF_TEST_ACCEL) || (CFG_IPERF_TEST_ACCEL==0)
+        #endif
+        #else
+        #if !defined(CFG_IPERF_TEST_ACCEL) || (CFG_IPERF_TEST_ACCEL==0)
         os_printf("rwm_transfer no txdesc \r\n");
-#endif
-#endif
+        #endif
+        #endif
         goto tx_exit;
     }
 
@@ -716,47 +733,47 @@ UINT32 rwm_transfer_node(MSDU_NODE_T *node, u16 flag)
     rwm_txdesc_copy(txdesc_new, eth_hdr_ptr);
 
     txdesc_new->host.flags            = flag;
-#if NX_AMSDU_TX
+    #if NX_AMSDU_TX
     txdesc_new->host.orig_addr[0]     = (UINT32)node->msdu_ptr;
     txdesc_new->host.packet_addr[0]   = (UINT32)content_ptr + 14;
     txdesc_new->host.packet_len[0]    = node->len - 14;
     txdesc_new->host.packet_cnt       = 1;
-#else
+    #else
     txdesc_new->host.orig_addr        = (UINT32)node->msdu_ptr;
     txdesc_new->host.packet_addr      = (UINT32)content_ptr + 14;
     txdesc_new->host.packet_len       = node->len - 14;
-#endif
-#if CFG_NX_SOFTWARE_TX_RETRY
+    #endif
+    #if CFG_NX_SOFTWARE_TX_RETRY
     // record total retry times, used for rate contrl in low mac
     txdesc_new->host.status_desc_addr = 0;
     txdesc_new->host.access_category = queue_idx;
     txdesc_new->host.flags |= TXU_CNTRL_EN_SW_RETRY_CHECK;
     txdesc_new->lmac.hw_desc->thd.statinfo = 0;
-#else
+    #else
     txdesc_new->host.status_desc_addr = (UINT32)content_ptr + 14;
-#endif
+    #endif
     txdesc_new->host.ethertype        = eth_hdr_ptr->e_proto;
 
-#if CFG_WIFI_TX_KEYDATA_USE_LOWEST_RATE
+    #if CFG_WIFI_TX_KEYDATA_USE_LOWEST_RATE
     if (rwm_use_lowest_rate(eth_hdr_ptr))
         txdesc_new->host.flags |= TXU_CNTRL_LOWEST_RATE;
-#endif
+    #endif
 
     txdesc_new->host.tid              = tid;
 
     txdesc_new->host.vif_idx          = node->vif_idx;
     txdesc_new->host.staid            = node->sta_idx;
-	txdesc_new->host.msdu_node        = (void *)node;
+    txdesc_new->host.msdu_node        = (void *)node;
 
-	if (node->sync)
-	{
-		txdesc_new->host.callback		  = (mgmt_tx_cb_t)ieee80211_data_tx_cb;
-		txdesc_new->host.param			  = (void *)txdesc_new;
-	}
-	else
-	{
-		txdesc_new->host.callback = 0;
-	}
+    if (node->sync)
+    {
+        txdesc_new->host.callback		  = (mgmt_tx_cb_t)ieee80211_data_tx_cb;
+        txdesc_new->host.param			  = (void *)txdesc_new;
+    }
+    else
+    {
+        txdesc_new->host.callback = 0;
+    }
 
     txdesc_new->lmac.agg_desc = NULL;
     txdesc_new->lmac.hw_desc->cfm.status = 0;
@@ -767,9 +784,9 @@ UINT32 rwm_transfer_node(MSDU_NODE_T *node, u16 flag)
 tx_exit:
     if (NULL != node)
         rwm_node_free(node);
-#if NX_POWERSAVE
+    #if NX_POWERSAVE
     txl_cntrl_dec_pck_cnt();
-#endif
+    #endif
     return ret;
 }
 
@@ -828,7 +845,7 @@ void ethernetif_input_amsdu(RW_RXIFO_PTR rx_info, struct pbuf *p)
         //os_printf("%s amsdu_subframe_len=%d,msdu_len_with_padding=%d\n", __FUNCTION__, du_len, msdu_len_with_padding);
 
         //ieee802.11 amsdu_hdr to ieee802.3 ethernet_hdr
-#if 0//(RW_MESH_EN)
+        #if 0//(RW_MESH_EN)
         if ((p_vif_entry->type == VIF_MESH_POINT) && (rx_info->dst_idx != INVALID_STA_IDX))
         {
             /*
@@ -848,14 +865,14 @@ void ethernetif_input_amsdu(RW_RXIFO_PTR rx_info, struct pbuf *p)
             du_len += sizeof(struct ethernet_hdr);
         }
         else
-#endif //(RW_MESH_EN)
+        #endif //(RW_MESH_EN)
         {
             llc_snap = (struct llc_snap *)(amsdu_subfrm_hdr + 1);
 
             if ((!memcmp(llc_snap, &rfc1042_header, sizeof(rfc1042_header))
-                 //&& (llc_snap->ether_type != RX_ETH_PROT_ID_AARP) - Appletalk depracated ?
-                 && (llc_snap->proto_id != RX_ETH_PROT_ID_IPX))
-                || (!memcmp(llc_snap, &bridge_tunnel_header, sizeof(bridge_tunnel_header))))
+                    //&& (llc_snap->ether_type != RX_ETH_PROT_ID_AARP) - Appletalk depracated ?
+                    && (llc_snap->proto_id != RX_ETH_PROT_ID_IPX))
+                    || (!memcmp(llc_snap, &bridge_tunnel_header, sizeof(bridge_tunnel_header))))
             {
                 /*
                     ****************************************************
@@ -1031,7 +1048,7 @@ UINT32 rwm_upload_data(RW_RXIFO_PTR rx_info)
     }
 
     if (htons(ethhdr->type) == 0x80) {
-        if(is_first_packet){
+        if(is_first_packet) {
             win_start = rx_info->sn;
             rx_status_pos = win_start % RX_REORD_WIN_SIZE;
             is_first_packet = false;
@@ -1159,11 +1176,11 @@ UINT32 rwm_uploaded_data_handle(UINT8 *upper_buf, UINT32 len)
     if(node_ptr)
     {
         count = _MIN(len, node_ptr->len);
-#if CFG_GENERAL_DMA && (CFG_SOC_NAME != SOC_BK7231N)
+        #if CFG_GENERAL_DMA && (CFG_SOC_NAME != SOC_BK7231N)
         gdma_memcpy(upper_buf, node_ptr->msdu_ptr, count);
-#else
+        #else
         os_memcpy(upper_buf, node_ptr->msdu_ptr, count);
-#endif
+        #endif
         ret = count;
 
         os_free(node_ptr);
@@ -1257,13 +1274,13 @@ UINT8 rwm_mgmt_sta_mac2port(void *mac)
             break;
     }
 
-	if (sta_entry)
-	{
-		if (sta_entry->ctrl_port_state == PORT_OPEN)
+    if (sta_entry)
+    {
+        if (sta_entry->ctrl_port_state == PORT_OPEN)
             return 1;
-	}
+    }
 
-	return 0;
+    return 0;
 }
 
 UINT8 rwm_mgmt_vif_mac2idx(void *mac)
@@ -1329,7 +1346,7 @@ UINT8 rwm_mgmt_update_rate(void)
     }
     GLOBAL_INT_RESTORE();
 
-	return 0;
+    return 0;
 }
 
 UINT8 rwm_mgmt_get_hwkeyidx(UINT8 vif_idx, UINT8 staid, UINT8 key_idx)
@@ -1343,11 +1360,11 @@ UINT8 rwm_mgmt_get_hwkeyidx(UINT8 vif_idx, UINT8 staid, UINT8 key_idx)
     if(staid == 0xff)   // group key
     {
         vif_entry = rwm_mgmt_vif_idx2ptr(vif_idx);
-#if NX_MFP
+        #if NX_MFP
         if (vif_entry && key_idx < MAC_DEFAULT_MFP_KEY_COUNT)
-#else
+        #else
         if (vif_entry && key_idx < MAC_DEFAULT_KEY_COUNT)
-#endif
+        #endif
             key = &vif_entry->key_info[key_idx];
     }
     else
@@ -1454,7 +1471,6 @@ u8 rwn_mgmt_is_only_sta_role_add(void)
     return 0;
 }
 
-#include "lwip/sockets.h"
 extern uint8_t* dhcp_lookup_mac(uint8_t *chaddr);
 
 void rwn_mgmt_show_vif_peer_sta_list(UINT8 role)
@@ -1473,14 +1489,14 @@ void rwn_mgmt_show_vif_peer_sta_list(UINT8 role)
 
                 if(role == VIF_AP) {
                     ipptr = dhcp_lookup_mac(macptr);
-                } else if (role == VIF_STA){
+                } else if (role == VIF_STA) {
                     struct netif *netif = (struct netif *)vif->priv;
                     ipptr = (UINT8 *)inet_ntoa(netif->gw);
                 }
 
                 os_printf("%d: mac:%02x-%02x-%02x-%02x-%02x-%02x, ip:%s\r\n", num++,
-                    macptr[0], macptr[1], macptr[2],
-                    macptr[3], macptr[4], macptr[5],ipptr);
+                          macptr[0], macptr[1], macptr[2],
+                          macptr[3], macptr[4], macptr[5],ipptr);
 
                 sta = (struct sta_info_tag *)co_list_next(&sta->list_hdr);
             }
@@ -1497,7 +1513,7 @@ UINT8 rwn_mgmt_if_ap_stas_empty()
     while(vif) {
         if ( vif->type == role) {
             if(co_list_is_empty(&vif->sta_list))
-                {
+            {
                 return 1;
             }
         }
@@ -1526,12 +1542,12 @@ UINT8 rwn_mgmt_is_valid_sta(struct sta_info_tag *sta)
 #if CFG_NX_SOFTWARE_TX_RETRY
 UINT32 rwn_check_sw_tx_retry(struct txdesc *txdesc)
 {
-    #define PKTS_STATUS_NULL             0  // null
-    #define PKTS_STATUS_TX_DONE          1  // done but no sw retry
-    #define PKTS_STATUS_TX_DROP          2  // droped but other case
-    #define PKTS_STATUS_TX_RETRY_DONE    3  // done with sw retry
-    #define PKTS_STATUS_TX_RETRY_FAIL    4  // droped with sw retry
-    #define PKTS_STATUS_TX_RETRYING      5  // sw retry txing
+#define PKTS_STATUS_NULL             0  // null
+#define PKTS_STATUS_TX_DONE          1  // done but no sw retry
+#define PKTS_STATUS_TX_DROP          2  // droped but other case
+#define PKTS_STATUS_TX_RETRY_DONE    3  // done with sw retry
+#define PKTS_STATUS_TX_RETRY_FAIL    4  // droped with sw retry
+#define PKTS_STATUS_TX_RETRYING      5  // sw retry txing
     uint32_t pkt_status = PKTS_STATUS_NULL;
 
     if(txdesc->host.flags & TXU_CNTRL_EN_SW_RETRY_CHECK)
@@ -1547,7 +1563,7 @@ UINT32 rwn_check_sw_tx_retry(struct txdesc *txdesc)
 
         total_retry = last_retry + failures;
 
-        #define SW_RETRY_LIMITED_COUNT      (30)
+#define SW_RETRY_LIMITED_COUNT      (30)
         if(tx_acked)
         {
             total_retry += 1; // total send times
@@ -1610,6 +1626,16 @@ UINT32 rwn_check_sw_tx_retry(struct txdesc *txdesc)
 void rwn_set_tx_low_rate_once(void)
 {
     tx_use_low_rate_once = true;
+}
+
+/**
+ * this api used to config need check bcn ie with hidden ssid
+ * if return 1, when detect ssid ie from no hidden to hidden, sta do not has bcn crc change
+ * otherwise, bcn crc change event generated, cause wifi disconect
+*/
+UINT32 rwnx_check_bcn_ie_hidden_ssid(void)
+{
+    return 1;
 }
 
 // eof

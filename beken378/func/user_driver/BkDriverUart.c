@@ -1,30 +1,17 @@
-/**
- ******************************************************************************
- * @file    BkDriverUart.h
- * @brief   This file provides all the headers of UART operation functions.
- ******************************************************************************
- *
- *  The MIT License
- *  Copyright (c) 2017 BEKEN Inc.
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is furnished
- *  to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- *  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- ******************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "rtos_pub.h"
 #include "BkDriverUart.h"
@@ -45,9 +32,9 @@ static UART_UI_ST uart_st[3] =
 {
     [0]  = {.user_buffer_flag = 0, .rx_buffer = NULL},
     [1]  = {.user_buffer_flag = 0, .rx_buffer = NULL},
-#if ((CFG_SOC_NAME == SOC_BK7252N))
+    #if ((CFG_SOC_NAME == SOC_BK7252N))
     [2]  = {.user_buffer_flag = 0, .rx_buffer = NULL},
-#endif
+    #endif
 };
 
 const bk_uart_config_t test_uart_config[] =
@@ -61,7 +48,7 @@ const bk_uart_config_t test_uart_config[] =
         .flow_control = FLOW_CTRL_DISABLED,
         .flags   = 0,
     },
-    
+
     [1] =
     {
         .baud_rate     = 19200,
@@ -71,7 +58,7 @@ const bk_uart_config_t test_uart_config[] =
         .flow_control = FLOW_CTRL_DISABLED,
         .flags   = 0,
     },
-    
+
     [2] =
     {
         .baud_rate     = 115200,
@@ -81,6 +68,18 @@ const bk_uart_config_t test_uart_config[] =
         .flow_control = FLOW_CTRL_DISABLED,
         .flags   = 0,
     },
+
+    #if ((CFG_SARADC_VERIFY) && (CFG_SOC_NAME == SOC_BK7252N))
+    [3] =
+    {
+        .baud_rate     = 921600,
+        .data_width    = BK_DATA_WIDTH_8BIT,
+        .parity  = BK_PARITY_NO,
+        .stop_bits = BK_STOP_BITS_1,
+        .flow_control = FLOW_CTRL_DISABLED,
+        .flags   = 0,
+    },
+    #endif
 };
 
 OSStatus bk_uart_initialize_test( bk_uart_t uart, uint8_t config, ring_buffer_t *optional_rx_buffer )
@@ -96,10 +95,10 @@ OSStatus bk_uart_initialize( bk_uart_t uart, const bk_uart_config_t *config, rin
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     else if(BK_UART_3 == uart)
         uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
-#endif
+    #endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
 
@@ -140,13 +139,13 @@ OSStatus bk_uart_recv( bk_uart_t uart, void *data, uint32_t size, uint32_t timeo
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     else if(BK_UART_3 == uart)
         uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
-#endif
+    #endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
-	
+
     ASSERT(DRV_FAILURE != uart_hdl);
     ret = ddev_control(uart_hdl, CMD_RX_COUNT, 0);
     if(ret < size)
@@ -169,13 +168,13 @@ OSStatus bk_uart_recv_prefetch( bk_uart_t uart, void *data, uint32_t size, uint3
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     else if(BK_UART_3 == uart)
         uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
-#endif
+    #endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
-	
+
     ASSERT(DRV_FAILURE != uart_hdl);
 
     peek.sig = URX_PEEK_SIG;
@@ -195,10 +194,10 @@ uint32_t bk_uart_get_length_in_buffer( bk_uart_t uart )
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     else if(BK_UART_3 == uart)
         uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
-#endif
+    #endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
 
@@ -217,10 +216,10 @@ OSStatus bk_uart_set_rx_callback(bk_uart_t uart, uart_callback callback, void *p
 
     if(BK_UART_1 == uart)
         uart_hdl = ddev_open(UART1_DEV_NAME, &status, 0);
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     else if(BK_UART_3 == uart)
         uart_hdl = ddev_open(UART3_DEV_NAME, &status, 0);
-#endif
+    #endif
     else
         uart_hdl = ddev_open(UART2_DEV_NAME, &status, 0);
 

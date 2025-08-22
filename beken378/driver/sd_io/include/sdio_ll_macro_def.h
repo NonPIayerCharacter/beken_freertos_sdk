@@ -1,30 +1,30 @@
-// Copyright 2020-2021 Beken 
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");           
-// you may not use this file except in compliance with the License.            
-// You may obtain a copy of the License at                                     
-//                                                                             
-//     http://www.apache.org/licenses/LICENSE-2.0                              
-//                                                                             
-// Unless required by applicable law or agreed to in writing, software         
-// distributed under the License is distributed on an "AS IS" BASIS,         
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    
-// See the License for the specific language governing permissions and         
-// limitations under the License.                                              
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /***********************************************************************************************************************************
-* This file is generated from BK7256_ADDR Mapping_20211224_format_change_highlight_20220113_update.xlsm automatically                                
-* Modify it manually is not recommended                                       
-* CHIP ID:BK7256,GENARATE TIME:2022-04-02 18:47:01                                                 
+* This file is generated from BK7256_ADDR Mapping_20211224_format_change_highlight_20220113_update.xlsm automatically
+* Modify it manually is not recommended
+* CHIP ID:BK7256,GENARATE TIME:2022-04-02 18:47:01
 ************************************************************************************************************************************/
 
-#pragma once                 
-                            
-#ifdef __cplusplus          
-extern "C" {              
-#endif                      
+#pragma once
 
-#include <arm_arch.h>          
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <arm_arch.h>
 
 static inline uint32_t sdio_ll_get_reg0x4_value(void)
 {
@@ -1520,6 +1520,6 @@ static inline uint32_t sdio_ll_get_sd_slave_status_dat_s_wr_wai_4rd(void)
     return reg_value;
 }
 
-#ifdef __cplusplus 
-}                  
-#endif             
+#ifdef __cplusplus
+}
+#endif

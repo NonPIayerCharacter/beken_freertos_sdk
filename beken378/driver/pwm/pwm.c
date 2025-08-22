@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -53,41 +67,41 @@ static void pwm_gpio_configuration(UINT8 chan, UINT8 enable)
         break;
     }
 
-	if(enable)
-	{
-    ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
-	}
-	else
-	{
-		param = GPIO_CFG_PARAM(param, GMODE_INPUT);
-    	ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
-	}
+    if(enable)
+    {
+        ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+    }
+    else
+    {
+        param = GPIO_CFG_PARAM(param, GMODE_INPUT);
+        ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
+    }
     ASSERT(GPIO_SUCCESS == ret);
 }
 
 static void pwm_icu_configuration(pwm_param_t *pwm_param, UINT8 enable)
 {
-	UINT32 ret;
-	UINT32 param;
+    UINT32 ret;
+    UINT32 param;
 
-	/* set clock power down of icu module*/
-	switch (pwm_param->channel)
-	{
-	case PWM0:
-		param = PWD_PWM0_CLK_BIT;
-		break;
+    /* set clock power down of icu module*/
+    switch (pwm_param->channel)
+    {
+    case PWM0:
+        param = PWD_PWM0_CLK_BIT;
+        break;
 
-	case PWM1:
-		param = PWD_PWM1_CLK_BIT;
-		break;
+    case PWM1:
+        param = PWD_PWM1_CLK_BIT;
+        break;
 
-	case PWM2:
-		param = PWD_PWM2_CLK_BIT;
-		break;
+    case PWM2:
+        param = PWD_PWM2_CLK_BIT;
+        break;
 
-	case PWM3:
-		param = PWD_PWM3_CLK_BIT;
-		break;
+    case PWM3:
+        param = PWD_PWM3_CLK_BIT;
+        break;
 
     case PWM4:
         param = PWD_PWM4_CLK_BIT;
@@ -98,38 +112,38 @@ static void pwm_icu_configuration(pwm_param_t *pwm_param, UINT8 enable)
         break;
 
     default:
-		PWM_WARN("pwm_iconfig_fail\r\n");
-		goto exit_icu;
-	}
+        PWM_WARN("pwm_iconfig_fail\r\n");
+        goto exit_icu;
+    }
 
-	if (enable)
-	{
-		ret = sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, (void *)&param);
-		ASSERT(ICU_SUCCESS == ret);
+    if (enable)
+    {
+        ret = sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, (void *)&param);
+        ASSERT(ICU_SUCCESS == ret);
 
-		if (PWM_CLK_32K == pwm_param->cfg.bits.clk) {
-			param = pwm_param->channel;
-			ret = sddev_control(ICU_DEV_NAME, CMD_CONF_PWM_LPOCLK, (void *)&param);
-		} else {
-			param = pwm_param->channel;
-			ret = sddev_control(ICU_DEV_NAME, CMD_CONF_PWM_PCLK, (void *)&param);
-		}
-		ASSERT(ICU_SUCCESS == ret);
-	} else
-	{
-		ret = sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, (void *)&param);
-		ASSERT(ICU_SUCCESS == ret);
-	}
+        if (PWM_CLK_32K == pwm_param->cfg.bits.clk) {
+            param = pwm_param->channel;
+            ret = sddev_control(ICU_DEV_NAME, CMD_CONF_PWM_LPOCLK, (void *)&param);
+        } else {
+            param = pwm_param->channel;
+            ret = sddev_control(ICU_DEV_NAME, CMD_CONF_PWM_PCLK, (void *)&param);
+        }
+        ASSERT(ICU_SUCCESS == ret);
+    } else
+    {
+        ret = sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, (void *)&param);
+        ASSERT(ICU_SUCCESS == ret);
+    }
 
-	if (PWM_INT_EN == pwm_param->cfg.bits.int_en)
-	{
-		param = IRQ_PWM_BIT;
-		ret = sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, (void *)&param);
-	}
+    if (PWM_INT_EN == pwm_param->cfg.bits.int_en)
+    {
+        param = IRQ_PWM_BIT;
+        ret = sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, (void *)&param);
+    }
 
 exit_icu:
 
-	return;
+    return;
 }
 
 
@@ -144,31 +158,31 @@ static void init_pwm_param(pwm_param_t *pwm_param, UINT8 enable)
         return;
     }
 
-	if(pwm_param->cfg.bits.mode != PWM_TIMER_MODE)
-	{
-#if (CFG_SOC_NAME == SOC_BK7231)
-		pwm_gpio_configuration(pwm_param->channel, enable);
-#else
-		pwm_gpio_configuration(pwm_param->channel, enable);
-#endif
-	}
+    if(pwm_param->cfg.bits.mode != PWM_TIMER_MODE)
+    {
+        #if (CFG_SOC_NAME == SOC_BK7231)
+        pwm_gpio_configuration(pwm_param->channel, enable);
+        #else
+        pwm_gpio_configuration(pwm_param->channel, enable);
+        #endif
+    }
 
     value = REG_READ(PWM_CTL);
     value = (value & (~(0x03 <<( (0x04 *  pwm_param->channel)+2 ) )))
             | ((pwm_param->cfg.bits.mode)  << ((0x04 *  pwm_param->channel)+2) );
-	REG_WRITE(PWM_CTL, value);
+    REG_WRITE(PWM_CTL, value);
 
-#if (CFG_SOC_NAME == SOC_BK7231)
+    #if (CFG_SOC_NAME == SOC_BK7231)
     value = (((UINT32)pwm_param->duty_cycle & 0x0000FFFF) << 16)
-		            + ((UINT32)pwm_param->end_value & 0x0000FFFF);
+            + ((UINT32)pwm_param->end_value & 0x0000FFFF);
     REG_WRITE(REG_APB_BK_PWMn_CNT_ADDR(pwm_param->channel), value);
-#else
+    #else
     value = ((UINT32)pwm_param->end_value);
     REG_WRITE(REG_APB_BK_PWMn_END_ADDR(pwm_param->channel), value);
 
     value = ((UINT32)pwm_param->duty_cycle);
     REG_WRITE(REG_APB_BK_PWMn_DC_ADDR(pwm_param->channel), value);
-#endif
+    #endif
 
     p_PWM_Int_Handler[pwm_param->channel] = pwm_param->p_Int_Handler;
 
@@ -208,7 +222,7 @@ static void pwm_int_handler_clear(UINT8 ucChannel)
 
 void pwm_init(void)
 {
-	REG_WRITE(PWM_CTL, 0x0);
+    REG_WRITE(PWM_CTL, 0x0);
 
     intc_service_register(IRQ_PWM, PRI_IRQ_PWM, pwm_isr);
 
@@ -251,8 +265,8 @@ UINT32 pwm_ctrl(UINT32 cmd, void *param)
         value = REG_READ(PWM_CTL);
         value &= ~(3 << (ucChannel * 4));
         REG_WRITE(PWM_CTL, value);
-		pwm_set_end_value(ucChannel, 0);
-		pwm_set_duty_cycle(ucChannel, 0);
+        pwm_set_end_value(ucChannel, 0);
+        pwm_set_duty_cycle(ucChannel, 0);
         break;
     case CMD_PWM_IR_ENABLE:
         ucChannel = (*(UINT32 *)param);
@@ -316,10 +330,10 @@ UINT32 pwm_ctrl(UINT32 cmd, void *param)
         }
         p_capture->value = pwm_capture_value_get(p_capture->ucChannel);
         break;
-	case CMD_PWM_DEINIT_PARAM:
+    case CMD_PWM_DEINIT_PARAM:
         p_param = (pwm_param_t *)param;
         init_pwm_param(p_param, 0);
-		break;
+        break;
     default:
         ret = PWM_FAILURE;
         break;

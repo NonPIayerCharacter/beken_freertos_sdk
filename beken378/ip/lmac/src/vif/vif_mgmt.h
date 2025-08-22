@@ -162,6 +162,8 @@ struct vif_info_tag
             uint32_t mon_last_crc;
             /// Number of beacon losses since last beacon reception
             uint8_t beacon_loss_cnt;
+            /// Number of beacon losses since last acked reception
+            uint16_t beacon_loss_since_acked_cnt;
             /// CRC of fixed beacon ie temp count
             uint8_t mon_ie_crc_cnt;
             /// CRC of fixed beacon ie
@@ -201,6 +203,7 @@ struct vif_info_tag
             /// TDLS station
             struct sta_tdls_tag *sta_tdls;
             #endif
+            uint32_t bcn_ssid_crc;
         } sta;
 
         /// AP specific parameter structure

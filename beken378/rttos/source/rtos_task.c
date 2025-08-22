@@ -1,6 +1,20 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * RTOS测试用例
- */ 
+ */
 
 #include "rtthread.h"
 #include "sys_rtos.h"
@@ -35,7 +49,7 @@ static void thread_queue_recive_entry(void* parameter)
 
     while(1)
     {
-        rt_memset(&buf[0], 0 , sizeof(buf));
+        rt_memset(&buf[0], 0, sizeof(buf));
         if(rtos_pop_from_queue(&mq, &buf[0], 100) == kNoErr)
         {
             rt_kprintf("recive thread:recive msg = %s\n", &buf);
@@ -54,7 +68,7 @@ static void thread_queue_send_entry(void* parameter)
 
     while(1)
     {
-        rt_memset(&buf[0], 0 , sizeof(buf));
+        rt_memset(&buf[0], 0, sizeof(buf));
         for(int i = 0; i < MSG_SIZE - 1; i++)
         {
             buf[i] = 'a' + i;
@@ -70,28 +84,28 @@ static void thread_queue_send_entry(void* parameter)
             rtos_delay_milliseconds(10000);
             return;
         }
-       
+
         // rt_memset(&buf[0], 0 , sizeof(buf));
     }
 }
 
 int msg_queue_simple_init(void)
 {
-	OSStatus ret;
+    OSStatus ret;
 
-	/* 初始化消息队列 */
-	ret = rtos_init_queue(&mq, "msg_queue", MSG_SIZE, MSG_NUM);
-	ASSERT(ret == kNoErr);
+    /* 初始化消息队列 */
+    ret = rtos_init_queue(&mq, "msg_queue", MSG_SIZE, MSG_NUM);
+    ASSERT(ret == kNoErr);
 
-	/* 创建recive线程 */
-	ret = rtos_create_thread(&queue_thread_revive, 24, "recv_thread", thread_queue_recive_entry, 1024, RT_NULL);
-	ASSERT(ret == kNoErr);
+    /* 创建recive线程 */
+    ret = rtos_create_thread(&queue_thread_revive, 24, "recv_thread", thread_queue_recive_entry, 1024, RT_NULL);
+    ASSERT(ret == kNoErr);
 
-	/* 创建send线程 */
-	rtos_create_thread(&queue_thread_send, 25, "send_thread", thread_queue_send_entry, 1024, RT_NULL);
-	ASSERT(ret == kNoErr);
+    /* 创建send线程 */
+    rtos_create_thread(&queue_thread_send, 25, "send_thread", thread_queue_send_entry, 1024, RT_NULL);
+    ASSERT(ret == kNoErr);
 
-	return kNoErr;
+    return kNoErr;
 }
 
 // MSH_CMD_EXPORT(msg_queue_simple_init, msq queue simple);
@@ -109,14 +123,14 @@ static void one_shot_timeout(void* Larg, void* Rarg)
 
 int one_shot_time_simple_init(void)
 {
-	OSStatus ret;
-	ret = rtos_init_oneshot_timer(&one_shot, 10000, one_shot_timeout, RT_NULL, RT_NULL);
-	ASSERT(ret == kNoErr);
+    OSStatus ret;
+    ret = rtos_init_oneshot_timer(&one_shot, 10000, one_shot_timeout, RT_NULL, RT_NULL);
+    ASSERT(ret == kNoErr);
 
-	ret = rtos_start_oneshot_timer(&one_shot);
-	ASSERT(ret == kNoErr);
+    ret = rtos_start_oneshot_timer(&one_shot);
+    ASSERT(ret == kNoErr);
 
-	return kNoErr;
+    return kNoErr;
 }
 
 // MSH_CMD_EXPORT(one_shot_time_simple_init, one shot time simple);

@@ -28,11 +28,18 @@
 
 
 /* Split memory into area for vectors and ram */
+#include "../config/sys_config.h"
+
 MEMORY
 {
         flash  (rx) : ORIGIN = 0x00010000, LENGTH = 1912K
+#if(CFG_FLASH_BYPASS_OTP)
+        tcm   (rw!x): ORIGIN = 0x003F0000, LENGTH = 56k
+        itcm   (rwx): ORIGIN = 0x003FE000, LENGTH = 8k
+#else
         tcm   (rw!x): ORIGIN = 0x003F0000, LENGTH = 60k
         itcm   (rwx): ORIGIN = 0x003FF000, LENGTH = 4k
+#endif
         ram   (rw!x): ORIGIN = 0x00400100, LENGTH = 192k - 0x100
 }
 
@@ -97,6 +104,11 @@ SECTIONS
         *(.text.portDISABLE_IRQ)
         *(.text.vPortEnterCritical)
         *(.text.vPortExitCritical)
+#if(CFG_FLASH_BYPASS_OTP)
+        *(.text.flash_bypass_op_write)
+        *(.text.flash_bypass_op_read)
+#endif
+
     } > itcm AT>flash
     _itcmcode_flash_begin = LOADADDR(.itcm.code);
     _itcmcode_ram_begin = ADDR(.itcm.code);

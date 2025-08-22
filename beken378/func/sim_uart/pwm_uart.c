@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <stdio.h>
 #include "include.h"
 #include "arm_arch.h"
@@ -103,12 +117,12 @@ void  uart_io_sim_delay(volatile unsigned long times)
 void uart_io_sim_tx_buf_init(void)
 {
     os_memset(uart_io_sim_tx_buf, 0, sizeof(uart_io_sim_tx_buf));
-#if defined INTERRUPT_METHOD
+    #if defined INTERRUPT_METHOD
     uart_io_sim_tx_buf_size = 0;
     p_uart_io_sim_tx_buf = NULL;
     uart_io_sim_tx_buf_current_bit = 0;
     uart_io_sim_tx_buf_current_cnt = 0;
-#endif
+    #endif
 }
 #endif		/* #ifdef INCLUDE_TX_MODE */
 
@@ -119,9 +133,9 @@ void uart_io_sim_rx_buf_init(void)
 
     uart_io_sim_rx_done = false;
     uart_io_sim_rx_buf_current_cnt = 0;
-#if defined INTERRUPT_METHOD
+    #if defined INTERRUPT_METHOD
     uart_io_sim_rx_buf_current_bit = 0;
-#endif
+    #endif
 }
 #endif		/* #ifdef INCLUDE_RX_MODE */
 
@@ -184,11 +198,11 @@ void uart_io_sim_pwm_timer_init_for_tx(void)
     param.cfg.bits.int_en = PWM_INT_DIS;
     param.cfg.bits.mode   = PWM_TIMER_MODE;
 
-#if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)  // FPGA:PWM0-2-32kCLK, pwm3-5-24CLK
+    #if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)  // FPGA:PWM0-2-32kCLK, pwm3-5-24CLK
     param.cfg.bits.clk    = PWM_CLK_32K;
-#else
+    #else
     param.cfg.bits.clk    = PWM_CLK_26M;
-#endif
+    #endif
 
     param.p_Int_Handler   = uart_io_sim_timer_int_handle_tx_data;
     param.duty_cycle      = 0;
@@ -217,11 +231,11 @@ static void UARTCALL init_pwm_param_2(pwm_param_t *pwm_param)
     value = (((UINT32)pwm_param->duty_cycle & 0x0000FFFF) << 16)
             + ((UINT32)pwm_param->end_value & 0x0000FFFF);
 
-	#if (CFG_SOC_NAME == SOC_BK7231)
+    #if (CFG_SOC_NAME == SOC_BK7231)
     REG_WRITE(REG_APB_BK_PWMn_CNT_ADDR(pwm_param->channel), value);
-	#else
-	REG_WRITE(REG_APB_BK_PWMn_END_ADDR(pwm_param->channel), value);
-	#endif
+    #else
+    REG_WRITE(REG_APB_BK_PWMn_END_ADDR(pwm_param->channel), value);
+    #endif
 
     p_PWM_Int_Handler[pwm_param->channel] = pwm_param->p_Int_Handler;
 
@@ -244,11 +258,11 @@ static void UARTCALL init_pwm_param_5(pwm_param_t *pwm_param)
 
     value = (((UINT32)pwm_param->duty_cycle & 0x0000FFFF) << 16)
             + ((UINT32)pwm_param->end_value & 0x0000FFFF);
-	#if (CFG_SOC_NAME == SOC_BK7231)
+    #if (CFG_SOC_NAME == SOC_BK7231)
     REG_WRITE(REG_APB_BK_PWMn_CNT_ADDR(pwm_param->channel), value);
-	#else
-	REG_WRITE(REG_APB_BK_PWMn_END_ADDR(pwm_param->channel), value);
-	#endif
+    #else
+    REG_WRITE(REG_APB_BK_PWMn_END_ADDR(pwm_param->channel), value);
+    #endif
 
     p_PWM_Int_Handler[pwm_param->channel] = pwm_param->p_Int_Handler;
 
@@ -298,11 +312,11 @@ void UARTCALL uart_io_sim_pwm_timer_init_for_rx(UINT16 end)
     param.cfg.bits.en     = PWM_ENABLE;
     param.cfg.bits.int_en = PWM_INT_DIS;
     param.cfg.bits.mode   = PWM_TIMER_MODE;
-#if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)
+    #if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)
     param.cfg.bits.clk    = PWM_CLK_32K;
-#else
+    #else
     param.cfg.bits.clk    = PWM_CLK_26M;
-#endif
+    #endif
     param.p_Int_Handler   = uart_io_sim_timer_int_handle_rx_data;
     param.duty_cycle      = 0;
     param.end_value       = end;
@@ -316,7 +330,7 @@ void UARTCALL uart_io_sim_int_handle_rx_cap_neg(unsigned char ucChannel)
     // capture START bit, prepare to receive data bits
     *((volatile UINT32 *)(GPIO_BASE_ADDR + GPIO_UART_IO_SIM_RX_PIN * 4)) = 0x3C;
 
-#if defined INTERRUPT_METHOD
+    #if defined INTERRUPT_METHOD
     *((volatile UINT32 *)(PWM_CTL)) = (*(volatile UINT32 *)(PWM_CTL))&~(2 << (ucChannel * 4));
 
     uart_io_sim_rx_int_count = 0;
@@ -324,9 +338,9 @@ void UARTCALL uart_io_sim_int_handle_rx_cap_neg(unsigned char ucChannel)
     uart_io_sim_rx_buf_current_bit = 0;
 
     *((volatile UINT32 *)(PWM_CTL)) = *((volatile UINT32 *)(PWM_CTL)) | (2 << (UART_IO_SIM_PWM_TIMER_RX_CHN * 4));
-#elif defined POLLING_METHOD
+    #elif defined POLLING_METHOD
     uart_io_sim_receive();
-#endif
+    #endif
 }
 
 void UARTCALL uart_io_sim_pwm_cap_neg_init_for_rx(void)
@@ -337,11 +351,11 @@ void UARTCALL uart_io_sim_pwm_cap_neg_init_for_rx(void)
     param.cfg.bits.en     = PWM_ENABLE;
     param.cfg.bits.int_en = PWM_INT_DIS;
     param.cfg.bits.mode   = PWM_CAP_NEG_MODE;
-#if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)
+    #if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)
     param.cfg.bits.clk    = PWM_CLK_32K;
-#else
+    #else
     param.cfg.bits.clk    = PWM_CLK_26M;
-#endif
+    #endif
     param.p_Int_Handler   = uart_io_sim_int_handle_rx_cap_neg;
     param.duty_cycle      = 0;
     param.end_value       = 0xFFFF;
@@ -356,30 +370,30 @@ void UARTCALL uart_io_sim_pwm_cap_neg_init_for_rx(void)
 void uart_io_sim_init(void)
 {
     //gpio_config(SIMU_UART_GPIOCLK,GMODE_OUTPUT);
-#ifdef INCLUDE_TX_MODE
+    #ifdef INCLUDE_TX_MODE
     GPIO_UART_io_sim_tx_function_enable();
     uart_io_sim_tx_buf_init();
     uart_io_sim_set_tx(0x01UL);
     uart_io_sim_delay(1000);
     uart_io_sim_pwm_timer_init_for_tx();
-#endif
+    #endif
 
-#ifdef INCLUDE_RX_MODE
+    #ifdef INCLUDE_RX_MODE
     uart_io_sim_rx_buf_init();
     uart_io_sim_pwm_timer_init_for_rx(UART_IO_SIM_CLK_DIVID_SET);
     uart_io_sim_pwm_cap_neg_init_for_rx();
     *((volatile UINT32 *)(PWM_CTL)) = *((volatile UINT32 *)(PWM_CTL)) | (2 << (UART_IO_SIM_PWM_CAP_NEG_RX_CHN * 4));
 
-#endif
+    #endif
 
-#ifdef INCLUDE_TX_MODE
+    #ifdef INCLUDE_TX_MODE
     uart_io_start = 1;
-#endif
+    #endif
 }
 
 void uart_io_sim_disable(void)
 {
-#if defined INTERRUPT_METHOD
+    #if defined INTERRUPT_METHOD
     UINT32 param;
     UINT32 ret;
 
@@ -395,11 +409,11 @@ void uart_io_sim_disable(void)
     param = UART_IO_SIM_PWM_TIMER_RX_CHN;
     ret = sddev_control(PWM_DEV_NAME, CMD_PWM_UNIT_DISABLE, &param);
     ASSERT(PWM_SUCCESS == ret);
-	
-#ifdef INCLUDE_TX_MODE
+
+    #ifdef INCLUDE_TX_MODE
     uart_io_start = 0;
-#endif
-#endif
+    #endif
+    #endif
 }
 #endif
 
@@ -409,7 +423,7 @@ void uart_io_sim_disable(void)
 #ifdef INCLUDE_TX_MODE
 void UARTCALL uart_io_sim_send_byte(u8 data)
 {
-#if defined INTERRUPT_METHOD
+    #if defined INTERRUPT_METHOD
     if(!uart_io_start)
         return;
 
@@ -435,7 +449,7 @@ void UARTCALL uart_io_sim_send_byte(u8 data)
         *((volatile UINT32 *)(PWM_CTL)) = (*(volatile UINT32 *)(PWM_CTL)) | (2 << (UART_IO_SIM_PWM_TIMER_TX_CHN * 4));
     }
 
-#elif defined POLLING_METHOD
+    #elif defined POLLING_METHOD
     int i;
     uart_io_sim_set_tx(0x00UL);         // START bit
     uart_io_sim_delay(SEND_BYTE_START_DELAY);
@@ -446,7 +460,7 @@ void UARTCALL uart_io_sim_send_byte(u8 data)
     }
     uart_io_sim_set_tx(0x01UL);         // STOP bit
     uart_io_sim_delay(DELAY_NOPS_COUNT * 3);
-#endif
+    #endif
 }
 
 void uart_io_sim_send_string(char *buff)
@@ -467,7 +481,7 @@ void uart_io_sim_send(u8 *buff, int len)
         return;
     }
 
-#if defined INTERRUPT_METHOD
+    #if defined INTERRUPT_METHOD
     p_uart_io_sim_tx_buf = buff;
     uart_io_sim_tx_buf_size = len;
     uart_io_sim_tx_buf_current_cnt = 0;
@@ -475,14 +489,14 @@ void uart_io_sim_send(u8 *buff, int len)
 
     *((volatile UINT32 *)(PWM_CTL)) = (*(volatile UINT32 *)(PWM_CTL)) | (2 << (UART_IO_SIM_PWM_TIMER_TX_CHN * 4));
 
-#elif defined POLLING_METHOD
+    #elif defined POLLING_METHOD
     REG_ICU_INT_GLOBAL_ENABLE = 0;
     while (len--)
     {
         uart_io_sim_send_byte(*buff ++);
     }
     REG_ICU_INT_GLOBAL_ENABLE = ICU_INT_GLOBAL_ENABLE_IRQ_SET + ICU_INT_GLOBAL_ENABLE_FIQ_SET;    // CPU IRQ enable
-#endif
+    #endif
 }
 #endif		/* #ifdef INCLUDE_TX_MODE */
 
@@ -491,11 +505,11 @@ unsigned char UARTCALL uart_io_sim_receive_byte(void)
 {
     unsigned char ucTemp;
     ucTemp = 0;
-#if defined INTERRUPT_METHOD
-#elif defined POLLING_METHOD
-#if (MCU_CLK > MCU_CLK_16MHz)
+    #if defined INTERRUPT_METHOD
+    #elif defined POLLING_METHOD
+    #if (MCU_CLK > MCU_CLK_16MHz)
     uart_io_sim_delay(RECEIVE_BYTE_START_DELAY);
-#endif
+    #endif
     int i;
     for (i = 0; i < 7; i++)
     {
@@ -505,14 +519,14 @@ unsigned char UARTCALL uart_io_sim_receive_byte(void)
     uart_io_sim_delay(RECEIVE_BYTE_CALI_LAST_DELAY);
     ucTemp |= (uart_io_sim_get_rx() << 7);
     uart_io_sim_delay(RECEIVE_BYTE_LAST_DELAY);
-#endif
+    #endif
     return ucTemp;
 }
 
 void UARTCALL uart_io_sim_receive(void)
 {
-#if defined INTERRUPT_METHOD
-#elif defined POLLING_METHOD
+    #if defined INTERRUPT_METHOD
+    #elif defined POLLING_METHOD
     int i;
     REG_ICU_INT_GLOBAL_ENABLE = 0;          // CPU IRQ disable
     while (uart_io_sim_rx_buf_current_cnt < UART_IO_SIM_RX_FIFO_MAX_COUNT)
@@ -536,6 +550,6 @@ void UARTCALL uart_io_sim_receive(void)
     }
     uart_io_sim_pwm_cap_neg_init_for_rx();
     REG_ICU_INT_GLOBAL_ENABLE = ICU_INT_GLOBAL_ENABLE_IRQ_SET + ICU_INT_GLOBAL_ENABLE_FIQ_SET;    // CPU IRQ enable
-#endif
+    #endif
 }
 #endif		/* #ifdef INCLUDE_RX_MODE */

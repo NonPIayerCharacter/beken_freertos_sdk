@@ -524,7 +524,7 @@ enum gap_sec_lvl
     GAP_SEC_UNAUTH,
     /// Service require an authenticated pairing (Legacy pairing with pin code or OOB)
     GAP_SEC_AUTH,
-    /// Service require a secure connection pairing
+    /// Service require an authenticated secure connection pairing
     GAP_SEC_SECURE_CON,
 };
 
@@ -539,10 +539,15 @@ enum gap_auth
     GAP_AUTH_REQ_MITM_NO_BOND     = (GAP_AUTH_MITM),
     /// MITM and Bonding
     GAP_AUTH_REQ_MITM_BOND        = (GAP_AUTH_MITM | GAP_AUTH_BOND),
-    /// SEC_CON and No Bonding
-    GAP_AUTH_REQ_SEC_CON_NO_BOND  = (GAP_AUTH_SEC_CON | GAP_AUTH_MITM),
-    /// SEC_CON and Bonding
-    GAP_AUTH_REQ_SEC_CON_BOND     = (GAP_AUTH_SEC_CON | GAP_AUTH_MITM | GAP_AUTH_BOND),
+
+    /// SEC_CON No MITM and No Bonding
+    GAP_AUTH_REQ_SEC_CON_NO_MITM_NO_BOND  = (GAP_AUTH_SEC_CON),
+    /// SEC_CON No MITM and Bonding
+    GAP_AUTH_REQ_SEC_CON_NO_MITM_BOND     = (GAP_AUTH_SEC_CON | GAP_AUTH_BOND),
+    /// SEC_CON MITM and No Bonding
+    GAP_AUTH_REQ_SEC_CON_MITM_NO_BOND  = (GAP_AUTH_SEC_CON | GAP_AUTH_MITM),
+    /// SEC_CON MITM and Bonding
+    GAP_AUTH_REQ_SEC_CON_MITM_BOND     = (GAP_AUTH_SEC_CON | GAP_AUTH_MITM | GAP_AUTH_BOND),
 
     GAP_AUTH_REQ_LAST,
 
@@ -604,12 +609,12 @@ enum gap_sec_req
     GAP_SEC1_NOAUTH_PAIR_ENC,
     /// Authenticated pairing with encryption
     GAP_SEC1_AUTH_PAIR_ENC,
+    /// Secure Connection pairing with encryption
+    GAP_SEC1_SEC_CON_PAIR_ENC,
     /// Unauthenticated pairing with data signing
     GAP_SEC2_NOAUTH_DATA_SGN,
     /// Authentication pairing with data signing
     GAP_SEC2_AUTH_DATA_SGN,
-    /// Secure Connection pairing with encryption
-    GAP_SEC1_SEC_CON_PAIR_ENC,
 };
 
 /// Bit field use to select the preferred TX or RX LE PHY. 0 means no preferences

@@ -259,6 +259,38 @@ extern void txl_buffer_mic_compute(struct txdesc *txdesc,
                                      uint32_t start,
                                      uint32_t len,
                                      uint8_t access_category);
+
+/**
+ ****************************************************************************************
+ * @brief Get the address of the MAC header
+ * This function is supposed to be called when the payload is present in the shared memory.
+ *
+ * @param[in] txdesc The pointer to the TX descriptor
+ *
+ * @return HW address of the MAC header
+ *
+ ****************************************************************************************
+ */
+__INLINE uint32_t txl_buffer_machdr_get(struct txdesc *txdesc)
+{
+    struct tx_hd *thd = tx_desc_thd(txdesc);
+    struct tx_pbd *pbd;
+
+    // A buffer shall be available
+    //ASSERT(txl_buffer_get(txdesc) != NULL); /* ASSERT VERIFIED */
+
+    // Check if the frame buffer is at least partly pointed by the THD
+    if (thd->datastartptr)
+        return (thd->datastartptr);
+
+    // Sanity check - If the MAC header is not pointed by the THD, a PBD shall be present
+    //ASSERT(thd->first_pbd_ptr); /* ASSERT VERIFIED */
+    pbd = HW2CPU(thd->first_pbd_ptr);
+
+    return (pbd->datastartptr);
+
+}
+
 #endif /// TX_BUFFER_H_
 // eof
 

@@ -140,7 +140,7 @@
 /* use mbedtls as wpa crypto functions */
 #define CFG_USE_MBEDTLS                            1
 // required for bk7231u supplicant lib
-#define CFG_WPA_TLS_WOLFSSL                        1
+//#define CFG_WPA_TLS_WOLFSSL                        1
 #if CFG_USE_MBEDTLS
 #define CFG_MBEDTLS                                1
 #endif
@@ -384,5 +384,6 @@
 #define CFG_USE_FORCE_LOWVOL_PS                    0
 #define CFG_LWIP_MEM_POLICY                        2
 #define CFG_WIFI_TX_KEYDATA_USE_LOWEST_RATE        1
+#define CFG_WRAP_LIBC                              1
 
 #endif // _SYS_CONFIG_H_

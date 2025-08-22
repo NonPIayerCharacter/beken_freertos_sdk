@@ -575,25 +575,6 @@ alloc_socket(struct netconn *newconn, int accepted)
   return -1;
 }
 
-int LWIP_GetMaxSockets()
-{
-    return NUM_SOCKETS;
-}
-
-int LWIP_GetActiveSockets()
-{
-    int i;
-    int r = 0;
-    for(i = 0; i < NUM_SOCKETS; ++i)
-    {
-        if(sockets[i].conn)
-        {
-            r++;
-        }
-    }
-    return r;
-}
-
 /** Free a socket. The socket's netconn must have been
  * delete before!
  *
@@ -806,57 +787,6 @@ lwip_close(int s)
   free_socket(sock, is_tcp);
   set_errno(0);
   return 0;
-}
-
-// same as above but without SOCK_DEINIT_SYNC check
-// There is a bug in our htttp client and this is a temporary work around for that
-// Otherwise, it leaves sockets unfried and they adds up to 38 and block all networking
-int 
-lwip_close_force(int s)
-{
-    struct lwip_sock* sock;
-    int is_tcp = 0;
-    err_t err;
-
-    LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_close(%d)\n", s));
-
-    // mylog12("lwip_close: called");
-    sock = get_socket(s);
-    if(!sock)
-    {
-        // mylog12("lwip_close: get_socket ret 0");
-        return -1;
-    }
-    // mylog12("before deinit");
-    // SOCK_DEINIT_SYNC(sock);
-    // mylog12("after deinit");
-
-    if(sock->conn != NULL)
-    {
-        is_tcp = NETCONNTYPE_GROUP(netconn_type(sock->conn)) == NETCONN_TCP;
-    }
-    else
-    {
-        LWIP_ASSERT("sock->lastdata == NULL", sock->lastdata == NULL);
-    }
-
-#if LWIP_IGMP
-    /* drop all possibly joined IGMP memberships */
-    lwip_socket_drop_registered_memberships(s);
-#endif /* LWIP_IGMP */
-
-    err = netconn_delete(sock->conn);
-    if(err != ERR_OK)
-    {
-        //  mylog12("lwip_close: netcon delete failed");
-        sock_set_errno(sock, err_to_errno(err));
-        return -1;
-    }
-
-    free_socket(sock, is_tcp);
-    set_errno(0);
-    //  mylog12("lwip_close: ok");
-    return 0;
 }
 
 int

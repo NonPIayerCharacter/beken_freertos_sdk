@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _SDP_COMM_H_
 #define _SDP_COMM_H_
 
@@ -33,66 +47,67 @@
 #define USED_STATUS     (0xA5A5)
 
 typedef enum  {
-	SDP_NTC_REG_FAILED,
-	SDP_NTC_FILTRATION_SVR,
+    SDP_NTC_REG_FAILED,
+    SDP_NTC_FILTRATION_SVR,
 } sdp_notice_t;
 
 struct sdp_chars_descs_inf
 {
-	struct prf_char_inf *chars_inf;
+    struct prf_char_inf *chars_inf;
 
-	//struct prf_char_desc_inf *descs;
-	struct prf_char_desc_inf *descs_inf;
+    //struct prf_char_desc_inf *descs;
+    struct prf_char_desc_inf *descs_inf;
 };
 
 ///Structure containing the characteristics handles, value handles and descriptors
 struct sdp_content
 {
-	/// service info
-	struct prf_svc svc;
+    /// service info
+    struct prf_svc svc;
 
-	/// Characteristic Info:
-	unsigned char chars_nb;
-	unsigned char char_idx;
-	/// Descriptor handles:
-	unsigned char descs_nb;
+    /// Characteristic Info:
+    unsigned char chars_nb;
+    unsigned char char_idx;
+    /// Descriptor handles:
+    unsigned char descs_nb;
+    unsigned char desc_idx;
 
-	struct sdp_chars_descs_inf chars_descs_inf;
+    struct sdp_chars_descs_inf chars_descs_inf;
 };
 
 struct prf_sdp_db_env
 {
-	///index of  instances added
-	unsigned char prf_idx;
+    ///index of  instances added
+    unsigned char prf_idx;
 
-	struct sdp_content *sdp_cont;
+    struct sdp_content *sdp_cont;
 };
 
 /// SDP 'Profile' Client environment variable
 struct sdp_env_tag
 {
-	/// profile environment
-	prf_env_t prf_env;
+    /// profile environment
+    prf_env_t prf_env;
 
-	unsigned char conidx;
+    unsigned char conidx;
 
-	unsigned char rfu;
+    unsigned char rfu;
 
-	uint16_t use_status;
-		/// on-going operation
-	struct kernel_msg * operation;
-	/// Environment variable pointer for db
-	struct prf_sdp_db_env  *prf_db_env;
-	/// State of different task instances
-	kernel_state_t state[SDP_IDX_MAX];
+    uint16_t use_status;
+    /// on-going operation
+    struct kernel_msg * operation;
+    /// Environment variable pointer for db
+    struct prf_sdp_db_env  *prf_db_env;
+    /// State of different task instances
+    kernel_state_t state[SDP_IDX_MAX];
 };
 
 struct sdp_env_init_t
 {
-	uint16_t add_profiles_nums[BLE_CONNECTION_MAX];
-	uint16_t used_status[BLE_NB_PROFILES_ADD_MAX];
-	uint16_t sdp_need_dis_flag[BLE_NB_PROFILES_ADD_MAX];
-	struct sdp_env_tag sdp_env[BLE_NB_PROFILES_ADD_MAX];
+    uint16_t add_profiles_nums[BLE_CONNECTION_MAX];
+    uint16_t used_status[BLE_NB_PROFILES_ADD_MAX];
+    uint16_t sdp_need_dis_flag[BLE_NB_PROFILES_ADD_MAX];
+    struct sdp_env_tag sdp_env[BLE_NB_PROFILES_ADD_MAX];
 };
 
 extern uint8_t sdp_enable_all_server_ntf_ind(uint8_t conidx,uint8_t  reset);

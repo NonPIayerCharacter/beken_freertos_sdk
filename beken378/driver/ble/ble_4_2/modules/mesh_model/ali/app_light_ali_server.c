@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "m_api.h"
 #include "mesh_api_msg.h"
 #include "mal.h"
@@ -27,67 +41,73 @@ int32_t light_scene_server_data(const m_fnd_model_env_p pmodel_info, uint32_t ty
     MESH_APP_PRINT_INFO("%s type = 0x%x\r\n", __func__, type);
     switch (type)
     {
-        case M_FND_SCENE_SERVER_GET_PRESENT:
-        {
-            m_fnd_scene_server_get_present_t *pdata = pargs;
-            pdata->scene_number = cur_scene_num;
-        } break;
+    case M_FND_SCENE_SERVER_GET_PRESENT:
+    {
+        m_fnd_scene_server_get_present_t *pdata = pargs;
+        pdata->scene_number = cur_scene_num;
+    }
+    break;
 
-        case M_FND_SCENE_SERVER_RECALL:
+    case M_FND_SCENE_SERVER_RECALL:
+    {
+        m_fnd_scene_server_set_t *pdata = pargs;
+        if (0 == pdata->remaining_time.num_steps)
         {
-            m_fnd_scene_server_set_t *pdata = pargs;
-            if (0 == pdata->remaining_time.num_steps)
-            {
-                cur_scene_num = pdata->scene_number;
-            }
-        } break;
-
-        case M_FND_SCENE_SERVER_STORE:
-        {
-            m_fnd_scenes_store_t *pdata = pargs;
-
             cur_scene_num = pdata->scene_number;
-            {
-                for (int i =0; i < M_FND_SCENES_STORE_MAX; i++)
-                {
-                    if ((scene_num[i] == 0 ) || (scene_num[i] == pdata->scene_number))
-                    {
-                        scene_num[i]    = pdata->scene_number;
-                        break;
-                    }
-                }
-            }
+        }
+    }
+    break;
 
-        } break;
+    case M_FND_SCENE_SERVER_STORE:
+    {
+        m_fnd_scenes_store_t *pdata = pargs;
 
-        case M_FND_SCENE_SERVER_DELETE:
+        cur_scene_num = pdata->scene_number;
         {
-            MESH_APP_PRINT_INFO("M_FND_SCENE_SERVER_DELETE\r\n");
-            m_fnd_scenes_delete_t *pdata = pargs;
             for (int i =0; i < M_FND_SCENES_STORE_MAX; i++)
             {
-                if (scene_num[i] == pdata->scene_number)
+                if ((scene_num[i] == 0 ) || (scene_num[i] == pdata->scene_number))
                 {
-                    scene_num[i] = 0;
+                    scene_num[i]    = pdata->scene_number;
                     break;
                 }
             }
-        } break;
+        }
 
-        case M_FND_SCENE_SERVER_GET_REGISTER:
+    }
+    break;
+
+    case M_FND_SCENE_SERVER_DELETE:
+    {
+        MESH_APP_PRINT_INFO("M_FND_SCENE_SERVER_DELETE\r\n");
+        m_fnd_scenes_delete_t *pdata = pargs;
+        for (int i =0; i < M_FND_SCENES_STORE_MAX; i++)
         {
-            MESH_APP_PRINT_INFO("M_FND_SCENE_SERVER_GET_REGISTER\r\n");
-            m_fnd_scene_server_get_register_t *pdata = pargs;
-            uint8_t j = 0;
-            for (int i =0; i < M_FND_SCENES_STORE_MAX; i++)
+            if (scene_num[i] == pdata->scene_number)
             {
-                if (scene_num[i] != 0)
-                {
-                    pdata->scenes[j++] =  scene_num[i];
-                }
+                scene_num[i] = 0;
+                break;
             }
-        } break;
-        default:break;
+        }
+    }
+    break;
+
+    case M_FND_SCENE_SERVER_GET_REGISTER:
+    {
+        MESH_APP_PRINT_INFO("M_FND_SCENE_SERVER_GET_REGISTER\r\n");
+        m_fnd_scene_server_get_register_t *pdata = pargs;
+        uint8_t j = 0;
+        for (int i =0; i < M_FND_SCENES_STORE_MAX; i++)
+        {
+            if (scene_num[i] != 0)
+            {
+                pdata->scenes[j++] =  scene_num[i];
+            }
+        }
+    }
+    break;
+    default:
+        break;
     }
 
     return 0;

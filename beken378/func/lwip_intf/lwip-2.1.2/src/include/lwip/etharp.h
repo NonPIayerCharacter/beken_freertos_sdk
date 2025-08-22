@@ -82,6 +82,7 @@ err_t etharp_output(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipadd
 err_t etharp_query(struct netif *netif, const ip4_addr_t *ipaddr, struct pbuf *q);
 err_t etharp_request(struct netif *netif, const ip4_addr_t *ipaddr);
 void etharp_reply(void);
+
 /** For Ethernet network interfaces, we might want to send "gratuitous ARP";
  *  this is an ARP packet sent by a node in order to spontaneously cause other
  *  nodes to update an entry in their ARP cache.

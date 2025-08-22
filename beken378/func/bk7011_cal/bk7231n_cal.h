@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _BK7231U_CAL_H_
 #define _BK7231U_CAL_H_
 
@@ -657,7 +671,7 @@ struct BK7011RCBEKEN_TypeDef
     volatile BK7011_RC_BEKEN_REG0x72_TypeDef *REG0x72;
     volatile BK7011_RC_BEKEN_REG0x73_TypeDef *REG0x73;
     volatile BK7011_RC_BEKEN_REG0x74_TypeDef *REG0x74;
-    volatile BK7011_RC_BEKEN_REG0x75_TypeDef *REG0x75; 
+    volatile BK7011_RC_BEKEN_REG0x75_TypeDef *REG0x75;
     volatile BK7011_RC_BEKEN_REG0x76_TypeDef *REG0x76;
     volatile BK7011_RC_BEKEN_REG0x77_TypeDef *REG0x77;
     #endif
@@ -727,7 +741,7 @@ typedef union
         volatile unsigned long tspi             : 8; //Reserved control bits;
     } bits;
     volatile unsigned int value;
-}BK7011_TRxV2A_REG0x0_TypeDef;
+} BK7011_TRxV2A_REG0x0_TypeDef;
 
 /// REG0x1
 typedef union
@@ -842,7 +856,7 @@ typedef union
     {
         volatile unsigned long vtsel            : 1; //temp_det output voltage slelction 0:high resolution/1:low resolution
         volatile unsigned long md_ten           : 1; //adc internal signal test enable
-        volatile unsigned long capcal_sel       : 1; //filter cap control selection, 1:from dig; 0 :from spi 
+        volatile unsigned long capcal_sel       : 1; //filter cap control selection, 1:from dig; 0 :from spi
         volatile unsigned long dpd_en           : 1; //dpd cal path enable
         volatile unsigned long lpfcapcalq50     : 6; //lpf Q path calibiration input (low 6bits)
         volatile unsigned long lpfcapcali50     : 6; //lpf I path calibiration input  (low 6bits)
@@ -859,7 +873,7 @@ typedef union
     {
         volatile unsigned long dig_dcoen        : 1; //dcoc input selection,1: digital   0: spi
         volatile unsigned long spilpfrxg30      : 4; //rxif  gain, 0000-1111 0dB  - 45dB step:3dB
-        volatile unsigned long autorxifgen      : 1; //rxif gain control selection, 1: auto control  0: spi 
+        volatile unsigned long autorxifgen      : 1; //rxif gain control selection, 1: auto control  0: spi
         volatile unsigned long dcoc_ctl         : 2; //dcoc gain contrl
         volatile unsigned long txgs             : 1; //txif gain option
         volatile unsigned long NC1              : 1;
@@ -1079,7 +1093,7 @@ typedef union
         volatile unsigned long sinad_hpf_coef   : 2; //HPF Coefficence for RX Siand Detect.  0x0: 1/8  0x1: 1/32;  0x2: 1/128; 0x3: 1/1024
         volatile unsigned long clkdac_inv       : 1; //DAC Clock Invert
         volatile unsigned long clkadc_inv       : 1; //ADC Clock Invert
-#if 0
+        #if 0
         volatile unsigned long NC3              : 11;
         volatile unsigned long sysldoen         : 1;
         volatile unsigned long sysldolp         : 1;
@@ -1425,7 +1439,7 @@ typedef struct
     INT32 grx_amp_err_wr;
     INT32 grx_phase_err_wr;
 
-#ifdef SCAN_IQ_FILTER_CORNER
+    #ifdef SCAN_IQ_FILTER_CORNER
     UINT32 g_sctrl_bias_reg;
     INT32  grx_avg_i_14M;
     INT32  grx_avg_i_14M2;
@@ -1433,7 +1447,7 @@ typedef struct
     INT32  grx_avg_q_14M2;
     INT32  index_test[5];
     float  float2_test[5];
-#endif
+    #endif
 
     INT32  rx_amp_err_rd;
     INT32  rx_phase_err_rd;

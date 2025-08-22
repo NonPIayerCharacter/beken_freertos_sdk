@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _SDIO_H_
 #define _SDIO_H_
 
@@ -50,16 +64,16 @@ typedef struct _sdio_dcmd
     UINT8 status;
 
     UINT16 data_len;
-#if FOR_SDIO_BLK_512
+    #if FOR_SDIO_BLK_512
     UINT16 start_len;
     UINT8 seq;
     UINT8 reserve;
     UINT16 total_size;
     UINT32 content[MAX_CONTENT_COUNT - 2];
-#else
+    #else
     UINT16 reserve;
     UINT32 content[MAX_CONTENT_COUNT - 1];
-#endif
+    #endif
 } SDIO_DCMD_S, *SDIO_DCMD_PTR;
 
 #define RX_NODE_OK                (0x1)
@@ -71,12 +85,12 @@ typedef struct _sdio_entity_
 {
     UINT16 rx_status;
     UINT16 tx_status;
-#if FOR_SDIO_BLK_512
+    #if FOR_SDIO_BLK_512
     UINT32 tc_len;
     UINT32 rc_len;
     UINT8 tx_seq;
     UINT8 rx_seq;
-#endif
+    #endif
     UINT32 rx_len;
     UINT32 tx_len;
     UINT32 r_hdl_len;

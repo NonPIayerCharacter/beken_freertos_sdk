@@ -36,6 +36,7 @@
 
 #include "hci.h"
 #include "kernel_msg.h"          // Kernel message definitions
+#include "controller_hci_driver.h"
 
 /*
  * DEFINES
@@ -470,7 +471,7 @@ uint16_t hci_fc_check_host_available_nb_acl_packets(void);
  */
 uint16_t hci_fc_check_host_available_nb_sync_packets(void);
 
-
+void hci_send_2_other_host_handler(void *param, controller_hci_driver_callbacks_t * hci_drv);
 #endif //HCI_PRESENT
 
 /// @} HCI

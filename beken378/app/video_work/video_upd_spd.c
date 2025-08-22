@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 
 #if (CFG_USE_APP_DEMO_VIDEO_TRANSFER)
@@ -22,11 +36,11 @@ extern uint32_t uap_ip_start_flag;
 
 static int vudp_sdp_generate_adv(char **adv_ptr, UINT32 *adv_length)
 {
-    #define ADV_ALLOC_LEN    (500)
+#define ADV_ALLOC_LEN    (500)
     UINT32 adv_len = ADV_ALLOC_LEN;
-    char *adv_temp = "{\"type\":\"0x%02x\",\"sta_ip\":\"%s\",\"ap_ip\":\"%s\",\"udp_port\":\"%d\",\"tcp_port\":\"%d\"}"; 
+    char *adv_temp = "{\"type\":\"0x%02x\",\"sta_ip\":\"%s\",\"ap_ip\":\"%s\",\"udp_port\":\"%d\",\"tcp_port\":\"%d\"}";
     char *adv_buf = os_malloc(adv_len);
-    
+
     if(adv_buf == NULL)
     {
         VUPD_SDP_FATAL("no memory\r\n");
@@ -34,31 +48,31 @@ static int vudp_sdp_generate_adv(char **adv_ptr, UINT32 *adv_length)
     }
     os_memset(adv_buf,0,adv_len);
 
-	if (uap_ip_start_flag == 1)
-		os_printf("%s, %d, ap mode\n", __func__, __LINE__);
-	else if (sta_ip_start_flag == 1)
-		os_printf("%s, %d, sta mode\n", __func__, __LINE__);
-	else
-		os_printf("%s, %d\n", __func__, __LINE__);
+    if (uap_ip_start_flag == 1)
+        os_printf("%s, %d, ap mode\n", __func__, __LINE__);
+    else if (sta_ip_start_flag == 1)
+        os_printf("%s, %d, sta mode\n", __func__, __LINE__);
+    else
+        os_printf("%s, %d\n", __func__, __LINE__);
 
     IPStatusTypedef ipStatus_ap, ipStatus_sta;
     os_memset(&ipStatus_ap, 0x0, sizeof(IPStatusTypedef));
     os_memset(&ipStatus_sta, 0x0, sizeof(IPStatusTypedef));
     bk_wlan_get_ip_status(&ipStatus_ap, BK_SOFT_AP);
     if (uap_ip_start_flag == 1)
-		bk_wlan_get_ip_status(&ipStatus_sta, BK_SOFT_AP);
+        bk_wlan_get_ip_status(&ipStatus_sta, BK_SOFT_AP);
     else
-		bk_wlan_get_ip_status(&ipStatus_sta, BK_STATION);
+        bk_wlan_get_ip_status(&ipStatus_sta, BK_STATION);
 
     UINT8 transfer_type = (APP_DEMO_CFG_USE_UDP << 1) + APP_DEMO_CFG_USE_TCP;
     transfer_type |= (0 << 3) | (1 << 2);  // bit3 sta mode,  bit2 softap_mode
-    sprintf(adv_buf, adv_temp, 
-        transfer_type,
-        ipStatus_ap.ip,
-        ipStatus_sta.ip,
-        
-        APP_DEMO_UDP_IMG_PORT,
-        APP_DEMO_TCP_SERVER_PORT);
+    sprintf(adv_buf, adv_temp,
+            transfer_type,
+            ipStatus_ap.ip,
+            ipStatus_sta.ip,
+
+            APP_DEMO_UDP_IMG_PORT,
+            APP_DEMO_TCP_SERVER_PORT);
 
     bk_printf("adv_data:%s,%d\r\n", adv_buf, strlen(adv_buf));
 
@@ -107,7 +121,7 @@ int vudp_sdp_start(void)
 
     os_free(spd.adv_buf);
     VUPD_SDP_PRT("done\r\n");
-    
+
     return 0;
 
 sdp_int_err:

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _CMD_EVM_H_
 #define _CMD_EVM_H_
 
@@ -20,6 +34,8 @@ extern int do_evm(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[]);
 #endif
 #define EVM_DEFUALT_RATE                       (54)
 #define EVM_DEFUALT_B_RATE                     (11)
+#define EVM_MIN_MCS_RATE                       (128)
+#define EVM_MAX_MCS_RATE                       (135) //MCS7
 #define EVM_DEFUALT_BLE_RATE                   (158)
 #define EVM_DEFUALT_CHANNEL                    (6)
 #define EVM_DEFUALT_BLE_CHANNEL                (2402)
@@ -31,6 +47,10 @@ extern int do_evm(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[]);
 #define EVM_DEFUALT_GI_TYPE                    (0)
 #define EVM_DEFUALT_SINGLE_CARRIER             (0)
 
+#define EVM_TEST_MODE_NONE                     (0)
+#define EVM_TEST_MODE_FCC                      (1)
+#define EVM_TEST_MODE_SRRC                     (2)
+#define EVM_TEST_MODE_CE                       (3)
 
 #define ENTRY_CMD_EVM               \
 	ENTRY_CMD(txevm,                          \

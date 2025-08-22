@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _COMM_TASK_H_
 #define _COMM_TASK_H_
 
@@ -14,9 +28,9 @@ struct bk_ble_enable_req
     uint8_t  conidx;
     ///  Configuration
     uint16_t  ind_cfg;
-    
-  	uint16_t  ntf_cfg;
-    
+
+    uint16_t  ntf_cfg;
+
 };
 
 struct bk_ble_enable_rsp
@@ -54,7 +68,7 @@ struct bk_ble_ind_upd_req
 
 
 struct bk_ble_write_ind
-{   
+{
     uint8_t conidx;
     uint16_t prf_id;
     uint16_t att_id;
@@ -77,7 +91,7 @@ struct bk_ble_gattc_cmp_evt
 
 enum bk_ble_msg_id
 {
-	BK_BLE_ENABLE_REQ  =  TASK_BLE_FIRST_MSG(TASK_BLE_ID_COMMON),
+    BK_BLE_ENABLE_REQ  =  TASK_BLE_FIRST_MSG(TASK_BLE_ID_COMMON),
     BK_BLE_ENABLE_RSP,
     BK_BLE_NTF_UPD_REQ,
     BK_BLE_IND_UPD_REQ,

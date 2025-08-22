@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -1115,27 +1129,27 @@ unsigned char gc2145_480p_fps(unsigned char fps)
 
     switch (fps)
     {
-        case 15:
-            for (i = 0; i < sizeof(sensor_gc2145_640_480_15fps_table) / sizeof(sensor_gc2145_640_480_15fps_table[0]); i++)
-            {
-                SCCB_Write(sensor_gc2145_640_480_15fps_table[i][0], sensor_gc2145_640_480_15fps_table[i][1]);
-            }
-            break;
-        case 20:
-            for (i = 0; i < sizeof(sensor_gc2145_640_480_20fps_table) / sizeof(sensor_gc2145_640_480_20fps_table[0]); i++)
-            {
-                SCCB_Write(sensor_gc2145_640_480_20fps_table[i][0], sensor_gc2145_640_480_20fps_table[i][1]);
-            }
-            break;
-        case 30:
-            for (i = 0; i < sizeof(sensor_gc2145_640_480_30fps_table) / sizeof(sensor_gc2145_640_480_30fps_table[0]); i++)
-            {
-                SCCB_Write(sensor_gc2145_640_480_30fps_table[i][0], sensor_gc2145_640_480_30fps_table[i][1]);
-            }
-            break;
-        default:
-            ret_fps = 15;
-            break;
+    case 15:
+        for (i = 0; i < sizeof(sensor_gc2145_640_480_15fps_table) / sizeof(sensor_gc2145_640_480_15fps_table[0]); i++)
+        {
+            SCCB_Write(sensor_gc2145_640_480_15fps_table[i][0], sensor_gc2145_640_480_15fps_table[i][1]);
+        }
+        break;
+    case 20:
+        for (i = 0; i < sizeof(sensor_gc2145_640_480_20fps_table) / sizeof(sensor_gc2145_640_480_20fps_table[0]); i++)
+        {
+            SCCB_Write(sensor_gc2145_640_480_20fps_table[i][0], sensor_gc2145_640_480_20fps_table[i][1]);
+        }
+        break;
+    case 30:
+        for (i = 0; i < sizeof(sensor_gc2145_640_480_30fps_table) / sizeof(sensor_gc2145_640_480_30fps_table[0]); i++)
+        {
+            SCCB_Write(sensor_gc2145_640_480_30fps_table[i][0], sensor_gc2145_640_480_30fps_table[i][1]);
+        }
+        break;
+    default:
+        ret_fps = 15;
+        break;
     }
     return ret_fps;
 }
@@ -1144,16 +1158,16 @@ unsigned char gc2145_fps(unsigned char fps)
 {
     switch (ppi_mode)
     {
-        case 1:
-            return gc2145_480p_fps(fps);
-            break;
-        case 2:
-            return gc2145_720p_fps(fps);
-            break;
+    case 1:
+        return gc2145_480p_fps(fps);
+        break;
+    case 2:
+        return gc2145_720p_fps(fps);
+        break;
 
-        default:
-            return gc2145_480p_fps(fps);
-            break;
+    default:
+        return gc2145_480p_fps(fps);
+        break;
     }
 }
 

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "sdio_pub.h"
@@ -93,59 +107,59 @@ rxed_exception:
 }
 void sdio_trans_evt(int dummy)
 {
-	SDIO_NODE_PTR mem_node_ptr;
-	STM32_FRAME_HDR *frm_hdr_ptr;
-	
-	mem_node_ptr = sdio_trans_get_node();
+    SDIO_NODE_PTR mem_node_ptr;
+    STM32_FRAME_HDR *frm_hdr_ptr;
 
-	while(mem_node_ptr)
-	{		
-		frm_hdr_ptr = (STM32_FRAME_HDR *)mem_node_ptr->addr;
+    mem_node_ptr = sdio_trans_get_node();
 
-        app_lwip_udp_send_packet(frm_hdr_ptr ,mem_node_ptr->length);
+    while(mem_node_ptr)
+    {
+        frm_hdr_ptr = (STM32_FRAME_HDR *)mem_node_ptr->addr;
+
+        app_lwip_udp_send_packet(frm_hdr_ptr,mem_node_ptr->length);
         os_printf("sdio recv len:%d\r\n",mem_node_ptr->length);
 
         sdio_trans_release_node(mem_node_ptr);
-        
-		mem_node_ptr = sdio_trans_get_node();
-	}
+
+        mem_node_ptr = sdio_trans_get_node();
+    }
 
     if(0 == mem_node_ptr)
     {
         ke_evt_clear(KE_EVT_SDIO_TRANS_DATA_BIT);
-    }    
-    
-	return;
+    }
+
+    return;
 }
 
 void sdio_trans_trigger_evt(void)
 {
-	ke_evt_set(KE_EVT_SDIO_TRANS_DATA_BIT);
+    ke_evt_set(KE_EVT_SDIO_TRANS_DATA_BIT);
 }
 void sdio_trans_close(void)
 {
     ddev_close(sdio_hdl);
 }
- int sdio_trans_init(void)
-{	
-	UINT32 ret;
-	UINT32 status;
+int sdio_trans_init(void)
+{
+    UINT32 ret;
+    UINT32 status;
 
-	ret = SDIO_TRANS_FAILURE;
+    ret = SDIO_TRANS_FAILURE;
 
-	sdio_hdl = ddev_open(SDIO_DEV_NAME, &status, 0);
-	if(DD_HANDLE_UNVALID == sdio_hdl)
-	{
-		goto init_exception;
-	}
-	
-	ddev_control(sdio_hdl, SDIO_CMD_REG_RX_CALLBACK, (void *)sdio_trans_trigger_evt);
+    sdio_hdl = ddev_open(SDIO_DEV_NAME, &status, 0);
+    if(DD_HANDLE_UNVALID == sdio_hdl)
+    {
+        goto init_exception;
+    }
 
-	SDIO_TRANS_PRT("sdio_intf_init\r\n");
-	ret = SDIO_TRANS_SUCCESS;
-    
-init_exception:	
-	return ret;
+    ddev_control(sdio_hdl, SDIO_CMD_REG_RX_CALLBACK, (void *)sdio_trans_trigger_evt);
+
+    SDIO_TRANS_PRT("sdio_intf_init\r\n");
+    ret = SDIO_TRANS_SUCCESS;
+
+init_exception:
+    return ret;
 }
 
 #endif

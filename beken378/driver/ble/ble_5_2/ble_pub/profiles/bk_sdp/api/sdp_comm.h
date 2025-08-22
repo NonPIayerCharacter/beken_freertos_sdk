@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _SDP_COMM_H_
 #define _SDP_COMM_H_
 
@@ -29,31 +43,31 @@
 
 struct db
 {
-	struct bk_prf_svc svc;
-	uint8_t chars_nb;
-	struct bk_prf_char_def *chars;
-	uint8_t descs_nb;
-	struct bk_prf_desc_def *descs;
+    struct bk_prf_svc svc;
+    uint8_t chars_nb;
+    struct bk_prf_char_def *chars;
+    uint8_t descs_nb;
+    struct bk_prf_desc_def *descs;
 };
 
 struct sdp_db
 {
-	struct common_list_hdr hdr;
-	struct db svr;
+    struct common_list_hdr hdr;
+    struct db svr;
 };
 
 struct sdp_env_tag
 {
-	///Connection index
-	uint8_t con_idx;
-	/// GATT User local identifier
-	uint8_t user_lib;
-	///mtu size
-	uint16_t mtu;
-	/// server list
-	struct common_list svr_list;
-	/// State of db
-	kernel_state_t state;
+    ///Connection index
+    uint8_t con_idx;
+    /// GATT User local identifier
+    uint8_t user_lib;
+    ///mtu size
+    uint16_t mtu;
+    /// server list
+    struct common_list svr_list;
+    /// State of db
+    kernel_state_t state;
 };
 
 extern void sdp_common_init(void);

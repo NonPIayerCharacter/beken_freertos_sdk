@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "sys_rtos.h"
 #include "rtos_pub.h"
 #include "error.h"
@@ -100,15 +114,15 @@ void usb_charge_start(CHARGE_STEP step, UINT32 charge_elect)
     CHARGE_TYPE type;
     UINT8 cali_result[4];
 
-#if (CFG_CHARGE_MODE == CHARGE_INTERNAL_HW_MODE)
+    #if (CFG_CHARGE_MODE == CHARGE_INTERNAL_HW_MODE)
     type = INTERNAL_HW_MODE;
-#elif (CFG_CHARGE_MODE == CHARGE_INTERNAL_SW_MODE)
+    #elif (CFG_CHARGE_MODE == CHARGE_INTERNAL_SW_MODE)
     type = INTERNAL_SW_MODE;
-#elif (CFG_CHARGE_MODE == CHARGE_EXTERNAL_HW_MODE)
+    #elif (CFG_CHARGE_MODE == CHARGE_EXTERNAL_HW_MODE)
     type = EXTERNAL_HW_MODE;
-#elif (CFG_CHARGE_MODE == CHARGE_EXTERNAL_SW_MODE)
+    #elif (CFG_CHARGE_MODE == CHARGE_EXTERNAL_SW_MODE)
     type = EXTERNAL_SW_MODE;
-#endif
+    #endif
 
     charge_cfg.step = step;
     if(step == STEP_STOP)
@@ -121,11 +135,11 @@ void usb_charge_start(CHARGE_STEP step, UINT32 charge_elect)
         usb_charge_set_charge_default_reg();
     }
 
-#if (CHARGE_CAL_POS == CHARGE_CAL_EFUSE)
+    #if (CHARGE_CAL_POS == CHARGE_CAL_EFUSE)
     if(!wifi_get_charge_cal_from_efuse((UINT8 *)cali_result))
-#elif (CHARGE_CAL_POS == CHARGE_CAL_ITEM)
+    #elif (CHARGE_CAL_POS == CHARGE_CAL_ITEM)
     if(!get_info_item(CHARGE_CONFIG_ITEM, (UINT8 *)cali_result, NULL, NULL))
-#endif
+    #endif
     {
         os_printf("load charge param from %d error.\r\n", CHARGE_CAL_POS);
     }
@@ -138,9 +152,9 @@ void usb_charge_start(CHARGE_STEP step, UINT32 charge_elect)
     charge_cfg.cal[2] = cali_result[1];
 
     charge_cfg.type = type;
-#if (CFG_CHARGE_MODE == CHARGE_EXTERNAL_SW_MODE || CFG_CHARGE_MODE == CHARGE_INTERNAL_SW_MODE )
+    #if (CFG_CHARGE_MODE == CHARGE_EXTERNAL_SW_MODE || CFG_CHARGE_MODE == CHARGE_INTERNAL_SW_MODE )
     charge_cfg.elect = charge_elect;
-#endif
+    #endif
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_USB_CHARGE_START, (void *)&charge_cfg);
 }
 
@@ -193,11 +207,11 @@ void usb_charge_internal_hw_check(void)
         if(charger_is_full())
         {
             os_printf("OK,charger_full\r\n");
-#if CFG_FULL_ACTION_STOP
+            #if CFG_FULL_ACTION_STOP
             step = STEP_STOP;
-#else
+            #else
             return;
-#endif
+            #endif
         }
         break;
 
@@ -304,11 +318,11 @@ void usb_charge_internal_sw_check(void)
             else
             {
                 os_printf("OK,charger_full\r\n");
-#if CFG_FULL_ACTION_STOP
+                #if CFG_FULL_ACTION_STOP
                 step = STEP_STOP;
-#else
+                #else
                 return;
-#endif
+                #endif
             }
         }
         else
@@ -388,11 +402,11 @@ void usb_charge_external_hw_check(void)
         if(charger_is_full())
         {
             os_printf("OK,charger_full\r\n");
-#if CFG_FULL_ACTION_STOP
+            #if CFG_FULL_ACTION_STOP
             step = STEP_STOP;
-#else
+            #else
             return;
-#endif
+            #endif
         }
 
         if (vol < 4160)
@@ -547,11 +561,11 @@ void usb_charge_external_sw_check(void)
             else
             {
                 os_printf("OK,charger_full\r\n");
-#if CFG_FULL_ACTION_STOP
+                #if CFG_FULL_ACTION_STOP
                 step = STEP_STOP;
-#else
+                #else
                 return;
-#endif
+                #endif
             }
         }
         else
@@ -738,21 +752,21 @@ void usb_plug_func_handler(void *usr_data, UINT32 event)
     switch(event)
     {
     case USB_PLUG_IN_EVENT:
-#if CFG_USE_USB_CHARGE
+        #if CFG_USE_USB_CHARGE
         if(charge_func_init && usb_power_is_pluged())
         {
             usb_charge_start(STEP_START, 0);
         }
-#endif
+        #endif
         break;
 
     case USB_PLUG_OUT_EVENT:
-#if CFG_USE_USB_CHARGE
+        #if CFG_USE_USB_CHARGE
         if(charge_func_init)
         {
             usb_charge_stop();
         }
-#endif
+        #endif
         break;
 
     case USB_PLUG_NO_EVENT:
@@ -771,9 +785,9 @@ void usb_plug_func_open(void)
     DD_HANDLE usb_plug_hdl;
     UINT32 status;
     USB_PLUG_INOUT_ST user_plug;
-#if CFG_USE_USB_CHARGE
+    #if CFG_USE_USB_CHARGE
     UINT8 cali_result[4] = {0};
-#endif
+    #endif
 
     user_plug.handler = usb_plug_func_handler;
     user_plug.usr_data = 0;
@@ -784,14 +798,14 @@ void usb_plug_func_open(void)
         return;
     }
 
-#if CFG_USE_USB_CHARGE
+    #if CFG_USE_USB_CHARGE
     charge_func_init = 1;
 
-#if (CHARGE_CAL_POS == CHARGE_CAL_EFUSE)
+    #if (CHARGE_CAL_POS == CHARGE_CAL_EFUSE)
     if(!wifi_get_charge_cal_from_efuse((UINT8 *)cali_result))
-#elif (CHARGE_CAL_POS == CHARGE_CAL_ITEM)
+    #elif (CHARGE_CAL_POS == CHARGE_CAL_ITEM)
     if(!get_info_item(CHARGE_CONFIG_ITEM, (UINT8 *)cali_result, NULL, NULL))
-#endif
+    #endif
     {
         os_printf("load charge param from %d error.\r\n", CHARGE_CAL_POS);
     }
@@ -804,7 +818,7 @@ void usb_plug_func_open(void)
     dvbatref = (signed long)(cali_result[3]) + 0xDA0;
     os_printf("adc_cal value CodeOffset:%x dvbatref:%x\r\n", CodeOffset, dvbatref);
 
-#endif
+    #endif
 }
 
 
@@ -812,11 +826,11 @@ void usb_plug_func_open(void)
 
 void rt_user_idle_hook(void)
 {
-#if CFG_USE_USB_CHARGE
-#if (CFG_SOC_NAME == SOC_BK7221U)
+    #if CFG_USE_USB_CHARGE
+    #if (CFG_SOC_NAME == SOC_BK7221U)
     usb_charge_check_cb();
-#endif
-#endif
+    #endif
+    #endif
 }
 
 

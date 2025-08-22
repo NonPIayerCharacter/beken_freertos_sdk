@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -15,6 +29,7 @@
 #include "error.h"
 #include "rtos_pub.h"
 
+#if ((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7221U))
 #if ((CFG_USE_SPI_SLAVE) && (CFG_USE_SPI))
 
 #define SPI_SLAVE_RX_FIFO_LEN      (512)
@@ -35,7 +50,7 @@ struct bk_spi_slave_dev
     beken_semaphore_t tx_sem;
     UINT8 *tx_ptr;
     UINT32 tx_len;
-    
+
     beken_semaphore_t rx_sem;
     struct spi_rx_fifo *rx_fifo;
 
@@ -50,14 +65,14 @@ static UINT32 bk_spi_slave_get_rx_fifo(void)
     UINT32 rx_length;
     struct spi_rx_fifo* rx_fifo = spi_slave_dev->rx_fifo;
     GLOBAL_INT_DECLARATION();
-    
+
     /* get rx length */
     GLOBAL_INT_DISABLE();
-    
-    rx_length = (rx_fifo->put_index >= rx_fifo->get_index)? 
-        (rx_fifo->put_index - rx_fifo->get_index) :
-        (SPI_SLAVE_RX_FIFO_LEN - (rx_fifo->get_index - rx_fifo->put_index));
-        
+
+    rx_length = (rx_fifo->put_index >= rx_fifo->get_index)?
+                (rx_fifo->put_index - rx_fifo->get_index) :
+                (SPI_SLAVE_RX_FIFO_LEN - (rx_fifo->get_index - rx_fifo->put_index));
+
     GLOBAL_INT_RESTORE();
 
     return rx_length;
@@ -67,10 +82,10 @@ static void bk_spi_slave_spi_rx_callback(int is_rx_end, void *param)
 {
     UINT8 ch;
     struct spi_rx_fifo *rx_fifo;
-    
+
     rx_fifo = (struct spi_rx_fifo*)spi_slave_dev->rx_fifo;
     ASSERT(rx_fifo != NULL);
-    
+
     while (1)
     {
         if(spi_read_rxfifo(&ch) == 0)
@@ -78,21 +93,21 @@ static void bk_spi_slave_spi_rx_callback(int is_rx_end, void *param)
 
         rx_fifo->buffer[rx_fifo->put_index] = ch;
         rx_fifo->put_index += 1;
-        if (rx_fifo->put_index >= SPI_SLAVE_RX_FIFO_LEN) 
+        if (rx_fifo->put_index >= SPI_SLAVE_RX_FIFO_LEN)
             rx_fifo->put_index = 0;
 
         if (rx_fifo->put_index == rx_fifo->get_index)
         {
             rx_fifo->get_index += 1;
             rx_fifo->is_full = true;
-            if (rx_fifo->get_index >= SPI_SLAVE_RX_FIFO_LEN) 
+            if (rx_fifo->get_index >= SPI_SLAVE_RX_FIFO_LEN)
                 rx_fifo->get_index = 0;
         }
 
         if(spi_slave_dev->tx_ptr == NULL)
             spi_write_txfifo(0xFF);
     }
-   
+
     if(is_rx_end)
     {
         // only rx end happened, wake up rx_semp
@@ -101,7 +116,7 @@ static void bk_spi_slave_spi_rx_callback(int is_rx_end, void *param)
 }
 
 static int bk_spi_slave_get_rx_data(UINT8 *rx_buf, int len)
-{ 
+{
     struct spi_rx_fifo *rx_fifo;
     rx_fifo = (struct spi_rx_fifo *)spi_slave_dev->rx_fifo;
     int size = len;
@@ -111,18 +126,18 @@ static int bk_spi_slave_get_rx_data(UINT8 *rx_buf, int len)
     if(rx_buf == NULL)
         return 0;
 
-    //os_printf("%d %d %d\r\n", _spi_get_rx_fifo(), 
+    //os_printf("%d %d %d\r\n", _spi_get_rx_fifo(),
     //    rx_fifo->get_index, rx_fifo->put_index);
-    
-    while (size) 
-    {    
+
+    while (size)
+    {
         uint8_t ch;
         GLOBAL_INT_DECLARATION();
 
         GLOBAL_INT_DISABLE();
 
-        if ((rx_fifo->get_index == rx_fifo->put_index) 
-            && (rx_fifo->is_full == false))
+        if ((rx_fifo->get_index == rx_fifo->put_index)
+                && (rx_fifo->is_full == false))
         {
             GLOBAL_INT_RESTORE();
             break;
@@ -130,7 +145,7 @@ static int bk_spi_slave_get_rx_data(UINT8 *rx_buf, int len)
 
         ch = rx_fifo->buffer[rx_fifo->get_index];
         rx_fifo->get_index += 1;
-        if (rx_fifo->get_index >= SPI_SLAVE_RX_FIFO_LEN) 
+        if (rx_fifo->get_index >= SPI_SLAVE_RX_FIFO_LEN)
             rx_fifo->get_index = 0;
 
         if (rx_fifo->is_full == true)
@@ -141,10 +156,10 @@ static int bk_spi_slave_get_rx_data(UINT8 *rx_buf, int len)
         GLOBAL_INT_RESTORE();
 
         *rx_buf = ch & 0xff;
-        rx_buf ++; 
+        rx_buf ++;
         size --;
     }
-    
+
     return (len - size);
 }
 
@@ -153,17 +168,17 @@ static void bk_spi_slave_tx_needwrite_callback(int port, void *param)
     UINT8 *tx_ptr = spi_slave_dev->tx_ptr;
     UINT32 tx_len = spi_slave_dev->tx_len;
     GLOBAL_INT_DECLARATION();
-    
-    if(tx_ptr && tx_len) 
+
+    if(tx_ptr && tx_len)
     {
         UINT8 data = *tx_ptr;
-        
+
         while(spi_write_txfifo(data) == 1)
         {
             spi_read_rxfifo(&data);
             tx_len --;
             tx_ptr ++;
-            if(tx_len == 0) 
+            if(tx_len == 0)
             {
                 UINT32 enable = 0;
                 sddev_control(SPI_DEV_NAME, CMD_SPI_TXINT_EN, (void *)&enable);
@@ -171,7 +186,7 @@ static void bk_spi_slave_tx_needwrite_callback(int port, void *param)
             }
             data = *tx_ptr;
         }
-    } 
+    }
     else
     {
         //rt_kprintf("nw:%p,%d\r\n", tx_ptr, tx_len);
@@ -181,8 +196,8 @@ static void bk_spi_slave_tx_needwrite_callback(int port, void *param)
             {
                 tx_len--;
             }
-            
-            if(tx_len == 0) 
+
+            if(tx_len == 0)
             {
                 UINT32 enable = 0;
                 sddev_control(SPI_DEV_NAME, CMD_SPI_TXINT_EN, (void *)&enable);
@@ -195,7 +210,7 @@ static void bk_spi_slave_tx_needwrite_callback(int port, void *param)
     spi_slave_dev->tx_ptr = tx_ptr;
     spi_slave_dev->tx_len = tx_len;
     GLOBAL_INT_RESTORE();
-    
+
 }
 
 static void bk_spi_slave_tx_finish_callback(int port, void *param)
@@ -232,7 +247,7 @@ static void bk_spi_slave_configure(UINT32 rate, UINT32 mode)
     {
         param = 0;
     }
-        sddev_control(SPI_DEV_NAME, CMD_SPI_SET_CKPOL, (void *)&param);
+    sddev_control(SPI_DEV_NAME, CMD_SPI_SET_CKPOL, (void *)&param);
 
     /* CPHA */
     if (mode & BK_SPI_CPHA)
@@ -243,7 +258,7 @@ static void bk_spi_slave_configure(UINT32 rate, UINT32 mode)
     {
         param = 0;
     }
-        sddev_control(SPI_DEV_NAME, CMD_SPI_SET_CKPHA, (void *)&param);
+    sddev_control(SPI_DEV_NAME, CMD_SPI_SET_CKPHA, (void *)&param);
 
     /* slave */
     param = 0;
@@ -299,7 +314,7 @@ int bk_spi_slave_xfer(struct spi_message *msg)
     send_ptr = msg->send_buf;
     send_len = msg->send_len;
 
-    if((send_ptr) && send_len) 
+    if((send_ptr) && send_len)
     {
         GLOBAL_INT_DISABLE();
         spi_slave_dev->tx_ptr = (UINT8 *)send_ptr;
@@ -321,11 +336,11 @@ int bk_spi_slave_xfer(struct spi_message *msg)
         spi_slave_dev->tx_len = 0;
         spi_slave_dev->flag |= TX_FINISH_FLAG;
         GLOBAL_INT_RESTORE();
-        
+
         //BK_SPI_PRT("1 %p-%d\r\n", send_ptr, send_len);
         param = send_len;
-    } 
-    else if((recv_ptr) && recv_len) 
+    }
+    else if((recv_ptr) && recv_len)
     {
         OSStatus err;
         int len;
@@ -350,7 +365,7 @@ int bk_spi_slave_xfer(struct spi_message *msg)
 
         param = 0;
         sddev_control(SPI_DEV_NAME, CMD_SPI_TXINT_EN, (void *)&param);
-        
+
         // clear all rx semp for this time
         do {
             err = rtos_get_semaphore(&spi_slave_dev->rx_sem, 0);
@@ -402,17 +417,17 @@ int bk_spi_slave_init(UINT32 rate,  UINT32 mode)
         BK_SPI_PRT("[spi]: spi mutex init failed\n");
         goto _exit;
     }
-    
+
     struct spi_rx_fifo* rx_fifo;
 
     rx_fifo = (struct spi_rx_fifo*)os_malloc(sizeof(struct spi_rx_fifo) +
-        SPI_SLAVE_RX_FIFO_LEN);
+              SPI_SLAVE_RX_FIFO_LEN);
     if(!rx_fifo)
     {
         BK_SPI_PRT("[spi]: spi rx fifo malloc failed\n");
         goto _exit;
     }
-    
+
     rx_fifo->buffer = (uint8_t*) (rx_fifo + 1);
     os_memset(rx_fifo->buffer, 0, SPI_SLAVE_RX_FIFO_LEN);
     rx_fifo->put_index = 0;
@@ -424,15 +439,15 @@ int bk_spi_slave_init(UINT32 rate,  UINT32 mode)
     spi_slave_dev->tx_ptr = NULL;
     spi_slave_dev->tx_len = 0;
     spi_slave_dev->flag |= TX_FINISH_FLAG;
-    
+
     bk_spi_slave_configure(rate,  mode);
-    
+
     return 0;
 
 _exit:
     if(spi_slave_dev->mutex)
         rtos_deinit_mutex(&spi_slave_dev->mutex);
-    
+
     if(spi_slave_dev->tx_sem)
         rtos_deinit_semaphore(&spi_slave_dev->tx_sem);
 
@@ -441,7 +456,7 @@ _exit:
 
     if(spi_slave_dev->rx_fifo)
         os_free(spi_slave_dev->rx_fifo);
-    
+
     if (spi_slave_dev)
     {
         os_free(spi_slave_dev);
@@ -463,7 +478,7 @@ int bk_spi_slave_deinit(void)
 
     if(spi_slave_dev->mutex)
         rtos_lock_mutex(&spi_slave_dev->mutex);
-    
+
     if(spi_slave_dev->tx_sem)
         rtos_deinit_semaphore(&spi_slave_dev->tx_sem);
 
@@ -473,12 +488,12 @@ int bk_spi_slave_deinit(void)
     if(spi_slave_dev->rx_fifo)
         os_free(spi_slave_dev->rx_fifo);
 
-    if(spi_slave_dev->mutex) 
+    if(spi_slave_dev->mutex)
     {
         rtos_unlock_mutex(&spi_slave_dev->mutex);
         rtos_deinit_mutex(&spi_slave_dev->mutex);
     }
-    
+
     os_free(spi_slave_dev);
     spi_slave_dev = NULL;
 
@@ -487,7 +502,7 @@ int bk_spi_slave_deinit(void)
 
 #if (CFG_SUPPORT_RTT) && (CFG_SOC_NAME == SOC_BK7221U)
 static rt_err_t rt_spi_slave_init(rt_device_t dev)
-{   
+{
     bk_spi_slave_init(SPI_DEF_CLK_HZ, SPI_DEF_MODE);
 
     return RT_EOK;
@@ -525,7 +540,7 @@ static rt_size_t rt_spi_slave_read(rt_device_t dev, rt_off_t pos,
     return ret;
 }
 static rt_size_t rt_spi_slave_write(rt_device_t dev, rt_off_t pos,
-                                   const void *buffer, rt_size_t size)
+                                    const void *buffer, rt_size_t size)
 {
     int ret;
     struct spi_message msg;
@@ -570,20 +585,20 @@ int rt_spi_slave_hw_init(void)
     device->tx_complete = RT_NULL;
     device->user_data   = RT_NULL;
 
-#ifdef RT_USING_DEVICE_OPS
+    #ifdef RT_USING_DEVICE_OPS
     device->ops = &spi_slave_ops;
-#else
+    #else
     device->control = NULL;
     device->init    = rt_spi_flash_init;
     device->open    = rt_spi_flash_open;
     device->close   = rt_spi_flash_close;
     device->read    = rt_spi_flash_read;
     device->write   = rt_spi_flash_write;
-#endif /* RT_USING_DEVICE_OPS */
+    #endif /* RT_USING_DEVICE_OPS */
 
     /* register the device */
-    rt_device_register(device, "spislave", 
-        RT_DEVICE_FLAG_STANDALONE | RT_DEVICE_FLAG_RDWR);
+    rt_device_register(device, "spislave",
+                       RT_DEVICE_FLAG_STANDALONE | RT_DEVICE_FLAG_RDWR);
 
     //rt_device_init(device);
 
@@ -594,7 +609,7 @@ INIT_DEVICE_EXPORT(rt_spi_slave_hw_init);
 void spi_slave_test(void *parameter)
 {
     struct rt_device *slave;
-    
+
     slave = rt_device_find("spislave");
     if (slave== NULL)
     {
@@ -612,34 +627,34 @@ void spi_slave_test(void *parameter)
         return;
     }
 
-	while(1)
-	{
-		uint8_t buffer[32];
-		int i;
+    while(1)
+    {
+        uint8_t buffer[32];
+        int i;
 
         rtos_delay_milliseconds(10000);
-        
-		os_printf("[spislave]: spislave test begin\n");
-		for(i = 0; i < sizeof(buffer); i++)
-		{
-			buffer[i] = (uint8_t)i;
-		}
+
+        os_printf("[spislave]: spislave test begin\n");
+        for(i = 0; i < sizeof(buffer); i++)
+        {
+            buffer[i] = (uint8_t)i;
+        }
 
         //rt_device_write(slave, 0, buffer, sizeof(buffer));
 
         #if 1
-		os_memset(buffer, 0, sizeof(buffer));
+        os_memset(buffer, 0, sizeof(buffer));
         rt_device_read(slave, 0, buffer, sizeof(buffer));
 
-		for(i = 0; i < 32; i++)
-		{
-		    os_printf("[%02d]: %02x - %02x\n", i, (uint8_t)i, buffer[i]);
-		}
+        for(i = 0; i < 32; i++)
+        {
+            os_printf("[%02d]: %02x - %02x\n", i, (uint8_t)i, buffer[i]);
+        }
         #endif
-        
-		os_printf("[spislave]: spislave test end\n");
-		// while(1);
-	}
+
+        os_printf("[spislave]: spislave test end\n");
+        // while(1);
+    }
 }
 
 int spi_slave_samples(int argc, char *argv)
@@ -664,4 +679,5 @@ FINSH_FUNCTION_EXPORT_ALIAS(spi_slave_samples, __cmd_spi_slave_samples, spi slav
 
 
 #endif  // CFG_USE_SPI_MASTER
+#endif  // ((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7221U))
 

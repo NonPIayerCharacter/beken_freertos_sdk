@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _DEMO_CONFIG_H_
 #define _DEMO_CONFIG_H_
 
@@ -37,36 +51,36 @@
 #define THROUGHPUT_DEMO                  0
 
 #if ((HELLOWORLD_DEMO\
-		+ OS_THREAD_DEMO\
-		+ OS_SEM_DEMO\
-		+ OS_QUEUE_DEMO\
-		+ OS_TIMER_DEMO\
-		+ OS_MUTEX_DEMO\
-		+ WIFI_SCAN_DEMO\
-		+ WIFI_SOFTAP_DEMO\
-		+ WIFI_DELETE_SOFTAP_DEMO\
-		+ WIFI_STATION_DEMO\
-		+ WIFI_AIRKISS_STATION_DEMO\
-		+ TCP_SERVER_DEMO\
-		+ UART_TCP_SERVER_DEMO\
-		+ UDP_SERVER_DEMO\
-		+ UDP_CLIENT_DEMO\
-		+ MQTT_CLIENT_DEMO\
-		+ CJSON_TEST_DEMO\
-		+ LIGHT_SERVER_APPLICATION\
-		+ AP_STA_DEMO\
-		+ EASY_FLASH_DEMO\
-		+ LIGHT_CLIENT_APP_DEMO\
-		+ WIFI_STATION_PS_DEMO\
-		+ EDDYSTONE_DEMO\
-		+ THROUGHPUT_DEMO) > 1)
++ OS_THREAD_DEMO\
+    + OS_SEM_DEMO\
+    + OS_QUEUE_DEMO\
+    + OS_TIMER_DEMO\
+    + OS_MUTEX_DEMO\
+    + WIFI_SCAN_DEMO\
+    + WIFI_SOFTAP_DEMO\
+    + WIFI_DELETE_SOFTAP_DEMO\
+    + WIFI_STATION_DEMO\
+    + WIFI_AIRKISS_STATION_DEMO\
+    + TCP_SERVER_DEMO\
+    + UART_TCP_SERVER_DEMO\
+    + UDP_SERVER_DEMO\
+    + UDP_CLIENT_DEMO\
+    + MQTT_CLIENT_DEMO\
+    + CJSON_TEST_DEMO\
+    + LIGHT_SERVER_APPLICATION\
+    + AP_STA_DEMO\
+    + EASY_FLASH_DEMO\
+    + LIGHT_CLIENT_APP_DEMO\
+    + WIFI_STATION_PS_DEMO\
+    + EDDYSTONE_DEMO\
+    + THROUGHPUT_DEMO) > 1)
 
 #error Only one demo case can be tested, thanks!!!
 #endif
 
-#if CJSON_TEST_DEMO
+    #if CJSON_TEST_DEMO
 #define _CJSON_USE_           1
-#endif
+    #endif
 
 #endif /*_DEMO_CONFIG_H_*/
 // EOF

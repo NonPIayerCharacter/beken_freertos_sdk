@@ -59,6 +59,7 @@ src += ["app/net_work/video_demo_main.c"]
 src += ["app/net_work/video_demo_station.c"]
 src += ["app/net_work/video_demo_softap.c"]
 src += ["app/net_work/video_demo_p2p.c"]
+src += ["app/net_work/video_demo_co_ap_p2p.c"]
 src += ["app/http/utils_httpc.c"]
 src += ["app/http/utils_net.c"]
 src += ["app/http/utils_timer.c"]
@@ -71,7 +72,7 @@ if (GetLocalDepend(options, 'CFG_LOW_VOLTAGE_PS') == 1):
 	src += ["func/power_save/low_voltage_ps.c"]
 	src += ["func/power_save/low_voltage_compensation.c"]
 
-if (0 == string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7271')):
+if "SOC_BK7271" in GetLocalDepend(options, 'CFG_SOC_NAME'):
 	src += ["driver/i2c/i2c1_bk7271.c"]
 	src += ["driver/mailbox/mailbox.c"]
 	src += ["driver/gpio/gpio_bk7271.c"]
@@ -82,8 +83,13 @@ if (0 == string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7271')):
 	src += ["driver/pwm/timer_bk7271.c"]
 else:
 	src += ["driver/spi/spi.c"]
+	src += ["driver/spi/spi_bk7231n.c"]
 	src += ["driver/spi/spi_master.c"]
 	src += ["driver/spi/spi_slave.c"]
+	src += ["driver/spi/spi_master_bk7231n.c"]
+	src += ["driver/spi/spi_slave_bk7231n.c"]
+	src += ["driver/spi/spi_master_dma_bk7231n.c"]
+	src += ["driver/spi/spi_slave_dma_bk7231n.c"]
 	src += ["driver/pwm/pwm.c"]
 	src += ["driver/pwm/pwm_bk7231n.c"]
 	src += ["driver/gpio/gpio.c"]
@@ -100,6 +106,7 @@ src += ["func/net_param_intf/net_param.c"]
 src += ["func/misc/pseudo_random.c"]
 src += ["func/misc/start_type.c"]
 src += ["func/misc/flash_bypass.c"]
+src += ["func/misc/mem_check.c"]
 src += ["func/joint_up/role_launch.c"]
 src += ["func/ble_wifi_exchange/ble_wifi_port.c"]
 src += ["func/bk7011_cal/bk_cal_pub.c"]
@@ -284,14 +291,14 @@ if (GetLocalDepend(options, 'CFG_WPA3') == 1):
 if (GetLocalDepend(options, 'CFG_WRAP_LIBC') == 1):
     path += [cwd + '/func/libc']
 
-soc_bk7231n = string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7231N')
-soc_bk7238 = string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7238')
-soc_bk7252n = string.find(GetLocalDepend(options, 'CFG_SOC_NAME'), 'SOC_BK7252N')
-if (0 == soc_bk7231n) or (0 == soc_bk7238):
+soc_bk7231n = "SOC_BK7231N" in GetLocalDepend(options, 'CFG_SOC_NAME')
+soc_bk7238 = "SOC_BK7238" in GetLocalDepend(options, 'CFG_SOC_NAME')
+soc_bk7252n = "SOC_BK7252N" in GetLocalDepend(options, 'CFG_SOC_NAME')
+if soc_bk7231n or soc_bk7238:
     src += ["driver/calendar/calendar.c"]
     path += [cwd + '/driver/calendar']
 
-if (0 == soc_bk7252n):
+if soc_bk7252n:
     src += ["driver/rtc/rtc_reg.c"]
     path += [cwd + '/driver/rtc']
     src += ["driver/charge/charge.c"]
@@ -328,6 +335,7 @@ if (0 == soc_bk7252n):
     path += [cwd + '/driver/sd_io/include']
     path += [cwd + '/driver/sd_io/sdio_host']
     path += [cwd + '/driver/sd_io/v2p0']
+    src += ["func/user_driver/BkDriverQspi.c"]
 else:
     path += [cwd + '/driver/irda']
     src += ["driver/irda/irda.c"]

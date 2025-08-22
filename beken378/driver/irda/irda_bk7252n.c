@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -457,7 +471,7 @@ void irda_test(UINT8 pPara)
     UINT8 id = pPara;
     UINT8 i;
     UINT8 tx_num, rx_num;
-    UINT16 send_para[]={1023,0,1023,0,1023,0};
+    UINT16 send_para[]= {1023,0,1023,0,1023,0};
     UINT16* p_send_para;
     irda_set_tx_initial_level(0);
     irda_set_rx_initial_level(0);
@@ -467,7 +481,7 @@ void irda_test(UINT8 pPara)
         irda_tx_initial();
         tx_num = sizeof(send_para)/sizeof(UINT16);
         p_send_para = send_para;
-        for (i=0; i<tx_num;i++)
+        for (i=0; i<tx_num; i++)
         {
             irda_set_fifo_data_tx(p_send_para[i]);
         }
@@ -519,7 +533,7 @@ static void trng_active(UINT8 enable)
 void trng_read_delay(UINT32 time)
 {
     volatile UINT32 i = 0;
-    for( i=0; i<time; i++){
+    for( i=0; i<time; i++) {
         ;
     }
 }
@@ -540,7 +554,7 @@ static UINT32 trng_get_random(void)
         */
     #if CONFIG_TRNG_DELAY_ONCE
     static bool random_delay_flag = false;
-    if(random_delay_flag == false){
+    if(random_delay_flag == false) {
         rtos_delay_milliseconds(1);
         random_delay_flag = true;
     }
@@ -560,18 +574,18 @@ static UINT32 irda_ctrl(UINT32 cmd, void *param)
 
     switch(cmd)
     {
-        case IRDA_CMD_ACTIVE:
-            irda_active(*(UINT8 *)param);
-            break;
-        case IRDA_CMD_SET_CLK:
-            irda_set_clk(*(UINT16 *)param);
-            break;
-        case TRNG_CMD_GET:
-            *(UINT32 *)param = trng_get_random();
-            break;
-        default:
-            ret = IRDA_FAILURE;
-            break;
+    case IRDA_CMD_ACTIVE:
+        irda_active(*(UINT8 *)param);
+        break;
+    case IRDA_CMD_SET_CLK:
+        irda_set_clk(*(UINT16 *)param);
+        break;
+    case TRNG_CMD_GET:
+        *(UINT32 *)param = trng_get_random();
+        break;
+    default:
+        ret = IRDA_FAILURE;
+        break;
     }
 
     return ret;
@@ -584,13 +598,13 @@ void irda_init(void)
 
     irda_active(1);
 
-#if CONFIG_TRNG_PATCH
+    #if CONFIG_TRNG_PATCH
     uint32_t discard_cnt = 4, i;
     for(i = 0; i < discard_cnt; i ++)
     {
         trng_get_random();
     }
-#endif
+    #endif
 }
 
 void irda_exit(void)

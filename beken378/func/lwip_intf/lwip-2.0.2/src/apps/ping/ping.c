@@ -345,7 +345,7 @@ int ping(char* target_name, uint32_t times, size_t size)
 
     lwip_close(s);
 	if (sent_cnt)
-		droppercent = (double)(drop_cnt / sent_cnt * 100);
+		droppercent = (double)drop_cnt / sent_cnt * 100;
 
 	LWIP_DEBUGF( PING_DEBUG, ("ping end, sent cnt: %d, recv cnt: %d, drop cnt: %d(%1.1lf%%)\n", sent_cnt, recv_cnt, 
 	drop_cnt, droppercent));

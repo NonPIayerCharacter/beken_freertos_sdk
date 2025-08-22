@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __FLASH_NAMESAPCE_VALUE__
 #define __FLASH_NAMESAPCE_VALUE__
 
@@ -9,39 +23,39 @@ extern"C" {
 #if 0
 #define bk_flash_debug_printf(...)                      bk_printf(__VA_ARGS__)
 #else
-#define bk_flash_debug_printf(...)                     
+#define bk_flash_debug_printf(...)
 #endif
 
 typedef  struct namespace_flash
 {
-	uint32_t dwUsingFlag;//FLASH_SPACE_USING or FLASH_SPACE_UNUSED
-	uint32_t dwOffsetByByte;
-	char     ucNamespace[56];//The maximum length of the string in namaspace
-}namespace_flash_t;
+    uint32_t dwUsingFlag;//FLASH_SPACE_USING or FLASH_SPACE_UNUSED
+    uint32_t dwOffsetByByte;
+    char     ucNamespace[56];//The maximum length of the string in namaspace
+} namespace_flash_t;
 
 typedef  struct name_flash
 {
-	uint32_t dwUsingFlag;//FLASH_SPACE_USING or FLASH_SPACE_UNUSED
-	uint32_t dwOffsetByByte;
-	uint32_t dwlength;//By Size
-	char     ucName[52];//The maximum length of the string in namaspace
-}name_flash_t;
+    uint32_t dwUsingFlag;//FLASH_SPACE_USING or FLASH_SPACE_UNUSED
+    uint32_t dwOffsetByByte;
+    uint32_t dwlength;//By Size
+    char     ucName[52];//The maximum length of the string in namaspace
+} name_flash_t;
 
 
 typedef  struct name_flash_test
 {
-	char     ucNamespace[56];//The maximum length of the string in namaspace
-	char     ucName[52];//The maximum length of the string in namaspace
-	char     ucData[112];//The maximum length of the string in namaspace
-	uint32_t dwDatalen;//数据的实际长度
-}name_flash_test_t;
+    char     ucNamespace[56];//The maximum length of the string in namaspace
+    char     ucName[52];//The maximum length of the string in namaspace
+    char     ucData[112];//The maximum length of the string in namaspace
+    uint32_t dwDatalen;//数据的实际长度
+} name_flash_test_t;
 
 
-typedef struct ssid_key_save 
+typedef struct ssid_key_save
 {
-	char     ucssid[33];
-	char     ucKey[64];
-}ssid_key_save_t;
+    char     ucssid[33];
+    char     ucKey[64];
+} ssid_key_save_t;
 
 /**
  * OTA firmware encryption algorithm and compression algorithm
@@ -61,7 +75,7 @@ enum rt_ota_algo
 typedef enum rt_ota_algo rt_ota_algo_t;
 
 
-typedef struct ota_data_struct 
+typedef struct ota_data_struct
 {
     char magic[4];
 
@@ -85,7 +99,7 @@ typedef struct ota_data_struct
     /* crc32(rbl_hdr - info_crc32) */
     uint32_t info_crc32;
 
-}ota_data_struct_t;
+} ota_data_struct_t;
 
 
 
@@ -97,7 +111,7 @@ do{ \
           return kGeneralErr;\
       }\
   }while(0)
-  
+
 #define BK_CHECK_POINTER_NULL_TO_VOID(pointer)   \
           do{ \
                 if(NULL == pointer) \

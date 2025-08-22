@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -46,9 +60,9 @@ SDIO_NODE_PTR sdio_alloc_valid_node(UINT32 buf_size)
         goto av_exit;
     }
 
-#ifdef SUPPORT_STM32
+    #ifdef SUPPORT_STM32
     buf_size = su_align_power2(buf_size);
-#endif
+    #endif
 
     temp_node_ptr = su_pop_node(&sdio.free_nodes);
     if(temp_node_ptr)
@@ -113,10 +127,10 @@ void sdio_cmd_handler(void *buf, UINT32 len)
     SDIO_CMD_PTR reg_cmd_ptr;
     SDIO_NODE_PTR mem_node_ptr = NULL;
 
-#if FOR_SDIO_BLK_512
+    #if FOR_SDIO_BLK_512
     struct _stm32_frame_hdr *h_hd;
     UINT32 m_size = 2048;
-#endif
+    #endif
 
     ASSERT(NULL != buf)
     ASSERT(buf == &sdio.cmd);
@@ -130,28 +144,28 @@ void sdio_cmd_handler(void *buf, UINT32 len)
     {
     case OPC_WR_DTCM :
     {
-#if FOR_SDIO_BLK_512
+        #if FOR_SDIO_BLK_512
         sdio_ptr->rx_len = cmd_ptr->total_size;
-#else
+        #else
         sdio_ptr->rx_len = cmd_ptr->data_len;
         sdio_ptr->r_hdl_len = 0;
-#endif
+        #endif
         count = su_get_node_count(&sdio.rxing_list);
 
-#if FOR_SDIO_BLK_512
+        #if FOR_SDIO_BLK_512
         if(count >= 2)
         {
             SDIO_WPRT("rxing_list:%d\r\n", count);
         }
         ASSERT(count < 2);
-#endif
+        #endif
         if(count)
         {
             mem_node_ptr = su_pop_node(&sdio.rxing_list);
         }
         else
         {
-#if FOR_SDIO_BLK_512
+            #if FOR_SDIO_BLK_512
             if(1024 < cmd_ptr->total_size && cmd_ptr->total_size <= 1536)
                 m_size = 1536;
             else if(0 < cmd_ptr->total_size && cmd_ptr->total_size <= 512)
@@ -162,12 +176,12 @@ void sdio_cmd_handler(void *buf, UINT32 len)
                 m_size = 2048;
 
             mem_node_ptr = sdio_alloc_valid_node(m_size);
-#else
+            #else
             mem_node_ptr = sdio_alloc_valid_node(cmd_ptr->data_len);
-#endif
+            #endif
         }
 
-#if FOR_SDIO_BLK_512
+        #if FOR_SDIO_BLK_512
         if((sdio_ptr->rx_seq != cmd_ptr->seq) && count)
         {
             sdio_free_valid_node(mem_node_ptr);
@@ -194,26 +208,26 @@ void sdio_cmd_handler(void *buf, UINT32 len)
             sdio_ptr->rc_len = cmd_ptr->start_len;
             sdio_ptr->r_hdl_len = cmd_ptr->start_len;
         }
-#endif
+        #endif
 
         if(mem_node_ptr)
         {
 
             sdio_ptr->rx_status = RX_NODE_OK;
-#if FOR_SDIO_BLK_512
+            #if FOR_SDIO_BLK_512
             //ASSERT(cmd_ptr->size == cmd_ptr->data_len);
             sdio_ptr->rx_transaction_len = cmd_ptr->data_len;
-#else
+            #else
             remain = sdio_ptr->rx_len - sdio_ptr->r_hdl_len;
             sdio_ptr->rx_transaction_len = MIN(BLOCK_LEN, remain);
-#endif
+            #endif
 
             su_push_node(&sdio.rxing_list, mem_node_ptr);
-#if FOR_SDIO_BLK_512
+            #if FOR_SDIO_BLK_512
             sdma_start_rx(mem_node_ptr->addr + sdio_ptr->rc_len, sdio_ptr->rx_transaction_len);
-#else
+            #else
             sdma_start_rx(mem_node_ptr->addr, sdio_ptr->rx_transaction_len);
-#endif
+            #endif
         }
         else
         {
@@ -234,13 +248,13 @@ void sdio_cmd_handler(void *buf, UINT32 len)
 
         count = su_get_node_count(&sdio.txing_list);
 
-#if FOR_SDIO_BLK_512
+        #if FOR_SDIO_BLK_512
         if(count >= 2)
         {
             SDIO_WPRT("txing_list:%d\r\n", count);
         }
         ASSERT(count < 2);
-#endif
+        #endif
 
         if(count)
         {
@@ -249,9 +263,9 @@ void sdio_cmd_handler(void *buf, UINT32 len)
         else
         {
             mem_node_ptr = su_pop_node(&sdio.tx_dat);
-#if FOR_SDIO_BLK_512
+            #if FOR_SDIO_BLK_512
             ASSERT(sdio_ptr->tc_len == 0);
-#endif
+            #endif
         }
 
         if(mem_node_ptr)
@@ -259,7 +273,7 @@ void sdio_cmd_handler(void *buf, UINT32 len)
             sdio_ptr->tx_status = TX_NODE_OK;
             remain = sdio_ptr->tx_len - sdio_ptr->t_hdl_len;
 
-#if FOR_SDIO_BLK_512
+            #if FOR_SDIO_BLK_512
             if(!count)
             {
                 ASSERT(mem_node_ptr->addr);
@@ -267,14 +281,14 @@ void sdio_cmd_handler(void *buf, UINT32 len)
                 h_hd->seq = beken_tx_sdio_s++;
                 sdio_ptr->tx_seq = h_hd->seq;
             }
-#endif
+            #endif
             sdio_ptr->tx_transaction_len = MIN(BLOCK_LEN, remain);
             su_push_node(&sdio.txing_list, mem_node_ptr);
-#if FOR_SDIO_BLK_512
+            #if FOR_SDIO_BLK_512
             sdma_start_tx(mem_node_ptr->addr + sdio_ptr->tc_len, sdio_ptr->tx_transaction_len);
-#else
+            #else
             sdma_start_tx(mem_node_ptr->addr, sdio_ptr->tx_transaction_len);
-#endif
+            #endif
         }
         else
         {
@@ -329,13 +343,13 @@ void sdio_tx_cb(void)
     UINT32 remain;
     SDIO_PTR sdio_ptr;
     SDIO_NODE_PTR mem_node_ptr;
-#if FOR_SDIO_BLK_512
+    #if FOR_SDIO_BLK_512
     struct _stm32_frame_hdr *h_hd;
-#endif
+    #endif
     sdio_ptr = &sdio;
-#if(! FOR_SDIO_BLK_512)
+    #if(! FOR_SDIO_BLK_512)
     sdio_ptr->t_hdl_len += sdio_ptr->tx_transaction_len;
-#endif
+    #endif
     mem_node_ptr = su_pop_node(&sdio.txing_list);
     if((0 == mem_node_ptr)
             && (TX_NO_NODE == sdio_ptr->tx_status))
@@ -346,7 +360,7 @@ void sdio_tx_cb(void)
     }
 
     ASSERT(mem_node_ptr);
-#if FOR_SDIO_BLK_512
+    #if FOR_SDIO_BLK_512
     sdio_ptr->t_hdl_len += sdio_ptr->tx_transaction_len;
     sdio_ptr->tc_len += sdio_ptr->tx_transaction_len;
 
@@ -354,7 +368,7 @@ void sdio_tx_cb(void)
 
     if(mem_node_ptr->length <= sdio_ptr->tc_len)
     {
-#endif
+    #endif
         if(mem_node_ptr->callback)
         {
             (mem_node_ptr->callback)(mem_node_ptr->Lparam, mem_node_ptr->Rparam);
@@ -375,14 +389,14 @@ void sdio_tx_cb(void)
         {
             /*sdma_start_cmd*/
         }
-#if FOR_SDIO_BLK_512
+        #if FOR_SDIO_BLK_512
         sdio_ptr->tc_len = 0;
     }
     else
     {
         su_push_node(&sdio.txing_list, mem_node_ptr);
     }
-#endif
+        #endif
 
 }
 
@@ -392,16 +406,16 @@ void sdio_rx_cb(UINT32 count)
     UINT32 remain;
     SDIO_PTR sdio_ptr;
     SDIO_NODE_PTR mem_node_ptr;
-#if FOR_SDIO_BLK_512
+    #if FOR_SDIO_BLK_512
     struct stm32_cmd_hdr   *c_hd;
     struct _stm32_frame_hdr *h_hd;
     UINT8 data_err = 0;
-#endif
+    #endif
     sdio_ptr = &sdio;
 
-#if(! FOR_SDIO_BLK_512)
+    #if(! FOR_SDIO_BLK_512)
     sdio_ptr->r_hdl_len += sdio_ptr->rx_transaction_len;
-#endif
+    #endif
     mem_node_ptr = su_pop_node(&sdio.rxing_list);
     if((0 == mem_node_ptr)
             && (RX_NO_NODE == sdio_ptr->rx_status))
@@ -410,7 +424,7 @@ void sdio_rx_cb(UINT32 count)
         sdio_ptr->rx_status = RX_NODE_OK;
         return;
     }
-#if FOR_SDIO_BLK_512
+    #if FOR_SDIO_BLK_512
     if(0 == mem_node_ptr)
     {
         SDIO_WPRT("rx_no_nd %d %d\r\n", sdio_ptr->rc_len, sdio_ptr->r_hdl_len);
@@ -461,12 +475,12 @@ void sdio_rx_cb(UINT32 count)
             da_hd_err = 0;
             return;
         }
-#else
+    #else
     SDIO_PRT("rx_cb\r\n");
     ASSERT(mem_node_ptr);
 
     //mem_node_ptr->length = count;
-#endif
+    #endif
 
         su_push_node(&sdio.rx_dat, mem_node_ptr);
         if(sdio_ptr->rx_cb)
@@ -484,7 +498,7 @@ void sdio_rx_cb(UINT32 count)
             /*sdma_start_cmd*/
 
         }
-#if FOR_SDIO_BLK_512
+        #if FOR_SDIO_BLK_512
         sdio_ptr->rc_len = 0;
         sdio_ptr->r_hdl_len = 0;
     }
@@ -492,7 +506,7 @@ void sdio_rx_cb(UINT32 count)
     {
         su_push_node(&sdio.rxing_list, mem_node_ptr);
     }
-#endif
+        #endif
 }
 
 void sdio_register_rx_cb(FUNCPTR func)
@@ -502,16 +516,16 @@ void sdio_register_rx_cb(FUNCPTR func)
 
 static void sdio_intfer_gpio_config(void)
 {
-	UINT32 param;
+    UINT32 param;
 
-	param = GFUNC_MODE_SD_DMA;
-	sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);    
+    param = GFUNC_MODE_SD_DMA;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
 }
 /**********************************************************************/
 void sdio_init(void)
 {
     sdio_intfer_gpio_config();
-    
+
     INIT_LIST_HEAD(&sdio.tx_dat);
     INIT_LIST_HEAD(&sdio.rx_dat);
     INIT_LIST_HEAD(&sdio.txing_list);
@@ -519,10 +533,10 @@ void sdio_init(void)
 
     su_init(&sdio);
 
-#if FOR_SDIO_BLK_512
+    #if FOR_SDIO_BLK_512
     sdio.rc_len = 0;
     sdio.tc_len = 0;
-#endif
+    #endif
     sdma_register_handler(sdio_tx_cb, sdio_rx_cb, sdio_cmd_handler);
     sdma_init();
 
@@ -571,9 +585,9 @@ UINT32 sdio_read(char *user_buf, UINT32 count, UINT32 op_flag)
     SDIO_NODE_PTR mem_node_ptr;
 
     ret = SDIO_FAILURE;
-    
+
     peri_busy_count_add();
-    
+
     if(S2H_RD_SYNC == op_flag)
     {
         if((NULLPTR == user_buf)
@@ -646,7 +660,7 @@ UINT32 sdio_write(char *user_buf, UINT32 count, UINT32 op_flag)
     SDIO_NODE_PTR mem_node_ptr;
 
     ret = SDIO_FAILURE;
-    
+
     peri_busy_count_add();
 
     if(S2H_WR_SYNC == op_flag)
@@ -719,7 +733,7 @@ UINT32 sdio_ctrl(UINT32 cmd, void *param)
     SDIO_NODE_PTR mem_node_ptr;
 
     ret = SDIO_SUCCESS;
-    
+
     peri_busy_count_add();
 
     switch(cmd)

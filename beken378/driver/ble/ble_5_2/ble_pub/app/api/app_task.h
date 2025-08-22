@@ -104,6 +104,7 @@ enum app_msg_id
     #endif
 #endif
     APP_SEC_BOND_SAVE_TIMER,
+    APP_PEER_ADDR_CMP_CMP,
 #if (BLE_GATT_CLI)
     APP_INIT_START_SDP,
     APP_INIT_END_SDP,

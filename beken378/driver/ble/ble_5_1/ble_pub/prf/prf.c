@@ -373,18 +373,17 @@ kernel_task_id_t prf_get_task_from_id(kernel_msg_id_t id)
 #include "sdp_comm.h"
 struct prf_env_t * prf_env_get_from_uuid(uint8_t conidx,uint8_t uuid_len,const uint8_t *uuid)
 {
-	struct sdp_env_tag* sdp_env;
-	struct prf_env_t* env = NULL;
+    struct sdp_env_tag* sdp_env;
+    struct prf_env_t* env = NULL;
     uint8_t i;
-	uint8_t j;
-	 
+    uint8_t j;
+
     // find if profile present in profile tasks
     for(i = 0; i < BLE_NB_PROFILES ; i++)
-    {	
-		//UART_PRINTF("prf_env.prf[%d].id = 0x%x \r\n",i,prf_env.prf[i].id);
-		if(prf_env.prf[i].role == PRF_CLIENT)
-		{
-			sdp_env = (struct sdp_env_tag *) prf_env.prf[i].env;
+    {
+        if(prf_env.prf[i].role == PRF_CLIENT)
+        {
+            sdp_env = (struct sdp_env_tag *) prf_env.prf[i].env;
             if(sdp_env->conidx == conidx)
             {           
                 // check if profile identifier is known
@@ -398,55 +397,56 @@ struct prf_env_t * prf_env_get_from_uuid(uint8_t conidx,uint8_t uuid_len,const u
                     }
                 }
             }
-			
-		}    
+        }
     }
-   return env;	 
+   return env;
 }
+
 struct prf_env_t * prf_env_get_from_handle(uint8_t conidx,uint16_t handle)
 {
-	struct sdp_env_tag* sdp_env;
-	struct prf_env_t* env = NULL;
+    struct sdp_env_tag* sdp_env;
+    struct prf_env_t* env = NULL;
     uint8_t i;
-	uint8_t j;
-	 
+    uint8_t j;
+
     // find if profile present in profile tasks
     for(i = 0; i < BLE_NB_PROFILES ; i++)
-    {	
-		//UART_PRINTF("prf_env.prf[%d].id = 0x%x \r\n",i,prf_env.prf[i].id);
-		if(prf_env.prf[i].role == PRF_CLIENT)
-		{
-			sdp_env = (struct sdp_env_tag *) prf_env.prf[i].env;
+    {
+        if(prf_env.prf[i].role == PRF_CLIENT)
+        {
+            sdp_env = (struct sdp_env_tag *) prf_env.prf[i].env;
             if(sdp_env->conidx == conidx)
-            {           
+            {
                 // check if profile identifier is known
-                for(j = 0;j < sdp_env->prf_db_env->sdp_cont->chars_nb;j++)
+                for(j = 0; j < sdp_env->prf_db_env->sdp_cont->chars_nb; j++)
                 {
-                    if((sdp_env->prf_db_env->sdp_cont->chars_descs_inf.chars_inf[j].char_hdl == handle) || (sdp_env->prf_db_env->sdp_cont->chars_descs_inf.chars_inf[j].val_hdl == handle))
+                    if((sdp_env->prf_db_env->sdp_cont->chars_descs_inf.chars_inf[j].char_hdl == handle) ||
+                       (sdp_env->prf_db_env->sdp_cont->chars_descs_inf.chars_inf[j].val_hdl == handle))
                     {
                         env = (struct prf_env_t*) prf_env.prf[i].env;
                         sdp_env->prf_db_env->sdp_cont->char_idx = j;
                         return env;
                     }
                 }
-                
+
+                sdp_env->prf_db_env->sdp_cont->char_idx = 0xFF;
+
                 // check if profile identifier is known
                 for(j = 0;j < sdp_env->prf_db_env->sdp_cont->descs_nb;j++)
                 {
                     if(sdp_env->prf_db_env->sdp_cont->chars_descs_inf.descs_inf[j].desc_hdl == handle)
                     {
                         env = (struct prf_env_t*) prf_env.prf[i].env;
-                        sdp_env->prf_db_env->sdp_cont->char_idx = j;
+                        sdp_env->prf_db_env->sdp_cont->desc_idx = j;
                         return env;
                     }
                 }
+
             }
-   
-  }    
+        }
     }
 
-   return env;
-	 
+       return env;
 }
 #endif
 #endif // (BLE_PROFILES)

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _BLE_H_
 #define _BLE_H_
 
@@ -59,28 +73,28 @@
 
 
 typedef enum {
-	BLE_PS_FORBID_KRL = 1,
-	BLE_PS_FORBID_ENABLED = 2,
-	BLE_PS_FORBID_PREVENT = 3,
-	BLE_PS_FORBID_TM = 4,
-	BLE_PS_FORBID_RWBT = 5,
-	BLE_PS_FORBID_RWBLE = 6,
-	BLE_PS_FORBID_EA = 7,
-	BLE_PS_FORBID_H4TL = 8,
+    BLE_PS_FORBID_KRL = 1,
+    BLE_PS_FORBID_ENABLED = 2,
+    BLE_PS_FORBID_PREVENT = 3,
+    BLE_PS_FORBID_TM = 4,
+    BLE_PS_FORBID_RWBT = 5,
+    BLE_PS_FORBID_RWBLE = 6,
+    BLE_PS_FORBID_EA = 7,
+    BLE_PS_FORBID_H4TL = 8,
 } BLE_PS_FORBID_STATUS;
 
 enum
 {
-	BLE_MSG_POLL          = 0,
-    BLE_MSG_SLEEP,    
+    BLE_MSG_POLL          = 0,
+    BLE_MSG_SLEEP,
     BLE_MSG_EXIT,
     BLE_MSG_NULL,
 };
 
-typedef struct ble_message 
+typedef struct ble_message
 {
-	uint32_t data;
-}BLE_MSG_T;
+    uint32_t data;
+} BLE_MSG_T;
 
 typedef struct rf_time_s
 {

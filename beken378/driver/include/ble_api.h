@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _BLE_API_H_
 #define _BLE_API_H_
 
@@ -17,11 +31,11 @@
 //TODO - rename KEY_LEN in future release since it's
 //already defined in common_bt.h
 #ifdef KEY_LEN
-	#if KEY_LEN != 16
-	#error "KEY_LEN is redefined with a different value!!!"
-	#endif
-#else 
-	#define KEY_LEN 16
+#if KEY_LEN != 16
+#error "KEY_LEN is redefined with a different value!!!"
+#endif
+#else
+#define KEY_LEN 16
 #endif
 
 #define ABIT(n) (1 << n)
@@ -130,7 +144,7 @@ typedef enum
     /// Read trigger Indication
     RI_MASK          = 0x8000,
     RI_POS           = 15,
-}bk_ext_perm_mask;
+} bk_ext_perm_mask;
 
 /**
  * Service permissions
@@ -167,7 +181,7 @@ typedef enum
     /// Service type Secondary
     SVC_SECONDARY_MASK = 0x80,
     SVC_SECONDARY_POS  = 7,
-}bk_svc_perm_mask;
+} bk_svc_perm_mask;
 
 /// Attribute & Service access mode
 enum
@@ -334,17 +348,17 @@ typedef struct
 
 typedef struct
 {
-	uint8_t addr_type;
-	uint8_t rssi;
-	uint8_t adv_type;
-	uint8_t adv_addr[6];
-}device_info_t;
+    uint8_t addr_type;
+    uint8_t rssi;
+    uint8_t adv_type;
+    uint8_t adv_addr[6];
+} device_info_t;
 
 typedef struct
 {
-	uint8_t scan_count;
-	device_info_t info[MAX_SCAN_NUM];
-}ble_scan_list_t;
+    uint8_t scan_count;
+    device_info_t info[MAX_SCAN_NUM];
+} ble_scan_list_t;
 
 struct ble_get_key_ind
 {
@@ -375,7 +389,7 @@ typedef struct
     /// note: for characteristic declaration contains handle offset
     /// note: for included service, contains target service handle
     uint16_t max_size;
-}bk_attm_desc_t;
+} bk_attm_desc_t;
 
 struct bk_ble_db_cfg
 {
@@ -383,7 +397,7 @@ struct bk_ble_db_cfg
     ///Service uuid
     uint8_t uuid[16];
     ///Number of db
-	uint8_t att_db_nb;
+    uint8_t att_db_nb;
     ///Start handler, 0 means autoalloc
     uint16_t start_hdl;
     ///Attribute database

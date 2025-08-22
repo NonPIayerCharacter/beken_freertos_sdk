@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "base_64.h"
 #include <string.h>
 #include "include.h"
@@ -8,14 +22,14 @@
 
 /* ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/ */
 static const unsigned char base_64_table[64] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
-        'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
-        'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a',
-        'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-        't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1',
-        '2', '3', '4', '5', '6', '7', '8', '9', '+',
-        '/'
-                                              };
+                                                'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+                                                'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a',
+                                                'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+                                                'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+                                                't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1',
+                                                '2', '3', '4', '5', '6', '7', '8', '9', '+',
+                                                '/'
+                                               };
 /**
  *calculate a string base64_encode length
  *
@@ -108,7 +122,7 @@ unsigned int base64_calc_decode_length(const unsigned char *src, unsigned int sr
         return 0;
     }
 
-    os_memset(dtable, 0x80, 256);
+    os_memset(dtable, 0x80, DTABLE_LEN);
     for (i = 0; i < sizeof(base_64_table); i++)
         dtable[base_64_table[i]] = i;
     dtable['='] = 0;
@@ -121,6 +135,8 @@ unsigned int base64_calc_decode_length(const unsigned char *src, unsigned int sr
     }
     if (dec_len % 4)
         dec_len = 0;
+
+    os_free(dtable);
     return dec_len;
 }
 
@@ -147,7 +163,7 @@ unsigned char base64_decode(const unsigned char *src, int len,
         return 0;
     }
 
-    os_memset(dtable, 0x80, 256);
+    os_memset(dtable, 0x80, DTABLE_LEN);
     for (i = 0; i < sizeof(base_64_table); i++)
         dtable[base_64_table[i]] = i;
     dtable['='] = 0;
@@ -160,10 +176,14 @@ unsigned char base64_decode(const unsigned char *src, int len,
     }
 
     if (count % 4)
+    {
+        os_free(dtable);
         return 0;
+    }
     if (out == ((unsigned char *)0))
     {
         *out_len = (count * 3) / 4;
+        os_free(dtable);
         return 0;
     }
     pos = out;
@@ -196,6 +216,7 @@ unsigned char base64_decode(const unsigned char *src, int len,
     }
 
     (*out_len) = pos - out;
+    os_free(dtable);
 
     return 1;
 }

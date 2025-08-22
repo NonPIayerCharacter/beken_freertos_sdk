@@ -1,16 +1,16 @@
-/**
-****************************************************************************************
-*
-* @file icu.c
-*
-* @brief icu initialization and specific functions
-*
-* Copyright (C) Beken 2009-2016
-*
-* $Rev: $
-*
-****************************************************************************************
-*/
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
 ****************************************************************************************
@@ -34,31 +34,31 @@ void DelayNops(volatile unsigned long nops)
 
 void DelayUS(volatile unsigned long timesUS)
 {
-	volatile unsigned long i;
+    volatile unsigned long i;
 
-	#if (MCU_CLK == MCU_CLK_26MHz)
-	#define tick_cnt_us         3
-	#elif (MCU_CLK == MCU_CLK_120MHz)		/* #if (MCU_CLK == MCU_CLK_26MHz) */
-	#define tick_cnt_us         28
-	#endif		/* #if (MCU_CLK == MCU_CLK_26MHz) */
+    #if (MCU_CLK == MCU_CLK_26MHz)
+#define tick_cnt_us         3
+    #elif (MCU_CLK == MCU_CLK_120MHz)		/* #if (MCU_CLK == MCU_CLK_26MHz) */
+#define tick_cnt_us         28
+    #endif		/* #if (MCU_CLK == MCU_CLK_26MHz) */
 
     while (timesUS --)
-	{
-		i = 0;
-		while (i < tick_cnt_us)
-		{
-			i++;
-		}
-	}
+    {
+        i = 0;
+        while (i < tick_cnt_us)
+        {
+            i++;
+        }
+    }
 }
 
 // set CPU clk to DPLL
 void set_CPU_clk_DPLL(void)
 {
     REG_SYS_CTRL_BLOCK_EN = (REG_SYS_CTRL_BLOCK_EN
-                           & (~SYS_CTRL_BLOCK_EN_VALID_MASK))
-                           | SYS_CTRL_BLOCK_EN_VALID_SET
-                           | SYS_CTRL_BLOCK_EN_SW_XTAL_26MHz;
+                             & (~SYS_CTRL_BLOCK_EN_VALID_MASK))
+                            | SYS_CTRL_BLOCK_EN_VALID_SET
+                            | SYS_CTRL_BLOCK_EN_SW_XTAL_26MHz;
 
     REG_SYS_CTRL_ANALOG_REG0 = 0x0819A54B;
     REG_SYS_CTRL_ANALOG_REG1 = 0x6AC03102;
@@ -73,10 +73,10 @@ void set_CPU_clk_DPLL(void)
 
     DelayUS(100);
     REG_SYS_CTRL_CLK_SET = (REG_SYS_CTRL_CLK_SET
-                         & (~SYS_CTRL_CLK_SET_MCLK_MASK)
-                         & (~SYS_CTRL_CLK_SET_MCLK_DIV_MASK))
+                            & (~SYS_CTRL_CLK_SET_MCLK_MASK)
+                            & (~SYS_CTRL_CLK_SET_MCLK_DIV_MASK))
 //                         | (5 << SYS_CTRL_CLK_SET_MCLK_DIV_POSI)
-                         | SYS_CTRL_CLK_SET_MCLK_DPLL;
+                           | SYS_CTRL_CLK_SET_MCLK_DPLL;
     DelayUS(100);
 }
 
@@ -115,13 +115,13 @@ void set_LPO_clk_32KHz_div_from_XTAL_26MHz(void)
 void set_CPU_clk_XTAL_26MHz(void)
 {
     REG_SYS_CTRL_BLOCK_EN = (REG_SYS_CTRL_BLOCK_EN
-                           & (~SYS_CTRL_BLOCK_EN_VALID_MASK))
-                           | SYS_CTRL_BLOCK_EN_VALID_SET
-                           | SYS_CTRL_BLOCK_EN_SW_XTAL_26MHz;
+                             & (~SYS_CTRL_BLOCK_EN_VALID_MASK))
+                            | SYS_CTRL_BLOCK_EN_VALID_SET
+                            | SYS_CTRL_BLOCK_EN_SW_XTAL_26MHz;
     DelayUS(100);
     REG_SYS_CTRL_CLK_SET = (REG_SYS_CTRL_CLK_SET
-                         & (~SYS_CTRL_CLK_SET_MCLK_MASK))
-                         | SYS_CTRL_CLK_SET_MCLK_XTAL_26M;
+                            & (~SYS_CTRL_CLK_SET_MCLK_MASK))
+                           | SYS_CTRL_CLK_SET_MCLK_XTAL_26M;
     DelayUS(100);
 }
 
@@ -131,16 +131,16 @@ void set_CPU_clk_XTAL_26MHz(void)
 
 void ble_icu_init(void)
 {
-/*    REG_SYS_CTRL_BLOCK_EN = (REG_SYS_CTRL_BLOCK_EN
-                           & (~SYS_CTRL_BLOCK_EN_VALID_MASK))
-                           | SYS_CTRL_BLOCK_EN_VALID_SET
-                           | SYS_CTRL_BLOCK_EN_SW_FLASH
-                           | SYS_CTRL_BLOCK_EN_SW_DCO_26MHz
-                           | SYS_CTRL_BLOCK_EN_SW_DPLL
-                           | SYS_CTRL_BLOCK_EN_SW_XTAL_TO_RF
-                           | SYS_CTRL_BLOCK_EN_SW_ROSC_32KHz
-                           | SYS_CTRL_BLOCK_EN_SW_XTAL_26MHz
-                           | SYS_CTRL_BLOCK_EN_SW_XTAL_32KHz;*/
+    /*    REG_SYS_CTRL_BLOCK_EN = (REG_SYS_CTRL_BLOCK_EN
+                               & (~SYS_CTRL_BLOCK_EN_VALID_MASK))
+                               | SYS_CTRL_BLOCK_EN_VALID_SET
+                               | SYS_CTRL_BLOCK_EN_SW_FLASH
+                               | SYS_CTRL_BLOCK_EN_SW_DCO_26MHz
+                               | SYS_CTRL_BLOCK_EN_SW_DPLL
+                               | SYS_CTRL_BLOCK_EN_SW_XTAL_TO_RF
+                               | SYS_CTRL_BLOCK_EN_SW_ROSC_32KHz
+                               | SYS_CTRL_BLOCK_EN_SW_XTAL_26MHz
+                               | SYS_CTRL_BLOCK_EN_SW_XTAL_32KHz;*/
     REG_WIFI_PWD = 0x0;
     REG_DSP_PWD  = 0x0;
     REG_USB_PWD  = 0x0;
@@ -151,26 +151,26 @@ void ble_icu_init(void)
 
     set_LPO_clk_ROSC_32KHz();
 
-#if (MCU_CLK == MCU_CLK_26MHz)
+    #if (MCU_CLK == MCU_CLK_26MHz)
     set_CPU_clk_XTAL_26MHz();
-    REG_SYS_CTRL_ANALOG_REG4 = 0x59E04520; 
-#elif (MCU_CLK == MCU_CLK_120MHz)
+    REG_SYS_CTRL_ANALOG_REG4 = 0x59E04520;
+    #elif (MCU_CLK == MCU_CLK_120MHz)
     set_CPU_clk_DPLL();
-#endif
+    #endif
 
-#if (PER_CLK == PER_CLK_26MHz)
+    #if (PER_CLK == PER_CLK_26MHz)
     set_PCLK_clk_XTAL_26MHz();
-#elif (PER_CLK == PER_CLK_120MHz)
+    #elif (PER_CLK == PER_CLK_120MHz)
     DcoCalib(DCO_CALIB_120M);
     set_PCLK_clk_DCO_CLK();
-#endif
+    #endif
     DelayUS(100);
     //REG_SYS_CTRL_CLK_SET |= SYS_CTRL_CLK_SET_AHB_CLK_DIV_MASK;
 
     REG_SYS_CTRL_BIAS_CALIB = (REG_SYS_CTRL_BIAS_CALIB
-                            & (~(SYS_CTRL_BIAS_CALIB_MANUAL_MASK | SYS_CTRL_BIAS_CALIB_SETTING_MASK)))
-                            | (0x01 << SYS_CTRL_BIAS_CALIB_MANUAL_POSI)
-                            | (0x14 << SYS_CTRL_BIAS_CALIB_SETTING_POSI);
+                               & (~(SYS_CTRL_BIAS_CALIB_MANUAL_MASK | SYS_CTRL_BIAS_CALIB_SETTING_MASK)))
+                              | (0x01 << SYS_CTRL_BIAS_CALIB_MANUAL_POSI)
+                              | (0x14 << SYS_CTRL_BIAS_CALIB_SETTING_POSI);
 
     //REG_ICU_INT_ENABLE = 1<<30;
     //REG_ICU_INT_GLOBAL_ENABLE = (ICU_INT_GLOBAL_ENABLE_IRQ_MASK | ICU_INT_GLOBAL_ENABLE_FIQ_MASK);

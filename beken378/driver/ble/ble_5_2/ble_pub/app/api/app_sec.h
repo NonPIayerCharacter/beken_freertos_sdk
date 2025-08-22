@@ -43,10 +43,14 @@
  */
   //store bonding info in flash
 #define APP_SEC_BOND_STORE    1
-
 #define MAX_BOND_NUM          BLE_RAL_MAX
+
+#if (MAX_BOND_NUM > BLE_RAL_MAX)
+    #error "Number of bonded devices cannot be more than size of RAL"
+#endif
+
 #define MAX_BOND_NUM_MASK    ((1 << MAX_BOND_NUM) - 1)
-#define INVAILD_IDX           MAX_BOND_NUM
+#define INVALID_IDX           MAX_BOND_NUM
 
 #if (APP_SEC_BOND_STORE)
 #define CRC_DEFAULT_VALUE     0xFFFFFFFF
@@ -59,43 +63,78 @@
  */
 typedef struct
 {
+    // pairing level
+    struct gapc_pairing_info pairing;
+
+    // peer irk
     struct gapc_irk peer_irk;
+
+    // ltk for encrypt
     struct gapc_ltk ltk;
+
+    #if BLE_APP_SIGN_WRITE
+    // csrk & counter for singed write
+    bool local_csrk_present;
+    uint32_t sign_counter;
+    struct gap_sec_key csrk;
+    bool peer_csrk_present;
+    uint32_t peer_sign_counter;
+    struct gap_sec_key peer_csrk;
+    #endif
+
     uint32_t crc;
 }bond_info_t;
 
-struct app_sec_env_tag
+typedef struct
 {
-    // Bond status
-    uint8_t bonded;
-
-    uint32_t passkey;
     uint8_t matched_peer_idx;
 
-    /// Long Term Key information (if info = GAPC_LTK_EXCH)
-    //@trc_union parent.info == GAPC_LTK_EXCH
+    struct gapc_pairing_info pairing;
+
+    /// Long Term Key information
     struct gapc_ltk ltk;
     struct gapc_ltk peer_ltk;
 
-    /// Identity Resolving Key information (if info = GAPC_IRK_EXCH)
-    //@trc_union parent.info == GAPC_IRK_EXCH
+    /// Identity Resolving Key information
     struct gapc_irk irk;
     struct gapc_irk peer_irk;
 
-    /// Connection Signature Resolving Key information (if info = GAPC_CSRK_EXCH)
-    //@trc_union parent.info == GAPC_CSRK_EXCH
+    #if BLE_APP_SIGN_WRITE
+    /// Connection Signature Resolving Key information
+    bool local_csrk_present;
+    uint32_t sign_counter;
     struct gap_sec_key csrk;
+    bool peer_csrk_present;
+    uint32_t peer_sign_counter;
     struct gap_sec_key peer_csrk;
-
-    struct app_pairing_cfg pairing_param;
-    #if (APP_SEC_BOND_STORE)
-    uint8_t flash_write_idx[MAX_BOND_NUM - 1];
-    uint8_t flash_write_num;
-    bk_logic_partition_t *flash_bond_ptr;
     #endif
-    bond_info_t bond_info[MAX_BOND_NUM];
+}sec_info_t;
 
-    sec_notice_cb_t sec_notice_cb;
+struct app_sec_env_tag
+{
+    // Each bit corresponds to whether a bonding entry is valid. For example,
+    // bonded = 0b101 means there are two valid bonding entries located at group 0 and group 2.
+    uint8_t                 bonded;
+
+    // Pairing parameters set by user
+    struct app_pairing_cfg  pairing_param;
+
+    // Security notice cb set by user
+    sec_notice_cb_t         sec_notice_cb;
+
+    // The bonding information of all bonded devices
+    bond_info_t             bond_info[MAX_BOND_NUM];
+
+    // The secutiry information of currently connected devices
+    sec_info_t              sec_info[BLE_CONNECTION_MAX];
+
+    #if (APP_SEC_BOND_STORE)
+    // Indicates which bonding information needs to be written to flash
+    bool                    flash_write_idx[MAX_BOND_NUM];
+
+    // Point to the flash information structure that stores bonding information
+    bk_logic_partition_t *  flash_bond_ptr;
+    #endif
 };
 
 /*
@@ -113,6 +152,17 @@ extern const struct app_subtask_handlers app_sec_handlers;
  * GLOBAL FUNCTIONS DECLARATIONS
  ****************************************************************************************
  */
+
+/**
+ * Calculate the CRC32 value of a memory buffer.
+ *
+ * @param crc accumulated CRC32 value, must be 0 on first call
+ * @param buf buffer to calculate CRC32 value for
+ * @param size bytes in buffer
+ *
+ * @return calculated CRC32 value
+ */
+uint32_t app_sec_crc32(uint32_t crc, const void *buf, size_t size);
 
 /**
  ****************************************************************************************
@@ -171,7 +221,7 @@ bool app_sec_check_tk_passkey(uint32_t passkey);
  * @brief Remove all bond data stored in NVDS
  ****************************************************************************************
  */
-sec_err_t app_sec_remove_bond(uint8_t idx);
+sec_err_t app_sec_remove_bond(uint8_t idx, bool disconnect);
 
 /**
  ****************************************************************************************
@@ -198,9 +248,10 @@ sec_err_t app_sec_send_pairing_req(uint8_t conidx);
  * @brief respond to received pairing request.This function is used to slave of the connection
  *
  * @param[in]   - conidx: Connection Index
+ * @param[in]   - accept: accept pairing request
  *************************************************************************************************
  */
-sec_err_t app_sec_send_pairing_rsp(uint8_t conidx);
+sec_err_t app_sec_send_pairing_rsp(uint8_t conidx, bool accept);
 
 /**
  ****************************************************************************************
@@ -208,9 +259,10 @@ sec_err_t app_sec_send_pairing_rsp(uint8_t conidx);
  *
  * @param[in]   - conidx: Connection Index
  * @param[in]   - passkey: the key value used in PassKey Entry Method
+ * @param[in]   - accept: accept to reply tk
  ****************************************************************************************
  */
-sec_err_t app_sec_tk_exchange_cfm(uint8_t conidx, uint32_t passkey);
+sec_err_t app_sec_tk_exchange_cfm(uint8_t conidx, uint32_t passkey, bool accept);
 
 /**
  ****************************************************************************************
@@ -230,6 +282,16 @@ sec_err_t app_sec_nc_exchange_cfm(uint8_t conidx, bool accept);
  **************************************************************************************************
  */
 sec_err_t app_sec_send_encryption_cmd(uint8_t conidx);
+
+/**
+ ****************************************************************************************
+ * @brief if the peer device is not bonded, request to Start a bonding procedure,
+ * otherwise, Start an Encryption procedure.
+ *
+ * @param[in]   - conidx: Connection Index
+ ****************************************************************************************
+ */
+sec_err_t app_sec_master_security_start(uint8_t conidx);
 
 #endif //(BLE_APP_SEC)
 

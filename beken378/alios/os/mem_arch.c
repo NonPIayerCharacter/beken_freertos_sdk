@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include <string.h>
 #include <stdlib.h>
@@ -25,37 +39,37 @@ void *os_memset(void *b, int c, UINT32 len)
 
 void *os_realloc(void *ptr, size_t size)
 {
-	return (void *)aos_realloc(ptr, size);
+    return (void *)aos_realloc(ptr, size);
 }
 
 int os_memcmp_const(const void *a, const void *b, size_t len)
 {
-	const u8 *aa = a;
-	const u8 *bb = b;
-	size_t i;
-	u8 res;
+    const u8 *aa = a;
+    const u8 *bb = b;
+    size_t i;
+    u8 res;
 
-	for (res = 0, i = 0; i < len; i++)
-		res |= aa[i] ^ bb[i];
+    for (res = 0, i = 0; i < len; i++)
+        res |= aa[i] ^ bb[i];
 
-	return res;
+    return res;
 }
 
 void *os_malloc(size_t size)
 {
-	return (void *)aos_malloc(size);
+    return (void *)aos_malloc(size);
 }
 
 void * os_zalloc(size_t size)
 {
-	return (void *)aos_zalloc(size);
+    return (void *)aos_zalloc(size);
 }
 
 void os_free(void *ptr)
 {
-	if(ptr)
-	{
-		aos_free(ptr);
-	}
+    if(ptr)
+    {
+        aos_free(ptr);
+    }
 }
 // EOF

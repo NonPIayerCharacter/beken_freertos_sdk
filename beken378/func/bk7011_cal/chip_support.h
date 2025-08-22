@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __CHIP_SUPPORT_H__
 #define __CHIP_SUPPORT_H__
 
@@ -6,10 +20,10 @@
 #include "sys_config.h"
 
 typedef struct {
-	uint32_t chip_id;
-	uint32_t chip_id_mask;
-	uint32_t dev_id;
-	uint32_t dev_id_mask;
+    uint32_t chip_id;
+    uint32_t chip_id_mask;
+    uint32_t dev_id;
+    uint32_t dev_id_mask;
 } chip_info_t;
 
 #define MASK_ALL_BITS    0xFFFFFFFF
@@ -48,30 +62,30 @@ typedef struct {
  * */
 
 #if (CFG_SOC_NAME == SOC_BK7231N)
-	#define SUPPORTED_CHIPS \
+#define SUPPORTED_CHIPS \
 	{\
 		{CHIP_ID_BK7231N, MASK_ALL_BITS, DEVICE_ID_DEFAULT,     MASK_HIGH_16BITS},\
 		{CHIP_ID_BK7231N, MASK_ALL_BITS, DEVICE_ID_BK7231N_A,   MASK_HIGH_16BITS},\
 		{CHIP_ID_BK7231N, MASK_ALL_BITS, DEVICE_ID_BK7231N_P_B, MASK_HIGH_16BITS},\
 	}
 #elif (CFG_SOC_NAME == SOC_BK7221U)
-	#define SUPPORTED_CHIPS \
+#define SUPPORTED_CHIPS \
 	{\
 		{CHIP_ID_BK7251,  MASK_ALL_BITS, DEVICE_ID_BK7251_A,    MASK_HIGH_16BITS},\
 	}
 #elif (CFG_SOC_NAME == SOC_BK7231U)
-	#define SUPPORTED_CHIPS \
+#define SUPPORTED_CHIPS \
 	{\
 		{CHIP_ID_BK7231U, MASK_ALL_BITS, DEVICE_ID_BK7231U_A,   MASK_HIGH_16BITS},\
 	}
 #elif (CFG_SOC_NAME == SOC_BK7238)
-	#define SUPPORTED_CHIPS \
+#define SUPPORTED_CHIPS \
 	{\
 		{CHIP_ID_BK7238,  MASK_ALL_BITS, DEVICE_ID_BK7238_MPW,  MASK_HIGH_16BITS},\
 		{CHIP_ID_BK7238,  MASK_ALL_BITS, DEVICE_ID_BK7238_A,    MASK_HIGH_16BITS},\
 	}
 #elif (CFG_SOC_NAME == SOC_BK7252N)  // Todo BK7238A in SOC_BK7252N maybe removed
-	#define SUPPORTED_CHIPS \
+#define SUPPORTED_CHIPS \
 	{\
 		{CHIP_ID_BK7252N,  MASK_ALL_BITS, DEVICE_ID_BK7252N_MPW,  MASK_HIGH_16BITS},\
 		{CHIP_ID_BK7252N,  MASK_ALL_BITS, DEVICE_ID_BK7252N_MP,   MASK_HIGH_16BITS},\

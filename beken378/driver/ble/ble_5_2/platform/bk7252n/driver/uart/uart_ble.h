@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 
 #ifndef __UART_BLE_H__
 #define __UART_BLE_H__
@@ -18,21 +32,21 @@ enum
 
 enum
 {
-	EXIT_DUT_CMD			= 0x0E,
-	EXIT_DUT_ACT			= 0xA0,
-	TX_PWR_SET_CMD			= 0x10,
-	TX_PWR_SAVE_CMD			= 0x11,
-	XTAL_SET_CMD			= 0x12,
-	USER_SEND_CMD			= 0x21,
-	USER_RECV_CMD			= 0x22,
-	USER_STOP_CMD			= 0x2F,
+    EXIT_DUT_CMD			= 0x0E,
+    EXIT_DUT_ACT			= 0xA0,
+    TX_PWR_SET_CMD			= 0x10,
+    TX_PWR_SAVE_CMD			= 0x11,
+    XTAL_SET_CMD			= 0x12,
+    USER_SEND_CMD			= 0x21,
+    USER_RECV_CMD			= 0x22,
+    USER_STOP_CMD			= 0x2F,
 };
 
 enum
 {
-	IDLE_MODE			= 0,
-	USER_TX_MODE		= 1,
-	USER_RX_MODE		= 2,
+    IDLE_MODE			= 0,
+    USER_TX_MODE		= 1,
+    USER_RX_MODE		= 2,
 };
 
 /// UART TX RX Channel
@@ -55,14 +69,14 @@ struct uart_env_tag
     uint8_t errordetect;
     /// external wakeup
     bool ext_wakeup;
-	//// Modified
-	uint8_t *uart_tx_buf;
-	uint8_t *uart_rx_buf;
-	uint32_t uart_tx_length;
-	uint32_t uart_rx_length;
-	uint8_t uart_tx_enable;		////Maybe no need
-	uint8_t uart_rx_enable;		////Maybe no need
-	uint8_t uart_download_state;
+    //// Modified
+    uint8_t *uart_tx_buf;
+    uint8_t *uart_rx_buf;
+    uint32_t uart_tx_length;
+    uint32_t uart_rx_length;
+    uint8_t uart_tx_enable;		////Maybe no need
+    uint8_t uart_rx_enable;		////Maybe no need
+    uint8_t uart_download_state;
 };
 
 struct hci_cmd_event_data
@@ -71,7 +85,7 @@ struct hci_cmd_event_data
     void (*callback) (void*, uint16_t);
     /// Dummy data pointer returned to callback when operation is over.
     uint8_t data_buf[HCI_DATA_BUF_SIZE];
-	uint32_t data_len;
+    uint32_t data_len;
 };
 
 void ble_uart_init(void);

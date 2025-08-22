@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -129,7 +143,7 @@ DD_HANDLE ddev_open(char *dev_name, UINT32 *status, UINT32 op_flag)
                 {
                     *status = (operation->open)(op_flag);
                 }
-                
+
                 GLOBAL_INT_DISABLE();
                 dev_ptr->state = DD_STATE_OPENED;
                 dev_ptr->use_cnt = 0;
@@ -146,7 +160,7 @@ DD_HANDLE ddev_open(char *dev_name, UINT32 *status, UINT32 op_flag)
         }
     }
 
-    //ASSERT(DD_HANDLE_UNVALID != handle);
+    ASSERT(DD_HANDLE_UNVALID != handle);
 
 open_exit:
     return handle;
@@ -179,22 +193,11 @@ UINT32 ddev_close(DD_HANDLE handle)
             (operation->close)();
         }
 
-        //ASSERT(dev_ptr);
-        //
-        //GLOBAL_INT_DISABLE();
-        //dev_ptr->state = DD_STATE_CLOSED;
-        //GLOBAL_INT_RESTORE();
+        ASSERT(dev_ptr);
 
-        if(dev_ptr != NULL)
-        {
-            GLOBAL_INT_DISABLE();
-            dev_ptr->state = DD_STATE_CLOSED;
-            GLOBAL_INT_RESTORE();
-        }
-        else
-        {
-            return DRV_FAILURE;
-        }
+        GLOBAL_INT_DISABLE();
+        dev_ptr->state = DD_STATE_CLOSED;
+        GLOBAL_INT_RESTORE();
     }
 
     return DRV_SUCCESS;
@@ -215,21 +218,13 @@ UINT32 ddev_read(DD_HANDLE handle, char *user_buf, UINT32 count, UINT32 op_flag)
 
     status = DRV_FAILURE;
     dev_ptr = &drv_dev_tbl[id];
-    //ASSERT(dev_ptr);
-    //operation = dev_ptr->op;
-    //if(operation && (operation->read))
-    //{
-    //    status = (operation->read)(user_buf, count, op_flag);
-    //}
-
-    if(dev_ptr != NULL)
+    ASSERT(dev_ptr);
+    operation = dev_ptr->op;
+    if(operation && (operation->read))
     {
-        operation = dev_ptr->op;
-        if(operation && (operation->read))
-        {
-            status = (operation->read)(user_buf, count, op_flag);
-        }
+        status = (operation->read)(user_buf, count, op_flag);
     }
+
     return status;
 }
 
@@ -248,20 +243,11 @@ UINT32 ddev_write(DD_HANDLE handle, char *user_buf, UINT32 count, UINT32 op_flag
 
     status = DRV_FAILURE;
     dev_ptr = &drv_dev_tbl[id];
-    //ASSERT(dev_ptr);
-    //operation = dev_ptr->op;
-    //if(operation && (operation->write))
-    //{
-    //    status = (operation->write)(user_buf, count, op_flag);
-    //}
-
-    if(dev_ptr != NULL)
+    ASSERT(dev_ptr);
+    operation = dev_ptr->op;
+    if(operation && (operation->write))
     {
-        operation = dev_ptr->op;
-        if(operation && (operation->write))
-        {
-            status = (operation->write)(user_buf, count, op_flag);
-        }
+        status = (operation->write)(user_buf, count, op_flag);
     }
 
     return status;
@@ -282,20 +268,11 @@ UINT32 ddev_control(DD_HANDLE handle, UINT32 cmd, VOID *param)
 
     status = DRV_FAILURE;
     dev_ptr = &drv_dev_tbl[id];
-    //ASSERT(dev_ptr);
-    //operation = dev_ptr->op;
-    //if(operation && (operation->control))
-    //{
-    //    status = (operation->control)(cmd, param);
-    //}
-
-    if(dev_ptr != NULL)
+    ASSERT(dev_ptr);
+    operation = dev_ptr->op;
+    if(operation && (operation->control))
     {
-        operation = dev_ptr->op;
-        if(operation && (operation->control))
-        {
-            status = (operation->control)(cmd, param);
-        }
+        status = (operation->control)(cmd, param);
     }
 
     return status;
@@ -328,8 +305,7 @@ UINT32 sddev_control(char *dev_name, UINT32 cmd, VOID *param)
         }
     }
 
-    if(operation == NULLPTR)
-        return DRV_FAILURE;
+    ASSERT(operation);
 
     return status;
 }
@@ -451,10 +427,7 @@ UINT32 ddev_unregister_dev(char *dev_name)
         }
     }
 
-    //ASSERT(NULLPTR == dev_ptr);
-
-    if(NULLPTR != dev_ptr)
-        return DRV_FAILURE;
+    ASSERT(NULLPTR == dev_ptr);
 
     return DRV_SUCCESS;
 }
@@ -492,10 +465,7 @@ UINT32 sddev_unregister_dev(char *dev_name)
         }
     }
 
-    //ASSERT(NULLPTR == dev_ptr);
-
-    if(NULLPTR != dev_ptr)
-        return DRV_FAILURE;
+    ASSERT(NULLPTR == dev_ptr);
 
     return DRV_SUCCESS;
 }

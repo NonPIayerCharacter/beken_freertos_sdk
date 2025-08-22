@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "video_demo_config.h"
 
@@ -256,7 +270,7 @@ static void app_demo_p2p_main(beken_thread_arg_t data)
                     vudp_sdp_stop();
                     #endif
 
-#if CFG_WIFI_P2P
+                    #if CFG_WIFI_P2P
                     rwnx_hw_reinit();
                     if (msg.data == 1)
                     {
@@ -270,7 +284,7 @@ static void app_demo_p2p_main(beken_thread_arg_t data)
                         rtos_delay_milliseconds(2000);
                         wlan_p2p_find();
                     }
-#endif
+                    #endif
 
                     APP_DEMO_P2P_PRT("wifi disconnected!\r\n");
                 }
@@ -308,6 +322,20 @@ static void app_demo_p2p_main(beken_thread_arg_t data)
                 break;
 
             case DAP_EXIT:
+                if (g_demo_p2p->status != APS_WIFI_DISCONECTED)
+                {
+                    g_demo_p2p->status = APS_WIFI_DISCONECTED;
+                    //app_led_send_msg(LED_DISCONNECT);
+                    #if APP_DEMO_CFG_USE_UDP
+                    app_demo_udp_deinit();
+                    #endif
+
+                    #if APP_DEMO_CFG_USE_TCP
+                    app_demo_tcp_deinit();
+                    #endif
+
+                    APP_DEMO_P2P_PRT("wifi exit!\r\n");
+                }
                 goto app_demo_sta_exit;
                 break;
 
@@ -320,15 +348,15 @@ static void app_demo_p2p_main(beken_thread_arg_t data)
 
 app_demo_sta_exit:
 
-#if APP_DEMO_CFG_USE_UDP_SDP
-	vudp_sdp_stop();
-#endif
+    #if APP_DEMO_CFG_USE_UDP_SDP
+    vudp_sdp_stop();
+    #endif
 
     // cancel p2p
     bk_wlan_status_unregister_cb();
-#if CFG_WIFI_P2P
+    #if CFG_WIFI_P2P
     wlan_p2p_cancel();
-#endif
+    #endif
 
     rtos_deinit_queue(&g_demo_p2p->msg_que);
 

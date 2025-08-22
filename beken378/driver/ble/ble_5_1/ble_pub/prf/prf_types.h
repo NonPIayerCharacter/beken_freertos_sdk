@@ -203,12 +203,12 @@ struct prf_char_inf
 /// characteristic description
 struct prf_char_desc_inf
 {
-     /// UUID length
+    /// UUID length
     uint8_t uuid_len;
     /// UUID
     uint8_t uuid[ATT_UUID_128_LEN];  // add by sean 2016.11.15
-   
-    uint8_t char_code;	
+    /// Which characteristic this description belongs to
+    uint8_t char_code;
     /// Descriptor handle
     uint16_t desc_hdl;
 };

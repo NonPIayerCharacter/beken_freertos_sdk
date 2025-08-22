@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "schedule_pub.h"
 #include "sa_station.h"
@@ -40,30 +54,30 @@ extern struct mac_scan_result *scanu_search_by_ssid(struct mac_ssid const *ssid)
 /*---------------------------------------------------------------------------*/
 int sa_station_send_associate_cmd(ASSOC_PARAM_T *assoc_param)
 {
-	int ret;
-	struct mac_scan_result *desired_ap_ptr;
-	struct sm_assoc_cfm cfm;
+    int ret;
+    struct mac_scan_result *desired_ap_ptr;
+    struct sm_assoc_cfm cfm;
 
-	os_printf("%s %d\n", __func__, __LINE__);
+    os_printf("%s %d\n", __func__, __LINE__);
 
-	if (0/*assoc_param->chan.freq*/) {
-		/* for fast connect */
-		assoc_param->chan.band = 0;
-		assoc_param->chan.flags = 0;
-		assoc_param->chan.tx_power = 10;
-	} else {
-		/* normal case */
-		desired_ap_ptr = scanu_search_by_ssid((void *)&assoc_param->ssid);
-		if (NULL == desired_ap_ptr)
-			return -1;
-		assoc_param->chan = *(desired_ap_ptr->chan);
-		if (0 == assoc_param->chan.tx_power)
-			assoc_param->chan.tx_power = 10;
-	}
+    if (0/*assoc_param->chan.freq*/) {
+        /* for fast connect */
+        assoc_param->chan.band = 0;
+        assoc_param->chan.flags = 0;
+        assoc_param->chan.tx_power = 10;
+    } else {
+        /* normal case */
+        desired_ap_ptr = scanu_search_by_ssid((void *)&assoc_param->ssid);
+        if (NULL == desired_ap_ptr)
+            return -1;
+        assoc_param->chan = *(desired_ap_ptr->chan);
+        if (0 == assoc_param->chan.tx_power)
+            assoc_param->chan.tx_power = 10;
+    }
 
-	ret = rw_msg_send_sm_assoc_req(assoc_param, &cfm);
+    ret = rw_msg_send_sm_assoc_req(assoc_param, &cfm);
 
-	return ret;
+    return ret;
 }
 
 #else /* !CONFIG_SME */
@@ -71,35 +85,35 @@ int sa_station_send_associate_cmd(ASSOC_PARAM_T *assoc_param)
 /*---------------------------------------------------------------------------*/
 int sa_station_send_associate_cmd(CONNECT_PARAM_T *connect_param)
 {
-	int ret;
-	struct mac_scan_result *desired_ap_ptr;
-	struct sm_connect_cfm sm_connect_cfm;
+    int ret;
+    struct mac_scan_result *desired_ap_ptr;
+    struct sm_connect_cfm sm_connect_cfm;
 
-#if !CFG_WPA_CTRL_IFACE
-	if (g_sta_param_ptr->fast_connect_set) {
-		g_sta_param_ptr->fast_connect_set = 0;
-		connect_param->chan.freq = rw_ieee80211_get_centre_frequency(g_sta_param_ptr->fast_connect.chann);
-		connect_param->chan.band = 0;
-		connect_param->chan.flags = 0;
-		connect_param->chan.tx_power = 10;
-	} else
-#else
-	if (connect_param->chan.freq) {
-		/* for fast connect */
-		connect_param->chan.band = PHY_BAND_2G4;
-		connect_param->chan.flags = 0;
-		connect_param->chan.tx_power = 10;
-	} else
-#endif
-	{
-		/* normal case */
-		desired_ap_ptr = scanu_search_by_ssid((void *)&connect_param->ssid);
-		if (NULL == desired_ap_ptr)
-			return -1;
-		connect_param->chan = *(desired_ap_ptr->chan);
-		if (0 == connect_param->chan.tx_power)
-			connect_param->chan.tx_power = 10;
-	}
+    #if !CFG_WPA_CTRL_IFACE
+    if (g_sta_param_ptr->fast_connect_set) {
+        g_sta_param_ptr->fast_connect_set = 0;
+        connect_param->chan.freq = rw_ieee80211_get_centre_frequency(g_sta_param_ptr->fast_connect.chann);
+        connect_param->chan.band = 0;
+        connect_param->chan.flags = 0;
+        connect_param->chan.tx_power = 10;
+    } else
+    #else
+    if (connect_param->chan.freq) {
+        /* for fast connect */
+        connect_param->chan.band = PHY_BAND_2G4;
+        connect_param->chan.flags = 0;
+        connect_param->chan.tx_power = 10;
+    } else
+    #endif
+    {
+        /* normal case */
+        desired_ap_ptr = scanu_search_by_ssid((void *)&connect_param->ssid);
+        if (NULL == desired_ap_ptr)
+            return -1;
+        connect_param->chan = *(desired_ap_ptr->chan);
+        if (0 == connect_param->chan.tx_power)
+            connect_param->chan.tx_power = 10;
+    }
 
     if(rw_ieee80211_is_scan_rst_in_countrycode(rw_ieee80211_get_chan_id(connect_param->chan.freq)) == 0)
     {
@@ -107,29 +121,29 @@ int sa_station_send_associate_cmd(CONNECT_PARAM_T *connect_param)
         return -1;
     }
 
-	ret = rw_msg_send_sm_connect_req(connect_param, &sm_connect_cfm);
-	if (ret)
-		return ret;
+    ret = rw_msg_send_sm_connect_req(connect_param, &sm_connect_cfm);
+    if (ret)
+        return ret;
 
-	switch (sm_connect_cfm.status) {
-	case CO_OK:
-		ret = 0;
-		break;
+    switch (sm_connect_cfm.status) {
+    case CO_OK:
+        ret = 0;
+        break;
 
-	case CO_BUSY:
-		ret = -ERRINPROGRESS;
-		break;
+    case CO_BUSY:
+        ret = -ERRINPROGRESS;
+        break;
 
-	case CO_OP_IN_PROGRESS:
-		ret = -ERRALREADY;
-		break;
+    case CO_OP_IN_PROGRESS:
+        ret = -ERRALREADY;
+        break;
 
-	default:
-		ret = -EERIO;
-		break;
-	}
+    default:
+        ret = -EERIO;
+        break;
+    }
 
-	return ret;
+    return ret;
 }
 #endif /*CONFIG_SME*/
 

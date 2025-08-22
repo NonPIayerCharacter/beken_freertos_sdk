@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "rwip_config.h"     // SW configuration
 
 #if (BLE_APP_COMM)
@@ -48,8 +62,8 @@ ble_err_t bk_ble_create_db (struct bk_ble_db_cfg* ble_db_cfg)
         struct bk_ble_db_cfg *db_cfg;
 
         struct gapm_profile_task_add_cmd *req = KERNEL_MSG_ALLOC_DYN(GAPM_PROFILE_TASK_ADD_CMD,
-                                                  TASK_BLE_GAPM, TASK_BLE_APP,
-                                                  gapm_profile_task_add_cmd, sizeof(struct bk_ble_db_cfg));
+                                                TASK_BLE_GAPM, TASK_BLE_APP,
+                                                gapm_profile_task_add_cmd, sizeof(struct bk_ble_db_cfg));
         // Fill message
         req->operation = GAPM_PROFILE_TASK_ADD;
         req->sec_lvl = ble_db_cfg->svc_perm;
@@ -94,14 +108,14 @@ ble_err_t bk_ble_conn_enable_prf(uint8_t conidx, uint16_t prf_id)
     {
         // Allocate the message
         struct bk_ble_enable_req * req = KERNEL_MSG_ALLOC(BK_BLE_ENABLE_REQ,
-                                                    prf_env->task,
-                                                    TASK_BLE_APP,
-                                                    bk_ble_enable_req);
+                                         prf_env->task,
+                                         TASK_BLE_APP,
+                                         bk_ble_enable_req);
         // Fill in the parameter structure
         req->conidx  = conidx;
         req->ind_cfg = 0;
         req->ntf_cfg = 0;
-        
+
         // Send the message
         kernel_msg_send(req);
     }
@@ -125,9 +139,9 @@ ble_err_t bk_ble_send_ntf_value(uint32_t len, uint8_t *buf, uint16_t prf_id, uin
     {
         // Allocate the message
         struct bk_ble_ntf_upd_req * req = KERNEL_MSG_ALLOC_DYN(BK_BLE_NTF_UPD_REQ,
-                                                        prf_env->task,
-                                                        TASK_BLE_APP,
-                                                        bk_ble_ntf_upd_req,len);
+                                          prf_env->task,
+                                          TASK_BLE_APP,
+                                          bk_ble_ntf_upd_req,len);
 
         req->length = len;
         memcpy(req->value, buf, len);
@@ -156,9 +170,9 @@ ble_err_t bk_ble_send_ind_value(uint32_t len, uint8_t *buf, uint16_t prf_id, uin
     {
         // Allocate the message
         struct bk_ble_ind_upd_req * req = KERNEL_MSG_ALLOC_DYN(BK_BLE_IND_UPD_REQ,
-                                                        prf_env->task,
-                                                        TASK_BLE_APP,
-                                                        bk_ble_ind_upd_req,len);
+                                          prf_env->task,
+                                          TASK_BLE_APP,
+                                          bk_ble_ind_upd_req,len);
 
         req->length = len;
         memcpy(req->value, buf, len);
@@ -176,14 +190,14 @@ ble_err_t bk_ble_send_ind_value(uint32_t len, uint8_t *buf, uint16_t prf_id, uin
 }
 
 static int bk_ble_write_req_ind_handler(kernel_msg_id_t const msgid,
-                                     struct bk_ble_write_ind *param,
-                                     kernel_task_id_t const dest_id,
-                                     kernel_task_id_t const src_id)
+                                        struct bk_ble_write_ind *param,
+                                        kernel_task_id_t const dest_id,
+                                        kernel_task_id_t const src_id)
 {
 
     write_req_t write_req;
- 
- #if 0 //printf for test write req  
+
+    #if 0 //printf for test write req
     uint32_t i;
     bk_printf("prf_id:%d, att_idx:%d\r\n", param->prf_id, param->att_id);
 
@@ -192,40 +206,40 @@ static int bk_ble_write_req_ind_handler(kernel_msg_id_t const msgid,
         bk_printf("%x ", (param->value)[i]);
     }
     bk_printf("\r\n");
- #endif
+    #endif
 
     write_req.att_idx = param->att_id;
     write_req.len = param->length;
     write_req.prf_id = param->prf_id;
     write_req.value = &(param->value[0]);
-    
+
     if(bk_ble_write_cb != NULL)
     {
         (*bk_ble_write_cb)(&write_req);
     }
-    	
+
     return (KERNEL_MSG_CONSUMED);
 }
 
 static int bk_ble_enable_rsp_handler(kernel_msg_id_t const msgid,
-                                    struct bk_ble_enable_rsp const *param,
-                                    kernel_task_id_t const dest_id,
-                                    kernel_task_id_t const src_id)
+                                     struct bk_ble_enable_rsp const *param,
+                                     kernel_task_id_t const dest_id,
+                                     kernel_task_id_t const src_id)
 {
     return (KERNEL_MSG_CONSUMED);
 }
 
 static int bk_ble_gattc_cmp_evt_handler(kernel_msg_id_t const msgid,  struct bk_ble_gattc_cmp_evt const *param,
-                                 kernel_task_id_t const dest_id, kernel_task_id_t const src_id)
-{	
+                                        kernel_task_id_t const dest_id, kernel_task_id_t const src_id)
+{
     UART_PRINTF("%s,operation = %x,status = 0x%x,att_id = 0x%x\r\n",__func__,param->operation,param->status,param->att_id);
-	if(param->operation == GATTC_INDICATE || param->operation == GATTC_NOTIFY)
-	{
-		if(ble_event_cb)
-		{
-			(*ble_event_cb)(BLE_TX_DONE, NULL);
-		}
-	}
+    if(param->operation == GATTC_INDICATE || param->operation == GATTC_NOTIFY)
+    {
+        if(ble_event_cb)
+        {
+            (*ble_event_cb)(BLE_TX_DONE, NULL);
+        }
+    }
     return KERNEL_MSG_CONSUMED;
 }
 
@@ -235,11 +249,11 @@ const struct kernel_msg_handler app_comm_msg_handler_list[] =
     {KERNEL_MSG_DEFAULT_HANDLER,         (kernel_msg_func_t)app_comm_msg_dflt_handler},
     {BK_BLE_WRITE_REQ_IND,               (kernel_msg_func_t)bk_ble_write_req_ind_handler},
     {BK_BLE_ENABLE_RSP,                  (kernel_msg_func_t)bk_ble_enable_rsp_handler},
-	{BK_BLE_GATTC_CMP_EVT,               (kernel_msg_func_t)bk_ble_gattc_cmp_evt_handler},
+    {BK_BLE_GATTC_CMP_EVT,               (kernel_msg_func_t)bk_ble_gattc_cmp_evt_handler},
 };
 
 const struct kernel_state_handler app_comm_table_handler =
-    {&app_comm_msg_handler_list[0], (sizeof(app_comm_msg_handler_list)/sizeof(struct kernel_msg_handler))};
+{&app_comm_msg_handler_list[0], (sizeof(app_comm_msg_handler_list)/sizeof(struct kernel_msg_handler))};
 
 #endif
 

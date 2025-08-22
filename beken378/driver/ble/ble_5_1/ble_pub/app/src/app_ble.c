@@ -144,17 +144,17 @@ uint8_t app_ble_get_idle_conn_idx_handle(ACTV_TYPE type)
 		case INIT_ACTV:
 		{
 			if (app_ble_env.actv_cnt.init_actv >= CFG_BLE_INIT_NUM) {
-				return UNKNOW_CONN_HDL;
+				return BLE_CONNECTION_MAX;
 			}
 		}break;
 		case CONN_ACTV:
 		{
 			if (app_ble_env.actv_cnt.conn_actv >= CFG_BLE_CONN_NUM) {
-				return UNKNOW_CONN_HDL;
+				return BLE_CONNECTION_MAX;
 			}
 		}break;
 		default:
-			return UNKNOW_CONN_HDL;
+			return BLE_CONNECTION_MAX;
 		break;
 	}
 
@@ -488,7 +488,7 @@ ble_err_t app_ble_update_param(uint8_t conn_idx, struct gapc_conn_param *conn_pa
 		// Prepare the GAPC_PARAM_UPDATE_CMD message
 		struct gapc_param_update_cmd *cmd = KERNEL_MSG_ALLOC(GAPC_PARAM_UPDATE_CMD,
 									 KERNEL_BUILD_ID(TASK_BLE_GAPC, conhdl),
-									 KERNEL_BUILD_ID(TASK_BLE_APP, BLE_APP_INITING_INDEX(conn_idx)),
+									 KERNEL_BUILD_ID(TASK_BLE_APP, conn_idx),
 									 gapc_param_update_cmd);
 
 		if (cmd) {
@@ -527,7 +527,7 @@ ble_err_t app_ble_disconnect(uint8_t conn_idx, uint8_t reason)
 	if ((conhdl != UNKNOW_CONN_HDL) && (conhdl != USED_CONN_HDL)){
 		struct gapc_disconnect_cmd *cmd = KERNEL_MSG_ALLOC(GAPC_DISCONNECT_CMD,
 									KERNEL_BUILD_ID(TASK_BLE_GAPC, conhdl),
-									KERNEL_BUILD_ID(TASK_BLE_APP, BLE_APP_INITING_INDEX(conn_idx)),
+									KERNEL_BUILD_ID(TASK_BLE_APP, conn_idx),
 									gapc_disconnect_cmd);
 
 		if (cmd) {
@@ -560,7 +560,7 @@ ble_err_t app_ble_gatt_mtu_change(uint8_t conn_idx)
 		// Prepare the GAPC_PARAM_UPDATE_CMD message
 		struct gattc_exc_mtu_cmd  *cmd = KERNEL_MSG_ALLOC(GATTC_EXC_MTU_CMD,
 								KERNEL_BUILD_ID(TASK_BLE_GATTC, conhdl),
-								KERNEL_BUILD_ID(TASK_BLE_APP, BLE_APP_INITING_INDEX(conn_idx)),
+								KERNEL_BUILD_ID(TASK_BLE_APP, conn_idx),
 								gattc_exc_mtu_cmd);
 
 		if (cmd) {
@@ -592,7 +592,7 @@ ble_err_t app_ble_get_peer_feature(uint8_t conn_idx)
 	if ((conhdl != UNKNOW_CONN_HDL) && (conhdl != USED_CONN_HDL)) {
 		struct gapc_get_info_cmd *cmd = KERNEL_MSG_ALLOC(GAPC_GET_INFO_CMD,
 									KERNEL_BUILD_ID(TASK_BLE_GAPC, conhdl),
-									KERNEL_BUILD_ID(TASK_BLE_APP, BLE_APP_INITING_INDEX(conn_idx)),
+									KERNEL_BUILD_ID(TASK_BLE_APP, conn_idx),
 									gapc_get_info_cmd);
 
 		if (cmd) {
@@ -799,6 +799,46 @@ void app_ble_send_conn_param_update_cfm(uint8_t con_idx,bool accept)
 
 }
 
+#if (BLE_APP_SEC)
+ble_err_t app_ble_get_bonded_device_num(uint8_t *dev_num)
+{
+    *dev_num = __builtin_popcount(app_sec_env.bonded);
+
+    if (*dev_num > MAX_BOND_NUM) {
+        *dev_num = 0xFF;
+    }
+
+    return ERR_SUCCESS;
+}
+
+ble_err_t app_ble_get_bonded_device_list(uint8_t *dev_num, bond_device_addr_t *dev_list)
+{
+    ble_err_t ret = ERR_SUCCESS;
+    uint8_t exp_num = *dev_num;
+    uint8_t act_num = 0;
+
+    for (uint8_t i = 0; i < MAX_BOND_NUM; i++) {
+
+        if ((app_sec_env.bonded >> i) & 1) {
+
+            if (act_num++ < exp_num) {
+                memcpy(dev_list->addr, app_sec_env.bond_info[i].peer_irk.addr.addr.addr, GAP_BD_ADDR_LEN);
+                dev_list->addr_type = app_sec_env.bond_info[i].peer_irk.addr.addr_type;
+                dev_list->bond_idx = i;
+                dev_list++;
+            } else {
+                ret = ERR_NO_MEM;
+            }
+
+        }
+
+    }
+
+    *dev_num = act_num;
+    return ret;
+}
+#endif
+
 void app_ble_next_operation(uint8_t idx, uint8_t status)
 {
 	uint8_t op_idx;
@@ -1003,9 +1043,6 @@ void appm_init( void )
 	*------------------------------------------------------*/
 #if (BLE_APP_PRESENT && (BLE_CENTRAL)  && BLE_SDP_CLIENT)
 	sdp_service_init();
-	#if APP_INIT_REUSE_ACTV_IDX
-	app_ble_initing_init();
-	#endif
 #endif
 
 #if (BLE_APP_SEC)

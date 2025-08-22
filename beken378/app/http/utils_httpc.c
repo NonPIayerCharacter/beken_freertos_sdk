@@ -10,6 +10,7 @@
 #include "uart_pub.h"
 #include "mem_pub.h"
 #include "str_pub.h"
+#include <stdlib.h>
 
 #if HTTP_WR_TO_FLASH
 #include "flash_pub.h"
@@ -652,6 +653,16 @@ int httpclient_retrieve_content(httpclient_t *client, char *data, int len, uint3
         }
 
         log_debug("Total-Payload: %d Bytes; Read: %d Bytes", readLen, len);
+
+        #if HTTP_WR_TO_FLASH
+        bk_logic_partition_t *pt;
+        pt = bk_flash_get_info(BK_PARTITION_OTA);
+        if(readLen > pt->partition_length) {
+            bk_printf("Total-Payload: %d Bytes larger than download size: %d, don't download, exit\r\n", readLen, pt->partition_length);
+            return NULL_VALUE_ERROR;
+        }
+        #endif
+
         #if AT_SERVICE_CFG
         if(http_is_ota == 1)
         #endif
@@ -706,7 +717,7 @@ int httpclient_retrieve_content(httpclient_t *client, char *data, int len, uint3
         bk_http_ptr->do_data = 0;
         os_free(b_data);
         b_data = NULL;
-            
+ 
         if (client_data->is_chunked) {
             if (len < 2) {
                 int new_trf_len, ret;
@@ -1048,6 +1059,14 @@ int httpclient_common(httpclient_t *client, const char *url, int port, const cha
     if (0 == client->net.handle) {
         //Establish connection if no.
         httpclient_parse_host(url, host, sizeof(host));
+        //if host = 192.168.xxx.xxx:xxxxx, you should try host => ip + port
+        const char *port_ptr = (const char *)os_strchr(host, ':');
+        if (port_ptr != NULL) {
+            uint32_t ip_len = port_ptr - host;
+            port_ptr += 1;
+            host[ip_len] = '\0';
+            port = atoi(port_ptr);
+        }
         log_debug("host: '%s', port: %d", host, port);
 
         iotx_net_init(&client->net, host, port, ca_crt);

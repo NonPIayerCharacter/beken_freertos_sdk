@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -15,6 +29,7 @@
 #include "error.h"
 #include "rtos_pub.h"
 
+#if ((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7221U))
 #if ((CFG_USE_SPI_MASTER) && (CFG_USE_SPI))
 struct bk_spi_dev
 {
@@ -29,7 +44,7 @@ struct bk_spi_dev
 
     UINT32 total_len;
     UINT32 flag;
-    
+
     beken_mutex_t mutex;
 };
 
@@ -41,7 +56,7 @@ static void bk_spi_rx_callback(int is_rx_end, void *param)
     UINT32 offset, drop;
 
     GLOBAL_INT_DECLARATION();
-    
+
     rxbuf = spi_dev->rx_ptr;
     drop = spi_dev->rx_drop;
     offset = spi_dev->rx_offset;
@@ -85,24 +100,24 @@ static void bk_spi_tx_needwrite_callback(int port, void *param)
 
     UINT8 *rxbuf;
     UINT32 offset, drop;
-    
+
     rxbuf = spi_dev->rx_ptr;
     drop = spi_dev->rx_drop;
     offset = spi_dev->rx_offset;
 
     GLOBAL_INT_DECLARATION();
 
-    while(total_len) 
+    while(total_len)
     {
         tx_ok = 0;
-        
+
         if(tx_len)
         {
             data = *tx_ptr;
             if(spi_write_txfifo(data) == 1)
             {
                 tx_ok = 1;
-                
+
                 tx_len --;
                 tx_ptr ++;
             }
@@ -143,11 +158,11 @@ static void bk_spi_tx_needwrite_callback(int port, void *param)
         if(tx_ok == 1)
         {
             total_len --;
-            if(total_len == 0) 
+            if(total_len == 0)
             {
                 UINT32 enable = 0;
                 sddev_control(SPI_DEV_NAME, CMD_SPI_TXINT_EN, (void *)&enable);
-                
+
                 //BK_SPI_PRT("tx fin\r\n");
                 break;
             }
@@ -166,7 +181,7 @@ static void bk_spi_tx_needwrite_callback(int port, void *param)
     spi_dev->rx_drop = drop;
     spi_dev->rx_offset = offset;
     GLOBAL_INT_RESTORE();
-    
+
 }
 
 static void bk_spi_tx_finish_callback(int port, void *param)
@@ -201,7 +216,7 @@ void bk_spi_configure(UINT32 rate,UINT32 mode)
     {
         param = 0;
     }
-	sddev_control(SPI_DEV_NAME, CMD_SPI_SET_CKPOL, (void *)&param);
+    sddev_control(SPI_DEV_NAME, CMD_SPI_SET_CKPOL, (void *)&param);
 
     /* CPHA */
     if (mode & BK_SPI_CPHA)
@@ -212,7 +227,7 @@ void bk_spi_configure(UINT32 rate,UINT32 mode)
     {
         param = 0;
     }
-	sddev_control(SPI_DEV_NAME, CMD_SPI_SET_CKPHA, (void *)&param);
+    sddev_control(SPI_DEV_NAME, CMD_SPI_SET_CKPHA, (void *)&param);
 
     /* Master */
     param = 1;
@@ -255,9 +270,9 @@ int bk_spi_master_xfer(struct spi_message *msg)
     ASSERT(msg != NULL);
 
     rtos_lock_mutex(&spi_dev->mutex);
-    
+
     total_size = msg->recv_len + msg->send_len;
-    if(total_size) 
+    if(total_size)
     {
         GLOBAL_INT_DECLARATION();
 
@@ -265,7 +280,7 @@ int bk_spi_master_xfer(struct spi_message *msg)
         GLOBAL_INT_DISABLE();
         spi_dev->tx_ptr = msg->send_buf;
         spi_dev->tx_len = msg->send_len;
-        
+
         spi_dev->rx_ptr = msg->recv_buf;
         spi_dev->rx_len = msg->recv_len;
         spi_dev->rx_offset = 0;
@@ -304,14 +319,14 @@ int bk_spi_master_xfer(struct spi_message *msg)
         GLOBAL_INT_DISABLE();
         spi_dev->tx_ptr = NULL;
         spi_dev->tx_len = 0;
-        
+
         spi_dev->rx_ptr = NULL;
         spi_dev->rx_len = 0;
 
         spi_dev->total_len = 0;
         spi_dev->flag |= TX_FINISH_FLAG;
         GLOBAL_INT_RESTORE();
-    } 
+    }
 
     rtos_unlock_mutex(&spi_dev->mutex);
 
@@ -350,22 +365,22 @@ int bk_spi_master_init(UINT32 rate,UINT32 mode)
         BK_SPI_PRT("[spi]: spi mutex init failed\n");
         goto _exit;
     }
-    
+
     spi_dev->tx_ptr = NULL;
     spi_dev->tx_len = 0;
     spi_dev->flag |= TX_FINISH_FLAG;
 
     bk_spi_configure(rate,mode);
-    
+
     return 0;
 
 _exit:
     if(spi_dev->mutex)
         rtos_deinit_mutex(&spi_dev->mutex);
-    
+
     if(spi_dev->tx_sem)
         rtos_deinit_semaphore(&spi_dev->tx_sem);
-    
+
     if (spi_dev)
     {
         os_free(spi_dev);
@@ -384,16 +399,16 @@ int bk_spi_master_deinit(void)
 
     if(spi_dev->mutex)
         rtos_lock_mutex(&spi_dev->mutex);
-    
+
     if(spi_dev->tx_sem)
         rtos_deinit_semaphore(&spi_dev->tx_sem);
 
-    if(spi_dev->mutex) 
+    if(spi_dev->mutex)
     {
         rtos_unlock_mutex(&spi_dev->mutex);
         rtos_deinit_mutex(&spi_dev->mutex);
     }
-    
+
     if (spi_dev)
     {
         os_free(spi_dev);
@@ -406,4 +421,5 @@ int bk_spi_master_deinit(void)
 }
 
 #endif  // CFG_USE_SPI_MASTER
+#endif  // ((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7221U))
 

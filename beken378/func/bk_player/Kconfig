@@ -1,0 +1,96 @@
+menu "Bk_player"
+	config PLAYER
+		bool "Enable PLAYER"
+		default n
+
+	choice PLAYER_USE_MEMORY
+		depends on PLAYER
+		prompt "Select Player use memory"
+		default PLAYER_USE_SRAM
+
+		config PLAYER_USE_SRAM
+			bool "Enable player use sram"
+			help
+				player use sram memory
+
+		config PLAYER_USE_PSRAM
+			depends on PSRAM
+			bool "Enable player use psram"
+			help
+				player use psram memory
+	endchoice
+
+	config PLAYER_ENABLE_SOURCE_FILE
+		depends on PLAYER && VFS
+		bool "Enable Source File"
+		default y
+
+	config PLAYER_ENABLE_SOURCE_NET
+		depends on PLAYER
+		bool "Enable Source Net"
+		default n
+
+	config PLAYER_ENABLE_SOURCE_HLS
+		depends on PLAYER
+		bool "Enable Source aac hls (only audio)"
+		default n
+
+	config PLAYER_ENABLE_CODEC_WAV
+		depends on PLAYER
+		bool "Enable Codec Wave"
+		default y
+
+	config PLAYER_ENABLE_CODEC_AAC
+		depends on PLAYER
+		bool "Enable Codec AAC"
+		default n
+
+	config PLAYER_ENABLE_CODEC_MP3
+		depends on PLAYER
+		bool "Enable Codec MP3"
+		default n
+
+	config PLAYER_ENABLE_CODEC_TS
+		depends on PLAYER
+		bool "Enable Codec TS"
+		default n
+
+	config PLAYER_ENABLE_CODEC_AMR
+		depends on PLAYER
+		bool "Enable Codec AMR"
+		default n
+
+	config PLAYER_ENABLE_CODEC_OGG
+		depends on PLAYER
+		bool "Enable Codec OGG"
+		default n
+
+	config PLAYER_ENABLE_CODEC_FLAC
+		depends on PLAYER
+		bool "Enable Codec FLAC"
+		default n
+
+	config PLAYER_ENABLE_SINK_FILE
+		depends on PLAYER
+		bool "Enable Sink File"
+		default y
+
+	config PLAYER_ENABLE_SINK_DEVICE
+		depends on PLAYER
+		bool "Enable Sink Device"
+		default y
+    config PA_MUTE_EN
+        bool "Enable PA mute"
+        default n
+    config MUTE_PIN
+        depends on PA_MUTE_EN
+        int "pa mute gpio"
+        range 0 47
+        default 8
+    config MUTE_LEVEL
+        depends on PA_MUTE_EN
+        int "pa mute valid level"
+        range 0 1
+        default 0
+
+endmenu

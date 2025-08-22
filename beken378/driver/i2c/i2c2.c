@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #if CFG_USE_I2C2
 #include "arm_arch.h"
@@ -388,7 +402,7 @@ static void i2c2_isr(void)
         {
             i2c2_stat |= I2C2_SMBUS_STOP;			//send stop
             gi2c2->TransDone = 1;
-            if(i2c_transdone_sema!=NULL){
+            if(i2c_transdone_sema!=NULL) {
                 rtos_set_semaphore(&i2c_transdone_sema);
             }
             gi2c2->ErrorNO = 1;
@@ -405,7 +419,7 @@ static void i2c2_isr(void)
             {
                 I2C2_DEBUG_PRINTF("H\r\n");
                 i2c2_stat |= I2C2_SMBUS_STOP;		//send stop
-                if(i2c_transdone_sema!=NULL){
+                if(i2c_transdone_sema!=NULL) {
                     rtos_set_semaphore(&i2c_transdone_sema);
                 }
                 gi2c2->TransDone = 1;
@@ -445,20 +459,20 @@ static void i2c2_isr(void)
                 I2C2_DEBUG_PRINTF("J\r\n");
                 data_num = fifo_empty_num;
             }
-/**
-            for (i = 0; i < data_num; i++)
-            {
-                I2C2_DEBUG_PRINTF("K\r\n");
-                REG_WRITE(REG_I2C2_DAT, gi2c2->pData[gi2c2->CurrentNum]);
-                gi2c2->CurrentNum ++;
-                remain_data_cnt --;
-            }
-            if (remain_data_cnt < fifo_empty_num)
-            {
-                I2C2_DEBUG_PRINTF("L\r\n");
-                i2c2_stat &= ~(I2C2_SMBUS_STA | I2C2_INT_MODE_MASK);
-            }
-*/
+            /**
+                        for (i = 0; i < data_num; i++)
+                        {
+                            I2C2_DEBUG_PRINTF("K\r\n");
+                            REG_WRITE(REG_I2C2_DAT, gi2c2->pData[gi2c2->CurrentNum]);
+                            gi2c2->CurrentNum ++;
+                            remain_data_cnt --;
+                        }
+                        if (remain_data_cnt < fifo_empty_num)
+                        {
+                            I2C2_DEBUG_PRINTF("L\r\n");
+                            i2c2_stat &= ~(I2C2_SMBUS_STA | I2C2_INT_MODE_MASK);
+                        }
+            */
             if (i2c2_stat & I2C2_SMBUS_ACK)      // detect an ACK
             {
                 I2C2_DEBUG_PRINTF("m\r\n");
@@ -469,11 +483,11 @@ static void i2c2_isr(void)
                 if (remain_data_cnt == 0)
                 {
                     gi2c2->TransDone = 1;
-                    if(i2c_transdone_sema!=NULL){
+                    if(i2c_transdone_sema!=NULL) {
                         rtos_set_semaphore(&i2c_transdone_sema);
                     }
                     I2C2_DEBUG_PRINTF("m j\r\n");
-                // TODO
+                    // TODO
                 }
             }
             break;
@@ -621,7 +635,7 @@ static void i2c2_isr(void)
 
                 i2c2_stat = (i2c2_stat & (~(I2C2_SMBUS_ACK | I2C2_SMBUS_STA))) | I2C2_SMBUS_STOP ;		//send no ack/stop
                 gi2c2->TransDone = 1;
-                if(i2c_transdone_sema!=NULL){
+                if(i2c_transdone_sema!=NULL) {
                     rtos_set_semaphore(&i2c_transdone_sema);
                 }
 
@@ -746,7 +760,7 @@ static void i2c2_isr(void)
         {
 
             I2C2_DEBUG_PRINTF("k\r\n");
-            if(i2c_transdone_sema!=NULL){
+            if(i2c_transdone_sema!=NULL) {
                 rtos_set_semaphore(&i2c_transdone_sema);
             }
             gi2c2->TransDone = 1;
@@ -780,7 +794,7 @@ static void i2c2_isr(void)
             if (remain_data_cnt == 0)
             {
                 gi2c2->TransDone = 1;
-                if(i2c_transdone_sema!=NULL){
+                if(i2c_transdone_sema!=NULL) {
                     rtos_set_semaphore(&i2c_transdone_sema);
                 }
                 I2C2_DEBUG_PRINTF("j\r\n");
@@ -797,7 +811,7 @@ static void i2c2_isr(void)
         if (sto)										// detect a STOP
         {
             gi2c2->TransDone = 1;
-            if(i2c_transdone_sema!=NULL){
+            if(i2c_transdone_sema!=NULL) {
                 rtos_set_semaphore(&i2c_transdone_sema);
             }
             break;
@@ -841,7 +855,7 @@ static void i2c2_isr(void)
         {
 
             i2c2_stat &= ~I2C2_SMBUS_ACK; 	// send NACK
-            if(i2c_transdone_sema!=NULL){
+            if(i2c_transdone_sema!=NULL) {
                 rtos_set_semaphore(&i2c_transdone_sema);
             }
             gi2c2->TransDone = 1;
@@ -952,7 +966,7 @@ static UINT32 i2c2_open(UINT32 op_flag)
 
     gi2c2->WkMode = op_flag & 0x0F;
 
-    if(i2c_transdone_sema == NULL){
+    if(i2c_transdone_sema == NULL) {
         rtos_init_semaphore(&i2c_transdone_sema,1);
     }
 
@@ -966,7 +980,7 @@ static UINT32 i2c2_close(void)
     i2c2_disable_interrupt();
     i2c2_power_down();
 
-    if(i2c_transdone_sema != NULL){
+    if(i2c_transdone_sema != NULL) {
         rtos_deinit_semaphore(&i2c_transdone_sema);
     }
     i2c_transdone_sema = NULL;
@@ -1010,13 +1024,13 @@ static UINT32 i2c2_read(char *user_buf, UINT32 count, UINT32 op_flag)
     I2C2_PRT("gi2c2.InnerAddr = %d\r\n",  gi2c2->InnerAddr);
     I2C2_PRT("gi2c2.TransDone = %d\r\n",  gi2c2->TransDone);
     I2C2_PRT("gi2c2.AllDataNum = %d\r\n", gi2c2->AllDataNum);
-/**
-    //write salve address
-    reg = REG_READ(REG_I2C2_CONFIG);
-    reg &= (~(0x3FF << I2C2_SLV_ADDR_POSI));
-    reg = reg | (((gi2c2->Slave_addr) & 0x3FF) << I2C2_SLV_ADDR_POSI);
-    REG_WRITE(REG_I2C2_CONFIG, reg);
-*/
+    /**
+        //write salve address
+        reg = REG_READ(REG_I2C2_CONFIG);
+        reg &= (~(0x3FF << I2C2_SLV_ADDR_POSI));
+        reg = reg | (((gi2c2->Slave_addr) & 0x3FF) << I2C2_SLV_ADDR_POSI);
+        REG_WRITE(REG_I2C2_CONFIG, reg);
+    */
     //reg = REG_READ(REG_I2C2_CONFIG);
     //I2C2_PRT("i2c2_config= %lx\r\n", REG_READ(REG_I2C2_CONFIG));
 
@@ -1089,13 +1103,13 @@ static UINT32 i2c2_write(char *user_buf, UINT32 count, UINT32 op_flag)
     I2C2_PRT("gi2c2.InnerAddr = %d\r\n",  gi2c2->InnerAddr);
     I2C2_PRT("gi2c2.TransDone = %d\r\n",  gi2c2->TransDone);
     I2C2_PRT("gi2c2.AllDataNum = %d\r\n", gi2c2->AllDataNum);
-/*
-    // salve address---as slave
-    reg = REG_READ(REG_I2C2_CONFIG);
-    reg &= (~(0x3FF << I2C2_SLV_ADDR_POSI));
-    reg = reg | (((gi2c2->Slave_addr) & 0x3FF) << I2C2_SLV_ADDR_POSI);
-    REG_WRITE(REG_I2C2_CONFIG, reg);
-*/
+    /*
+        // salve address---as slave
+        reg = REG_READ(REG_I2C2_CONFIG);
+        reg &= (~(0x3FF << I2C2_SLV_ADDR_POSI));
+        reg = reg | (((gi2c2->Slave_addr) & 0x3FF) << I2C2_SLV_ADDR_POSI);
+        REG_WRITE(REG_I2C2_CONFIG, reg);
+    */
     //reg = REG_READ(REG_I2C2_CONFIG);
     //I2C2_PRT("i2c2_config= %lx\r\n", REG_READ(REG_I2C2_CONFIG));
 

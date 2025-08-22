@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @file reg_mac_core.h
  * @brief Definitions of the NXMAC HW block registers and register access functions.
@@ -6298,10 +6312,10 @@ __INLINE void nxmac_mac_addr_ram_high_setf(uint16_t macaddrramhigh)
  */
 enum
 {
-	CTYPERAM_NULL_KEY = 0,
-	CTYPERAM_WEP,
-	CTYPERAM_TKIP,
-	CTYPERAM_CCMP,
+    CTYPERAM_NULL_KEY = 0,
+    CTYPERAM_WEP,
+    CTYPERAM_TKIP,
+    CTYPERAM_CCMP,
 };
 
 /// Address of the ENCR_CNTRL register

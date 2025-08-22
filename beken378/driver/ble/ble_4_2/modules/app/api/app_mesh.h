@@ -1,19 +1,16 @@
-/**
- ****************************************************************************************
- *
- * @file app_mesh.h
- *
- * @brief mesh Application Module entry point
- *
- * @auth  gang.cheng
- *
- * @date  2018.07.9
- *
- * Copyright (C) Beken 2009-2016
- *
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef APP_MESH_H_
 #define APP_MESH_H_
@@ -127,8 +124,8 @@ void bk_ble_mesh_set_vid(uint16_t vid);
 void bk_ble_mesh_set_dev_uuid(uint8_t *device_uuid);
 void bk_ble_mesh_set_auth_data(uint8_t *auth_data);
 void bk_ble_mesh_set_capabilities(uint8_t number_of_elements,
-       uint8_t public_key_type, uint8_t static_oob_type, uint8_t output_oob_size,
-       uint16_t output_oob_action, uint8_t input_oob_size, uint16_t input_oob_action);
+                                  uint8_t public_key_type, uint8_t static_oob_type, uint8_t output_oob_size,
+                                  uint16_t output_oob_action, uint8_t input_oob_size, uint16_t input_oob_action);
 
 #endif // APP_MESH_H_
 

@@ -319,6 +319,9 @@ void enter_normal_app_mode(void)
 	bk_printf("enter normal mode\r\n");
 	bk_printf("EM_BLE_END:0x%x\r\n",get_em_map_end());
 
+	//ble test code for debug pin
+	//ble_diagcntl_set(0x00008383);
+
 	while (1) {
 		OSStatus err;
 		BLE_MSG_T msg;
@@ -328,12 +331,11 @@ void enter_normal_app_mode(void)
 			switch (msg.data) {
 				case BLE_MSG_POLL:
 					//schedule all pending events
-					//ble test code for debug pin
-					//ble_diagcntl_set(0x00008383);
 					rwip_schedule();
 					break;
 				case BLE_THREAD_EXIT:
 					bk_printf("ble thread exit\r\n");
+					rwip_reset();
 					goto exit_normal_loop;
 					break;
 				default:

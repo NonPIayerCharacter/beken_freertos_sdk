@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "rwip_config.h"             // SW configuration
 #if (BLE_APP_SDP)
 #include "app_task.h"                // Application task Definition
@@ -35,20 +49,20 @@ void appm_set_max_scan_nums(uint8_t max)
     }
     else
     {
-	    max_scan_numbers = max;
+        max_scan_numbers = max;
     }
 }
 
 uint8_t appm_get_max_scan_nums(void)
 {
-	return max_scan_numbers;
+    return max_scan_numbers;
 }
 
 
 ble_err_t appm_start_scanning(void)
 {
     ble_err_t status = ERR_SUCCESS;
-    
+
     if(BLE_ROLE_SLAVE == ble_get_role_mode())
     {
         bk_printf("current role should not be slave\r\n");
@@ -79,7 +93,7 @@ ble_err_t appm_start_scanning(void)
     else
     {
         bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
-		status = ERR_SCAN_FAIL;
+        status = ERR_SCAN_FAIL;
     }
 
     return status;
@@ -88,7 +102,7 @@ ble_err_t appm_start_scanning(void)
 ble_err_t appm_stop_scanning(void)
 {
     ble_err_t status = ERR_SUCCESS;
-    
+
     if (kernel_state_get(TASK_BLE_APP) == APPM_SCANNING)
     {
         // Prepare the GAPM_CANCEL_CMD message
@@ -105,10 +119,10 @@ ble_err_t appm_stop_scanning(void)
     }
     else
     {
-	    bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
+        bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
         status = ERR_STOP_SCAN_FAIL;
     }
-	return status;
+    return status;
 }
 
 ble_scan_list_t *appm_get_scan_result(void)
@@ -129,10 +143,10 @@ ble_err_t appm_start_connenct_by_id(uint8_t id)
     {
         // Prepare the GAPM_START_SCAN_CMD message
         struct gapm_start_connection_cmd *cmd = KERNEL_MSG_ALLOC_DYN(
-        										GAPM_START_CONNECTION_CMD,
-                                                TASK_BLE_GAPM, TASK_BLE_APP,
-                                                gapm_start_connection_cmd, 
-                                                sizeof(struct gap_bdaddr));
+                GAPM_START_CONNECTION_CMD,
+                TASK_BLE_GAPM, TASK_BLE_APP,
+                gapm_start_connection_cmd,
+                sizeof(struct gap_bdaddr));
         cmd->op.addr_src = GAPM_STATIC_ADDR;
         cmd->op.code = GAPM_CONNECTION_DIRECT;
         cmd->scan_interval = 50;
@@ -148,10 +162,10 @@ ble_err_t appm_start_connenct_by_id(uint8_t id)
         cmd->peers[0].addr_type = 0;
         memcpy(&cmd->peers[0].addr.addr[0],&ble_scan_list.info[id].adv_addr[0],6);
 
-		bk_printf("conn addr = %02x:%02x:%02x:%02x:%02x:%02x\r\n",cmd->peers[0].addr.addr[0],
-			cmd->peers[0].addr.addr[1],cmd->peers[0].addr.addr[2],
-			cmd->peers[0].addr.addr[3],cmd->peers[0].addr.addr[4],
-			cmd->peers[0].addr.addr[5]);
+        bk_printf("conn addr = %02x:%02x:%02x:%02x:%02x:%02x\r\n",cmd->peers[0].addr.addr[0],
+                  cmd->peers[0].addr.addr[1],cmd->peers[0].addr.addr[2],
+                  cmd->peers[0].addr.addr[3],cmd->peers[0].addr.addr[4],
+                  cmd->peers[0].addr.addr[5]);
 
         // Send the message
         kernel_msg_send(cmd);
@@ -162,10 +176,10 @@ ble_err_t appm_start_connenct_by_id(uint8_t id)
     }
     else
     {
-	    bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
+        bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
         status = ERR_CONN_FAIL;
     }
-	return status;
+    return status;
 }
 
 
@@ -182,10 +196,10 @@ ble_err_t appm_start_connenct_by_addr(uint8_t* bdaddr)
     {
         // Prepare the GAPM_START_SCAN_CMD message
         struct gapm_start_connection_cmd *cmd = KERNEL_MSG_ALLOC_DYN(
-        										GAPM_START_CONNECTION_CMD,
-                                                TASK_BLE_GAPM, TASK_BLE_APP,
-                                                gapm_start_connection_cmd, 
-                                                sizeof(struct gap_bdaddr));
+                GAPM_START_CONNECTION_CMD,
+                TASK_BLE_GAPM, TASK_BLE_APP,
+                gapm_start_connection_cmd,
+                sizeof(struct gap_bdaddr));
         cmd->op.addr_src = GAPM_STATIC_ADDR;
         cmd->op.code = GAPM_CONNECTION_DIRECT;
         cmd->scan_interval = 50;
@@ -201,10 +215,10 @@ ble_err_t appm_start_connenct_by_addr(uint8_t* bdaddr)
         cmd->peers[0].addr_type = 0;
         memcpy(&cmd->peers[0].addr.addr[0],bdaddr,6);
 
-		bk_printf("conn addr = %02x:%02x:%02x:%02x:%02x:%02x\r\n",cmd->peers[0].addr.addr[0],
-		cmd->peers[0].addr.addr[1],cmd->peers[0].addr.addr[2],
-		cmd->peers[0].addr.addr[3],cmd->peers[0].addr.addr[4],
-		cmd->peers[0].addr.addr[5]);
+        bk_printf("conn addr = %02x:%02x:%02x:%02x:%02x:%02x\r\n",cmd->peers[0].addr.addr[0],
+                  cmd->peers[0].addr.addr[1],cmd->peers[0].addr.addr[2],
+                  cmd->peers[0].addr.addr[3],cmd->peers[0].addr.addr[4],
+                  cmd->peers[0].addr.addr[5]);
 
         // Send the message
         kernel_msg_send(cmd);
@@ -216,51 +230,51 @@ ble_err_t appm_start_connenct_by_addr(uint8_t* bdaddr)
     }
     else
     {
-	    bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
+        bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
         status = ERR_CONN_FAIL;
     }
-	return status;
+    return status;
 }
 
 
 ble_err_t appm_stop_connencting(void)
 {
     ble_err_t status = ERR_SUCCESS;
-    
+
     if (kernel_state_get(TASK_BLE_APP) == APPM_CONNECTING)
     {
         // Go in ready state
         // Prepare the GAPM_CANCEL_CMD message
         struct gapm_cancel_cmd *cmd = KERNEL_MSG_ALLOC(
-        							  GAPM_CANCEL_CMD,
-                                      TASK_BLE_GAPM, TASK_BLE_APP,
-                                      gapm_cancel_cmd);
+                                          GAPM_CANCEL_CMD,
+                                          TASK_BLE_GAPM, TASK_BLE_APP,
+                                          gapm_cancel_cmd);
         cmd->operation = GAPM_CANCEL;
         // Send the message
 
         ble_set_role_mode(BLE_ROLE_NONE);
-        
+
         kernel_msg_send(cmd);
     }
     else
     {
-	    bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
+        bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
         status = ERR_STOP_CONN_FAIL;
     }
-	return status;
+    return status;
 }
 
 
 ble_err_t appm_disconnect_link(void)
 {
     ble_err_t status = ERR_SUCCESS;
-    
-    if((kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED) 
-		||(kernel_state_get(TASK_BLE_APP) == APPM_LINK_CONNECTED)
-		||(kernel_state_get(TASK_BLE_APP) == APPM_SDP_DISCOVERING))
+
+    if((kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED)
+            ||(kernel_state_get(TASK_BLE_APP) == APPM_LINK_CONNECTED)
+            ||(kernel_state_get(TASK_BLE_APP) == APPM_SDP_DISCOVERING))
     {
         struct gapc_disconnect_cmd *cmd = KERNEL_MSG_ALLOC(GAPC_DISCONNECT_CMD,
-                                          KERNEL_BUILD_ID(TASK_BLE_GAPC, 0), 
+                                          KERNEL_BUILD_ID(TASK_BLE_GAPC, 0),
                                           TASK_BLE_APP,
                                           gapc_disconnect_cmd);
         cmd->operation = GAPC_DISCONNECT;
@@ -271,16 +285,16 @@ ble_err_t appm_disconnect_link(void)
     }
     else
     {
-	    bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
+        bk_printf("CURRENT STATE= %x\r\n",kernel_state_get(TASK_BLE_APP));
         status = ERR_DISCONN_FAIL;
     }
-	return status;
+    return status;
 }
 
 ble_err_t appm_write_data_by_uuid(uint16_t uuid,uint8_t len,uint8_t *data)
 {
     ble_err_t status = ERR_SUCCESS;
-    
+
     if(BLE_ROLE_MASTER != ble_get_role_mode())
     {
         bk_printf("current role should be master\r\n");
@@ -289,7 +303,7 @@ ble_err_t appm_write_data_by_uuid(uint16_t uuid,uint8_t len,uint8_t *data)
     if(kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED)
     {
         struct sdp_write_info_req *req = KERNEL_MSG_ALLOC_DYN(SDP_WRITE_VALUE_INFO_REQ,
-                                         prf_get_task_from_id(TASK_BLE_ID_SDP), 
+                                         prf_get_task_from_id(TASK_BLE_ID_SDP),
                                          TASK_BLE_APP,
                                          sdp_write_info_req, len);
         // Fill in the parameter structure
@@ -303,8 +317,8 @@ ble_err_t appm_write_data_by_uuid(uint16_t uuid,uint8_t len,uint8_t *data)
     {
         status = ERR_WRITE_FAIL;
     }
-    
-	return status;
+
+    return status;
 }
 
 ble_err_t appm_write_ntf_cfg(uint16_t uuid,uint16_t number,uint16_t cfg)
@@ -314,14 +328,14 @@ ble_err_t appm_write_ntf_cfg(uint16_t uuid,uint16_t number,uint16_t cfg)
     if(kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED )
     {
         struct sdp_w_ntf_cfg_req *req = KERNEL_MSG_ALLOC(SDP_WRITE_NTF_CFG_REQ,
-                                        prf_get_task_from_id(TASK_BLE_ID_SDP), 
+                                        prf_get_task_from_id(TASK_BLE_ID_SDP),
                                         TASK_BLE_APP,
                                         sdp_w_ntf_cfg_req);
         // Fill in the parameter structure
         req->uuid = uuid;
-		req->char_num = number;
+        req->char_num = number;
         req->ntf_cfg = cfg;
-		
+
         // Send the message
         kernel_msg_send(req);
     }
@@ -329,15 +343,15 @@ ble_err_t appm_write_ntf_cfg(uint16_t uuid,uint16_t number,uint16_t cfg)
     {
         status = ERR_WRITE_FAIL;
     }
-    
-	return status;
+
+    return status;
 }
 
 
 ble_err_t appm_read_data_by_uuid(uint16_t uuid)
 {
     ble_err_t status = ERR_SUCCESS;
-    
+
     if(BLE_ROLE_MASTER != ble_get_role_mode())
     {
         bk_printf("current role should be master\r\n");
@@ -346,13 +360,13 @@ ble_err_t appm_read_data_by_uuid(uint16_t uuid)
     if(kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED)
     {
         struct sdp_read_info_req *req = KERNEL_MSG_ALLOC(SDP_READ_INFO_REQ,
-                                        prf_get_task_from_id(TASK_BLE_ID_SDP), 
+                                        prf_get_task_from_id(TASK_BLE_ID_SDP),
                                         TASK_BLE_APP,
                                         sdp_read_info_req);
         // Fill in the parameter structure
         req->uuid = uuid;
         req->info = SDPC_CHAR_VAL;
-		
+
         // Send the message
         kernel_msg_send(req);
     }
@@ -360,24 +374,24 @@ ble_err_t appm_read_data_by_uuid(uint16_t uuid)
     {
         status = ERR_READ_FAIL;
     }
-    
-	return status;
+
+    return status;
 }
 
 ble_err_t appm_read_cfg_by_uuid(uint16_t uuid)
 {
     ble_err_t status = ERR_SUCCESS;
-    
+
     if(kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED )
     {
         struct sdp_read_info_req *req = KERNEL_MSG_ALLOC(SDP_READ_INFO_REQ,
-                                        prf_get_task_from_id(TASK_BLE_ID_SDP), 
+                                        prf_get_task_from_id(TASK_BLE_ID_SDP),
                                         TASK_BLE_APP,
                                         sdp_read_info_req);
         // Fill in the parameter structure
         req->uuid = uuid;
         req->info = SDPC_CHAR_NTF_CFG;
-		
+
         // Send the message
         kernel_msg_send(req);
     }
@@ -385,24 +399,24 @@ ble_err_t appm_read_cfg_by_uuid(uint16_t uuid)
     {
         status = ERR_READ_FAIL;
     }
-   
-	return status;
+
+    return status;
 }
 
 ble_err_t appm_read_user_desc_by_uuid(uint16_t uuid)
 {
     ble_err_t status = ERR_SUCCESS;
-    
+
     if(kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED )
     {
         struct sdp_read_info_req *req = KERNEL_MSG_ALLOC(SDP_READ_INFO_REQ,
-                                        prf_get_task_from_id(TASK_BLE_ID_SDP), 
+                                        prf_get_task_from_id(TASK_BLE_ID_SDP),
                                         TASK_BLE_APP,
                                         sdp_read_info_req);
         // Fill in the parameter structure
         req->uuid = uuid;
         req->info = SDPC_CHAR_USER_DESC_VAL;
-		
+
         // Send the message
         kernel_msg_send(req);
     }
@@ -410,8 +424,8 @@ ble_err_t appm_read_user_desc_by_uuid(uint16_t uuid)
     {
         status = ERR_READ_FAIL;
     }
-    
-	return status;
+
+    return status;
 }
 
 extern struct sdp_env_tag adp_serv_env[SDP_NB_SERVICE_INSTANCES_MAX];
@@ -419,10 +433,10 @@ uint8_t  sdp_enable_all_server_ntf_ind(uint8_t  reset)
 {
     bool more_enable = false;
     static uint8_t server_num = 0;
-	static uint8_t chars_num = 0;
+    static uint8_t chars_num = 0;
 
-	bk_printf("%s\r\n",__func__);
-	
+    bk_printf("%s\r\n",__func__);
+
     if(reset == 1)
     {
         server_num = 0;
@@ -475,7 +489,7 @@ uint8_t  sdp_enable_all_server_ntf_ind(uint8_t  reset)
 void sdp_prf_register_all_atthdl2gatt(void)
 {
     uint8_t idx = 0;
-    for(idx = 0;idx < SDP_NB_SERVICE_INSTANCES_MAX;idx++)
+    for(idx = 0; idx < SDP_NB_SERVICE_INSTANCES_MAX; idx++)
     {
         struct sdp_env_tag* sdp_env = &adp_serv_env[idx];
 
@@ -487,5 +501,5 @@ void sdp_prf_register_all_atthdl2gatt(void)
     }
 }
 
-#endif  
+#endif
 

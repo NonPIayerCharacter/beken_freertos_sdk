@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _SOFT_ENCRYPT_H_
 #define _SOFT_ENCRYPT_H_
 
@@ -19,9 +33,9 @@
  * \brief          AES context structure
  */
 typedef struct {
-	int nr;			/*!<  number of rounds  */
-	unsigned long *rk;	/*!<  AES round keys    */
-	unsigned long buf[68];	/*!<  unaligned data    */
+    int nr;			/*!<  number of rounds  */
+    unsigned long *rk;	/*!<  AES round keys    */
+    unsigned long buf[68];	/*!<  unaligned data    */
 } weeny_aes_context;
 
 #ifdef __cplusplus
@@ -58,8 +72,8 @@ void weeny_aes_setkey_dec(weeny_aes_context *ctx, unsigned char *key, int keysiz
  * \param output   16-byte output block
  */
 void weeny_aes_crypt_ecb(weeny_aes_context *ctx,
-						 int mode,
-						 unsigned char input[16], unsigned char output[16]);
+                         int mode,
+                         unsigned char input[16], unsigned char output[16]);
 
 /**
  * \brief          AES-CBC buffer encryption/decryption
@@ -72,10 +86,10 @@ void weeny_aes_crypt_ecb(weeny_aes_context *ctx,
  * \param output   buffer holding the output data
  */
 void weeny_aes_crypt_cbc(weeny_aes_context *ctx,
-						 int mode,
-						 int length,
-						 unsigned char iv[16],
-						 unsigned char *input, unsigned char *output);
+                         int mode,
+                         int length,
+                         unsigned char iv[16],
+                         unsigned char *input, unsigned char *output);
 
 /**
  * \brief          AES-CFB128 buffer encryption/decryption
@@ -89,11 +103,11 @@ void weeny_aes_crypt_cbc(weeny_aes_context *ctx,
  * \param output   buffer holding the output data
  */
 void weeny_aes_crypt_cfb128(weeny_aes_context *ctx,
-							int mode,
-							int length,
-							int *iv_off,
-							unsigned char iv[16],
-							unsigned char *input, unsigned char *output);
+                            int mode,
+                            int length,
+                            int *iv_off,
+                            unsigned char iv[16],
+                            unsigned char *input, unsigned char *output);
 
 #ifdef __cplusplus
 }

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __START_TYPE_PUB_H_
 #define __START_TYPE_PUB_H_
 
@@ -27,24 +41,27 @@
 #define     START_TYPE_DMEMORY_ADDR        (0x0040001c)
 
 
-typedef enum { 
-	RESET_SOURCE_POWERON = 0x0,
-	RESET_SOURCE_REBOOT = 0x1,
-	RESET_SOURCE_WATCHDOG = 0x2,
+typedef enum {
+    RESET_SOURCE_POWERON = 0x0,
+    RESET_SOURCE_REBOOT = 0x1,
+    RESET_SOURCE_WATCHDOG = 0x2,
 
-	RESET_SOURCE_DEEPPS_GPIO = 0x3,
-	RESET_SOURCE_DEEPPS_RTC = 0x4,
+    RESET_SOURCE_DEEPPS_GPIO = 0x3,
+    RESET_SOURCE_DEEPPS_RTC = 0x4,
 
-	RESET_SOURCE_CRASH_XAT0 = 0x5,
-	RESET_SOURCE_CRASH_UNDEFINED = 0x6,
-	RESET_SOURCE_CRASH_PREFETCH_ABORT = 0x7,
-	RESET_SOURCE_CRASH_DATA_ABORT = 0x8,
-	RESET_SOURCE_CRASH_UNUSED = 0x9,
-	RESET_SOURCE_CRASH_PER_XAT0 = 0xc,
+    RESET_SOURCE_CRASH_XAT0 = 0x5,
+    RESET_SOURCE_CRASH_UNDEFINED = 0x6,
+    RESET_SOURCE_CRASH_PREFETCH_ABORT = 0x7,
+    RESET_SOURCE_CRASH_DATA_ABORT = 0x8,
+    RESET_SOURCE_CRASH_UNUSED = 0x9,
+    RESET_SOURCE_CRASH_PER_XAT0 = 0xc,
 
     RESET_SOURCE_DEEPPS_USB = 0xa,
     RESET_SOURCE_FORCE_ATE = 0xb,
 
+    #if CFG_MEM_CHECK_ENABLE
+    RESET_SOURCE_MEM_CHECK = 0xd,
+    #endif
 } RESET_SOURCE_STATUS;
 
 RESET_SOURCE_STATUS bk_misc_get_start_type();

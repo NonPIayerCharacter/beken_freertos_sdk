@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "rwnx_config.h"
@@ -91,9 +105,9 @@ TftpSend (void)
         os_strcpy ((char *)pkt, "timeout");
         pkt += 7 /*strlen("timeout")*/ + 1;
         sprintf((char *)pkt, "%lu", TIMEOUT);
-#ifdef ET_DEBUG
+        #ifdef ET_DEBUG
         TFTP_PRT("send option \"timeout %s\"\n", (char *)pkt);
-#endif
+        #endif
         pkt += os_strlen((char *)pkt) + 1;
         /* try for more effic. blk size */
         pkt += sprintf((char *)pkt, "blksize%c%d%c",
@@ -135,7 +149,7 @@ TftpSend (void)
         break;
     }
 
-    len = sendto( udp_tftp_listen_fd, pkt_buf, len, 0 , (struct sockaddr *) &server_addr, s_addr_len);
+    len = sendto( udp_tftp_listen_fd, pkt_buf, len, 0, (struct sockaddr *) &server_addr, s_addr_len);
     TFTP_PRT( "Server p: %x\r\n", server_addr.sin_port );
 }
 
@@ -195,9 +209,9 @@ TftpHandler (
         break;
 
     case TFTP_OACK:
-#ifdef ET_DEBUG
+        #ifdef ET_DEBUG
         TFTP_PRT("Got OACK: %s %s\n", pkt, pkt + os_strlen((UINT8 *)pkt) + 1);
-#endif
+        #endif
         TftpState = STATE_OACK;
         TftpServerPort = port;
         /*
@@ -211,10 +225,10 @@ TftpHandler (
             {
                 TftpBlkSize = (unsigned short)
                               os_strtoul((char *)pkt + i + 8, NULL, 10);
-#ifdef ET_DEBUG
+                #ifdef ET_DEBUG
                 TFTP_PRT ("Blocksize ack: %s, %d\n",
                           (char *)pkt + i + 8, TftpBlkSize);
-#endif
+                #endif
                 break;
             }
         }
@@ -250,12 +264,12 @@ TftpHandler (
             }
         }
 
-#ifdef ET_DEBUG
+        #ifdef ET_DEBUG
         if (TftpState == STATE_RRQ)
         {
             TFTP_PRT ("Server did not acknowledge timeout option!\n");
         }
-#endif
+        #endif
 
         if (TftpState == STATE_RRQ || TftpState == STATE_OACK)
         {
@@ -336,9 +350,9 @@ TftpTimeout (void)
 void
 TftpStart (void)
 {
-#ifdef CONFIG_TFTP_PORT
+    #ifdef CONFIG_TFTP_PORT
     char *ep;             /* Environment pointer */
-#endif
+    #endif
 
     if (BootFile[0] == '\0')
     {
@@ -356,7 +370,7 @@ TftpStart (void)
     /* Use a pseudo-random port unless a specific port is set */
     TftpOurPort = 1024 + (fclk_get_tick() % 3072);
 
-#ifdef CONFIG_TFTP_PORT
+    #ifdef CONFIG_TFTP_PORT
     if ((ep = getenv("tftpdstp")) != NULL)
     {
         TftpServerPort = simple_strtol(ep, NULL, 10);
@@ -365,7 +379,7 @@ TftpStart (void)
     {
         TftpOurPort = simple_strtol(ep, NULL, 10);
     }
-#endif
+    #endif
     TftpBlock = 0;
     /* Revert TftpBlkSize to dflt */
     TftpBlkSize = TFTP_BLOCK_SIZE;
@@ -412,32 +426,32 @@ void tftp_server_process( beken_thread_arg_t arg )
     ASSERT(kNoErr == result);
     result = rtos_start_timer(&tm_tftp_server);
     ASSERT(kNoErr == result);
-	flash_protection_op(FLASH_XTX_16M_SR_WRITE_ENABLE, FLASH_PROTECT_NONE);
-	
+    flash_protection_op(FLASH_XTX_16M_SR_WRITE_ENABLE, FLASH_PROTECT_NONE);
+
     while ( 1 )
     {
-        len = recvfrom( udp_tftp_listen_fd, tftp_buf, TFTP_LEN, 0 , (struct sockaddr *) &server_addr, &s_addr_len);
+        len = recvfrom( udp_tftp_listen_fd, tftp_buf, TFTP_LEN, 0, (struct sockaddr *) &server_addr, &s_addr_len);
         TFTP_PRT( "Server port: %x len:%d\r\n", server_addr.sin_port, len );
         TftpHandler(tftp_buf, len, server_addr.sin_port);
     }
-	
+
 exit:
-    if ( err != kNoErr ) 
-		os_printf( "Server listener thread exit with err: %d", err );
-		
+    if ( err != kNoErr )
+        os_printf( "Server listener thread exit with err: %d", err );
+
     close( udp_tftp_listen_fd );
-	
+
     if(tftp_buf)
         os_free(tftp_buf);
-		
-	flash_protection_op(FLASH_XTX_16M_SR_WRITE_ENABLE, FLASH_UNPROTECT_LAST_BLOCK);
+
+    flash_protection_op(FLASH_XTX_16M_SR_WRITE_ENABLE, FLASH_UNPROTECT_LAST_BLOCK);
     rtos_delete_thread(&tftp_thread_handle);
 }
 
 void tftp_start(void)
 {
     UINT32 ret;
-    
+
     Tftp_Uninit();
 
     TFTP_PRT("tftp c started\r\n");
@@ -464,7 +478,7 @@ void tftp_start(void)
 void store_block (unsigned block, uint8_t *src, unsigned len)
 {
     uint8_t *f_data;
-    UINT32 param , or_crc;
+    UINT32 param, or_crc;
     UINT32 param1;
 
     TFTP_WARN ("p_len%d \r\n", len);
@@ -510,7 +524,7 @@ void store_block (unsigned block, uint8_t *src, unsigned len)
 
     if((u32)os_data_addr < 0x400000)
     {
-        flash_write(src + TFTP_PKT_HD_LEN , len - TFTP_PKT_HD_LEN, (u32)os_data_addr);
+        flash_write(src + TFTP_PKT_HD_LEN, len - TFTP_PKT_HD_LEN, (u32)os_data_addr);
         f_data = os_malloc(1024);
         if(f_data)
         {
@@ -561,7 +575,7 @@ void store_block (unsigned block, uint8_t *src, unsigned len)
 
             }
         }
-        
+
         os_data_addr += len - TFTP_PKT_HD_LEN;
     }
 }

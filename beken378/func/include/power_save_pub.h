@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _POWER_SAVE_PUB_H_
 #define _POWER_SAVE_PUB_H_
 
@@ -22,15 +36,16 @@
 
 #if ( 1 == CFG_LOW_VOLTAGE_PS )
 #define PS_DTIM_COUNT                       (30)
+#define PS_KEEP_ALIVE_PERIOD                (30) // s
 #else
 #define PS_DTIM_COUNT                       (1)
+#define PS_KEEP_ALIVE_PERIOD                (1) // s
 #endif
 
-#define LOW_VOL_ARP_SEND_INTERVAL         30//s
 #if (CFG_SOC_NAME == SOC_BK7252N) && (0 == CFG_LOW_VOLTAGE_PS)
-#define PS_TBTT_PRE_LEAD                  800//us
+#define PS_TBTT_PRE_LEAD                    800//us
 #else
-#define PS_TBTT_PRE_LEAD                  0//us
+#define PS_TBTT_PRE_LEAD                    0//us
 #endif
 
 #define PS_USE_KEEP_TIMER       1
@@ -187,6 +202,7 @@ extern void power_save_wkup_event_clear ( UINT32 );
 extern void power_save_wkup_event_set ( UINT32 );
 extern UINT32 power_save_wkup_event_get ( void );
 extern UINT8 power_save_get_listen_int ( void );
+extern UINT8 power_save_get_keep_alive_per( void );
 extern int power_save_get_wkup_less_time();
 extern void power_save_dtim_wake ( UINT32 );
 extern void power_save_keep_timer_set ( void );
@@ -216,6 +232,7 @@ void power_save_set_low_latency ( UINT8 );
 #endif
 void power_save_set_wait_timer_period ( UINT32 time );
 void power_save_set_listen_int(UINT16 listen_int);
+void power_save_set_keep_alive_per(UINT16 period_s);
 void power_save_wait_timer_set ( void );
 
 /***************************************************************************/

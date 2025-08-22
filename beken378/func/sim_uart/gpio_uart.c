@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <stdio.h>
 #include "include.h"
 #include "arm_arch.h"
@@ -34,9 +48,9 @@ void gu_delay(uint32_t usec)
 void gpio_uart_send_init(void)
 {
     UINT32 param;
-	
+
     param = GPIO_CFG_PARAM(SIMU_UART_GPIONUM, GMODE_OUTPUT);
-	sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
 }
 
 void gpio_uart_send_byte(unsigned char *buff, unsigned int len)
@@ -48,13 +62,13 @@ void gpio_uart_send_byte(unsigned char *buff, unsigned int len)
     GLOBAL_INT_DISABLE();
 
     param = GPIO_CFG_PARAM(SIMU_UART_GPIONUM, GMODE_OUTPUT);
-	sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT, &param);
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT, &param);
     gu_delay(60);
 
     while(len--)
     {
         param = GPIO_CFG_PARAM(SIMU_UART_GPIONUM, GMODE_INPUT_PULLDOWN);
-		sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT, &param);
+        sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT, &param);
         gu_delay(33);
         loops = 10;
         while (loops--);
@@ -63,14 +77,14 @@ void gpio_uart_send_byte(unsigned char *buff, unsigned int len)
         while(n--)
         {
             param = GPIO_CFG_PARAM(SIMU_UART_GPIONUM, (c & 0x01));
-			sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT, &param);
+            sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT, &param);
             gu_delay(33);
             loops = 6;
             while (loops--);
             c >>= 1;
         }
         param = GPIO_CFG_PARAM(SIMU_UART_GPIONUM, GMODE_OUTPUT);
-		sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT, &param);
+        sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT, &param);
         gu_delay(33);
         loops = 6;
         while (loops--);
@@ -114,20 +128,20 @@ void GPIO_Simu_Isr(unsigned char ucChannel)
 void gpio_uart_recv_init(void)
 {
     UINT32 param;
-	GPIO_INT_ST int_param;
-	
+    GPIO_INT_ST int_param;
+
     param = GPIO_CFG_PARAM(SIMU_UART_GPIO_RX, GMODE_INPUT_PULLUP);
-	sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
 
     intc_service_register(IRQ_GPIO, PRI_IRQ_GPIO, gpio_isr);
-	
+
     param = IRQ_GPIO_BIT;
     sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
 
-	int_param.id = SIMU_UART_GPIO_RX;
-	int_param.mode = GMODE_INPUT_PULLDOWN;
-	int_param.phandler = GPIO_Simu_Isr;
-	sddev_control(GPIO_DEV_NAME, CMD_GPIO_INT_ENABLE, &int_param);
+    int_param.id = SIMU_UART_GPIO_RX;
+    int_param.mode = GMODE_INPUT_PULLDOWN;
+    int_param.phandler = GPIO_Simu_Isr;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_INT_ENABLE, &int_param);
 }
 #endif
 // eof

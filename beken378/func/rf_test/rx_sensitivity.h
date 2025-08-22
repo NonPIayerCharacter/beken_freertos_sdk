@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _RX_SENSITIVITY_H_
 #define _RX_SENSITIVITY_H_
 
@@ -38,17 +52,17 @@ void rs_get_rx_result(void)
 	 RXOCTECTINAMPDU=`mem 0xc0b00b4C`
 	 RXAMPDU=`mem 0xc0b00b3C`
 
-	 FCSERROR=`mem 0xc0b00804` 
-	 PHYERROR=`mem 0xc0b00808` 
-	 RXFLOWC=`mem 0xc0b0080c` 
+	 FCSERROR=`mem 0xc0b00804`
+	 PHYERROR=`mem 0xc0b00808`
+	 RXFLOWC=`mem 0xc0b0080c`
 
 	 mem 0xc0b00220 w 0x0 > /dev/null
 	 mem 0xc0b00290 w 0x0 > /dev/null
 	 mem 0xc0b00294 w 0x0 > /dev/null
 	 mem 0xc0b00298 w 0x0 > /dev/null
 	 mem 0xc0b00040 w 0x00011881 > /dev/null
-	 
-	 
+
+
 	 sleep 1
 	 TXBW20NEW=`mem 0xc0b00b70`
 	 TXBW40NEW=`mem 0xc0b00b74`
@@ -68,9 +82,9 @@ void rs_get_rx_result(void)
 	 RXOCTECTINAMPDUNEW=`mem 0xc0b00b4C`
 	 RXAMPDUNEW=`mem 0xc0b00b3C`
 
-	 FCSERRORNEW=`mem 0xc0b00804` 
-	 PHYERRORNEW=`mem 0xc0b00808` 
-	 RXFLOWCNEW=`mem 0xc0b0080c` 
+	 FCSERRORNEW=`mem 0xc0b00804`
+	 PHYERRORNEW=`mem 0xc0b00808`
+	 RXFLOWCNEW=`mem 0xc0b0080c`
 	 CCAPRI=`mem 0xc0b00220`
 	 CCASEC20=`mem 0xc0b00290`
 	 CCASEC40=`mem 0xc0b00294`
@@ -89,9 +103,9 @@ void rs_get_rx_result(void)
 	 #TXAMPDUCUR=$TXBW40CUR
 
 	 if [ $TXTOT == 0 ]
-	 then 
+	 then
 	   TXTOT=1
-	 fi   
+	 fi
 
 	 printf "TX\n"
 	 printf "20MHz  : %0d (%0d %%)\n" $TXBW20CUR $((100*$TXBW20CUR/$TXTOT))
@@ -101,9 +115,9 @@ void rs_get_rx_result(void)
 
 	 printf "AMPDU  : %0d (%0d %%)\n" $TXAMPDUCUR $((100*$TXAMPDUCUR/$TXTOT))
 	 if [ $TXAMPDUCUR == 0 ]
-	 then 
+	 then
 	   TXAMPDUCUR=1
-	 fi   
+	 fi
 	 echo "$TXMPDUINAMPDUCUR $TXAMPDUCUR" | awk '{printf "MPDU  in AMPDU : %0.1f \n", $1/$2}'
 	 printf "Bytes in AMPDU : %0d\n" $(($TXOCTECTINAMPDUCUR/$TXAMPDUCUR))
 	 printf "AMPDU Throughput : %0.1fMbps\n" $((8*$TXOCTECTINAMPDUCUR/1000000))
@@ -114,20 +128,20 @@ void rs_get_rx_result(void)
 	 RXBW40CUR=$((0x$RXBW40NEW - 0x$RXBW40))
 	 RXBW80CUR=$((0x$RXBW80NEW - 0x$RXBW80))
 	 RXBW160CUR=$((0x$RXBW160NEW - 0x$RXBW160))
-	 
+
 	 RXAMPDUCUR=$((0x$RXAMPDUNEW - 0x$RXAMPDU))
 	 RXMPDUINAMPDUCUR=$((0x$RXMPDUINAMPDUNEW - 0x$RXMPDUINAMPDU))
 	 RXOCTECTINAMPDUCUR=$((0x$RXOCTECTINAMPDUNEW - 0x$RXOCTECTINAMPDU))
-	 
+
 	 FCSERRCUR=$((0x$FCSERRORNEW - 0x$FCSERROR))
 	 PHYERRCUR=$((0x$PHYERRORNEW - 0x$PHYERROR))
 	 RXFLOWCCUR=$((0x$RXFLOWCNEW - 0x$RXFLOWC))
 	 RXTOT=$(($RXBW40CUR + $RXBW20CUR + $RXBW80CUR + $RXBW160CUR + $FCSERRCUR + $PHYERRCUR + $RXFLOWCCUR))
 
 	 if [ $RXTOT == 0 ]
-	 then 
+	 then
 	   RXTOT=1
-	 fi   
+	 fi
 
 	 printf "\nRX\n"
 	 printf "20MHz  : %0d (%0d %%)\n" $RXBW20CUR $((100*$RXBW20CUR/$RXTOT))
@@ -137,16 +151,16 @@ void rs_get_rx_result(void)
 
 	 printf "AMPDU  : %0d (%0d %%)\n" $RXAMPDUCUR $((100*$RXAMPDUCUR/$RXTOT))
 	 if [ $RXAMPDUCUR == 0 ]
-	 then 
+	 then
 	   RXAMPDUCUR=1
-	 fi   
+	 fi
 	 echo "$RXMPDUINAMPDUCUR $RXAMPDUCUR" | awk '{printf "MPDU  in AMPDU : %0.1f \n", $1/$2}'
 	 printf "Bytes in AMPDU : %0d\n" $(($RXOCTECTINAMPDUCUR/$RXAMPDUCUR))
 	 printf "AMPDU Throughput : %0.1fMbps\n" $((8*$RXOCTECTINAMPDUCUR/1000000))
-	 
+
 	 printf "FCSErr   : %0d (%0d %%)\n" $FCSERRCUR $((100*$FCSERRCUR/$RXTOT))
-	 printf "PHYErr   : %0d (%0d %%)\n" $PHYERRCUR $((100*$PHYERRCUR/$RXTOT)) 
-	 printf "RxFlowErr: %0d (%0d %%)\n" $RXFLOWCCUR $((100*$RXFLOWCCUR/$RXTOT)) 
+	 printf "PHYErr   : %0d (%0d %%)\n" $PHYERRCUR $((100*$PHYERRCUR/$RXTOT))
+	 printf "RxFlowErr: %0d (%0d %%)\n" $RXFLOWCCUR $((100*$RXFLOWCCUR/$RXTOT))
 	 printf "CCAPrim  Busy : %3d %%\n" $((0x$CCAPRI / 10000))
 	 printf "CCASec20 Busy : %3d %%\n" $((0x$CCASEC20 / 10000))
 	 printf "CCASec40 Busy : %3d %%\n" $((0x$CCASEC40 / 10000))

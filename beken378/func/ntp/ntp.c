@@ -214,12 +214,23 @@ __exit:
 time_t_at ntp_get_local_time(void)
 {
     time_t_at cur_time = ntp_get_time();
+    int hour_ind = 0;
+    int minute_ind = 0;
 
     if (cur_time)
     {
         /* add the timezone offset for set_time/set_date */
        // cur_time += NTP_TIMEZONE * 3600;
-        cur_time += g_timezone * 3600;
+        if ((g_timezone >= -12)&&(g_timezone <= 12))
+        {
+            cur_time += g_timezone * 3600;
+        }
+        else
+        {
+            hour_ind = g_timezone / 100;
+            minute_ind = g_timezone % 100;
+            cur_time += hour_ind * 3600 + minute_ind * 60;
+        }
     }
     bk_printf("get local time:%d,g_timezone:%d,g_hostname:%s\r\n",cur_time,g_timezone,g_hostname);
     return cur_time;

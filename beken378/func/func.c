@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "func_pub.h"
 #include "intc.h"
@@ -20,7 +34,7 @@
 #include "bk7011_cal_pub.h"
 #endif
 
-#if CFG_UART_DEBUG 
+#if CFG_UART_DEBUG
 #include "uart_debug_pub.h"
 #endif
 
@@ -50,39 +64,42 @@
 #endif
 
 extern void rwnx_cal_initial_calibration(void);
+extern void bk_wlan_user_set_rf_wakeup(void);
+extern void bk_wlan_user_reset_rf_wakeup(void);
 
 UINT32 func_init_extended(void)
 {
     char temp_mac[6];
 
-	cfg_param_init();
+    bk_wlan_user_set_rf_wakeup();
+    cfg_param_init();
     // load mac, init mac first
     wifi_get_mac_address(temp_mac, CONFIG_ROLE_NULL);
-	
-#if (CFG_SOC_NAME == SOC_BK7231N)
+
+    #if (CFG_SOC_NAME == SOC_BK7231N)
     manual_cal_load_bandgap_calm();
-#endif
+    #endif
     FUNC_PRT("[FUNC]rwnxl_init\r\n");
     rwnxl_init();
 
-#if CFG_UART_DEBUG
-	#ifndef KEIL_SIMULATOR
-    FUNC_PRT("[FUNC]uart_debug_init\r\n");   
+    #if CFG_UART_DEBUG
+    #ifndef KEIL_SIMULATOR
+    FUNC_PRT("[FUNC]uart_debug_init\r\n");
     uart_debug_init();
-	#endif
-#endif
+    #endif
+    #endif
 
-#if (!CFG_SUPPORT_RTT)
+    #if (!CFG_SUPPORT_RTT)
     FUNC_PRT("[FUNC]intc_init\r\n");
     intc_init();
-#endif
+    #endif
 
-#if CFG_SUPPORT_CALIBRATION
-	UINT32 is_tab_inflash = 0;
+    #if CFG_SUPPORT_CALIBRATION
+    UINT32 is_tab_inflash = 0;
     FUNC_PRT("[FUNC]calibration_main\r\n");
     calibration_main();
     #if CFG_SUPPORT_MANUAL_CALI
-	is_tab_inflash = manual_cal_load_txpwr_tab_flash();
+    is_tab_inflash = manual_cal_load_txpwr_tab_flash();
     manual_cal_load_default_txpwr_tab(is_tab_inflash);
     #endif
     #if CFG_SARADC_CALIBRATE
@@ -91,7 +108,7 @@ UINT32 func_init_extended(void)
     #if CFG_USE_TEMPERATURE_DETECT
     manual_cal_load_temp_tag_flash();
     #endif
-	
+
     #if (CFG_SOC_NAME != SOC_BK7231)
     manual_cal_load_lpf_iq_tag_flash();
     manual_cal_load_xtal_tag_flash();
@@ -99,58 +116,58 @@ UINT32 func_init_extended(void)
 
     rwnx_cal_initial_calibration();
 
-	#if CFG_SUPPORT_MANUAL_CALI
-	if (0) //(is_tab_inflash == 0)
-	{
-		manual_cal_fitting_txpwr_tab();
-		manual_cal_save_chipinfo_tab_to_flash();
-		manual_cal_save_txpwr_tab_to_flash();
-	}
-	#endif // CFG_SUPPORT_MANUAL_CALI
-#endif    
+    #if CFG_SUPPORT_MANUAL_CALI
+    if (0) //(is_tab_inflash == 0)
+    {
+        manual_cal_fitting_txpwr_tab();
+        manual_cal_save_chipinfo_tab_to_flash();
+        manual_cal_save_txpwr_tab_to_flash();
+    }
+    #endif // CFG_SUPPORT_MANUAL_CALI
+    #endif
 
-#if CFG_SDIO
+    #if CFG_SDIO
     FUNC_PRT("[FUNC]sdio_intf_init\r\n");
     sdio_intf_init();
-#endif
+    #endif
 
-#if CFG_SDIO_TRANS
+    #if CFG_SDIO_TRANS
     FUNC_PRT("[FUNC]sdio_intf_trans_init\r\n");
     sdio_trans_init();
-#endif
+    #endif
 
-#if CFG_USB
+    #if CFG_USB
     FUNC_PRT("[FUNC]fusb_init\r\n");
     fusb_init();
-#endif
+    #endif
 
-#if  CFG_USE_STA_PS
+    #if  CFG_USE_STA_PS
     FUNC_PRT("[FUNC]ps_init\r\n");
-#endif
+    #endif
 
-#if CFG_ROLE_LAUNCH
+    #if CFG_ROLE_LAUNCH
     rl_init();
-#endif
+    #endif
 
-	#if CFG_ENABLE_BUTTON
-	key_initialization();
-	#endif
+    #if CFG_ENABLE_BUTTON
+    key_initialization();
+    #endif
 
-#if (CFG_SOC_NAME == SOC_BK7221U)
-	#if CFG_USE_USB_CHARGE
+    #if (CFG_SOC_NAME == SOC_BK7221U)
+    #if CFG_USE_USB_CHARGE
     extern void usb_plug_func_open(void);
     usb_plug_func_open();
-	#endif
-#endif
+    #endif
+    #endif
 
-#if (CFG_OS_FREERTOS)
-#if CFG_INT_WDG_ENABLED
-	FUNC_PRT("int watchdog enabled, period=%u\r\n", CFG_INT_WDG_PERIOD_MS);
-	bk_wdg_initialize(CFG_INT_WDG_PERIOD_MS);
-        bk_wdg_reload();
-#else
+    #if (CFG_OS_FREERTOS)
+    #if CFG_INT_WDG_ENABLED
+    FUNC_PRT("int watchdog enabled, period=%u\r\n", CFG_INT_WDG_PERIOD_MS);
+    bk_wdg_initialize(CFG_INT_WDG_PERIOD_MS);
+    bk_wdg_reload();
+    #else
     {
-        UINT32 ret;
+                UINT32 ret;
         UINT32 parameter;
         parameter = PWD_ARM_WATCHDOG_CLK_BIT;
         ret = sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, (void *)&parameter);
@@ -159,38 +176,39 @@ UINT32 func_init_extended(void)
 
     }
 
-#endif //CFG_INT_WDG_ENABLED
-
-#if CFG_TASK_WDG_ENABLED
-	FUNC_PRT("task watchdog enabled, period=%u\r\n", CFG_TASK_WDG_PERIOD_MS);
-#endif
-#endif //CFG_OS_FREERTOS
+    #endif //CFG_INT_WDG_ENABLED
+        
+    #if CFG_TASK_WDG_ENABLED
+    FUNC_PRT("task watchdog enabled, period=%u\r\n", CFG_TASK_WDG_PERIOD_MS);
+    #endif
+    #endif //CFG_OS_FREERTOS
 
     FUNC_PRT("[FUNC]func_init_extended OVER!!!\r\n\r\n");
     os_printf("start_type:%d\r\n",bk_misc_get_start_type());
-#if (1 == CFG_USE_FORCE_LOWVOL_PS)
+    #if (1 == CFG_USE_FORCE_LOWVOL_PS)
     if(RESET_SOURCE_DEEPPS_GPIO == bk_misc_get_start_type())
         os_printf("deep sleep waked by GPIO%d\r\n",bk_misc_wakeup_get_gpio_num());
-#endif
+    #endif
+    bk_wlan_user_reset_rf_wakeup();
     return 0;
 }
 
 UINT32 func_init_basic(void)
 {
-#if (!CFG_SUPPORT_RTT)
+    #if (!CFG_SUPPORT_RTT)
     intc_init();
-#endif
+    #endif
     hal_flash_init();
 
-#if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7238)) || (CFG_SOC_NAME == SOC_BK7252N)
-	flash_bypass_operate_sr_init();
-#endif
+    #if ((CFG_SOC_NAME == SOC_BK7221U) || (CFG_SOC_NAME == SOC_BK7238))
+    flash_bypass_operate_sr_init();
+    #endif
 
-#if (CFG_OS_FREERTOS) || (CFG_SUPPORT_RTT)
+    #if (CFG_OS_FREERTOS) || (CFG_SUPPORT_RTT)
     os_printf("SDK Rev: %s %s\r\n", BEKEN_SDK_REV, SDK_COMMIT_ID);
-#else
+    #else
     os_printf("SDK Rev: %s\r\n", BEKEN_SDK_REV);
-#endif
+    #endif
 
     return 0;
 }

@@ -1,20 +1,34 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _AT_SERVER_H_
 #define _AT_SERVER_H_
 
 #include "_at_svr_opts.h"
 #include "atsvr_unite.h"
 
-typedef enum{
-	ATSVR_ECHO_NONE = 0,
-	ATSVR_ECHO_NORMAL,
-	ATSVR_ECHO_ALL,
-}atsvr_echo_t;
+typedef enum {
+    ATSVR_ECHO_NONE = 0,
+    ATSVR_ECHO_NORMAL,
+    ATSVR_ECHO_ALL,
+} atsvr_echo_t;
 
-typedef enum{
-	ATSVR_WK_IDLE = 0,
-	ATSVR_WK_DOING = 1,
-	ATSVR_WK_DONE = 2,
-}atsvr_work_st;
+typedef enum {
+    ATSVR_WK_IDLE = 0,
+    ATSVR_WK_DOING = 1,
+    ATSVR_WK_DONE = 2,
+} atsvr_work_st;
 
 #if defined(ATSVR_OPTIM_FD_CMD) && ATSVR_OPTIM_FD_CMD
 #define ATSVR_CMD_HADLER(name_st,help_str,func) {.name = name_st,.help = help_str,.function = func,.name_len = (sizeof(name_st) - 1)}

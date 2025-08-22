@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _BK7231U_CAL_H_
 #define _BK7231U_CAL_H_
 
@@ -418,7 +432,7 @@ typedef union
     struct
     {
         volatile unsigned int TXCALCAPI        : 6; /**< I path calib capacity for transmit mode */
-        volatile unsigned int Reserved__       : 2; /**< NC */        
+        volatile unsigned int Reserved__       : 2; /**< NC */
         volatile unsigned int RXCALCAPI        : 6; /**< I path calib capacity for receive mode */
         volatile unsigned int Reserved         : 2; /**< NC */
         volatile unsigned int STANDBYCALCAPI   : 6; /**< I path calib capacity for standby mode */
@@ -433,7 +447,7 @@ typedef union
     struct
     {
         volatile unsigned int TXCALCAPQ        : 6; /**< Q path calib capacity for transmit mode */
-        volatile unsigned int Reserved__       : 2; /**< NC */        
+        volatile unsigned int Reserved__       : 2; /**< NC */
         volatile unsigned int RXCALCAPQ        : 6; /**< Q path calib capacity for receive mode */
         volatile unsigned int Reserved         : 2; /**< NC */
         volatile unsigned int STANDBYCALCAPQ   : 6; /**< Q path calib capacity for standby mode */
@@ -591,7 +605,7 @@ struct BK7011RCBEKEN_TypeDef
     volatile BK7011_RC_BEKEN_REG0x72_TypeDef *REG0x72;
     volatile BK7011_RC_BEKEN_REG0x73_TypeDef *REG0x73;
     volatile BK7011_RC_BEKEN_REG0x74_TypeDef *REG0x74;
-    volatile BK7011_RC_BEKEN_REG0x75_TypeDef *REG0x75; 
+    volatile BK7011_RC_BEKEN_REG0x75_TypeDef *REG0x75;
     volatile BK7011_RC_BEKEN_REG0x76_TypeDef *REG0x76;
     volatile BK7011_RC_BEKEN_REG0x77_TypeDef *REG0x77;
 };
@@ -624,7 +638,7 @@ typedef union
         volatile unsigned long NC               : 13;
     } bits;
     volatile unsigned int value;
-}BK7011_TRxV2A_REG0x0_TypeDef;
+} BK7011_TRxV2A_REG0x0_TypeDef;
 
 /// REG0x1
 typedef union
@@ -1834,23 +1848,23 @@ struct BK7011TRxV2A_TypeDef
 /// POWER
 typedef struct
 {
-    unsigned int rega_4_7   : 4;       
-    unsigned int rega_0_1   : 2; 
+    unsigned int rega_4_7   : 4;
+    unsigned int rega_0_1   : 2;
     unsigned int rega_8_13  : 6;
-    unsigned int regb_28_31 : 4;     
-    unsigned int regc_0_2   : 3; 
-    unsigned int regc_4_6   : 3; 
-    unsigned int regc_8_10  : 3;     
+    unsigned int regb_28_31 : 4;
+    unsigned int regc_0_2   : 3;
+    unsigned int regc_4_6   : 3;
+    unsigned int regc_8_10  : 3;
     unsigned int pregain    : 5;
     unsigned int unuse      : 2;
 } PWR_REGS;
 
 typedef struct
 {
-    unsigned int regb_28_31 : 4;     
-    unsigned int regc_0_3   : 4; 
-    unsigned int regc_4_7   : 4; 
-    unsigned int regc_8_11  : 4;     
+    unsigned int regb_28_31 : 4;
+    unsigned int regc_0_3   : 4;
+    unsigned int regc_4_7   : 4;
+    unsigned int regc_8_11  : 4;
     unsigned short value;
 } PWR_REGS_TPC;
 

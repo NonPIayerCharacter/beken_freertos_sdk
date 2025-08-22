@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _COMMAND_LINE_H_
 #define _COMMAND_LINE_H_
 
@@ -248,13 +262,13 @@ enum
     BEKEN_UART_MODULE_GENERAL_CMD               = 0x52,
     BEKEN_ENABLE_AUTO_CHANGE_CPU_CLK            = 0x53,
     BEKEN_SET_SCO_USE_HCI                       = 0x82,
-#if (DEBUG_BASEBAND_MONITORS == 1)
+    #if (DEBUG_BASEBAND_MONITORS == 1)
     BEKEN_READ_BASEBAND_MONITORS                = 0x90,
     BEKEN_RESET_BASEBAND_MONITORS               = 0x91,
-#endif
-#if (DEBUG_AGC_MODE_CHANNEL_ASSESSMENT == 1)
+    #endif
+    #if (DEBUG_AGC_MODE_CHANNEL_ASSESSMENT == 1)
     BEKEN_AGC_MODE_PARAM                        = 0x92,
-#endif
+    #endif
     BEKEN_FLASH_READ_CMD                        = 0xA0,
     BEKEN_FLASH_WRITE_CMD                       = 0xA1,
     BEKEN_FLASH_ERASE_CMD                       = 0xA2,
@@ -265,11 +279,11 @@ enum
     BEKEN_PRINT_LINK_KEY                        = 0XAE,
     BEKEN_ENTRY_DUT_MODE                        = 0XAF,
     BEKEN_READ_OTP_CMD                          = 0XA7,
-    BEKEN_WRITE_OTP_CMD                         = 0XA8,    
+    BEKEN_WRITE_OTP_CMD                         = 0XA8,
     LOOP_MODE_CMD                               = 0XCC,
     BEKEN_TEMP_CMD                              = 0XDD,
     BEKEN_TEMP_TCP                              = 0XEE,
-    BEKEN_TEMP_DETECT_CONFIG_CMD                = 0XEC,    
+    BEKEN_TEMP_DETECT_CONFIG_CMD                = 0XEC,
     BEKEN_TEST_UDP                              = 0XDE,
     BEKEN_SD_CLOSE                              = 0XDC,
     BEKEN_DO_REBOOT                             = 0XFE,

@@ -55,6 +55,7 @@
 #define BLE_APP_INITING_INDEX(con_idx)      ((con_idx) + BLE_ACTIVITY_MAX)
 #define BLE_APP_INITING_GET_INDEX(conidx)   ((conidx) - BLE_ACTIVITY_MAX)
 #define BLE_APP_INITING_CHECK_INDEX(conidx)   (((conidx) >= BLE_ACTIVITY_MAX) && ((conidx) < APP_IDX_MAX))
+#define BLE_APP_CONHDL_IS_VALID(conhdl)       ((conhdl != UNKNOW_CONN_HDL) && (conhdl != USED_CONN_HDL))
 
 /*
  * DEFINES
@@ -340,6 +341,10 @@ ble_err_t app_ble_stop_scaning(uint8_t actv_idx);
 void app_ble_send_conn_param_update_cfm(uint8_t con_idx,bool accept);
 ble_err_t app_ble_delete_scaning(uint8_t actv_idx);
 void app_ble_next_operation(uint8_t idx, uint8_t status);
+
+ble_err_t app_ble_get_bonded_device_num(uint8_t *dev_num);
+ble_err_t app_ble_get_bonded_device_list(uint8_t *dev_num, bond_device_addr_t *dev_list);
+
 
 #define BLE_APP_MASTER_GET_CONN_IDX_OP_MASK(conn_idx)   app_ble_env.connections[(conn_idx)].conn_op_mask
 #define BLE_APP_MASTER_CLEAR_IDX_OP_MASK_BITS(conn_idx,bit_ops)  app_ble_env.connections[(conn_idx)].conn_op_mask &= (~(1 << bit_ops))

@@ -1,16 +1,16 @@
-/**
-****************************************************************************************
-*
-* @file rf_xvras.c
-*
-* @brief Atlas radio initialization and specific functions
-*
-* Copyright (C) Beken 2009-2015
-*
-* $Rev: $
-*
-****************************************************************************************
-*/
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
 ****************************************************************************************
@@ -102,8 +102,8 @@ static void rf_reset(void)
 
 static uint8_t rf_txpwr_dbm_get(uint8_t txpwr_idx, uint8_t modulation)
 {
-	// Power table should be provided
-	return(0);
+    // Power table should be provided
+    return(0);
 }
 
 /**
@@ -114,12 +114,12 @@ static uint8_t rf_txpwr_dbm_get(uint8_t txpwr_idx, uint8_t modulation)
 
 static void rf_sleep(void)
 {
-#if defined(CFG_BLE)
-	ble_deepslcntl_set(ble_deepslcntl_get() |
-			BLE_DEEP_SLEEP_ON_BIT |    // RW BLE Core sleep
-			BLE_RADIO_SLEEP_EN_BIT |   // Radio sleep
-			BLE_OSC_SLEEP_EN_BIT);     // Oscillator sleep
-#endif // CFG_BLE
+    #if defined(CFG_BLE)
+    ble_deepslcntl_set(ble_deepslcntl_get() |
+                       BLE_DEEP_SLEEP_ON_BIT |    // RW BLE Core sleep
+                       BLE_RADIO_SLEEP_EN_BIT |   // Radio sleep
+                       BLE_OSC_SLEEP_EN_BIT);     // Oscillator sleep
+    #endif // CFG_BLE
 }
 
 
@@ -136,26 +136,26 @@ static void rf_sleep(void)
 
 static int8_t rf_rssi_convert (uint8_t rssi_reg)
 {
-	uint8_t RssidBm = 0; 
+    uint8_t RssidBm = 0;
 
-	RssidBm = ((rssi_reg) >> 1) - 118;
+    RssidBm = ((rssi_reg) >> 1) - 118;
 
-	return(RssidBm);
+    return(RssidBm);
 }
 
 
 static uint32_t rf_rpl_reg_rd (uint16_t addr)
 {
-	uint32_t ret;
+    uint32_t ret;
 
-	ret = REG_PL_RD((uint32_t)addr);
+    ret = REG_PL_RD((uint32_t)addr);
 
-	return ret;
+    return ret;
 }
 
 static void rf_rpl_reg_wr (uint16_t addr, uint32_t value)
 {
-	REG_PL_WR((uint32_t)addr, value);
+    REG_PL_WR((uint32_t)addr, value);
 }
 /**
  ****************************************************************************************
@@ -165,9 +165,9 @@ static void rf_rpl_reg_wr (uint16_t addr, uint32_t value)
 
 static void rf_force_agc_enable(bool en)
 {
-  
+
     ble_forceagc_en_setf(en);
-  
+
 }
 void rf_init(struct rwip_rf_api *api)
 {
@@ -180,7 +180,7 @@ void rf_init(struct rwip_rf_api *api)
     api->reset = rf_reset;
 
     #if defined(CFG_BLE)
-        api->force_agc_enable = rf_force_agc_enable;
+    api->force_agc_enable = rf_force_agc_enable;
     #endif //CFG_BLE
 
     api->rssi_convert = rf_rssi_convert;

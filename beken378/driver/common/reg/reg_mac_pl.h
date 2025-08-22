@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /**
  * @file reg_mac_pl.h
  * @brief Definitions of the NXMAC HW block registers and register access functions.
@@ -5909,19 +5923,19 @@ extern UINT32 nxmac_timer_saved;
 __INLINE void nxmac_timers_int_un_mask_set_bit(uint32_t bit)
 {
     uint32_t timer_msk;
-	
-	///bk_printf("[%d]:%d %d\r\n",bit,nxmac_timer_saved,__LINE__);
-	timer_msk = nxmac_timers_int_un_mask_get();
-	nxmac_timers_int_un_mask_set(timer_msk | bit);
+
+    ///bk_printf("[%d]:%d %d\r\n",bit,nxmac_timer_saved,__LINE__);
+    timer_msk = nxmac_timers_int_un_mask_get();
+    nxmac_timers_int_un_mask_set(timer_msk | bit);
     rwnxl_set_nxmac_timer_value_set_bit(bit);
 }
 __INLINE void nxmac_timers_int_un_mask_clear_bit(uint32_t bit)
 {
     uint32_t timer_msk;
-	
-	///bk_printf("[%d]:%d %d\r\n",bit,nxmac_timer_saved,__LINE__);
-	timer_msk = nxmac_timers_int_un_mask_get();
-	nxmac_timers_int_un_mask_set(timer_msk  & (~ bit));
+
+    ///bk_printf("[%d]:%d %d\r\n",bit,nxmac_timer_saved,__LINE__);
+    timer_msk = nxmac_timers_int_un_mask_get();
+    nxmac_timers_int_un_mask_set(timer_msk  & (~ bit));
     rwnxl_set_nxmac_timer_value_clear_bit(bit);
 }
 
@@ -18091,7 +18105,7 @@ __INLINE uint32_t nxmac_sec_u_1_tx_current_pointer_getf(void)
     return (localVal >> 0);
 }
 
-#endif // RW_MUMIMO_SEC_USER1_EN 
+#endif // RW_MUMIMO_SEC_USER1_EN
 /// @}
 
 #if RW_MUMIMO_SEC_USER2_EN
@@ -18150,7 +18164,7 @@ __INLINE uint32_t nxmac_sec_u_2_tx_current_pointer_getf(void)
     return (localVal >> 0);
 }
 
-#endif // RW_MUMIMO_SEC_USER2_EN 
+#endif // RW_MUMIMO_SEC_USER2_EN
 /// @}
 
 #if RW_MUMIMO_SEC_USER3_EN
@@ -18209,7 +18223,7 @@ __INLINE uint32_t nxmac_sec_u_3_tx_current_pointer_getf(void)
     return (localVal >> 0);
 }
 
-#endif // RW_MUMIMO_SEC_USER3_EN 
+#endif // RW_MUMIMO_SEC_USER3_EN
 /// @}
 /*lint +e91*/
 

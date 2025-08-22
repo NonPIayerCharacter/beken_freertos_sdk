@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _FAKE_SOCKET_H_
 #define _FAKE_SOCKET_H_
 
@@ -6,38 +20,38 @@
 //#define SK_DEBUG
 
 #ifdef SK_DEBUG
-    #define SK_PRT       os_printf
-    #define SK_WPRT      warning_prf
+#define SK_PRT       os_printf
+#define SK_WPRT      warning_prf
 #else
-    #define SK_PRT       os_null_printf
-    #define SK_WPRT      warning_prf
+#define SK_PRT       os_null_printf
+#define SK_WPRT      warning_prf
 #endif
 
 typedef int   SOCKET;
 
 typedef struct
 {
-	struct dl_list data;
+    struct dl_list data;
 
-	unsigned char *msg;
-	int len;
+    unsigned char *msg;
+    int len;
 
-}SOCKET_MSG;
-
-typedef struct
-{
-	struct dl_list sk_tx_msg;	// socket tx from non-rwip
-	struct dl_list sk_rx_msg;	// socket recv from rwip
-
-	struct dl_list sk_element;	// list to global socket list
-
-	SOCKET sk;
-}BK_SOCKET;
+} SOCKET_MSG;
 
 typedef struct
 {
-	struct dl_list sk_head;
-}SOCKET_ENTITY;
+    struct dl_list sk_tx_msg;	// socket tx from non-rwip
+    struct dl_list sk_rx_msg;	// socket recv from rwip
+
+    struct dl_list sk_element;	// list to global socket list
+
+    SOCKET sk;
+} BK_SOCKET;
+
+typedef struct
+{
+    struct dl_list sk_head;
+} SOCKET_ENTITY;
 
 /** sock_type - Socket types
  *
@@ -54,13 +68,13 @@ typedef struct
  *		  For writing rarp and other similar things on the user level.
  */
 enum sock_type {
-	SOCK_DGRAM	= 1,
-	SOCK_STREAM	= 2,
-	SOCK_RAW	= 3,
-	SOCK_RDM	= 4,
-	SOCK_SEQPACKET	= 5,
-	SOCK_DCCP	= 6,
-	SOCK_PACKET	= 10,
+    SOCK_DGRAM	= 1,
+    SOCK_STREAM	= 2,
+    SOCK_RAW	= 3,
+    SOCK_RDM	= 4,
+    SOCK_SEQPACKET	= 5,
+    SOCK_DCCP	= 6,
+    SOCK_PACKET	= 10,
 };
 
 /*
@@ -87,8 +101,8 @@ typedef unsigned short	sa_family_t;
  */
 
 struct sockaddr {
-	sa_family_t	sa_family;	/* address family, AF_xxx	*/
-	char		sa_data[14];	/* 14 bytes of protocol address	*/
+    sa_family_t	sa_family;	/* address family, AF_xxx	*/
+    char		sa_data[14];	/* 14 bytes of protocol address	*/
 };
 
 
@@ -237,9 +251,9 @@ struct sockaddr {
 typedef struct socket_type_st {
     unsigned char type;
     unsigned char vif_index;
-	void *args;
-	int sync;
-}S_TYPE_ST,*S_TYPE_PTR;
+    void *args;
+    int sync;
+} S_TYPE_ST,*S_TYPE_PTR;
 
 extern SOCKET fsocket_init(int af, int type, int protocol);
 extern int fsocket_send(SOCKET sk, const unsigned char *buf, int len, S_TYPE_PTR type);

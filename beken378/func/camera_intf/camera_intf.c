@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -22,6 +36,7 @@
 #include "rtos_pub.h"
 #include "icu_pub.h"
 
+#include "sys_ctrl_pub.h"
 
 #define CAMERA_RESET_GPIO_INDEX		GPIO16
 #define CAMERA_RESET_HIGH_VAL       1
@@ -29,7 +44,7 @@
 extern void delay100us(INT32 num);
 
 #define EJPEG_DMA_CHNAL             GDMA_CHANNEL_5
-#define EJPEG_DELAY_HTIMER_CHNAL    5
+#define EJPEG_DELAY_HTIMER_CHNAL    (BKTIMER5)
 #define EJPEG_DELAY_HTIMER_VAL      (2)  // 2ms
 #define USE_JTAG_FOR_DEBUG          0
 #define I2C_WIRTE_TIMEOUT_COUNT     20
@@ -69,10 +84,10 @@ void camera_intf_delay_timer_hdl(UINT8 param)
     int rec_len = ejpeg_cfg.node_len - left_len;
     UINT32 frame_len = 0;
     frame_len = ddev_control(ejpeg_hdl, EJPEG_CMD_GET_FRAME_LEN, NULL);
-#ifdef CAMERA_BITRATE_LOG_PRT
+    #ifdef CAMERA_BITRATE_LOG_PRT
     camera_debug_log.byte_size += (frame_len / 1024);
     camera_debug_log.frame_cnt ++;
-#endif
+    #endif
 
     if ((ejpeg_cfg.node_full_handler != NULL) && (rec_len > 0))
     {
@@ -171,8 +186,8 @@ static void camera_intf_ejpeg_end_handler(void)
 static void camera_log_print()
 {
     os_printf("jpeg fps:[%d] bitrate:[%d KB] \r\n",
-                (camera_debug_log.frame_cnt - camera_debug_log_cached.frame_cnt) / (DEBUG_TIMRT_INTERVAL / 1000),
-                (camera_debug_log.byte_size - camera_debug_log_cached.byte_size) / (DEBUG_TIMRT_INTERVAL / 1000));
+              (camera_debug_log.frame_cnt - camera_debug_log_cached.frame_cnt) / (DEBUG_TIMRT_INTERVAL / 1000),
+              (camera_debug_log.byte_size - camera_debug_log_cached.byte_size) / (DEBUG_TIMRT_INTERVAL / 1000));
     camera_debug_log_cached.frame_cnt = camera_debug_log.frame_cnt;
     camera_debug_log_cached.byte_size = camera_debug_log.byte_size;
 }
@@ -717,6 +732,11 @@ int camera_intfer_init(void *data)
     camera_power_on();
     camera_intf_config_ejpeg(data);
 
+    #if (CFG_SOC_NAME == SOC_BK7252N)
+    //vram on
+    saradc_config_vddram_voltage(PSRAM_VDD_3_5V);
+    #endif
+
     //camera_reset();
     #if USE_JTAG_FOR_DEBUG
     //set i2c2 mode master/slave
@@ -763,12 +783,12 @@ int camera_intfer_init(void *data)
         goto init_exit;
     }
 
-#ifdef CAMERA_BITRATE_LOG_PRT
+    #ifdef CAMERA_BITRATE_LOG_PRT
     os_memset(&camera_debug_log, 0, sizeof(camera_debug_log));
     os_memset(&camera_debug_log_cached, 0, sizeof(camera_debug_log_cached));
     rtos_init_timer(&camera_debug_timer, DEBUG_TIMRT_INTERVAL, camera_log_print, NULL);
     rtos_start_timer(&camera_debug_timer);
-#endif
+    #endif
 
     CAMERA_INTF_FATAL("camera_intfer_init,%p-%p\r\n", ejpeg_hdl, i2c_hdl);
     return 1;
@@ -802,10 +822,10 @@ void camera_intfer_deinit(void)
     ejpeg_hdl = i2c_hdl = DD_HANDLE_UNVALID;
     GLOBAL_INT_RESTORE();
 
-#ifdef CAMERA_BITRATE_LOG_PRT
+    #ifdef CAMERA_BITRATE_LOG_PRT
     rtos_stop_timer(&camera_debug_timer);
     rtos_deinit_timer(&camera_debug_timer);
-#endif
+    #endif
 
     os_memset(&ejpeg_cfg, 0, sizeof(DJPEG_DESC_ST));
 }

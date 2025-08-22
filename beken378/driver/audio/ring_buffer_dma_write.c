@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "ring_buffer_dma_write.h"
 #include "arch.h"
@@ -37,9 +51,9 @@ void rb_init_dma_write(RB_DMA_WR_PTR rb, UINT8 *addr, UINT32 capacity, UINT32 ch
 void rb_clear_dma_write(RB_DMA_WR_PTR rb)
 {
     GDMA_CFG_ST en_cfg;
-    RB_DMA_WR_INT_DECLARATION();    
- 
-    RB_DMA_WR_INT_DISABLE();   
+    RB_DMA_WR_INT_DECLARATION();
+
+    RB_DMA_WR_INT_DISABLE();
     rb->wp    = 0;
     rb->rp    = 0;
     RB_DMA_WR_INT_RESTORE();
@@ -57,12 +71,12 @@ UINT32 rb_read_dma_write(RB_DMA_WR_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
     UINT32 remain_bytes;
     UINT32 wp;
     GDMA_CFG_ST en_cfg;
-    
+
     RB_DMA_WR_INT_DECLARATION();
 
-    if(required_bytes == 0) 
+    if(required_bytes == 0)
         return 0;
-    
+
     en_cfg.channel = rb->dma_ch;
     wp = sddev_control(GDMA_DEV_NAME, CMD_GDMA_GET_DST_WRITE_ADDR, &en_cfg);
     RB_DMA_WR_PRT("rb read get dst_wr:%x\r\n", wp);
@@ -81,7 +95,7 @@ UINT32 rb_read_dma_write(RB_DMA_WR_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
         {
             read_bytes = required_bytes;
         }
-        
+
         RB_DMA_WR_MEMCPY(buffer, &rb->address[rb->rp], read_bytes);
         RB_DMA_WR_INT_DISABLE();
         rb->rp += read_bytes;
@@ -123,14 +137,14 @@ UINT32 rb_read_dma_write(RB_DMA_WR_PTR rb, UINT8 *buffer, UINT32 size, UINT32 co
         }
     }
 
-    
+
 
     en_cfg.channel = rb->dma_ch;
     if(rb->rp >= RWP_SAFE_INTERVAL)
         en_cfg.param = (UINT32)(rb->address + rb->rp - RWP_SAFE_INTERVAL);
     else
         en_cfg.param = (UINT32)(rb->address + rb->capacity + rb->rp - RWP_SAFE_INTERVAL);
-    
+
     RB_DMA_WR_PRT("read set dst:%x\r\n", en_cfg.param);
     sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_DST_PAUSE_ADDR, &en_cfg);
 

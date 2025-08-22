@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "test_pwm.h"
 #include "include.h"
 
@@ -31,7 +45,7 @@ void test_pwm_demo_init(void)
     UINT32 status;
     pwm_param_t pwm_para;
 
-#ifdef TEST_PWM_DEMO_PWM_OUT_ENABLE
+    #ifdef TEST_PWM_DEMO_PWM_OUT_ENABLE
     /** config PWM1 PWM OUT T = 100uS duty = 50% (GPIO7 out signal) **/
     pwm_para.cfg.bits.en = 1;
     pwm_para.cfg.bits.int_en = 0;
@@ -48,7 +62,7 @@ void test_pwm_demo_init(void)
     {
         os_printf("pwm1_open failed\n");
     }
-#endif
+    #endif
 
     /** config PWM3 1mS/times interrupt **/
     pwm_para.cfg.bits.en = 1;   ///Enable PWMx

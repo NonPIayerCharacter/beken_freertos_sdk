@@ -1,35 +1,49 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _AT_SERVER_H_
 #define _AT_SERVER_H_
 
 #include "_at_svr_opts.h"
 #include "atsvr_unite.h"
 
-typedef enum{
-	ATSVR_ECHO_NONE = 0,
-	ATSVR_ECHO_NORMAL,
-	ATSVR_ECHO_ALL,
-}atsvr_echo_t;
+typedef enum {
+    ATSVR_ECHO_NONE = 0,
+    ATSVR_ECHO_NORMAL,
+    ATSVR_ECHO_ALL,
+} atsvr_echo_t;
 
-typedef enum{
-	ATSVR_WK_IDLE = 0,
-	ATSVR_WK_DOING = 1,
-	ATSVR_WK_DONE = 2,
-}atsvr_work_st;
+typedef enum {
+    ATSVR_WK_IDLE = 0,
+    ATSVR_WK_DOING = 1,
+    ATSVR_WK_DONE = 2,
+} atsvr_work_st;
 
-typedef enum{
-	ATSVR_COMMON_MODE = 0,
-	ATSVR_PASSTHROUGH_MODE = 1,
-	ATSVR_PASSTHROUGH_REV_MODE = 2,
-}atsvr_workmode_st;
+typedef enum {
+    ATSVR_COMMON_MODE = 0,
+    ATSVR_PASSTHROUGH_MODE = 1,
+    ATSVR_PASSTHROUGH_REV_MODE = 2,
+} atsvr_workmode_st;
 
 
 
 typedef struct __ATSVR_WORK_STATUS
 {
-	int station_connect_status;
- 	int softap_connect_status;
-	atsvr_workmode_st network_transfer_mode;  //1:passthrough mode , 0:common mode
-}ATSVR_STATUS;
+    int station_connect_status;
+    int softap_connect_status;
+    atsvr_workmode_st network_transfer_mode;  //1:passthrough mode , 0:common mode
+} ATSVR_STATUS;
 
 extern ATSVR_STATUS g_atsvr_status;
 

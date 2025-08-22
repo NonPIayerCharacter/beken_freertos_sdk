@@ -1,4 +1,4 @@
-// Copyright 2022-2023 Beken
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,18 +22,18 @@
 
 typedef struct _sdio_node_t
 {
-	struct _sdio_node_t *next;
-	uint32_t len;
-	uint32_t priv; 
-	uint32_t rsvd;
-}sdio_node_t, *sdio_node_ptr_t;
+    struct _sdio_node_t *next;
+    uint32_t len;
+    uint32_t priv;
+    uint32_t rsvd;
+} sdio_node_t, *sdio_node_ptr_t;
 
 typedef struct _sdio_list_t
 {
-	sdio_node_ptr_t head;
-	sdio_node_ptr_t tail;
-	uint32_t count;
-}sdio_list_t;
+    sdio_node_ptr_t head;
+    sdio_node_ptr_t tail;
+    uint32_t count;
+} sdio_list_t;
 
 int32_t sdio_list_dump_info(sdio_node_t *head, sdio_node_t *tail, uint32_t count);
 
@@ -44,7 +44,7 @@ int32_t sdio_list_dump_info(sdio_node_t *head, sdio_node_t *tail, uint32_t count
  *	 - Malloc buffers
  *	 - Reserved the header for SDIO
  *   - Linked the buffers with single list
- *   - 
+ *   -
  * @param count How many buffers will be malloced.
  * @param size  Each buffer size for data which doesn't include SDIO header,it should be 4 bytes align
  * @param head	Saved the list head
@@ -63,7 +63,7 @@ bk_err_t sdio_list_init(uint32_t count, uint32_t size, sdio_node_ptr_t *head_p, 
  *
  * This API deinit a sdio single link list which includes the buffers.
  *	 - Free buffers
- *   - 
+ *   -
  * @param list_p The list will be deinited
  *
  * @attention
@@ -80,7 +80,7 @@ bk_err_t sdio_list_deinit(sdio_list_t *list_p);
  * This API Pop a node from the selected list.
  *	 - Pop out a node from the selected list
  *   - Update the list info
- *   - 
+ *   -
  * @param list_p Selected pop node list
  * @param node_p Save the pop out node
  *
@@ -99,7 +99,7 @@ bk_err_t sdio_list_pop_node(sdio_list_t *list_p, sdio_node_ptr_t *node_p);
  *	 - Check list is whether valid
  *	 - Link two list together
  *   - Update the list info
- *   - 
+ *   -
  * @param list_p Selected target list
  * @param head_p Source list header node
  * @param tail_p Source list tail node

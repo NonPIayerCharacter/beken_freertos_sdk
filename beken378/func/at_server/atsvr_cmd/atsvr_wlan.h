@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _ATSVR_WLAN_H_
 #define _ATSVR_WLAN_H_
 
@@ -61,19 +75,19 @@ typedef enum atsvr_wlan_sec_type_e
     ATSVR_SEC_TYPE_WPA3_SAE,	  /**< WPA3 SAE */
     ATSVR_SEC_TYPE_WPA3_WPA2_MIXED, /** WPA3 SAE or WPA2 AES */
     ATSVR_SEC_TYPE_AUTO,        /**< It is used when calling @ref bkWlanStartAdv, It's read security type from scan result. */
-}atsvr_wlan_sec_type;
+} atsvr_wlan_sec_type;
 
-typedef struct{
-	char ssid[33];  /**< The SSID of an access point. */
-	char ApPower;   /**< Signal strength, min:0, max:100. */
-	char channel;	/**< The RF frequency, 1-13*/
-	atsvr_wlan_sec_type security;	/**< Security type, @ref atsvr_wlan_sec_type*/
-}atsvr_ap_item;
+typedef struct {
+    char ssid[33];  /**< The SSID of an access point. */
+    char ApPower;   /**< Signal strength, min:0, max:100. */
+    char channel;	/**< The RF frequency, 1-13*/
+    atsvr_wlan_sec_type security;	/**< Security type, @ref atsvr_wlan_sec_type*/
+} atsvr_ap_item;
 
-typedef struct _atsvr_scan_result{
-	char ApNum;
-	atsvr_ap_item *ApList;
-}atsvr_scan_result;
+typedef struct _atsvr_scan_result {
+    char ApNum;
+    atsvr_ap_item *ApList;
+} atsvr_scan_result;
 
 extern void wlan_get_station_mac_address(char *mac);
 extern void wlan_get_softap_mac_address(char *mac);

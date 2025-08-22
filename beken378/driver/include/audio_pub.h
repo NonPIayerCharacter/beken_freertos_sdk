@@ -1,5 +1,21 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __AUDIO_PUB_H__
 #define __AUDIO_PUB_H__
+
+#include "typedef.h"
 
 #define AUD_FAILURE                  (1)
 #define AUD_SUCCESS                  (0)
@@ -29,6 +45,9 @@ enum
     AUD_DAC_CMD_PAUSE,
     AUD_DAC_CMD_SET_SAMPLE_RATE,
     AUD_DAC_CMD_SET_VOLUME,
+    AUD_DAC_CMD_CHANGE_CFG,
+    AUD_DAC_CMD_MUTE,
+    AUD_DAC_CMD_UNMUTE,
 };
 
 #include "gpio_pub.h"
@@ -49,14 +68,24 @@ enum
 
 #define AUD_ADC_DEV_NAME             "aud_adc"
 #define AUD_ADC_CMD_MAGIC            (0x2EBC0000)
+
+typedef void (*adc_rx_callback)(UINT32 fill_size);
+struct audio_adc_rx_cb_des
+{
+    adc_rx_callback rx_cb;
+    UINT16 inter_thre;
+};
+
 typedef struct aud_adc_cfg_st
 {
     UINT8 *buf;
     UINT16 buf_len;
+    UINT16 inter_thre;
     UINT16 freq;
-    UINT16 channels;
-    UINT16 mode;
+    UINT8 channels;
+    UINT8 mode;
     UINT32 linein_detect_pin;
+    adc_rx_callback rx_cb;
 } AUD_ADC_CFG_ST, *AUD_ADC_CFG_PTR;
 
 enum
@@ -66,7 +95,8 @@ enum
     AUD_ADC_CMD_PAUSE,
     AUD_ADC_CMD_DO_LINEIN_DETECT,
     AUD_ADC_CMD_SET_SAMPLE_RATE,
-    AUD_ADC_CMD_SET_VOLUME
+    AUD_ADC_CMD_SET_VOLUME,
+    AUD_ADC_CMD_SET_RX_CB
 };
 
 

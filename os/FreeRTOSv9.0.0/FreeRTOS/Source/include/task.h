@@ -77,9 +77,13 @@
 
 #define TASK_DEBUG 
 #ifdef TASK_DEBUG
-#define STATIC               
+#ifndef STATIC
+#define STATIC
+#endif
 #else
+#ifndef STATIC
 #define STATIC               static
+#endif
 #endif
 
 #ifdef __cplusplus

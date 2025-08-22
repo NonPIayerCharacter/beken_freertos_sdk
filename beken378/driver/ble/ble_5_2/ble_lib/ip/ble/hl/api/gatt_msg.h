@@ -171,6 +171,9 @@ enum gatt_cmd_code
     GATT_DBG_BEARER_CLOSE                   = 0x090A,
     /// Debug command used to force establishment of EATT bearers
     GATT_DBG_BEARER_EATT_ESTAB              = 0x090B,
+
+    /// Command used to set pref mtu
+    GATT_SET_PREF_MTU                       = 0x0A00,
 };
 
 
@@ -777,6 +780,22 @@ typedef struct gatt_db_svc_ctrl_cmd
     /// Attribute Start Handle of the service to hide/show
     uint16_t        start_hdl;
 } gatt_db_svc_ctrl_cmd_t;
+
+/// GATT_SET_PREF_MTU Command structure definition
+/*@TRACE*/
+typedef struct gatt_set_pref_mtu_cmd
+{
+    /// Command code (@see enum gatt_cmd_code)
+    ///  - GATT_DB_SVC_REMOVE
+    uint16_t        cmd_code;
+    /// Dummy parameter whose meaning is upper layer dependent and which is returned in command complete event and
+    /// indications sent during command handling. It can be used as a sequence number for instance.
+    uint16_t        dummy;
+    /// Connection idx
+    uint8_t         conidx;
+    /// pref_mtu <Min:L2CAP_LE_MTU_MIN Max:GAP_LE_MTU_MAX>
+    uint16_t        pref_mtu;
+} gatt_set_pref_mtu_cmd_t;
 
 /// GATT_DB_SVC_VISIBILITY_SET uses default complete event structure
 /*@TRACE*/

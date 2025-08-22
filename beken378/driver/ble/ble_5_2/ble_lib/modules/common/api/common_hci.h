@@ -257,6 +257,9 @@ enum  hci_iso_pkt_stat_flag
     HCI_ISO_PKT_STAT_FLAG_LOST    = (2),
 };
 
+#if defined(ALIGNED_ONE)
+#pragma pack(push, 1) /* push current alignment to stack & set alignment to 1 byte boundary */
+#endif
 ///HCI Command header components structure
 struct hci_cmd_hdr
 {
@@ -301,7 +304,9 @@ struct hci_iso_hdr
     /// ISO Data load length in number of bytes
     uint16_t iso_data_load_len;
 };
-
+#if defined(ALIGNED_ONE)
+#pragma pack(pop) /* restore original alignment from stack */
+#endif
 
 /**************************************************************************************
  **************                       HCI COMMANDS                     ****************
@@ -6230,6 +6235,17 @@ struct hci_le_set_ext_scan_rsp_data_cmd
 };
 
 #if BLE_EMB_PRESENT || BLE_HOST_PRESENT
+/// Advertising set enable parameters
+/*@TRACE*/
+struct hci_ext_adv_set_en_param {
+    /// Advertising handle
+    uint8_t adv_hdl;
+    /// Duration (N * 10 ms), 0x0000 No advertising duration. Advertising to continue until the Host disables it.
+    uint16_t duration;
+    /// Maximum number of extended advertising events
+    uint8_t max_ext_adv_evt;
+} __attribute__((__packed__));
+
 ///HCI LE Set Extended Advertising Enable Command parameters structure
 /*@TRACE*/
 struct hci_le_set_ext_adv_en_cmd
@@ -6238,13 +6254,17 @@ struct hci_le_set_ext_adv_en_cmd
     uint8_t enable;
     /// Number of sets (1 - 0x3F)
     uint8_t nb_sets;
+#if defined(CFG_BK_BLE_FEATURE)
+    struct hci_ext_adv_set_en_param sets[BLE_ACTIVITY_MAX];
+#else
     /// Advertising handle
     uint8_t adv_hdl[BLE_ACTIVITY_MAX];
     /// Duration (N * 10 ms), 0x0000 No advertising duration. Advertising to continue until the Host disables it.
     uint16_t duration[BLE_ACTIVITY_MAX];
     /// Maximum number of extended advertising events
     uint8_t max_ext_adv_evt[BLE_ACTIVITY_MAX];
-};
+#endif
+} __attribute__((__packed__));
 #endif //BLE_EMB_PRESENT || BLE_HOST_PRESENT
 
 ///HCI LE Read Maximum Advertising Data Length Command complete event

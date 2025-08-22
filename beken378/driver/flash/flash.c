@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "sys_config.h"
@@ -27,14 +41,17 @@ static const flash_config_t flash_config[] =
     {0xC84015, 2, 0x200000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0D, 0x101, 9, 1, 0xA0, 0x01}, //gd_25q16c
     {0xC84016, 1, 0x400000, 2,  0, 2, 0x1F, 0x1F, 0x00, 0x0E, 0x00E, 0, 0, 0xA0, 0x01}, //gd_25q32c
     {0xC86515, 2, 0x200000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0D, 0x101, 9, 1, 0xA0, 0x01}, //gd_25w16e
+    {0xC86516, 2, 0x400000, 4, 14, 2, 0x1F, 0x1F, 0x00, 0x0E, 0x101, 9, 1, 0xA0, 0x02}, //gd_25wq32e
     {0xEF4016, 2, 0x400000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x00, 0x101, 9, 1, 0xA0, 0x01}, //w_25q32(bfj)
     {0x204016, 2, 0x400000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0E, 0x101, 9, 1, 0xA0, 0x01}, //xmc_25qh32b
     {0xC22315, 1, 0x200000, 2,  0, 2, 0x0F, 0x0F, 0x00, 0x0A, 0x00E, 6, 1, 0xA5, 0x01}, //mx_25v16b
     {0xEB6015, 2, 0x200000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0D, 0x101, 9, 1, 0xA0, 0x01}, //zg_th25q16b
     {0xCD6014, 2, 0x100000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0C, 0x101, 9, 1, 0xA0, 0x01}, //zg_th25q80HB
+    {0xCD7115, 2, 0x200000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0D, 0x101, 9, 1, 0xA0, 0x01}, //zg_th25q16uc
     {0x854215, 1, 0x200000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0C, 0x101, 9, 1, 0xA0, 0x01}, //py_p25q16
     {0x856015, 2, 0x200000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0D, 0x101, 9, 1, 0xA0, 0x01}, //py_p25q16SH(2022)
     {0x852015, 2, 0x200000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0D, 0x101, 9, 1, 0xA0, 0x01}, //py_p25q16HB
+    {0x852016, 2, 0x400000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0E, 0x101, 9, 1, 0xA0, 0x01}, //py_p25q32HB
     {0xC46015, 2, 0x200000, 2, 14, 2, 0x1F, 0x1F, 0x00, 0x0D, 0x011, 9, 1, 0x20, 0x01}, //gt_25q16B
     {0x000000, 2, 0x400000, 2,  0, 2, 0x1F, 0x00, 0x00, 0x00, 0x000, 0, 0, 0x00, 0x01}, //default
 };
@@ -54,7 +71,7 @@ static DD_OPERATIONS flash_op =
 static void flash_get_current_flash_config(void)
 {
     int i;
-	
+
     for(i = 0; i < (sizeof(flash_config) / sizeof(flash_config_t) - 1); i++)
     {
         if(flash_id == flash_config[i].flash_id)
@@ -63,7 +80,7 @@ static void flash_get_current_flash_config(void)
             break;
         }
     }
-	
+
     if(i == (sizeof(flash_config) / sizeof(flash_config_t) - 1))
     {
         flash_current_config = &flash_config[i];
@@ -77,7 +94,7 @@ void flash_disable_crc(void)
 
     value = REG_READ(REG_FLASH_CONF);
     value &= ~(CRC_EN);
-	
+
     REG_WRITE(REG_FLASH_CONF, value);
 }
 
@@ -87,7 +104,7 @@ void flash_enable_crc(void)
 
     value = REG_READ(REG_FLASH_CONF);
     value |= CRC_EN;
-	
+
     REG_WRITE(REG_FLASH_CONF, value);
 }
 
@@ -98,7 +115,7 @@ void flash_set_clk(UINT8 clk_conf)
     value = REG_READ(REG_FLASH_CONF);
     value &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
     value |= (clk_conf << FLASH_CLK_CONF_POSI);
-	
+
     REG_WRITE(REG_FLASH_CONF, value);
 }
 
@@ -128,7 +145,7 @@ void flash_disable_cpu_data_wr(void)
 
     value = REG_READ(REG_FLASH_CONF);
     value &= (~(CPU_DATA_WR_MASK << CPU_DATA_WR_POSI));
-	
+
     REG_WRITE(REG_FLASH_CONF, value);
 }
 
@@ -153,7 +170,7 @@ static void flash_write_disable(void)
 
 static UINT16 flash_read_sr(UINT8 sr_width)
 {
-	UINT16 sr;
+    UINT16 sr;
     UINT32 value;
 
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
@@ -165,15 +182,15 @@ static UINT16 flash_read_sr(UINT8 sr_width)
     value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
     sr = value & 0x00FF;
 
-	if(sr_width == 2)
-	{
-	    value = (FLASH_OPCODE_RDSR2 << OP_TYPE_SW_POSI) | OP_SW | WP_VALUE;
-	    REG_WRITE(REG_FLASH_OPERATE_SW, value);
-	    while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
+    if(sr_width == 2)
+    {
+        value = (FLASH_OPCODE_RDSR2 << OP_TYPE_SW_POSI) | OP_SW | WP_VALUE;
+        REG_WRITE(REG_FLASH_OPERATE_SW, value);
+        while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
 
-	    value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
-	    sr |= (value & 0x00FF) << 8;
-	}
+        value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
+        sr |= (value & 0x00FF) << 8;
+    }
 
     return sr;
 }
@@ -182,35 +199,35 @@ static void flash_write_sr(UINT8 sr_width, UINT16 val, bool isvolatile)
 {
     UINT32 value;
 
-	if(flash_wr_sr_bypass_method_cd)
-	{
-		int ret = flash_wr_sr_bypass_method_cd((uint32_t)sr_width, (uint32_t)val);
-		if(ret == 1)
-		{
-			// if return 1, means writen sr by volatile successed
-			return;
-		}
-	}
+    if(flash_wr_sr_bypass_method_cd)
+    {
+        int ret = flash_wr_sr_bypass_method_cd((uint32_t)sr_width, (uint32_t)val);
+        if(ret == 1)
+        {
+            // if return 1, means writen sr by volatile successed
+            return;
+        }
+    }
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     GLOBAL_INT_DECLARATION();
 
     GLOBAL_INT_DISABLE();
-#endif
+    #endif
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     if(isvolatile == true) {
         /*write status volatile,value will restore after power down*/
         value = (FLASH_WRSR_EN_VOLATILE_CMD << FLASH_WREN_CMD_POSI) | (1 << FLASH_WREN_SEL_POSI);
         REG_WRITE(REG_FLASH_WRSR, value);
         while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
     }
-#endif
+    #endif
     value = REG_READ(REG_FLASH_CONF);
     value &= ~(WRSR_DATA_MASK << WRSR_DATA_POSI);
 
     value |= (val << WRSR_DATA_POSI);
-    
+
     REG_WRITE(REG_FLASH_CONF, value);
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
 
@@ -227,7 +244,7 @@ static void flash_write_sr(UINT8 sr_width, UINT16 val, bool isvolatile)
 
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
 
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     if(isvolatile == true) {
         /*clear config*/
         value = REG_READ(REG_FLASH_WRSR);
@@ -235,11 +252,11 @@ static void flash_write_sr(UINT8 sr_width, UINT16 val, bool isvolatile)
         REG_WRITE(REG_FLASH_WRSR, value);
         while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
     }
-#endif
+    #endif
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     GLOBAL_INT_RESTORE();
-#endif
+    #endif
 
 }
 
@@ -280,11 +297,11 @@ static void flash_set_qe(void)
     value = REG_READ(REG_FLASH_CONF);
     value &= ~(WRSR_DATA_MASK << WRSR_DATA_POSI);
     value |= (((flash_current_config->qe_bit << flash_current_config->qe_bit_post)
-        | param) << WRSR_DATA_POSI);
+               | param) << WRSR_DATA_POSI);
     REG_WRITE(REG_FLASH_CONF, value);
 
     value = REG_READ(REG_FLASH_OPERATE_SW);
-    
+
     if(1 == flash_current_config->sr_size)
     {
         value = (value & (ADDR_SW_REG_MASK << ADDR_SW_REG_POSI))
@@ -361,36 +378,34 @@ UINT8 flash_get_line_mode(void)
 void flash_set_line_mode(UINT8 mode)
 {
     UINT32 value;
-    
-    if(1 == mode)
+    static uint8_t curr_line_mode = 0;
+
+    if((1 == mode) && (curr_line_mode != 1))
     {
         flash_clr_qwfr();
+        curr_line_mode = 1;
     }
-    if(2 == mode)
+    if((2 == mode) && (curr_line_mode != 2))
     {
         flash_clr_qwfr();
         value = REG_READ(REG_FLASH_CONF);
         value &= ~(MODEL_SEL_MASK << MODEL_SEL_POSI);
         value |= ((MODE_DUAL & MODEL_SEL_MASK) << MODEL_SEL_POSI);
         REG_WRITE(REG_FLASH_CONF, value);
+        curr_line_mode = 2;
     }
-    else if(4 == mode)
+    else if((4 == mode) && (curr_line_mode != 4))
     {
         flash_clr_qwfr();
         value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
         value &= ~(M_VALUE_MASK << M_VALUE_POST);
         value |= (flash_current_config->m_value<< M_VALUE_POST);
-        
-        REG_WRITE(REG_FLASH_SR_DATA_CRC_CNT, value);
 
+        REG_WRITE(REG_FLASH_SR_DATA_CRC_CNT, value);
         value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
 
-        if(1 == flash_current_config->qe_bit)
-        {
-            flash_set_qe();
-        }
-
         flash_set_qwfr();
+        curr_line_mode = 4;
     }
 }
 
@@ -398,54 +413,64 @@ UINT32 flash_get_id(void)
 {
     UINT32 value;
 
+    if(LINE_MODE_FOUR == flash_get_line_mode())
+    {
+        flash_set_line_mode(LINE_MODE_TWO);
+    }
+
     value = (FLASH_OPCODE_RDID << OP_TYPE_SW_POSI) | OP_SW | WP_VALUE;
     REG_WRITE(REG_FLASH_OPERATE_SW, value);
 
     while (REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
     flash_id = REG_READ(REG_FLASH_RDID_DATA_FLASH);
+
+    if(LINE_MODE_FOUR == flash_get_line_mode())
+    {
+        flash_set_line_mode(LINE_MODE_FOUR);
+    }
     return flash_id;
 }
 
 static UINT32 flash_get_size(void)
 {
-	if (NULL == flash_current_config)
-	{
-		return 0x200000;
-	}
+    if (NULL == flash_current_config)
+    {
+        return 0x200000;
+    }
 
-	return flash_current_config->flash_size;
+    return flash_current_config->flash_size;
 }
 
 UINT32 flash_is_xtx_type(void)
 {
-	if((0x0B4014 == flash_id) || (0x0B4015 == flash_id)
-			|| (0x0B4016 == flash_id)
-			|| (0x0B4017 == flash_id)
-			|| (0x0E4016 == flash_id))
-	{
-		return 1;
-	}
-	// puya flash
-	else if((0x854215 == flash_id) || (0x856015 == flash_id) || (0x852015 == flash_id))
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+    if((0x0B4014 == flash_id) || (0x0B4015 == flash_id)
+            || (0x0B4016 == flash_id)
+            || (0x0B4017 == flash_id)
+            || (0x0E4016 == flash_id))
+    {
+        return 1;
+    }
+    // puya flash
+    else if((0x854215 == flash_id) || (0x856015 == flash_id) || (0x852015 == flash_id) || (0x852016 == flash_id))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 UINT32 flash_is_support_0x50h_cmd(void)
 {
-	return flash_is_xtx_type();
+    return flash_is_xtx_type();
 }
 
 UINT32 flash_register_bypass_cb(FUNC_2PARAM_CB cb)
 {
-	flash_wr_sr_bypass_method_cd = cb;
+    flash_wr_sr_bypass_method_cd = cb;
 
-	return 0;
+    return 0;
 }
 
 static UINT32 flash_read_mid(void)
@@ -470,94 +495,94 @@ static UINT32 flash_read_mid(void)
 
 PROTECT_TYPE get_flash_protect(void)
 {
-	UINT16 sr_value, cmp, param, value, type;
+    UINT16 sr_value, cmp, param, value, type;
 
-	sr_value = flash_read_sr(flash_current_config->sr_size);
-	param = (sr_value >> flash_current_config->protect_post) & flash_current_config->protect_mask;
-	cmp = (sr_value >> flash_current_config->cmp_post) & 0x01;
-	value = (cmp << 8) | param;
-	
-	if(value == flash_current_config->protect_all)
-	{
-		type = FLASH_PROTECT_ALL;
-	}
-	else if(value == flash_current_config->protect_none)
-	{
-		type = FLASH_PROTECT_NONE;
-	}
-	else if(value == flash_current_config->protect_half)
-	{
-		type = FLASH_PROTECT_HALF;
-	}
-	else if(value == flash_current_config->unprotect_last_block)
-	{
-		type = FLASH_UNPROTECT_LAST_BLOCK;
-	}
-	else
-	{
-		type = -1;
-	}
+    sr_value = flash_read_sr(flash_current_config->sr_size);
+    param = (sr_value >> flash_current_config->protect_post) & flash_current_config->protect_mask;
+    cmp = (sr_value >> flash_current_config->cmp_post) & 0x01;
+    value = (cmp << 8) | param;
 
-	return type;
+    if(value == flash_current_config->protect_all)
+    {
+        type = FLASH_PROTECT_ALL;
+    }
+    else if(value == flash_current_config->protect_none)
+    {
+        type = FLASH_PROTECT_NONE;
+    }
+    else if(value == flash_current_config->protect_half)
+    {
+        type = FLASH_PROTECT_HALF;
+    }
+    else if(value == flash_current_config->unprotect_last_block)
+    {
+        type = FLASH_UNPROTECT_LAST_BLOCK;
+    }
+    else
+    {
+        type = -1;
+    }
+
+    return type;
 }
 
 static void set_flash_protect(PROTECT_TYPE type, bool isvolatile)
 {
     UINT32 param, value, cmp;
-	
-	switch (type)
-	{
-		case FLASH_PROTECT_NONE:
-            param = flash_current_config->protect_none & 0xff;
-            cmp = (flash_current_config->protect_none >> 8) & 0xff;
-            break;
-            
-		case FLASH_PROTECT_ALL:
-			param = flash_current_config->protect_all & 0xff;
-			cmp = (flash_current_config->protect_all >> 8) & 0xff;
-			break;
 
-        case FLASH_PROTECT_HALF:
-			param = flash_current_config->protect_half & 0xff;
-			cmp = (flash_current_config->protect_half >> 8) & 0xff;
-			break;
+    switch (type)
+    {
+    case FLASH_PROTECT_NONE:
+        param = flash_current_config->protect_none & 0xff;
+        cmp = (flash_current_config->protect_none >> 8) & 0xff;
+        break;
 
-        case FLASH_UNPROTECT_LAST_BLOCK:
-			param = flash_current_config->unprotect_last_block& 0xff;
-			cmp = (flash_current_config->unprotect_last_block >> 8) & 0xff;
-			break;
-			
-		default:
-			param = flash_current_config->protect_all & 0xff;
-            cmp = (flash_current_config->protect_all >> 8) & 0xff;
-			break;
-	}
-    
+    case FLASH_PROTECT_ALL:
+        param = flash_current_config->protect_all & 0xff;
+        cmp = (flash_current_config->protect_all >> 8) & 0xff;
+        break;
+
+    case FLASH_PROTECT_HALF:
+        param = flash_current_config->protect_half & 0xff;
+        cmp = (flash_current_config->protect_half >> 8) & 0xff;
+        break;
+
+    case FLASH_UNPROTECT_LAST_BLOCK:
+        param = flash_current_config->unprotect_last_block& 0xff;
+        cmp = (flash_current_config->unprotect_last_block >> 8) & 0xff;
+        break;
+
+    default:
+        param = flash_current_config->protect_all & 0xff;
+        cmp = (flash_current_config->protect_all >> 8) & 0xff;
+        break;
+    }
+
     value = flash_read_sr(flash_current_config->sr_size);
 
-	if(((param << flash_current_config->protect_post) != 
-        (value & (flash_current_config->protect_mask << flash_current_config->protect_post)))
-        || ((cmp << flash_current_config->cmp_post) !=
-        (value & (0x01 << flash_current_config->cmp_post))))
-	{
-        value = (value & (~(flash_current_config->protect_mask 
-			            << flash_current_config->protect_post))) 
-			            | (param << flash_current_config->protect_post);
-		value &= ~(1 << flash_current_config->cmp_post);
-		value |= ((cmp & 0x01) << flash_current_config->cmp_post);
-		
-		os_printf("--write status reg:%x,%x--\r\n", value, flash_current_config->sr_size);
-		flash_write_sr(flash_current_config->sr_size, value, isvolatile);
-	}
+    if(((param << flash_current_config->protect_post) !=
+            (value & (flash_current_config->protect_mask << flash_current_config->protect_post)))
+            || ((cmp << flash_current_config->cmp_post) !=
+                (value & (0x01 << flash_current_config->cmp_post))))
+    {
+        value = (value & (~(flash_current_config->protect_mask
+                            << flash_current_config->protect_post)))
+                | (param << flash_current_config->protect_post);
+        value &= ~(1 << flash_current_config->cmp_post);
+        value |= ((cmp & 0x01) << flash_current_config->cmp_post);
+
+        os_printf("--write status reg:%x,%x--\r\n", value, flash_current_config->sr_size);
+        flash_write_sr(flash_current_config->sr_size, value, isvolatile);
+    }
 }
 
 static void flash_erase_sector(UINT32 address)
 {
     UINT32 value;
     UINT32 erase_addr = address & 0xFFF000;
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     GLOBAL_INT_DECLARATION();
-#endif
+    #endif
 
     if(erase_addr >= flash_current_config->flash_size)
     {
@@ -565,9 +590,9 @@ static void flash_erase_sector(UINT32 address)
         return;
     }
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     GLOBAL_INT_DISABLE();
-#endif
+    #endif
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
     value = REG_READ(REG_FLASH_OPERATE_SW);
     value = ((erase_addr << ADDR_SW_REG_POSI)
@@ -576,9 +601,9 @@ static void flash_erase_sector(UINT32 address)
              | (value & WP_VALUE));
     REG_WRITE(REG_FLASH_OPERATE_SW, value);
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     GLOBAL_INT_RESTORE();
-#endif
+    #endif
 }
 
 static void flash_set_hpm(void)
@@ -601,18 +626,18 @@ static void flash_read_data(UINT8 *buffer, UINT32 address, UINT32 len)
     UINT32 addr = address & (~0x1F);
     UINT32 buf[8];
     UINT8 *pb = (UINT8 *)&buf[0];
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     GLOBAL_INT_DECLARATION();
-#endif
+    #endif
 
     if(len == 0)
     {
         return;
     }
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     GLOBAL_INT_DISABLE();
-#endif
+    #endif
     while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
     while(len)
     {
@@ -641,9 +666,9 @@ static void flash_read_data(UINT8 *buffer, UINT32 address, UINT32 len)
             }
         }
     }
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     GLOBAL_INT_RESTORE();
-#endif
+    #endif
 }
 
 #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
@@ -709,43 +734,43 @@ static int flash_read_opt_data(UINT8 group, UINT8 *buffer, UINT32 address, UINT3
 
 static UINT32 flash_read_otp(flash_otp_t *param)
 {
-	UINT8 slot = 0, slot_max = 0;
-	UINT32 read_size, slot_len, read_len, read_addr;
-	int ret;
+    UINT8 slot = 0, slot_max = 0;
+    UINT32 read_size, slot_len, read_len, read_addr;
+    int ret;
 
-	if (param == NULL || param->buf == NULL) return 0;
+    if (param == NULL || param->buf == NULL) return 0;
 
-	slot = (param->addr / 1024);
-	if ((flash_id == 0x854215) || (flash_id == 0x852015) || (flash_id == 0x856015)) {
-		if (slot > 2) return 0;
-		slot++;
-		slot_max = 3; /*1~3*/
-	} else if (flash_id == 0xC86515) {
-		if (slot > 1) return 0;
-		slot_max = 1; /*0~1*/
-	} else {
-		return 0;
-	}
+    slot = (param->addr / 1024);
+    if ((flash_id == 0x854215) || (flash_id == 0x852015) || (flash_id == 0x856015)) {
+        if (slot > 2) return 0;
+        slot++;
+        slot_max = 3; /*1~3*/
+    } else if (flash_id == 0xC86515) {
+        if (slot > 1) return 0;
+        slot_max = 1; /*0~1*/
+    } else {
+        return 0;
+    }
 
-	read_len = 0;
-	while (param->len) {
-		read_addr = (param->addr % 1024);
-		slot_len = (1024 - read_addr);
-		read_size = param->len > slot_len ? slot_len : param->len;
-		ret = flash_read_opt_data(slot, param->buf, read_addr, read_size);
-		if (ret > 0) {
-			param->buf += read_size;
-			param->addr += read_size;
-			param->len -= read_size;
-			read_len += read_size;
-		} else {
-			break;
-		}
+    read_len = 0;
+    while (param->len) {
+        read_addr = (param->addr % 1024);
+        slot_len = (1024 - read_addr);
+        read_size = param->len > slot_len ? slot_len : param->len;
+        ret = flash_read_opt_data(slot, param->buf, read_addr, read_size);
+        if (ret > 0) {
+            param->buf += read_size;
+            param->addr += read_size;
+            param->len -= read_size;
+            read_len += read_size;
+        } else {
+            break;
+        }
 
-		if (++slot > slot_max) break;
-	}
+        if (++slot > slot_max) break;
+    }
 
-	return read_len;
+    return read_len;
 }
 
 static int flash_read_uid(flash_otp_t *param)
@@ -776,13 +801,13 @@ static void flash_write_data(UINT8 *buffer, UINT32 address, UINT32 len)
     UINT32 addr = address & (~0x1F);
     UINT32 buf[8];
     UINT8 *pb = (UINT8 *)&buf[0];
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     GLOBAL_INT_DECLARATION();
-#endif
+    #endif
 
     if((addr >= flash_current_config->flash_size)
-        || (len > flash_current_config->flash_size)
-        || ((addr + len) > flash_current_config->flash_size))
+            || (len > flash_current_config->flash_size)
+            || ((addr + len) > flash_current_config->flash_size))
     {
         bk_printf("Write error[addr:0x%x len:0x%x]\r\n", addr, len);
         return;
@@ -814,9 +839,9 @@ static void flash_write_data(UINT8 *buffer, UINT32 address, UINT32 len)
                 break;
         }
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         GLOBAL_INT_DISABLE();
-#endif
+        #endif
         for (i = 0; i < 8; i++)
         {
             REG_WRITE(REG_FLASH_DATA_SW_FLASH, buf[i]);
@@ -829,9 +854,9 @@ static void flash_write_data(UINT8 *buffer, UINT32 address, UINT32 len)
                      | (reg_value & WP_VALUE));
         REG_WRITE(REG_FLASH_OPERATE_SW, reg_value);
         while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         GLOBAL_INT_RESTORE();
-#endif
+        #endif
         addr += 32;
         os_memset(pb, 0xFF, 32);
     }
@@ -840,99 +865,109 @@ static void flash_write_data(UINT8 *buffer, UINT32 address, UINT32 len)
 #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 static void flash_page_write_data(UINT8 *buffer, UINT32 address, UINT32 len)
 {
-	UINT32 i, j, cnt, mod, reg_value;
-	GLOBAL_INT_DECLARATION();
+    UINT32 i, j, cnt, mod, reg_value;
+    GLOBAL_INT_DECLARATION();
 
-	if ((address >= flash_current_config->flash_size)
-		|| (len > flash_current_config->flash_size)
-		|| ((address + len) > flash_current_config->flash_size)) {
-		bk_printf("Write error[addr:0x%x len:0x%x]\r\n", address, len);
-		return;
-	}
+    if ((address >= flash_current_config->flash_size)
+            || (len > flash_current_config->flash_size)
+            || ((address + len) > flash_current_config->flash_size)) {
+        bk_printf("Write error[addr:0x%x len:0x%x]\r\n", address, len);
+        return;
+    }
 
-	if (address % 256) {
-		cnt = 256 - (address % 256);
-		flash_write_data(buffer, address, cnt);
-		len -= cnt;
-		address += cnt;
-		buffer += cnt;
-	}
+    if (address % 256) {
+        cnt = 256 - (address % 256);
+        flash_write_data(buffer, address, cnt);
+        len -= cnt;
+        address += cnt;
+        buffer += cnt;
+    }
 
-	cnt = len / 256;
-	mod = len % 256;
+    cnt = len / 256;
+    mod = len % 256;
 
-	if(cnt)
-	{
-		while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
-		/*enable page write*/
-		reg_value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
-		reg_value |= PAGE_WRITE_EN;
-		REG_WRITE(REG_FLASH_SR_DATA_CRC_CNT, reg_value);
+    if(cnt)
+    {
+        while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
+        /*enable page write*/
+        reg_value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
+        reg_value |= PAGE_WRITE_EN;
+        REG_WRITE(REG_FLASH_SR_DATA_CRC_CNT, reg_value);
 
-		for (i = 0; i < cnt; i++) {
-			/*clear memory address*/
-			REG_WRITE(REG_FLASH_PW_CONF, FLASH_PW_MEM_CLR);
-			GLOBAL_INT_DISABLE();
-			for (j = 0; j < 256; j++) {
-				REG_WRITE(REG_FLASH_PW_CONF, (buffer[j] & FLASH_PW_MEM_DATA_MASK) << FLASH_PW_MEM_DATA_POSI);
-			}
-			reg_value = REG_READ(REG_FLASH_OPERATE_SW);
-			reg_value = ((address << ADDR_SW_REG_POSI)
-						 | (FLASH_OPCODE_PP << OP_TYPE_SW_POSI)
-						 | OP_SW
-						 | (reg_value & WP_VALUE));
-			REG_WRITE(REG_FLASH_OPERATE_SW, reg_value);
-			while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
-			GLOBAL_INT_RESTORE();
-			buffer += 256;
-			address += 256;
-		}
+        for (i = 0; i < cnt; i++) {
+            /*clear memory address*/
+            REG_WRITE(REG_FLASH_PW_CONF, FLASH_PW_MEM_CLR);
+            GLOBAL_INT_DISABLE();
+            for (j = 0; j < 256; j++) {
+                REG_WRITE(REG_FLASH_PW_CONF, (buffer[j] & FLASH_PW_MEM_DATA_MASK) << FLASH_PW_MEM_DATA_POSI);
+            }
+            reg_value = REG_READ(REG_FLASH_OPERATE_SW);
+            reg_value = ((address << ADDR_SW_REG_POSI)
+                         | (FLASH_OPCODE_PP << OP_TYPE_SW_POSI)
+                         | OP_SW
+                         | (reg_value & WP_VALUE));
+            REG_WRITE(REG_FLASH_OPERATE_SW, reg_value);
+            while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
+            GLOBAL_INT_RESTORE();
+            buffer += 256;
+            address += 256;
+        }
 
-		/*disable page write*/
-		reg_value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
-		reg_value &= ~PAGE_WRITE_EN;
-		REG_WRITE(REG_FLASH_SR_DATA_CRC_CNT, reg_value);
-	}
+        /*disable page write*/
+        reg_value = REG_READ(REG_FLASH_SR_DATA_CRC_CNT);
+        reg_value &= ~PAGE_WRITE_EN;
+        REG_WRITE(REG_FLASH_SR_DATA_CRC_CNT, reg_value);
+    }
 
-	if (mod) {
-		flash_write_data(buffer, address, mod);
-	}
+    if (mod) {
+        flash_write_data(buffer, address, mod);
+    }
 }
 #endif
 
 void flash_protection_op(UINT8 mode, PROTECT_TYPE type)
 {
-	set_flash_protect(type, true);
+    set_flash_protect(type, true);
 }
 
 void flash_init(void)
 {
-    UINT32 id;
+        UINT32 id;
 
-    while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
-	
-    id = flash_get_id();
-    FLASH_PRT("[Flash]id:0x%x\r\n", id);
-    flash_get_current_flash_config();
-	
-	set_flash_protect(FLASH_UNPROTECT_LAST_BLOCK, false);
+        while(REG_READ(REG_FLASH_OPERATE_SW) & BUSY_SW);
 
-	#if (0 == CFG_JTAG_ENABLE)
-	flash_disable_cpu_data_wr();
-	#endif
-	
-    flash_set_line_mode(flash_current_config->line_mode);
-    flash_enable_crc();
-	
-#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
-    flash_set_clk(9);  // dco/2=60M
-#else
-    flash_set_clk(5);  // 60M
+        id = flash_get_id();
+        #if CFG_FLASH_BYPASS_OTP
+        extern uint32_t g_flash_id;
+        g_flash_id = id;
+        extern void flash_bypass_otp_get_current_config(void);
+        flash_bypass_otp_get_current_config();
+        #endif
+        FLASH_PRT("[Flash]id:0x%x\r\n", id);
+        flash_get_current_flash_config();
+
+        set_flash_protect(FLASH_UNPROTECT_LAST_BLOCK, false);
+
+#if (0 == CFG_JTAG_ENABLE)
+        flash_disable_cpu_data_wr();
 #endif
 
-    ddev_register_dev(FLASH_DEV_NAME, &flash_op);
-    
-    os_printf("[Flash]init over\r\n");
+        flash_set_line_mode(flash_current_config->line_mode);
+        if(1 == flash_current_config->qe_bit)
+        {
+                flash_set_qe();
+        }
+        flash_enable_crc();
+
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        flash_set_clk(9);  // dco/2=60M
+#else
+        flash_set_clk(5);  // 60M
+#endif
+
+        ddev_register_dev(FLASH_DEV_NAME, &flash_op);
+
+        os_printf("[Flash]init over\r\n");
 }
 
 void flash_exit(void)
@@ -960,13 +995,13 @@ UINT32 flash_write(char *user_buf, UINT32 count, UINT32 address)
         flash_set_line_mode(LINE_MODE_TWO);
     }
 
-#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     if (count > 256)
     {
         flash_page_write_data((UINT8 *)user_buf, address, count);
     }
     else
-#endif
+    #endif
     {
         flash_write_data((UINT8 *)user_buf, address, count);
     }
@@ -990,12 +1025,12 @@ UINT32 flash_ctrl(UINT32 cmd, void *parm)
     UINT32 ret = FLASH_SUCCESS;
     flash_otp_t *otp_cfg;
     peri_busy_count_add();
-    
+
     if(4 == flash_current_config->line_mode)
     {
         flash_set_line_mode(LINE_MODE_TWO);
     }
-        
+
     switch(cmd)
     {
     case CMD_FLASH_SET_CLK:
@@ -1004,65 +1039,30 @@ UINT32 flash_ctrl(UINT32 cmd, void *parm)
         break;
 
     case CMD_FLASH_SET_DPLL:
-        ret = sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_FLASH_DPLL, 0);
+        sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_FLASH_DPLL, 0);
 
-        //reg = REG_READ(REG_FLASH_CONF);
-        //reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
-        //reg = reg | (5 << FLASH_CLK_CONF_POSI);
-        //REG_WRITE(REG_FLASH_CONF, reg);
-        if(ret == DRV_SUCCESS)
-        {
-            reg = REG_READ(REG_FLASH_CONF);
-            reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
-            reg = reg | (5 << FLASH_CLK_CONF_POSI); /*dco--9*/
-            REG_WRITE(REG_FLASH_CONF, reg);
-        }
-        else
-        {
-            ret = FLASH_FAILURE;
-        }
+
+        reg = REG_READ(REG_FLASH_CONF);
+        reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
+        reg = reg | (5 << FLASH_CLK_CONF_POSI);
+        REG_WRITE(REG_FLASH_CONF, reg);
         break;
 
     case CMD_FLASH_SET_DCO:
-        ret = sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_FLASH_DCO, 0);
+        sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_FLASH_DCO, 0);
 
-        //        reg = REG_READ(REG_FLASH_CONF);
-        //        reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
-        //        if (get_ate_mode_state()) {
-        //#if (CFG_SOC_NAME == SOC_BK7238)
-        //            reg = reg | (9 << FLASH_CLK_CONF_POSI);
-        //#else
-        //            reg = reg | (0xB << FLASH_CLK_CONF_POSI);
-        //#endif
-        //        } else {
-        //            reg = reg | (9 << FLASH_CLK_CONF_POSI);
-        //        }
-        //        REG_WRITE(REG_FLASH_CONF, reg);
-
-        if(ret == DRV_SUCCESS)
-        {
-            reg = REG_READ(REG_FLASH_CONF);
-            reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
-            if(get_ate_mode_state())
-            {
-#if (CFG_SOC_NAME == SOC_BK7238)
-                reg = reg | (9 << FLASH_CLK_CONF_POSI);
-#else
-                reg = reg | (0xB << FLASH_CLK_CONF_POSI);
-#endif
-            }
-            else
-            {
-                reg = reg | (9 << FLASH_CLK_CONF_POSI);
-            }
-            REG_WRITE(REG_FLASH_CONF, reg);
-
-            REG_WRITE(REG_FLASH_DATA_FLASH_SW, *((volatile UINT32*)0x20000));
+        reg = REG_READ(REG_FLASH_CONF);
+        reg &= ~(FLASH_CLK_CONF_MASK << FLASH_CLK_CONF_POSI);
+        if (get_ate_mode_state()) {
+            #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+            reg = reg | (9 << FLASH_CLK_CONF_POSI);
+            #else
+            reg = reg | (0xB << FLASH_CLK_CONF_POSI);
+            #endif
+        } else {
+            reg = reg | (9 << FLASH_CLK_CONF_POSI);
         }
-        else
-        {
-            ret = FLASH_FAILURE;
-        }
+        REG_WRITE(REG_FLASH_CONF, reg);
         break;
 
     case CMD_FLASH_WRITE_ENABLE:
@@ -1159,9 +1159,9 @@ UINT32 flash_ctrl(UINT32 cmd, void *parm)
         ret = FLASH_FAILURE;
         break;
     }
-    
+
     if(4 == flash_current_config->line_mode)
-    {        
+    {
         flash_set_line_mode(LINE_MODE_FOUR);
     }
 

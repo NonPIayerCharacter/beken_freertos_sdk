@@ -37,7 +37,7 @@ libpath = [cwd + '/']
 cppdefines = []
 
 if platform_match == 'yes':
-    print 'using rf_test: lib' + rf_test_lib_name + '.a'
+    print('using rf_test: lib' + rf_test_lib_name + '.a')
     group_use_lib = DefineGroup('beken_rf_test_lib', [], depend = [''], CPPPATH = path, CPPDEFINES = cppdefines, LIBS = libs, LIBPATH = libpath)
     group_build_lib = DefineGroup('beken_rf_test', src, depend = ['BUILD_LIB'], CPPPATH = path, CPPDEFINES = cppdefines, LIBS = libs, LIBPATH = libpath, LIBNAME = 'lib' + rf_test_lib_name + '.a')
     group = group_use_lib + group_build_lib

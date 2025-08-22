@@ -224,7 +224,8 @@
 #define BLE_ACL_BUF_NB_TX            (BLE_ACTIVITY_MAX + 4)
 
 /// Number of advertising data buffers
-#define BLE_ADV_BUF_NB_TX            (CFG_BLE_ADV_NUM*2 + 1)
+///one advertise need four buffer(advertise buffer + scan response buffer + seting advertise buffer + seting scan response buffer)
+#define BLE_ADV_BUF_NB_TX            (CFG_BLE_ADV_NUM * 4)
 #if (CFG_BLE_AUX_CHAIN)
 /// Number of advertising or scan response data fragments in extended advertising PDU chain
 #define BLE_ADV_FRAG_NB_TX           (5)

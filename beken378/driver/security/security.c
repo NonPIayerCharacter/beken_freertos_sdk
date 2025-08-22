@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "sys_config.h"
 #if (CFG_SOC_NAME == SOC_BK7221U)
 #include "rtos_pub.h"
@@ -24,14 +38,14 @@ int security_aes_start(unsigned int mode)
     else
         reg &= ~(SECURITY_AES_ENCODE_BIT);
     REG_WRITE(SECURITY_AES_CONFIG, reg);
-    
+
     reg = REG_READ(SECURITY_AES_CTRL);
     reg |= SECURITY_AES_AUTEO_BIT;
-    REG_WRITE(SECURITY_AES_CTRL , reg);
+    REG_WRITE(SECURITY_AES_CTRL, reg);
 
     // wait
     while((REG_READ(SECURITY_AES_STATUS) & SECURITY_AES_VALID) == 0);
-    
+
     return AES_OK;
 }
 
@@ -42,15 +56,15 @@ int security_aes_init(sec_done_callback callback, void *param)
 
     reg = REG_READ(SECURITY_AES_CTRL);
     reg &= ~(SECURITY_AES_INT_EN_BIT | SECURITY_AES_AUTEO_BIT |
-               SECURITY_AES_NEXT_BIT | SECURITY_AES_INIT_BIT);
-    
-    REG_WRITE(SECURITY_AES_CTRL , reg);
+             SECURITY_AES_NEXT_BIT | SECURITY_AES_INIT_BIT);
 
-    REG_WRITE(SECURITY_AES_CTRL , 0);
+    REG_WRITE(SECURITY_AES_CTRL, reg);
+
+    REG_WRITE(SECURITY_AES_CTRL, 0);
 
     GLOBAL_INT_DISABLE();
     aes_done_callback.callback = callback;
-    aes_done_callback.param = param;  
+    aes_done_callback.param = param;
     GLOBAL_INT_RESTORE();
     return 0;
 }
@@ -60,7 +74,7 @@ int security_aes_set_key(const unsigned char *key, unsigned int keybits)
     UINT32 mode, reg;
     int end_reg_pos = 0;
 
-    if(keybits == 128) 
+    if(keybits == 128)
     {
         mode = AES128;
         end_reg_pos = 3;
@@ -109,8 +123,8 @@ int security_aes_set_key(const unsigned char *key, unsigned int keybits)
     reg = REG_READ(SECURITY_AES_CONFIG);
     reg &= ~(SECURITY_AES_MODE_MASK << SECURITY_AES_MODE_POSI);
     reg |= ((mode & SECURITY_AES_MODE_MASK) << SECURITY_AES_MODE_POSI);
-    
-    REG_WRITE(SECURITY_AES_CONFIG , reg);
+
+    REG_WRITE(SECURITY_AES_CONFIG, reg);
 
     return AES_OK;
 }
@@ -127,7 +141,7 @@ int security_aes_set_block_data(const unsigned char *block_data)
         data[1] = block_data[4*i + 2];
         data[2] = block_data[4*i + 1];
         data[3] = block_data[4*i + 0];
-        
+
         REG_WRITE(SECURITY_AES_BLOCK_X(i), tmp_data);
     }
 
@@ -149,7 +163,7 @@ int security_aes_get_result_data(unsigned char *pul_data)
         pul_data[4*i + 2] = data[1];
         pul_data[4*i + 3] = data[0];
     }
-    
+
     return AES_OK;
 }
 
@@ -160,7 +174,7 @@ void bk_secrity_isr(void)
     secrity_state = REG_READ(SECURITY_AES_STATUS);
     if ((secrity_state & SECURITY_AES_INT_FLAG) == SECURITY_AES_INT_FLAG)
     {
-        REG_WRITE(SECURITY_AES_STATUS , secrity_state);
+        REG_WRITE(SECURITY_AES_STATUS, secrity_state);
         if(aes_done_callback.callback)
             aes_done_callback.callback(aes_done_callback.param);
     }
@@ -168,13 +182,13 @@ void bk_secrity_isr(void)
     secrity_state = REG_READ(SECURITY_SHA_STATUS);
     if ((secrity_state & 0x05) == 0x05)
     {
-        REG_WRITE(SECURITY_SHA_STATUS , secrity_state);
+        REG_WRITE(SECURITY_SHA_STATUS, secrity_state);
     }
 
     secrity_state = REG_READ(SECURITY_RSA_STATE);
     if ((secrity_state & 0x03) == 0x03)
     {
-        REG_WRITE(SECURITY_RSA_STATE , secrity_state);
+        REG_WRITE(SECURITY_RSA_STATE, secrity_state);
     }
 }
 

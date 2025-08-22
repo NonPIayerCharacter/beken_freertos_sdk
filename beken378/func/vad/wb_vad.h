@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _WB_VAD_H_
 #define _WB_VAD_H_
 
@@ -15,7 +29,7 @@ typedef struct
 {
     float backgroud_estimate[SUB_BAND_CNT];    /* background noise estimate */
     float average_level[SUB_BAND_CNT];   /* averaged input components for stationary */
-	
+
     /* estimation */
     float old_level[SUB_BAND_CNT];   /* input levels of the previous frame */
     float sub_level[SUB_BAND_CNT];   /* input levels calculated at the end of a frame (lookahead) */
@@ -26,7 +40,7 @@ typedef struct
     VAD_I16 hang_count;          /* hangover counter */
     VAD_I16 stat_count;          /* stationary counter */
 
-    /* Note that each of the following two variables holds 15 flags. Each flag reserves 
+    /* Note that each of the following two variables holds 15 flags. Each flag reserves
      * 1 bit of the variable. The newest flag is
      * in the bit 15 (assuming that LSB is bit 1 and MSB is bit 16). */
     VAD_I16 vad_reg;              /* flags for intermediate VAD decisions */

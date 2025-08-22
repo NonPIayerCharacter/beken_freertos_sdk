@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __SPI_DMA_PUB_H__
 #define __SPI_DMA_PUB_H__
 
@@ -75,18 +89,18 @@ typedef struct spidma_desc
 typedef struct spidma_desc
 {
     UINT8 *rxbuf;
-    
+
     void (*node_full_handler)(void *curptr, UINT32 newlen, UINT32 is_eof, UINT32 frame_len);
-    void (*data_end_handler)(void);   
+    void (*data_end_handler)(void);
 
     UINT16 rxbuf_len;
     UINT16 rx_read_len;
     UINT32 node_len;
-    
+
 
     UINT8 *txbuf;
     void (*tx_handler)(void);
-   
+
     /* mode:     SPIDMA mode
      * bit[0]: SPIDMA sck clock invert
      *          0:  posedge sample data
@@ -103,13 +117,13 @@ typedef struct spidma_desc
     UINT32 timeout_val;
     UINT32 txbuf_len;
     void (*end_frame_handler)(void);
-#if CFG_GENERAL_DMA
+    #if CFG_GENERAL_DMA
     void (*dma_rx_handler)(UINT32);
     UINT32 dma_rx_channel;
     void (*dma_tx_handler)(UINT32);
     UINT32 dma_tx_channel;
-    
-#endif
+
+    #endif
 } SPIDMA_DESC_ST, *SPIDMA_DESC_PTR;
 
 typedef struct spidma_tx_ {

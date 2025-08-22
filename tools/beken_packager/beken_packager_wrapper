@@ -111,14 +111,14 @@ chip_index = {
 default_info = {
     'bk7231n': {'boot': 'bootloader_bk7231n_1.0.1_enc.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7231m': {'boot': 'bootloader_bk7231n_1.0.1.bin', 'firmware': '../../out/bk7231_bsp.bin'},
-    'bk7231u': {'boot': 'bootloader_bk7231u_uart2_v1.0.13.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7231u': {'boot': 'bootloader_bk7231u_uart2_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7231':  {'boot': 'bootloader_bk7231_enc.bin', 'firmware': '../../out/bk7231_bsp.bin'},
-    'bk7251':  {'boot': 'bootloader_bk7251_uart2_v1.0.13.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7251':  {'boot': 'bootloader_bk7251_uart2_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7271':  {'boot': 'bootloader_bk7271_uart2_v1.0.11.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7236':  {'boot': 'bootloader_bk7236_uart2_v1.0.11.bin', 'firmware': '../../out/bk7231_bsp.bin'},
-    'bk7238':  {'boot': 'bootloader_bk7238_uart1_v1.0.14.bin', 'firmware': '../../out/bk7231_bsp.bin'},
-    'bk7252n': {'boot': 'bootloader_bk7252n_uart1_v1.0.14.bin', 'firmware': '../../out/bk7231_bsp.bin'},
-    'bk7253': {'boot': 'bootloader_bk7253_uart2_v1.0.14.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7238':  {'boot': 'bootloader_bk7238_uart1_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7252n': {'boot': 'bootloader_bk7252n_uart1_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7253': {'boot': 'bootloader_bk7253_uart2_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
 }
 
 # parse commandline arguments

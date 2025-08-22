@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "rw_ieee80211.h"
 #include "rw_pub.h"
@@ -101,14 +115,14 @@ const UINT8 beacon[149] =
 
 UINT32 rw_ieee80211_init(void)
 {
-	struct rwnx_hw *rwnx_hw;
+    struct rwnx_hw *rwnx_hw;
     RW_CONNECTOR_T intf;
     struct ieee80211_sta_ht_cap ht_cap = RWNX_HT_CAPABILITIES;
     struct ieee80211_sta_vht_cap vht_cap = RWNX_VHT_CAPABILITIES;
 
-#if CFG_IEEE80211N_HT40
+    #if CFG_IEEE80211N_HT40
     ht_cap.cap |= CO_BIT(1);
-#endif
+    #endif
 
     rwnx_hw = &g_rwnx_hw;
     memset(rwnx_hw, 0, sizeof(*rwnx_hw));
@@ -118,14 +132,14 @@ UINT32 rw_ieee80211_init(void)
     g_wiphy.bands[IEEE80211_BAND_2GHZ].channels = (struct ieee80211_channel *)rw_2ghz_channels;
     g_wiphy.bands[IEEE80211_BAND_2GHZ].ht_cap = ht_cap;
 
-#ifdef ENABLE_5GHZ_IEEE80211
+    #ifdef ENABLE_5GHZ_IEEE80211
     g_wiphy.bands[IEEE80211_BAND_5GHZ].num_channels = sizeof(rw_5ghz_a_channels) /
             sizeof(rw_5ghz_a_channels[0]);
     g_wiphy.bands[IEEE80211_BAND_5GHZ].channels = rw_5ghz_a_channels;
-#else
+    #else
     g_wiphy.bands[IEEE80211_BAND_5GHZ].num_channels = 0;
     g_wiphy.bands[IEEE80211_BAND_5GHZ].channels = 0;
-#endif
+    #endif
     g_wiphy.bands[IEEE80211_BAND_5GHZ].ht_cap = ht_cap;
     g_wiphy.bands[IEEE80211_BAND_5GHZ].vht_cap = vht_cap;
 
@@ -155,10 +169,10 @@ UINT32 rw_ieee80211_init(void)
 
 void rwnx_hw_reinit(void)
 {
-	struct rwnx_hw *rwnx_hw;
+    struct rwnx_hw *rwnx_hw;
 
-	rwnx_hw = &g_rwnx_hw;
-	memset(rwnx_hw, 0, sizeof(*rwnx_hw));
+    rwnx_hw = &g_rwnx_hw;
+    memset(rwnx_hw, 0, sizeof(*rwnx_hw));
 }
 
 UINT32 rw_ieee80211_set_country(const wifi_country_t *country)
@@ -176,7 +190,7 @@ UINT32 rw_ieee80211_set_country(const wifi_country_t *country)
         os_printf("rw_ieee80211_set_country code:\r\n");
         os_printf("code: %s\r\n", g_country_code.cfg.cc);
         os_printf("channel: %d - %d\r\n", g_country_code.cfg.schan,
-            g_country_code.cfg.schan + g_country_code.cfg.nchan - 1);
+                  g_country_code.cfg.schan + g_country_code.cfg.nchan - 1);
 
         if(g_country_code.cfg.policy == WIFI_COUNTRY_POLICY_MANUAL)
             os_printf("mode: MANUAL\r\n", g_country_code.cfg.policy );
@@ -225,11 +239,11 @@ UINT32 rw_ieee80211_get_centre_frequency(UINT32 chan_id)
         channels = (struct ieee80211_channel *)rw_2ghz_channels;
     }
 
-#ifdef ENABLE_5GHZ_IEEE80211
+    #ifdef ENABLE_5GHZ_IEEE80211
     if(chan_id > 14)
     {
     }
-#endif
+    #endif
 
     if(channels)
     {
@@ -238,13 +252,13 @@ UINT32 rw_ieee80211_get_centre_frequency(UINT32 chan_id)
 
     if(freq!=0)
     {
-		return freq;
+        return freq;
     }
-	else
-	{
-		os_printf("centre freq is 0 \r\n");
-		return 0;
-	}
+    else
+    {
+        os_printf("centre freq is 0 \r\n");
+        return 0;
+    }
 }
 
 UINT8 rw_ieee80211_get_chan_id(UINT32 freq)
@@ -292,7 +306,7 @@ UINT8 rw_ieee80211_init_scan_chan(struct scanu_start_req *req)
         req->chan[i].freq = rw_ieee80211_get_centre_frequency(i + start_chan);
     }
 
-#ifdef ENABLE_5GHZ_IEEE80211
+    #ifdef ENABLE_5GHZ_IEEE80211
     for(i = 0; i < g_wiphy.bands[IEEE80211_BAND_5GHZ].num_channels; i ++)
     {
         req->chan[i].band = IEEE80211_BAND_5GHZ;
@@ -303,7 +317,7 @@ UINT8 rw_ieee80211_init_scan_chan(struct scanu_start_req *req)
 
         ASSERT(req->chan[i].freq);
     }
-#endif
+    #endif
 
     req->chan_cnt = num_chan;
 
@@ -334,8 +348,8 @@ UINT8 rw_ieee80211_is_scan_rst_in_countrycode(UINT8 freq)
 #if CFG_IEEE80211N
 void rw_ieee80211_set_ht_cap(UINT8 ht_supp)
 {
-	g_wiphy.bands[IEEE80211_BAND_2GHZ].ht_cap.ht_supported = ht_supp;
-	rw_msg_send_me_config_req();
+    g_wiphy.bands[IEEE80211_BAND_2GHZ].ht_cap.ht_supported = ht_supp;
+    rw_msg_send_me_config_req();
 }
 #endif
 

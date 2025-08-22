@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "typedef.h"
@@ -34,7 +48,7 @@
 
 struct bk_i2s_dev
 {
-	UINT8 *tx_ptr;
+    UINT8 *tx_ptr;
     UINT32 tx_len;
     beken_semaphore_t tx_sem;
 
@@ -45,7 +59,7 @@ struct bk_i2s_dev
 
     UINT32 total_len;
     UINT32 flag;
-    
+
     beken_mutex_t mutex;
 };
 
@@ -65,16 +79,16 @@ static void i2s_active(UINT8 enable)
     UINT32 value_ctrl;
 
     value_ctrl = REG_READ(PCM_CTRL);
-	
+
     if(enable)
     {
         value_ctrl |= I2S_PCM_EN;
     }
     else
     {
-		value_ctrl &= ~I2S_PCM_EN;
+        value_ctrl &= ~I2S_PCM_EN;
     }
-	
+
     REG_WRITE(PCM_CTRL, value_ctrl);
 }
 
@@ -83,7 +97,7 @@ static void i2s_set_msten(UINT8 enable)
     UINT32 value_ctrl;
 
     value_ctrl = REG_READ(PCM_CTRL);
-	
+
     if(enable)
     {
         value_ctrl |= MSTEN;
@@ -92,7 +106,7 @@ static void i2s_set_msten(UINT8 enable)
     {
         value_ctrl &= (~MSTEN);
     }
-	
+
     REG_WRITE(PCM_CTRL, value_ctrl);
 }
 
@@ -118,9 +132,9 @@ static void i2s_set_lrck(UINT8 val)
     value = REG_READ(PCM_CTRL);
     if(val)
     {
-		 value |= LRCK_RP;
+        value |= LRCK_RP;
     }
-    else 
+    else
     {
         value &= ~LRCK_RP;
     }
@@ -132,16 +146,16 @@ static void i2s_set_sck_inv(UINT8 val)
     UINT32 value;
 
     value = REG_READ(PCM_CTRL);
-	
+
     if(val)
     {
-    	value |= SCK_INV;
+        value |= SCK_INV;
     }
     else
     {
-    	value &= ~SCK_INV;
+        value &= ~SCK_INV;
     }
-	
+
     REG_WRITE(PCM_CTRL, value);
 }
 
@@ -153,7 +167,7 @@ static void i2s_set_sck_lsb(UINT8 val)
     if(val)
     {
         value |= LSB_FIRST;
-	}
+    }
     else
     {
         value &= ~LSB_FIRST;
@@ -167,7 +181,7 @@ static void i2s_set_sck_synclen(UINT8 val)
 
     value = REG_READ(PCM_CTRL);
     value &= ~ SYNCLEN_MASK;
-	value |= (val << SYNCLEN_POSI);
+    value |= (val << SYNCLEN_POSI);
     REG_WRITE(PCM_CTRL, value);
 }
 /***
@@ -177,7 +191,7 @@ static void i2s_set_data_length(UINT8 val)
 
     value = REG_READ(PCM_CTRL);
     value &= ~ DATALEN_MASK;
-	value |= (val << DATALEN_POSI);    
+	value |= (val << DATALEN_POSI);
     REG_WRITE(PCM_CTRL, value);
 }
 ***/
@@ -187,156 +201,156 @@ static void i2s_set_pcm_dlen(UINT8 val)
 
     value = REG_READ(PCM_CTRL);
     value &= ~ PCM_DLEN_MASK;
-	value |= (val << PCM_DLEN_POSI);    
+    value |= (val << PCM_DLEN_POSI);
     REG_WRITE(PCM_CTRL, value);
 }
 
 static void i2s_set_freq_datawidth(i2s_rate_t *p_rate)
 {
     UINT32 bitratio, value = 0,lrck_div,sys_clk= 0;
-	
-    if( (p_rate->freq != 8000) && (p_rate->freq != 16000) && 
-		(p_rate->freq != 24000) && (p_rate->freq != 32000) &&(p_rate->freq != 48000)&&
-		(p_rate->freq != 11025) && (p_rate->freq != 22050) &&(p_rate->freq != 44100) )
+
+    if( (p_rate->freq != 8000) && (p_rate->freq != 16000) &&
+            (p_rate->freq != 24000) && (p_rate->freq != 32000) &&(p_rate->freq != 48000)&&
+            (p_rate->freq != 11025) && (p_rate->freq != 22050) &&(p_rate->freq != 44100) )
     {
         return;
     }
-		
-	/*set irck div*/	
-	if(p_rate->datawidth == 8)
-	{
-		lrck_div = 7;
-	}
-	else if(p_rate->datawidth == 16)
+
+    /*set irck div*/
+    if(p_rate->datawidth == 8)
+    {
+        lrck_div = 7;
+    }
+    else if(p_rate->datawidth == 16)
     {
         lrck_div = 15;
     }
-	else if(p_rate->datawidth == 24)
+    else if(p_rate->datawidth == 24)
     {
         lrck_div = 23;
-    }	
-    else 
+    }
+    else
     {
         lrck_div = 31;
     }
-	
-	/*set system  clock*/
-	if(p_rate->freq == 8000)
-	{
-		if(p_rate->datawidth == 24)
-		{
-			sys_clk = 48384000;
-			sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
-		}
-		else 
-		{
-			sys_clk = 48128000;
-			sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);		
-		}
-	}
-	else if (p_rate->freq == 16000)
-	{
-		if((p_rate->datawidth == 16) || (p_rate->datawidth == 8))
-		{
-			sys_clk = 48128000;
-			sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);	
-		}
-		else
-		{
-			sys_clk = 49152000;
-			sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
-		}
-	}
-	else if(p_rate->freq == 44100)
-	{	
-		sys_clk = 50803200;
-		sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
-	}
-	else
-	{
-		if(p_rate->datawidth == 24)
-		{
-			sys_clk = 50688000;
-			sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
-		}
-		else
-		{
-			sys_clk = 49152000;
-			sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
-		}
-	}
-	
-	/*set bit clock divd*/
+
+    /*set system  clock*/
+    if(p_rate->freq == 8000)
+    {
+        if(p_rate->datawidth == 24)
+        {
+            sys_clk = 48384000;
+            sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
+        }
+        else
+        {
+            sys_clk = 48128000;
+            sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
+        }
+    }
+    else if (p_rate->freq == 16000)
+    {
+        if((p_rate->datawidth == 16) || (p_rate->datawidth == 8))
+        {
+            sys_clk = 48128000;
+            sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
+        }
+        else
+        {
+            sys_clk = 49152000;
+            sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
+        }
+    }
+    else if(p_rate->freq == 44100)
+    {
+        sys_clk = 50803200;
+        sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
+    }
+    else
+    {
+        if(p_rate->datawidth == 24)
+        {
+            sys_clk = 50688000;
+            sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
+        }
+        else
+        {
+            sys_clk = 49152000;
+            sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_AUDIO_PLL, &sys_clk);
+        }
+    }
+
+    /*set bit clock divd*/
     bitratio = MAX((NUMBER_ROUND_UP((sys_clk / 2 ), (p_rate->freq  * 2 * (lrck_div + 1))) - 1), 5);
-	value = value 	| ((p_rate->datawidth - 1) << DATALEN_POSI)
-            		| (lrck_div << SMPRATIO_POSI)
-            		| (bitratio << BITRATIO_POSI);//this value is unused in slave mode
-        
+    value = value 	| ((p_rate->datawidth - 1) << DATALEN_POSI)
+            | (lrck_div << SMPRATIO_POSI)
+            | (bitratio << BITRATIO_POSI);//this value is unused in slave mode
+
     REG_WRITE(PCM_CTRL, value);
 }
 
 static void i2s_rxint_enable(UINT8 val)
 {
-	UINT32 value;
-	
-	value = REG_READ(PCM_CN);
-	if(val)
-	{
-		value |= RX_INT_EN;
-	}
-	else 
-	{		
-		value &= ~RX_INT_EN;
-	}
-	REG_WRITE(PCM_CN, value);
+    UINT32 value;
+
+    value = REG_READ(PCM_CN);
+    if(val)
+    {
+        value |= RX_INT_EN;
+    }
+    else
+    {
+        value &= ~RX_INT_EN;
+    }
+    REG_WRITE(PCM_CN, value);
 }
-	
+
 static void i2s_txint_enable(UINT8 val)
 {
-	UINT32 value;
-	
-	value = REG_READ(PCM_CN);
-	if(val)
-	{
-		value |= TX_INT0_EN;
-	}
-	else
-	{
-		value &= ~TX_INT0_EN;
-	}
-	REG_WRITE(PCM_CN, value);
+    UINT32 value;
+
+    value = REG_READ(PCM_CN);
+    if(val)
+    {
+        value |= TX_INT0_EN;
+    }
+    else
+    {
+        value &= ~TX_INT0_EN;
+    }
+    REG_WRITE(PCM_CN, value);
 }
 
 static void i2s_rxovr_enable(UINT8 val)
 {
-	UINT32 value;
-	
-	value = REG_READ(PCM_CN);
-	if(val)
-	{
-		value |= RX_OVF_EN;
-	}
-	else
-	{
-		value &= ~RX_OVF_EN;
-	}
-	REG_WRITE(PCM_CN, value);
+    UINT32 value;
+
+    value = REG_READ(PCM_CN);
+    if(val)
+    {
+        value |= RX_OVF_EN;
+    }
+    else
+    {
+        value &= ~RX_OVF_EN;
+    }
+    REG_WRITE(PCM_CN, value);
 }
-	
+
 static void i2s_txovr_enable(UINT8 val)
 {
-	UINT32 value;
-	
-	value = REG_READ(PCM_CN);
-	if(val)
-	{
-		value |= TX_UDF0_EN;
-	}
-	else
-	{
-		value &= ~TX_UDF0_EN;
-	}
-	REG_WRITE(PCM_CN, value);
+    UINT32 value;
+
+    value = REG_READ(PCM_CN);
+    if(val)
+    {
+        value |= TX_UDF0_EN;
+    }
+    else
+    {
+        value &= ~TX_UDF0_EN;
+    }
+    REG_WRITE(PCM_CN, value);
 }
 
 
@@ -348,7 +362,7 @@ static void i2s_rxint_mode(UINT8 val)
 
     value &= ~(RX_FIFO_LEVEL_MASK << RX_FIFO_LEVEL_POSI) ;
     value |= ((val & RX_FIFO_LEVEL_MASK) << RX_FIFO_LEVEL_POSI);
-    
+
     REG_WRITE(PCM_CN, value);
 }
 
@@ -360,7 +374,7 @@ static void i2s_txint_mode(UINT8 val)
 
     value &= ~(RX_FIFO_LEVEL_MASK << TX_FIFO0_LEVEL_POSI) ;
     value |= ((val & RX_FIFO_LEVEL_MASK) << TX_FIFO0_LEVEL_POSI);
-    
+
     REG_WRITE(PCM_CN, value);
 }
 
@@ -368,20 +382,20 @@ static void i2s_rxfifo_clr_enable(void)
 {
     UINT32 value;
 
-	value = REG_READ(PCM_CN);	
-	value |= RX_FIFO_CLR;
+    value = REG_READ(PCM_CN);
+    value |= RX_FIFO_CLR;
 
-	REG_WRITE(PCM_CN, value);
+    REG_WRITE(PCM_CN, value);
 }
 
 static void i2s_txfifo_clr_enable(void)
 {
     UINT32 value;
 
-	value = REG_READ(PCM_CN);
+    value = REG_READ(PCM_CN);
     value = value | TX_FIFO0_CLR| TX_FIFO1_CLR| TX_FIFO2_CLR;
 
-	REG_WRITE(PCM_CN, value);
+    REG_WRITE(PCM_CN, value);
 }
 
 
@@ -390,10 +404,10 @@ static void i2s_icu_configuration(UINT32 enable)
 {
     UINT32 param;
 
-    if(enable) 
+    if(enable)
     {
         param = PWD_I2S_PCM_CLK_BIT;
-	    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
+        sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
 
         param = (IRQ_I2S_PCM_BIT);
         sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
@@ -402,141 +416,141 @@ static void i2s_icu_configuration(UINT32 enable)
     {
         param = (IRQ_I2S_PCM_BIT);
         sddev_control(ICU_DEV_NAME, CMD_ICU_INT_DISABLE, &param);
-        
+
         param = PWD_I2S_PCM_CLK_BIT;
-	    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, &param);
+        sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, &param);
     }
 }
 
 static void i2s_gpio_configuration()
 {
     uint32_t val;
-	val = GFUNC_MODE_I2S;				/*gpio 2-5*/
-	sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &val);
+    val = GFUNC_MODE_I2S;				/*gpio 2-5*/
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &val);
 }
 
 static UINT8 i2s_get_busy(void)
 {
-	//TODO
-	return 0;
+    //TODO
+    return 0;
 }
 
 static void i2s_master_enable(UINT32 enable)
 {
-    UINT32 value , ultemp;
-	
-	ultemp = 1;
-	
+    UINT32 value, ultemp;
+
+    ultemp = 1;
+
     value = REG_READ(PCM_CN);
     value = value | (RX_INT_EN | TX_INT0_EN );
     REG_WRITE(PCM_CN, value);
 
-	/* enable i2s unit */
-	i2s_ctrl(I2S_CMD_UNIT_ENABLE, (void *) &ultemp);
+    /* enable i2s unit */
+    i2s_ctrl(I2S_CMD_UNIT_ENABLE, (void *) &ultemp);
 
-	/* 1:MASTER   0:SLAVE */
-	if(enable)
-	{
-		i2s_ctrl(I2S_CMD_SET_MSTEN, (void *) &enable);
-	}
-	else
-	{
-		i2s_ctrl(I2S_CMD_SET_MSTEN, (void *)& enable);
-	}
-	
-	bit_dbg("[-ISR-]I2S_DEBUG: pcm_ctrl=0x%X,pcm_cn =0x%08X,pcm_stat =0x%X\r\n",REG_READ(PCM_CTRL),REG_READ(PCM_CN),REG_READ(PCM_STAT));
-	
-	i2s_icu_configuration(1);  //enable clock;
+    /* 1:MASTER   0:SLAVE */
+    if(enable)
+    {
+        i2s_ctrl(I2S_CMD_SET_MSTEN, (void *) &enable);
+    }
+    else
+    {
+        i2s_ctrl(I2S_CMD_SET_MSTEN, (void *)& enable);
+    }
+
+    bit_dbg("[-ISR-]I2S_DEBUG: pcm_ctrl=0x%X,pcm_cn =0x%08X,pcm_stat =0x%X\r\n",REG_READ(PCM_CTRL),REG_READ(PCM_CN),REG_READ(PCM_STAT));
+
+    i2s_icu_configuration(1);  //enable clock;
 }
 
 static void i2s_dma_master_enable(UINT32 enable)
 {
-    UINT32 value , ultemp;
-	
-	ultemp = 1;
-	
+    UINT32 value, ultemp;
+
+    ultemp = 1;
+
     value = REG_READ(PCM_CN);
     value = value | (RX_INT_EN | TX_INT0_EN );
     REG_WRITE(PCM_CN, value);
 
-	/* enable i2s unit */
-	i2s_ctrl(I2S_CMD_UNIT_ENABLE, (void *) &ultemp);
+    /* enable i2s unit */
+    i2s_ctrl(I2S_CMD_UNIT_ENABLE, (void *) &ultemp);
 
-	/* 1:MASTER   0:SLAVE */
-	if(enable)
-	{
-		i2s_ctrl(I2S_CMD_SET_MSTEN, (void *) &enable);
-	}
-	else
-	{
-		i2s_ctrl(I2S_CMD_SET_MSTEN, (void *)& enable);
-	}
-	
-	bit_dbg("[-DMA-]I2S_DEBUG: pcm_ctrl=0x%X,pcm_cn =0x%08X,pcm_stat =0x%X\r\n",REG_READ(PCM_CTRL),REG_READ(PCM_CN),REG_READ(PCM_STAT));
-	
-	//i2s_icu_configuration(!enable);  //enable clock;
-	{
+    /* 1:MASTER   0:SLAVE */
+    if(enable)
+    {
+        i2s_ctrl(I2S_CMD_SET_MSTEN, (void *) &enable);
+    }
+    else
+    {
+        i2s_ctrl(I2S_CMD_SET_MSTEN, (void *)& enable);
+    }
+
+    bit_dbg("[-DMA-]I2S_DEBUG: pcm_ctrl=0x%X,pcm_cn =0x%08X,pcm_stat =0x%X\r\n",REG_READ(PCM_CTRL),REG_READ(PCM_CN),REG_READ(PCM_STAT));
+
+    //i2s_icu_configuration(!enable);  //enable clock;
+    {
         UINT32 param = PWD_I2S_PCM_CLK_BIT;
-	    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
-	}
+        sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
+    }
 }
 
 static UINT8 i2s_disable_i2s(void)
 {
-	UINT8  param;
-	UINT32 status;
+    UINT8  param;
+    UINT32 status;
 
-	param = 0;
-	i2s_ctrl(I2S_CMD_UNIT_ENABLE, (void *)&param);
-	
-	status = REG_READ(PCM_STAT);
-	
-	REG_WRITE( PCM_CTRL, 0 );
-	REG_WRITE( PCM_CN, 0 );
- 	REG_WRITE( PCM_STAT, status );
-	
-	i2s_icu_configuration(0);  //disable clock;
-	return 0;
+    param = 0;
+    i2s_ctrl(I2S_CMD_UNIT_ENABLE, (void *)&param);
+
+    status = REG_READ(PCM_STAT);
+
+    REG_WRITE( PCM_CTRL, 0 );
+    REG_WRITE( PCM_CN, 0 );
+    REG_WRITE( PCM_STAT, status );
+
+    i2s_icu_configuration(0);  //disable clock;
+    return 0;
 }
 
 __maybe_unused static UINT32 i2s_read_rxfifo(UINT8 *data);
 static UINT32 i2s_read_rxfifo(UINT8 *data)
 {
     UINT32 value;
-    
+
     value = REG_READ(PCM_STAT);
-    
+
     if((value & RX_FIFO0_EMPTY) == 0)
     {
         value = REG_READ(PCM_STAT);
-		if(data)
-		{
-			*data = value;
-		}
+        if(data)
+        {
+            *data = value;
+        }
         return 1;
-    } 
-	return 0;
+    }
+    return 0;
 }
 
 __maybe_unused static void i2s_txfifo_fill(void);
 static void i2s_txfifo_fill(void)
 {
     UINT32 value;
-    
+
     value = REG_READ(PCM_STAT);
-    
+
     while((value & TX_FIFO0_FULL) == 0)
     {
         REG_WRITE(PCM_STAT, 0xff);
-    } 
+    }
 }
 
 UINT32 i2s_write_txfifo(UINT8 data)
 {
     UINT32 value;
-    
+
     value = REG_READ(PCM_STAT);
-    
+
     if((value & TX_FIFO0_FULL) == 0)
     {
         REG_WRITE(PCM_STAT, data);
@@ -590,315 +604,331 @@ static UINT32 i2s_ctrl(UINT32 cmd, void *param)
     {
     case I2S_CMD_UNIT_ENABLE:
         i2s_active(*(UINT8 *)param);
-		break;
-	case I2S_CMD_SET_MSTEN:
+        break;
+    case I2S_CMD_SET_MSTEN:
         i2s_set_msten(*(UINT8 *)param);
-		break;
-	case I2S_CMD_SELECT_MODE:
+        break;
+    case I2S_CMD_SELECT_MODE:
         i2s_select_mode(*(UINT8 *)param);
-		break;
-	case I2S_CMD_SET_LRCK:
+        break;
+    case I2S_CMD_SET_LRCK:
         i2s_set_lrck(*(UINT8 *)param);
-		break;
-	case I2S_CMD_SET_SCK_INV:
+        break;
+    case I2S_CMD_SET_SCK_INV:
         i2s_set_sck_inv(*(UINT8 *)param);
-		break;
-	case I2S_CMD_SET_SCK_LSB:
+        break;
+    case I2S_CMD_SET_SCK_LSB:
         i2s_set_sck_lsb(*(UINT8 *)param);
-		break;
-	case I2S_CMD_SET_SCK_SYNCLEN:
+        break;
+    case I2S_CMD_SET_SCK_SYNCLEN:
         i2s_set_sck_synclen(*(UINT8 *)param);
-		break;
-	case I2S_CMD_SET_PCM_DLEN:
+        break;
+    case I2S_CMD_SET_PCM_DLEN:
         i2s_set_pcm_dlen(*(UINT8 *)param);
-		break;
+        break;
     case I2S_CMD_SET_FREQ_DATAWIDTH:
         i2s_set_freq_datawidth((i2s_rate_t *)param);
-        break;		
-	case I2S_CMD_RXINT_EN:
+        break;
+    case I2S_CMD_RXINT_EN:
         i2s_rxint_enable(*(UINT8 *)param);
-		break;
-	case I2S_CMD_TXINT_EN:
+        break;
+    case I2S_CMD_TXINT_EN:
         i2s_txint_enable(*(UINT8 *)param);
-		break;
-	case I2S_CMD_RXOVR_EN:
+        break;
+    case I2S_CMD_RXOVR_EN:
         i2s_rxovr_enable(*(UINT8 *)param);
-		break;
-	case I2S_CMD_TXOVR_EN:
+        break;
+    case I2S_CMD_TXOVR_EN:
         i2s_txovr_enable(*(UINT8 *)param);
-		break;
-	case I2S_CMD_RXFIFO_CLR_EN:
+        break;
+    case I2S_CMD_RXFIFO_CLR_EN:
         i2s_rxfifo_clr_enable();
-		break;
-	case I2S_CMD_TXFIFO_CLR_EN:
+        break;
+    case I2S_CMD_TXFIFO_CLR_EN:
         i2s_txfifo_clr_enable();
-		break;	
-	case I2S_CMD_RXINT_MODE:
+        break;
+    case I2S_CMD_RXINT_MODE:
         i2s_rxint_mode(*(UINT8 *)param);
-		break;
-	case I2S_CMD_TXINT_MODE:
+        break;
+    case I2S_CMD_TXINT_MODE:
         i2s_txint_mode(*(UINT8 *)param);
-		break;
-	case I2S_CMD_GET_BUSY:
-         i2s_get_busy();
-		break;
-	case I2S_CMD_ENABLE_INTERRUPT:
-		i2s_enable_interrupt();
-		break;
-	case I2S_CMD_DISABLE_INTERRUPT:
-		i2s_disable_interrupt();
-		break;
-	case I2S_CMD_MASTER_ENABLE:
-		i2s_master_enable(*(UINT32 *)param);	
-		break;
-	case I2S_CMD_DISABLE_I2S:
-    	i2s_disable_i2s();
-    	break;
+        break;
+    case I2S_CMD_GET_BUSY:
+        i2s_get_busy();
+        break;
+    case I2S_CMD_ENABLE_INTERRUPT:
+        i2s_enable_interrupt();
+        break;
+    case I2S_CMD_DISABLE_INTERRUPT:
+        i2s_disable_interrupt();
+        break;
+    case I2S_CMD_MASTER_ENABLE:
+        i2s_master_enable(*(UINT32 *)param);
+        break;
+    case I2S_CMD_DISABLE_I2S:
+        i2s_disable_i2s();
+        break;
     case I2S_CMD_DMA_MASTER_ENABLE:
-		i2s_dma_master_enable(*(UINT32 *)param);
-		break;
+        i2s_dma_master_enable(*(UINT32 *)param);
+        break;
     case I2S_CMD_DMA_ISR:
-		intc_service_change_handler(IRQ_I2S_PCM, (FUNCPTR)param);
-		break;
-	
+        intc_service_change_handler(IRQ_I2S_PCM, (FUNCPTR)param);
+        break;
+
     default:
         ret = I2S_FAILURE;
         break;
     }
-	
-   // peri_busy_count_dec();
-	
+
+    // peri_busy_count_dec();
+
     return ret;
 }
 
 
 UINT32 i2s_configure(UINT32 fifo_level, UINT32 sample_rate, UINT32 bits_per_sample, UINT32 mode)
 {
- 	UINT32 param;
-	i2s_rate_t rate;
-	rate.datawidth = bits_per_sample;
-	rate.freq = sample_rate;
-/*
-	mode:
-	bit0~2: 	mode & 0x7  	000:I2S
-						 		001:Left Justified
-						 		010:Right Justified
-						 		011:reserve
-						 		100:Short Frame Sync
-						 		101:Long Frame Sync
-						 		110:Normal 2B+D
-						 		111:Delay 2B+D 
-	
-	bit3: 		mode & 0x08  	0:LRCK	no turn
-								1:LRCK	turn
+    UINT32 param;
+    i2s_rate_t rate;
+    rate.datawidth = bits_per_sample;
+    rate.freq = sample_rate;
+    /*
+    	mode:
+    	bit0~2: 	mode & 0x7  	000:I2S
+    						 		001:Left Justified
+    						 		010:Right Justified
+    						 		011:reserve
+    						 		100:Short Frame Sync
+    						 		101:Long Frame Sync
+    						 		110:Normal 2B+D
+    						 		111:Delay 2B+D
 
-	bit4: 		mode & 0x10  	0:SCK	no turn
-								1:SCK	turn	
-						
-	bit5: 		mode & 0x20  	0:MSB	first send/receive
-								1:LSB	first send/receive
+    	bit3: 		mode & 0x08  	0:LRCK	no turn
+    								1:LRCK	turn
 
-	bit8~10:	mode & 0x700 	0~7:Sync length only Long Frame Sync effective
+    	bit4: 		mode & 0x10  	0:SCK	no turn
+    								1:SCK	turn
 
-	bit12~14:	mode & 0x7000 	0~7: 2B+D PCM :D length
-						
-*/
-	/* set work mode */
-	param = (mode & 0x7) ;
+    	bit5: 		mode & 0x20  	0:MSB	first send/receive
+    								1:LSB	first send/receive
+
+    	bit8~10:	mode & 0x700 	0~7:Sync length only Long Frame Sync effective
+
+    	bit12~14:	mode & 0x7000 	0~7: 2B+D PCM :D length
+
+    */
+    /* set work mode */
+    param = (mode & 0x7) ;
     i2s_ctrl(I2S_CMD_SELECT_MODE, (void *)&param);	// i2s mode set
 
-	/* set lrckrp */
-	param = (mode & 0x8);
+    /* set lrckrp */
+    param = (mode & 0x8);
     i2s_ctrl(I2S_CMD_SET_LRCK, (void *)&param);
 
-	/* set sclkinv */
-	param =  (mode & 0x10);
+    /* set sclkinv */
+    param =  (mode & 0x10);
     i2s_ctrl(I2S_CMD_SET_SCK_INV, (void *)&param);
 
-	/* set lsbfirst */
-	param =(mode & 0x20);
-    i2s_ctrl(I2S_CMD_SET_SCK_LSB, (void *)&param);	
+    /* set lsbfirst */
+    param =(mode & 0x20);
+    i2s_ctrl(I2S_CMD_SET_SCK_LSB, (void *)&param);
 
-	/* set synclen */
-	param = (mode & 0x700);
-	param = param >> 8;
-    i2s_ctrl(I2S_CMD_SET_SCK_SYNCLEN, (void *)&param);		
+    /* set synclen */
+    param = (mode & 0x700);
+    param = param >> 8;
+    i2s_ctrl(I2S_CMD_SET_SCK_SYNCLEN, (void *)&param);
 
-	/* set pcm_dlen */
-	param = (mode & 0x7000);
-	param = param >> 12;	
-    i2s_ctrl(I2S_CMD_SET_PCM_DLEN, (void *)&param);	
-	
-	/* set txfifo level */
-	param = fifo_level;
-    i2s_ctrl(I2S_CMD_TXINT_MODE, (void *)&param);	
+    /* set pcm_dlen */
+    param = (mode & 0x7000);
+    param = param >> 12;
+    i2s_ctrl(I2S_CMD_SET_PCM_DLEN, (void *)&param);
 
-	/* set rxfifo level */
-	param = fifo_level;
-    i2s_ctrl(I2S_CMD_RXINT_MODE, (void *)&param);	
-	
-	/* enable txover int */
-	param = 1;
-    i2s_ctrl(I2S_CMD_TXOVR_EN, (void *)&param);	
+    /* set txfifo level */
+    param = fifo_level;
+    i2s_ctrl(I2S_CMD_TXINT_MODE, (void *)&param);
 
-	/* enable rxover int */
-	param = 1;
-    i2s_ctrl(I2S_CMD_RXOVR_EN, (void *)&param);	
+    /* set rxfifo level */
+    param = fifo_level;
+    i2s_ctrl(I2S_CMD_RXINT_MODE, (void *)&param);
 
-	i2s_gpio_configuration();  //set gpio
-	
-	param = REG_READ(SCTRL_BLOCK_EN_CFG);
-	param = (param & (~(0x0FFFUL<<20))) |( BLOCK_EN_WORD_PWD<<20 ) | (1<<16) |(1<<17);
-	REG_WRITE(SCTRL_BLOCK_EN_CFG, param);    // audio pll audio enable
+    /* enable txover int */
+    param = 1;
+    i2s_ctrl(I2S_CMD_TXOVR_EN, (void *)&param);
+
+    /* enable rxover int */
+    param = 1;
+    i2s_ctrl(I2S_CMD_RXOVR_EN, (void *)&param);
+
+    i2s_gpio_configuration();  //set gpio
+
+    param = REG_READ(SCTRL_BLOCK_EN_CFG);
+    param = (param & (~(0x0FFFUL<<20))) |( BLOCK_EN_WORD_PWD<<20 ) | (1<<16) |(1<<17);
+    REG_WRITE(SCTRL_BLOCK_EN_CFG, param);    // audio pll audio enable
 
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_SET_ANALOG6, NULL);//  DPLL AUDIO OPEN, DPLL divider
 
-	/* set freq_datawidth */
+    /* set freq_datawidth */
     i2s_ctrl(I2S_CMD_SET_FREQ_DATAWIDTH, (void *)&rate);
 
-	/*	clear state	*/
-	REG_WRITE(PCM_STAT, 0x0000FFFF);
+    /*	clear state	*/
+    REG_WRITE(PCM_STAT, 0x0000FFFF);
 
     bit_dbg("[---]I2S_CONF:PCM_CTRL = 0x%x\n", REG_READ(PCM_CTRL));
     bit_dbg("[---]I2S_CONF:PCM_CN   = 0x%x\n", REG_READ(PCM_CN));
 
-	return I2S_SUCCESS;
+    return I2S_SUCCESS;
 }
 
- UINT32 i2s_close(void)
-{	
-	UINT32 param = 0;
-	
-	i2s_icu_configuration(0);  //close clock;
-	
-    i2s_ctrl(I2S_CMD_DISABLE_INTERRUPT, (void *)&param);
-	i2s_ctrl(I2S_CMD_UNIT_ENABLE, (void *)&param);
-	
-	
-	return I2S_SUCCESS;
-}
-
-
-UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count, UINT32 param )
+UINT32 i2s_close(void)
 {
-	GLOBAL_INT_DECLARATION();
-	
+    UINT32 param = 0;
+
+    i2s_icu_configuration(0);  //close clock;
+
+    i2s_ctrl(I2S_CMD_DISABLE_INTERRUPT, (void *)&param);
+    i2s_ctrl(I2S_CMD_UNIT_ENABLE, (void *)&param);
+
+
+    return I2S_SUCCESS;
+}
+
+
+UINT32 i2s_transfer(UINT32 *i2s_send_buf, UINT32 *i2s_recv_buf, UINT32 count, UINT32 param )
+{
+    GLOBAL_INT_DECLARATION();
+
     GLOBAL_INT_DISABLE();
-	i2s_trans.trans_done = 0;
-	i2s_trans.tx_remain_data_cnt = count;	
-	i2s_trans.rx_remain_data_cnt = count;
-	i2s_trans.p_tx_buf =(UINT32 *) i2s_send_buf;
-	i2s_trans.p_rx_buf =(UINT32 *) i2s_recv_buf;
-	i2s_fifo_level.tx_level = FIFO_LEVEL_32;
-	i2s_fifo_level.rx_level = FIFO_LEVEL_32;
-    GLOBAL_INT_RESTORE();	
+    i2s_trans.trans_done = 0;
+    i2s_trans.tx_remain_data_cnt = count;
+    i2s_trans.rx_remain_data_cnt = count;
+    i2s_trans.p_tx_buf =(UINT32 *) i2s_send_buf;
+    i2s_trans.p_rx_buf =(UINT32 *) i2s_recv_buf;
+    i2s_fifo_level.tx_level = FIFO_LEVEL_32;
+    i2s_fifo_level.rx_level = FIFO_LEVEL_32;
+    GLOBAL_INT_RESTORE();
 
-	if(param)
-	{	
-		delay_ms(1000);
-	}
+    if(param)
+    {
+        delay_ms(1000);
+    }
 
-	/* rxfifo clear enable*/
-	//i2s_ctrl(I2S_CMD_RXFIFO_CLR_EN, NULL);
-	
-	/* enable */
-	i2s_ctrl(I2S_CMD_MASTER_ENABLE,(void*)&param);	
+    /* rxfifo clear enable*/
+    //i2s_ctrl(I2S_CMD_RXFIFO_CLR_EN, NULL);
 
-	while(!i2s_trans.trans_done )
-	{
-	}
-	
-	delay_ms(1000);
-	i2s_trans.trans_done = 0;
-	
-	i2s_ctrl(I2S_CMD_DISABLE_I2S, NULL);
+    /* enable */
+    i2s_ctrl(I2S_CMD_MASTER_ENABLE,(void*)&param);
 
-	return i2s_trans.trans_done;
+    while(!i2s_trans.trans_done )
+    {
+    }
+
+    delay_ms(1000);
+    i2s_trans.trans_done = 0;
+
+    i2s_ctrl(I2S_CMD_DISABLE_I2S, NULL);
+
+    return i2s_trans.trans_done;
 }
 
 void i2s_isr(void)
 {
-	uint16_t i,rxint,txint0,ultemp;
-	uint32_t i2s_status;
-	volatile uint16_t data_num ;
-	
-	i2s_status= REG_READ(PCM_STAT);
-	rxint  = i2s_status & 0x01;
-	txint0 = i2s_status & 0x02;
-		
-	if(txint0)
-	{
-		switch(i2s_fifo_level.tx_level)
-		{
-			case 0	: data_num = 8; break;
-			case 1	: data_num = 16; break;
-			case 2	: data_num = 32; break;
-			default : data_num = 48; break;
-		}
-		
-		if(i2s_trans.p_tx_buf == NULL)
-		{
-			for(i=0; i<data_num; i++)
-			{
-				REG_WRITE(PCM_DAT0,0xEEEEEEEE);
-			}
-		}
-		else
-		{
-			for(i = 0; i < data_num; i ++)
-			{
-				REG_WRITE(PCM_DAT0,*i2s_trans.p_tx_buf);
-				i2s_trans.p_tx_buf ++;
-			}
-		}
-		i2s_status |= 0x2;
-	}
-	
-	if(rxint)
-	{
-		switch(i2s_fifo_level.rx_level)
-		{
-			case 0	: data_num = 8; break;
-			case 1	: data_num = 16; break;
-			case 2	: data_num = 32; break;
-			default : data_num = 48; break;
-		}
-		
-		if(data_num > i2s_trans.rx_remain_data_cnt)
-		{
-			data_num = i2s_trans.rx_remain_data_cnt;
-		}
-		
-		if((i2s_trans.p_rx_buf == NULL) || (i2s_status & RX_FIFO0_EMPTY))
-		{	
-			for(i=0; i<data_num; i++)
-			{	
-				ultemp = REG_READ(PCM_DAT0);
-				(void ) ultemp;
-			}			
-		}
-		else
-		{
-			for(i=0; i<data_num; i++)
-			{	
-				*i2s_trans.p_rx_buf = REG_READ(PCM_DAT0);
-				i2s_trans.p_rx_buf++;
-			}
-			
-			i2s_trans.rx_remain_data_cnt -= data_num;
+    uint16_t i,rxint,txint0,ultemp;
+    uint32_t i2s_status;
+    volatile uint16_t data_num ;
 
-			if(i2s_trans.rx_remain_data_cnt <=0)
-			{
-				i = 0;
-				i2s_trans.trans_done = 1;
-				i2s_ctrl(I2S_CMD_TXINT_EN, (void*)&i);
-				i2s_ctrl(I2S_CMD_RXINT_EN, (void*)&i);
-			}
-		}		
-		i2s_status |= 0x1;
-	}
-	
-	REG_WRITE(PCM_STAT,i2s_status);
+    i2s_status= REG_READ(PCM_STAT);
+    rxint  = i2s_status & 0x01;
+    txint0 = i2s_status & 0x02;
+
+    if(txint0)
+    {
+        switch(i2s_fifo_level.tx_level)
+        {
+        case 0	:
+            data_num = 8;
+            break;
+        case 1	:
+            data_num = 16;
+            break;
+        case 2	:
+            data_num = 32;
+            break;
+        default :
+            data_num = 48;
+            break;
+        }
+
+        if(i2s_trans.p_tx_buf == NULL)
+        {
+            for(i=0; i<data_num; i++)
+            {
+                REG_WRITE(PCM_DAT0,0xEEEEEEEE);
+            }
+        }
+        else
+        {
+            for(i = 0; i < data_num; i ++)
+            {
+                REG_WRITE(PCM_DAT0,*i2s_trans.p_tx_buf);
+                i2s_trans.p_tx_buf ++;
+            }
+        }
+        i2s_status |= 0x2;
+    }
+
+    if(rxint)
+    {
+        switch(i2s_fifo_level.rx_level)
+        {
+        case 0	:
+            data_num = 8;
+            break;
+        case 1	:
+            data_num = 16;
+            break;
+        case 2	:
+            data_num = 32;
+            break;
+        default :
+            data_num = 48;
+            break;
+        }
+
+        if(data_num > i2s_trans.rx_remain_data_cnt)
+        {
+            data_num = i2s_trans.rx_remain_data_cnt;
+        }
+
+        if((i2s_trans.p_rx_buf == NULL) || (i2s_status & RX_FIFO0_EMPTY))
+        {
+            for(i=0; i<data_num; i++)
+            {
+                ultemp = REG_READ(PCM_DAT0);
+                (void ) ultemp;
+            }
+        }
+        else
+        {
+            for(i=0; i<data_num; i++)
+            {
+                *i2s_trans.p_rx_buf = REG_READ(PCM_DAT0);
+                i2s_trans.p_rx_buf++;
+            }
+
+            i2s_trans.rx_remain_data_cnt -= data_num;
+
+            if(i2s_trans.rx_remain_data_cnt <=0)
+            {
+                i = 0;
+                i2s_trans.trans_done = 1;
+                i2s_ctrl(I2S_CMD_TXINT_EN, (void*)&i);
+                i2s_ctrl(I2S_CMD_RXINT_EN, (void*)&i);
+            }
+        }
+        i2s_status |= 0x1;
+    }
+
+    REG_WRITE(PCM_STAT,i2s_status);
 
 }
 #endif

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "driver_audio_if.h"
 #include "mem_pub.h"
 #include "i2s_pub.h"
@@ -15,20 +29,20 @@ typedef struct _driver_audio_codec_option_s
     void (*codec_close)();
     void (*codec_volume_control)(unsigned char volume);
     void (*codec_mute_control)(BOOL enable);
-}driver_audio_codec_option;
+} driver_audio_codec_option;
 
 
 typedef struct driver_iis_global_setting_s
 {
-    UINT8 datawidth; 
+    UINT8 datawidth;
     UINT8 volume;
-    driver_audio_codec_option codec_ops; 
-}driver_iis_global_setting_t;
+    driver_audio_codec_option codec_ops;
+} driver_iis_global_setting_t;
 
 volatile driver_iis_global_setting_t iis_global_setting;
 
 
-static driver_audio_codec_option audio_codec_ops = 
+static driver_audio_codec_option audio_codec_ops =
 {
     es8374_codec_init,
     es8374_codec_configure,
@@ -52,7 +66,7 @@ static uint16_t rb_get_fill_size(driver_ringbuff_t *rb)
 
 
 static uint16_t rb_get_buffer_size(driver_ringbuff_t *rb)
-{
+{
 
     if (rb->buffp == NULL)
     {
@@ -129,7 +143,7 @@ static int16_t rb_get_buffer_with_length( driver_ringbuff_t *rb, uint8_t *buff, 
     {
         DRIVER_AUDIO_PRT("Buffer_null_4\r\n");
         return 0;
-     }
+    }
 
     if (!rb->buffer_fill)
         goto exit;
@@ -176,7 +190,7 @@ static int16_t rb_get_buffer_with_length( driver_ringbuff_t *rb, uint8_t *buff, 
         {
             memcpy( buff, &rb->buffp[rb->rptr], size1 );
             ret = size1;
-            rb->rptr += size1;
+            rb->rptr += size1;
 
         }
     }
@@ -192,28 +206,28 @@ exit:
 
 void aud_initial(uint32_t freq, uint32_t channels, uint32_t bits_per_sample)
 {
-	i2s_rate_t rate;
-	rate.datawidth = bits_per_sample;
-	rate.freq  = freq;
+    i2s_rate_t rate;
+    rate.datawidth = bits_per_sample;
+    rate.freq  = freq;
 
     sddev_control(I2S_DEV_NAME,I2S_CMD_SET_FREQ_DATAWIDTH,&rate);
-	iis_global_setting.codec_ops.codec_configure(rate.freq,rate.datawidth);
-	audio_ctrl_blk.channels = channels;
+    iis_global_setting.codec_ops.codec_configure(rate.freq,rate.datawidth);
+    audio_ctrl_blk.channels = channels;
 }
 
 int32_t aud_hw_init(void)
 {
 //output 26M clk to dac MCLK
-	UINT32 	param = GFUNC_MODE_CLK26M;
-	sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
-	
-	vTaskDelay(10);
+    UINT32 	param = GFUNC_MODE_CLK26M;
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &param);
+
+    vTaskDelay(10);
     sddev_control(I2S_DEV_NAME, I2S_HW_SET, (void *)0);
-	
-	memset((void *)&iis_global_setting, 0, sizeof(driver_iis_global_setting_t));
+
+    memset((void *)&iis_global_setting, 0, sizeof(driver_iis_global_setting_t));
     iis_global_setting.codec_ops = audio_codec_ops;
-	
-	if(audio_ctrl_blk.data_buff == NULL)
+
+    if(audio_ctrl_blk.data_buff == NULL)
     {
         audio_ctrl_blk.data_buff = os_malloc(AUDIO_BUFF_LEN);
         if(audio_ctrl_blk.data_buff == NULL)
@@ -222,38 +236,38 @@ int32_t aud_hw_init(void)
             return -1;
         }
     }
-	
-	rb_init( &audio_ctrl_blk.aud_rb, (uint8_t *)audio_ctrl_blk.data_buff, AUDIO_BUFF_LEN );
-	iis_global_setting.codec_ops.codec_init();
-	aud_initial(44100,2,16);
-	return 0;
+
+    rb_init( &audio_ctrl_blk.aud_rb, (uint8_t *)audio_ctrl_blk.data_buff, AUDIO_BUFF_LEN );
+    iis_global_setting.codec_ops.codec_init();
+    aud_initial(44100,2,16);
+    return 0;
 }
 
 
 
 void aud_open( void )
 {
- 	UINT8 enable = 1;
- 	DRIVER_AUDIO_PRT("aud open\r\n");
+    UINT8 enable = 1;
+    DRIVER_AUDIO_PRT("aud open\r\n");
     sddev_control(I2S_DEV_NAME, I2S_CMD_ACTIVE, (void *)&enable);
-	iis_global_setting.codec_ops.codec_mute_control(0);
+    iis_global_setting.codec_ops.codec_mute_control(0);
 }
 
 void aud_close(void)
 {
-	UINT8 enable = 0;
-	DRIVER_AUDIO_PRT("aud close\r\n");
-	iis_global_setting.codec_ops.codec_mute_control(1);
+    UINT8 enable = 0;
+    DRIVER_AUDIO_PRT("aud close\r\n");
+    iis_global_setting.codec_ops.codec_mute_control(1);
     sddev_control(I2S_DEV_NAME, I2S_CMD_ACTIVE, (void *)&enable);
 }
 
 uint8_t is_aud_opened(void)
 {
-	return is_i2s_active();
+    return is_i2s_active();
 }
 
 uint16_t aud_get_buffer_size(void)
-{
+{
     return rb_get_buffer_size( &audio_ctrl_blk.aud_rb );
 }
 
@@ -270,7 +284,7 @@ uint16_t aud_get_buffer_length(uint8_t *buff, uint16_t len)
 uint8_t aud_get_channel(void)
 {
     uint8_t ret;
-    
+
     if(audio_ctrl_blk.data_buff)
     {
         ret = audio_ctrl_blk.channels;
@@ -279,7 +293,7 @@ uint8_t aud_get_channel(void)
     {
         ret = 0;
     }
-    
+
     return ret;
 }
 

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "sys_rtos.h"
 #include "fake_clock_pub.h"
 #include "pwm_pub.h"
@@ -45,14 +59,14 @@ static inline UINT64 fclk_freertos_get_tick64(void);
 #if (CFG_INT_WDG_ENABLED)
 void int_watchdog_feed(void)
 {
-        static UINT64 s_last_int_wdg_feed = 0;
-        UINT64 current_tick = fclk_freertos_get_tick64();
+    static UINT64 s_last_int_wdg_feed = 0;
+    UINT64 current_tick = fclk_freertos_get_tick64();
 
-        if ( (current_tick - s_last_int_wdg_feed) >= INT_WDG_FEED_PERIOD_TICK) {
-                bk_wdg_reload();
-                s_last_int_wdg_feed = current_tick;
-                //os_printf("feed interrupt watchdog\n");
-        }
+    if ( (current_tick - s_last_int_wdg_feed) >= INT_WDG_FEED_PERIOD_TICK) {
+        bk_wdg_reload();
+        s_last_int_wdg_feed = current_tick;
+        //os_printf("feed interrupt watchdog\n");
+    }
 }
 #endif
 
@@ -67,94 +81,94 @@ static bool s_wdt_driver_is_init =false;
 
 void bk_task_wdt_feed()
 {
-	s_last_task_wdt_feed_tick = fclk_freertos_get_tick64();// fclk_get_tick();
+    s_last_task_wdt_feed_tick = fclk_freertos_get_tick64();// fclk_get_tick();
 }
 
 void bk_task_wdt_timeout_check()
 {
-	if (s_last_task_wdt_feed_tick) {
-		uint64_t current_tick = fclk_freertos_get_tick64();//fclk_get_tick();
-		if ((current_tick - s_last_task_wdt_feed_tick) > TASK_WDG_PERIOD_TICK) {
-			if ((current_tick - s_last_task_wdt_log_tick) > TASK_WDG_PERIOD_TICK) {
-				bk_printf("task watchdog tiggered\n");
-				s_last_task_wdt_log_tick = current_tick;
-#if DUMP_THREAD_WHEN_TASK_WDG_TIGGERED
-				rtos_dump_task_list();
-#endif
-#if DUMP_STACK_WHEN_TASK_WDG_TIGGERED
-				rtos_dump_backtrace();
-#endif
-			}
-		}
-	}
+    if (s_last_task_wdt_feed_tick) {
+        uint64_t current_tick = fclk_freertos_get_tick64();//fclk_get_tick();
+        if ((current_tick - s_last_task_wdt_feed_tick) > TASK_WDG_PERIOD_TICK) {
+            if ((current_tick - s_last_task_wdt_log_tick) > TASK_WDG_PERIOD_TICK) {
+                bk_printf("task watchdog tiggered\n");
+                s_last_task_wdt_log_tick = current_tick;
+                #if DUMP_THREAD_WHEN_TASK_WDG_TIGGERED
+                rtos_dump_task_list();
+                #endif
+                #if DUMP_STACK_WHEN_TASK_WDG_TIGGERED
+                rtos_dump_backtrace();
+                #endif
+            }
+        }
+    }
 }
 
 void bk_wdt_feed_handle(void)
 {
-	GLOBAL_INT_DECLARATION();
-	GLOBAL_INT_DISABLE();
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
 
-	bk_task_wdt_timeout_check();
+    bk_task_wdt_timeout_check();
 
-	GLOBAL_INT_RESTORE();
+    GLOBAL_INT_RESTORE();
 }
 
 bk_err_t bk_wdt_driver_init(void)
 {
-	if (s_wdt_driver_is_init) {
-		return BK_OK;
-	}
+    if (s_wdt_driver_is_init) {
+        return BK_OK;
+    }
 
-	bk_timer_initialize(BKTIMER4,WDT_BARK_TIME_MS,(void*)bk_wdt_feed_handle);
+    bk_timer_initialize(BKTIMER4,WDT_BARK_TIME_MS,(void*)bk_wdt_feed_handle);
 
-	s_wdt_driver_is_init = true;
+    s_wdt_driver_is_init = true;
 
-	return BK_OK;
+    return BK_OK;
 }
 #endif
 #endif //CFG_OS_FREERTOS
 
 void fclk_hdl(UINT8 param)
 {
-#if CFG_USE_TICK_CAL && (0 == CFG_LOW_VOLTAGE_PS)
-	if(!mcu_ps_need_pstick()) {
-		return;
-	}
-#endif
+    #if CFG_USE_TICK_CAL && (0 == CFG_LOW_VOLTAGE_PS)
+    if(!mcu_ps_need_pstick()) {
+        return;
+    }
+    #endif
 
-#if (CFG_OS_FREERTOS)
-        GLOBAL_INT_DECLARATION();
-	GLOBAL_INT_DISABLE();
-	current_clock ++;
+    #if (CFG_OS_FREERTOS)
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+    current_clock ++;
 
     if (--second_countdown == 0)
     {
         current_seconds ++;
         second_countdown = FCLK_SECOND;
 
-#if CFG_USE_TICK_CAL && (1 == CFG_LOW_VOLTAGE_PS)
+        #if CFG_USE_TICK_CAL && (1 == CFG_LOW_VOLTAGE_PS)
         if( current_seconds % 15 == 0) {
             fclk_cal_tick();
         }
-#endif
+        #endif
     }
 
-#if (CFG_INT_WDG_ENABLED)
-        int_watchdog_feed();
-#endif
+    #if (CFG_INT_WDG_ENABLED)
+    int_watchdog_feed();
+    #endif
 
-#if (CFG_OS_FREERTOS && CFG_TASK_WDG_ENABLED)
-        bk_wdt_driver_init();
-#endif
-	if (xTaskIncrementTick() != pdFALSE) {
-		vTaskSwitchContext();
-	}
-	GLOBAL_INT_RESTORE();
-#endif
+    #if (CFG_OS_FREERTOS && CFG_TASK_WDG_ENABLED)
+    bk_wdt_driver_init();
+    #endif
+    if (xTaskIncrementTick() != pdFALSE) {
+        vTaskSwitchContext();
+    }
+    GLOBAL_INT_RESTORE();
+    #endif
 
-#if (CFG_SUPPORT_ALIOS)
-	krhino_tick_proc();
-#endif
+    #if (CFG_SUPPORT_ALIOS)
+    krhino_tick_proc();
+    #endif
 }
 
 #if !(CFG_SUPPORT_RTT || CFG_SUPPORT_ALIOS || CFG_SUPPORT_LITEOS)
@@ -184,24 +198,24 @@ static UINT32 fclk_freertos_update_tick(UINT32 tick)
 
 UINT32 fclk_update_tick(UINT32 tick)
 {
-#if (CFG_SUPPORT_RTT)
+    #if (CFG_SUPPORT_RTT)
     rtt_update_tick(tick);
-#elif (CFG_SUPPORT_ALIOS)
+    #elif (CFG_SUPPORT_ALIOS)
     krhino_update_sys_tick((UINT64)tick);
-#elif CFG_OS_FREERTOS
+    #elif CFG_OS_FREERTOS
     GLOBAL_INT_DECLARATION();
 
     if(tick == 0)
         return 0;
 
     GLOBAL_INT_DISABLE();
-#if CFG_USE_TICK_CAL && (0 == CFG_LOW_VOLTAGE_PS)
+    #if CFG_USE_TICK_CAL && (0 == CFG_LOW_VOLTAGE_PS)
     mcu_ps_increase_clr();
-#endif
+    #endif
     fclk_freertos_update_tick(tick);
     vTaskStepTick( tick );
     GLOBAL_INT_RESTORE();
-#endif
+    #endif
     return 0;
 }
 
@@ -212,35 +226,35 @@ static inline UINT32 fclk_freertos_get_tick32(void)
 
 static inline UINT64 fclk_freertos_get_tick64(void)
 {
-	return current_clock;
+    return current_clock;
 }
 
 UINT64 fclk_get_tick(void)
 {
     UINT64 fclk;
-#if (CFG_SUPPORT_RTT)
+    #if (CFG_SUPPORT_RTT)
     fclk = (UINT64)rt_tick_get();
-#elif (CFG_SUPPORT_ALIOS)
+    #elif (CFG_SUPPORT_ALIOS)
     fclk = krhino_sys_tick_get();
-#elif CFG_SUPPORT_LITEOS
-	return rtos_get_tick_count();
-#else
+    #elif CFG_SUPPORT_LITEOS
+    return rtos_get_tick_count();
+    #else
     fclk = fclk_freertos_get_tick32();
-#endif
+    #endif
     return fclk;
 }
 
 UINT32 fclk_get_second(void)
 {
-#if (CFG_SUPPORT_RTT)
+    #if (CFG_SUPPORT_RTT)
     return (rt_tick_get()/FCLK_SECOND);
-#elif (CFG_SUPPORT_ALIOS)
+    #elif (CFG_SUPPORT_ALIOS)
     return (krhino_sys_tick_get()/FCLK_SECOND);
-#elif CFG_SUPPORT_LITEOS
-	return OsGetCurrSecond();
-#else
+    #elif CFG_SUPPORT_LITEOS
+    return OsGetCurrSecond();
+    #else
     return fclk_freertos_get_tick32()/FCLK_SECOND;
-#endif
+    #endif
 }
 
 UINT32 fclk_from_sec_to_tick(UINT32 sec)
@@ -282,33 +296,33 @@ UINT32 bk_cal_init(UINT32 setting)
     if(1 == setting)
     {
         use_cal_net = 1;
-#if (0 == CFG_LOW_VOLTAGE_PS)
+        #if (0 == CFG_LOW_VOLTAGE_PS)
         cal_timer_deset();
         mcu_ps_machw_init();
-#else
+        #else
         fclk_cal_init();
-#endif
-#if (CFG_OS_FREERTOS)
+        #endif
+        #if (CFG_OS_FREERTOS)
         os_printf("decset:%d %d %d %d\r\n",use_cal_net, fclk_freertos_get_tick32(), fclk_get_second(), xTaskGetTickCount());
-#endif
+        #endif
     }
     else
     {
         use_cal_net = 0;
-#if (0 == CFG_LOW_VOLTAGE_PS)
+        #if (0 == CFG_LOW_VOLTAGE_PS)
         mcu_ps_machw_cal();
         cal_timer_set();
         mcu_ps_machw_reset();
-#else
+        #else
         fclk_cal_init();
-#endif
-#if (CFG_OS_FREERTOS)
+        #endif
+        #if (CFG_OS_FREERTOS)
         os_printf("cset:%d %d %d %d\r\n",use_cal_net, fclk_freertos_get_tick32(), fclk_get_second(), xTaskGetTickCount());
-#endif
+        #endif
     }
     GLOBAL_INT_RESTORE();
 
-	return 0;
+    return 0;
 }
 
 #if (0 == CFG_LOW_VOLTAGE_PS)
@@ -335,7 +349,7 @@ UINT32 timer_cal_tick(void)
     GLOBAL_INT_DECLARATION();
 
     GLOBAL_INT_DISABLE();
-    
+
     fclk = BK_TICKS_TO_MS(fclk_get_tick());
     cal_tick_save.tmp1 += ONE_CAL_TIME;
 
@@ -360,7 +374,7 @@ UINT32 timer_cal_tick(void)
             }
         }
     }
-    
+
     mcu_ps_machw_init();
     GLOBAL_INT_RESTORE();
     return 0 ;
@@ -413,11 +427,11 @@ void fclk_cal_init(void)
     UINT64 fclk, time_us;
 
     fclk = BK_TICKS_TO_MS(fclk_get_tick());
-#if !(CFG_SOC_NAME == SOC_BK7252N)
+    #if !(CFG_SOC_NAME == SOC_BK7252N)
     time_us = cal_get_time_us();
-#else
+    #else
     time_us = rtc_reg_get_time_us();
-#endif
+    #endif
 
     cal_tick_save.fclk_tick = fclk;
     cal_tick_save.time_us = time_us;
@@ -432,11 +446,11 @@ void fclk_cal_tick(void)
     GLOBAL_INT_DISABLE();
 
     delta_fclk = fclk_get_tick() - cal_tick_save.fclk_tick;
-#if !(CFG_SOC_NAME == SOC_BK7252N)
+    #if !(CFG_SOC_NAME == SOC_BK7252N)
     delta_time = cal_get_time_us() - cal_tick_save.time_us;
-#else
+    #else
     delta_time = rtc_reg_get_time_us() - cal_tick_save.time_us;
-#endif
+    #endif
 
     lost = (INT32)(delta_time/1000 - BK_TICKS_TO_MS(delta_fclk));
     os_null_printf("tick lost:%d\r\n", lost);
@@ -484,9 +498,9 @@ void fclk_timer_hw_init(BK_HW_TIMER_INDEX timer_id)
 {
     UINT32 ret;
 
-#if (CFG_SOC_NAME == SOC_BK7231)
+    #if (CFG_SOC_NAME == SOC_BK7231)
     ASSERT(timer_id>= BK_PWM_TIMER_ID0);
-#endif
+    #endif
 
     fclk_id = timer_id;
 
@@ -500,22 +514,22 @@ void fclk_timer_hw_init(BK_HW_TIMER_INDEX timer_id)
         param.cfg.bits.int_en = PWM_INT_EN;
         param.cfg.bits.mode   = PWM_TIMER_MODE;
 
-#if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)  // FPGA:PWM0-2-32kCLK, pwm3-5-24CLK
+        #if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)  // FPGA:PWM0-2-32kCLK, pwm3-5-24CLK
         param.cfg.bits.clk    = PWM_CLK_32K;
-#else
+        #else
         param.cfg.bits.clk    = PWM_CLK_26M;
-#endif
+        #endif
 
         param.p_Int_Handler   = fclk_hdl;
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         param.duty_cycle1     = 0;
-#else
+        #else
         param.duty_cycle      = 0;
-#endif
+        #endif
         param.end_value       = fclk_cal_endvalue((UINT32)param.cfg.bits.clk);
 
         sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);
-        
+
     }
     else
     {   //timer
@@ -530,7 +544,7 @@ void fclk_timer_hw_init(BK_HW_TIMER_INDEX timer_id)
         UINT32 timer_channel;
         timer_channel = param.channel;
         sddev_control(TIMER_DEV_NAME, CMD_TIMER_UNIT_ENABLE, &timer_channel);
-        
+
     }
 }
 
@@ -539,7 +553,7 @@ void fclk_init(void)
     #if (CFG_SOC_NAME == SOC_BK7231)
     fclk_timer_hw_init(BK_PWM_TIMER_ID0);
     #else
-    fclk_timer_hw_init(BK_TIMER_ID3);
+    fclk_timer_hw_init(BKTIMER3);
     #endif
 
     #if CFG_USE_TICK_CAL

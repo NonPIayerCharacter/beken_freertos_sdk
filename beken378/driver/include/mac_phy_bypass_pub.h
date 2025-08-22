@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _MAC_PHY_BYPASS_PUB_H_
 #define _MAC_PHY_BYPASS_PUB_H_
 
@@ -8,12 +22,12 @@
 enum
 {
     MCMD_RX_MODE_BYPASS_MAC                 = MPB_CMD_MAGIC + 0,
-    MCMD_TX_MODE_BYPASS_MAC                 = MPB_CMD_MAGIC + 1, 
+    MCMD_TX_MODE_BYPASS_MAC                 = MPB_CMD_MAGIC + 1,
     MCMD_TX_LEGACY_SET_LEN,
     MCMD_TX_HT_VHT_SET_LEN,
     MCMD_STOP_BYPASS_MAC,
     MCMD_START_BYPASS_MAC,
-    MCMD_SET_BANDWIDTH, 
+    MCMD_SET_BANDWIDTH,
     MCMD_SET_GI,
     MCMD_BYPASS_TX_SET_RATE_MFORMAT,
     MCMD_SET_TXDELAY,
@@ -43,7 +57,7 @@ enum
 typedef struct mbps_txs_mfr_st {
     UINT32 mod_format;
     UINT32 rate;
-}MBPS_TXS_MFR_ST, *MBPS_TXS_MFR_PTR;
+} MBPS_TXS_MFR_ST, *MBPS_TXS_MFR_PTR;
 
 extern void mpb_init(void);
 extern void mpb_exit(void);

@@ -1,4 +1,4 @@
-// Copyright 2022-2023 Beken
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,23 +22,23 @@ extern "C" {
 
 typedef enum
 {
-	SDIO_CLK_XTL = 0,
-	SDIO_CLK_320M,
-}SDIO_CLK_SEL_T;
+    SDIO_CLK_XTL = 0,
+    SDIO_CLK_320M,
+} SDIO_CLK_SEL_T;
 
 //NOTICE:SDIO Clock divider hasn't DIV_128, so can't use (1<<(x+1)) as the clock divider
 typedef enum
 {
-	SDIO_CLK_DIV_1 = 0,
-	SDIO_CLK_DIV_2,
-	SDIO_CLK_DIV_4,
-	SDIO_CLK_DIV_8,
-	SDIO_CLK_DIV_16,
-	SDIO_CLK_DIV_32,
-	SDIO_CLK_DIV_64,
-	SDIO_CLK_DIV_256,
-	SDIO_CLK_DIV_ERR,
-}SDIO_CLK_DIV_T;
+    SDIO_CLK_DIV_1 = 0,
+    SDIO_CLK_DIV_2,
+    SDIO_CLK_DIV_4,
+    SDIO_CLK_DIV_8,
+    SDIO_CLK_DIV_16,
+    SDIO_CLK_DIV_32,
+    SDIO_CLK_DIV_64,
+    SDIO_CLK_DIV_256,
+    SDIO_CLK_DIV_ERR,
+} SDIO_CLK_DIV_T;
 
 /**
  * @brief SDIO defines

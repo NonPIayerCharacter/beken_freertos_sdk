@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _DOUBLY_LIST_H
 #define _DOUBLY_LIST_H
 
@@ -20,8 +34,8 @@
  */
 typedef struct list_head
 {
-	struct list_head *next, *prev;
-}LIST_HEADER_T;
+    struct list_head *next, *prev;
+} LIST_HEADER_T;
 
 #define LIST_HEAD_INIT(name) { &(name), &(name) }
 
@@ -40,10 +54,10 @@ typedef struct list_head
  */
 __INLINE void __list_add(struct list_head *new_node, struct list_head *prev, struct list_head *next)
 {
-	next->prev = new_node;
-	new_node->next = next;
-	new_node->prev = prev;
-	prev->next = new_node;
+    next->prev = new_node;
+    new_node->next = next;
+    new_node->prev = prev;
+    prev->next = new_node;
 }
 
 /**
@@ -56,7 +70,7 @@ __INLINE void __list_add(struct list_head *new_node, struct list_head *prev, str
  */
 __INLINE void list_add_head(struct list_head *new_node, struct list_head *head)
 {
-	__list_add(new_node, head, head->next);
+    __list_add(new_node, head, head->next);
 }
 
 /**
@@ -69,7 +83,7 @@ __INLINE void list_add_head(struct list_head *new_node, struct list_head *head)
  */
 __INLINE void list_add_tail(struct list_head *new_node, struct list_head *head)
 {
-	__list_add(new_node, head->prev, head);
+    __list_add(new_node, head->prev, head);
 }
 
 /*
@@ -81,8 +95,8 @@ __INLINE void list_add_tail(struct list_head *new_node, struct list_head *head)
  */
 __INLINE void __list_del(struct list_head * prev, struct list_head * next)
 {
-	next->prev = prev;
-	prev->next = next;
+    next->prev = prev;
+    prev->next = next;
 }
 
 /**
@@ -93,7 +107,7 @@ __INLINE void __list_del(struct list_head * prev, struct list_head * next)
  */
 __INLINE void list_del(struct list_head *entry)
 {
-	__list_del(entry->prev, entry->next);
+    __list_del(entry->prev, entry->next);
 }
 
 /**
@@ -102,8 +116,8 @@ __INLINE void list_del(struct list_head *entry)
  */
 __INLINE void list_del_init(struct list_head *entry)
 {
-	__list_del(entry->prev, entry->next);
-	INIT_LIST_HEAD(entry);
+    __list_del(entry->prev, entry->next);
+    INIT_LIST_HEAD(entry);
 }
 
 /**
@@ -113,8 +127,8 @@ __INLINE void list_del_init(struct list_head *entry)
  */
 __INLINE void list_move(struct list_head *list, struct list_head *head)
 {
-        __list_del(list->prev, list->next);
-        list_add_head(list, head);
+    __list_del(list->prev, list->next);
+    list_add_head(list, head);
 }
 
 /**
@@ -123,10 +137,10 @@ __INLINE void list_move(struct list_head *list, struct list_head *head)
  * @head: the head that will follow our entry
  */
 __INLINE void list_move_tail(struct list_head *list,
-				  struct list_head *head)
+                             struct list_head *head)
 {
-        __list_del(list->prev, list->next);
-        list_add_tail(list, head);
+    __list_del(list->prev, list->next);
+    list_add_tail(list, head);
 }
 
 /**
@@ -135,21 +149,21 @@ __INLINE void list_move_tail(struct list_head *list,
  */
 __INLINE unsigned int list_empty(const struct list_head *head)
 {
-	return head->next == head;
+    return head->next == head;
 }
 
 __INLINE void __list_splice(struct list_head *list,
-				 struct list_head *head)
+                            struct list_head *head)
 {
-	struct list_head *first = list->next;
-	struct list_head *last = list->prev;
-	struct list_head *at = head->next;
+    struct list_head *first = list->next;
+    struct list_head *last = list->prev;
+    struct list_head *at = head->next;
 
-	first->prev = head;
-	head->next = first;
+    first->prev = head;
+    head->next = first;
 
-	last->next = at;
-	at->prev = last;
+    last->next = at;
+    at->prev = last;
 }
 
 /**
@@ -159,8 +173,8 @@ __INLINE void __list_splice(struct list_head *list,
  */
 __INLINE void list_splice(struct list_head *list, struct list_head *head)
 {
-	if (!list_empty(list))
-		__list_splice(list, head);
+    if (!list_empty(list))
+        __list_splice(list, head);
 }
 
 /**
@@ -171,21 +185,21 @@ __INLINE void list_splice(struct list_head *list, struct list_head *head)
  * The list at @list is reinitialised
  */
 __INLINE void list_splice_init(struct list_head *list,
-				    struct list_head *head)
+                               struct list_head *head)
 {
-	if (!list_empty(list)) {
-		__list_splice(list, head);
-		INIT_LIST_HEAD(list);
-	}
+    if (!list_empty(list)) {
+        __list_splice(list, head);
+        INIT_LIST_HEAD(list);
+    }
 }
 
 __INLINE void list_switch(struct list_head **list1,
-				    struct list_head ** list2)
+                          struct list_head ** list2)
 {
-	struct list_head * temp;
+    struct list_head * temp;
 
-	temp = *list1;
-	*list1 = *list2;
+    temp = *list1;
+    *list1 = *list2;
     *list2 = temp;
 }
 
@@ -241,11 +255,11 @@ __INLINE void list_switch(struct list_head **list1,
  * @head:	the head for your list.
  */
 __INLINE unsigned int list_size(struct list_head *list) {
-	unsigned int num_of_list=0;
-	struct list_head *n, *pos;
+    unsigned int num_of_list=0;
+    struct list_head *n, *pos;
 
-	list_for_each_safe(pos, n, list)
-		num_of_list++;
+    list_for_each_safe(pos, n, list)
+    num_of_list++;
 
     return num_of_list;
 }

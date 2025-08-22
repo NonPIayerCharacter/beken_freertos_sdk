@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "rwip_config.h"
 
 #if (BLE_COMM_SERVER)
@@ -55,15 +69,15 @@ static uint8_t bk_ble_get_prf_by_task(kernel_task_id_t task, struct prf_task_env
 }
 
 static int bk_ble_enable_req_handler(kernel_msg_id_t const msgid,
-                                   struct bk_ble_enable_req const *param,
-                                   kernel_task_id_t const dest_id,
-                                   kernel_task_id_t const src_id)
+                                     struct bk_ble_enable_req const *param,
+                                     kernel_task_id_t const dest_id,
+                                     kernel_task_id_t const src_id)
 {
     int msg_status = KERNEL_MSG_SAVED;
     uint8_t state = kernel_state_get(dest_id);
 
     struct prf_task_env *prf_env = NULL;
-    
+
     // retrieve handle information
     uint8_t status = bk_ble_get_prf_by_task(dest_id, &prf_env);
     if(status != GAP_ERR_NO_ERROR)
@@ -75,15 +89,15 @@ static int bk_ble_enable_req_handler(kernel_msg_id_t const msgid,
     // check state of the task
     if(state == BLE_IDLE)
     {
-      //  struct ffe0s_env_tag* ffe0s_env = PRF_ENV_GET(FFE0S, ffe0s);
+        //  struct ffe0s_env_tag* ffe0s_env = PRF_ENV_GET(FFE0S, ffe0s);
 
         // Check provided values
         if((param->conidx > BLE_CONNECTION_MAX)
-            || (gapc_get_conhdl(param->conidx) == GAP_INVALID_CONHDL))
+                || (gapc_get_conhdl(param->conidx) == GAP_INVALID_CONHDL))
         {
             // an error occurs, trigg it.
             struct bk_ble_enable_rsp* rsp = KERNEL_MSG_ALLOC(BK_BLE_ENABLE_RSP, src_id,
-                dest_id, bk_ble_enable_rsp);
+                                            dest_id, bk_ble_enable_rsp);
             rsp->prf_id = prf_env->id - TASK_BLE_ID_COMMON;
             rsp->conidx = param->conidx;
             rsp->status = (param->conidx > BLE_CONNECTION_MAX) ? GAP_ERR_INVALID_PARAM : PRF_ERR_REQ_DISALLOWED;
@@ -91,7 +105,7 @@ static int bk_ble_enable_req_handler(kernel_msg_id_t const msgid,
 
             msg_status = KERNEL_MSG_CONSUMED;
         }
-       
+
     }
 
     return msg_status;
@@ -99,12 +113,12 @@ static int bk_ble_enable_req_handler(kernel_msg_id_t const msgid,
 
 static void bk_ble_ntf_val(struct bk_ble_env_tag* ble_env,struct bk_ble_ntf_upd_req const *param)
 {
-	
-	//  UART_PRINTF("%s\r\n",__func__);
+
+    //  UART_PRINTF("%s\r\n",__func__);
     //Allocate the GATT notification message
     struct gattc_send_evt_cmd *ntf_value = KERNEL_MSG_ALLOC_DYN(GATTC_SEND_EVT_CMD,
-            KERNEL_BUILD_ID(TASK_BLE_GATTC, 0), prf_src_task_get(&(ble_env->prf_env),0),
-            gattc_send_evt_cmd, param->length);
+                                           KERNEL_BUILD_ID(TASK_BLE_GATTC, 0), prf_src_task_get(&(ble_env->prf_env),0),
+                                           gattc_send_evt_cmd, param->length);
 
     //Fill in the parameter structure
     ntf_value->operation = GATTC_NOTIFY;
@@ -112,7 +126,7 @@ static void bk_ble_ntf_val(struct bk_ble_env_tag* ble_env,struct bk_ble_ntf_upd_
     // pack measured value in databaseS
     ntf_value->length = param->length;
     ntf_value->seq_num = param->att_id;
-  
+
     //UART_PRINTF("fed6_value->handle = 0x%x\r\n",fed6_value->handle);
     memcpy(&ntf_value->value[0],param->value,ntf_value->length);
 
@@ -121,16 +135,16 @@ static void bk_ble_ntf_val(struct bk_ble_env_tag* ble_env,struct bk_ble_ntf_upd_
 }
 
 static int bk_ble_ntf_upd_req_handler(kernel_msg_id_t const msgid,
-                                            struct bk_ble_ntf_upd_req const *param,
-                                            kernel_task_id_t const dest_id,
-                                            kernel_task_id_t const src_id)
+                                      struct bk_ble_ntf_upd_req const *param,
+                                      kernel_task_id_t const dest_id,
+                                      kernel_task_id_t const src_id)
 {
     int msg_status = KERNEL_MSG_CONSUMED;
     uint8_t state = kernel_state_get(dest_id);
 
     struct prf_task_env *prf_env = NULL;
     struct bk_ble_env_tag* ble_env = NULL;
-    
+
     // retrieve handle information
     uint8_t status = bk_ble_get_prf_by_task(dest_id, &prf_env);
     // retrieve handle information
@@ -139,13 +153,13 @@ static int bk_ble_ntf_upd_req_handler(kernel_msg_id_t const msgid,
     {
         // check state of the task
         if(state == BLE_IDLE)
-        {	
+        {
             // update the battery level value
-            kernel_state_set(dest_id, BLE_BUSY);       
+            kernel_state_set(dest_id, BLE_BUSY);
 
             bk_ble_ntf_val(ble_env, param);
-            //	ke_state_set(dest_id, FEB3S_IDLE);   
-            msg_status =  KERNEL_MSG_CONSUMED;							       
+            //	ke_state_set(dest_id, FEB3S_IDLE);
+            msg_status =  KERNEL_MSG_CONSUMED;
         }
         else
         {
@@ -160,12 +174,12 @@ static int bk_ble_ntf_upd_req_handler(kernel_msg_id_t const msgid,
 
 static void bk_ble_ind_val(struct bk_ble_env_tag* ble_env,struct bk_ble_ind_upd_req const *param)
 {
-	
-	//  UART_PRINTF("%s\r\n",__func__);
+
+    //  UART_PRINTF("%s\r\n",__func__);
     //Allocate the GATT notification message
     struct gattc_send_evt_cmd *ntf_value = KERNEL_MSG_ALLOC_DYN(GATTC_SEND_EVT_CMD,
-            KERNEL_BUILD_ID(TASK_BLE_GATTC, param->conidx), prf_src_task_get(&(ble_env->prf_env),param->conidx),
-            gattc_send_evt_cmd, param->length);
+                                           KERNEL_BUILD_ID(TASK_BLE_GATTC, param->conidx), prf_src_task_get(&(ble_env->prf_env),param->conidx),
+                                           gattc_send_evt_cmd, param->length);
 
     //Fill in the parameter structure
     ntf_value->operation = GATTC_INDICATE;
@@ -173,7 +187,7 @@ static void bk_ble_ind_val(struct bk_ble_env_tag* ble_env,struct bk_ble_ind_upd_
     // pack measured value in databaseS
     ntf_value->length = param->length;
     ntf_value->seq_num = param->att_id;
-  
+
     //UART_PRINTF("fed6_value->handle = 0x%x\r\n",fed6_value->handle);
     memcpy(&ntf_value->value[0],param->value,ntf_value->length);
 
@@ -182,16 +196,16 @@ static void bk_ble_ind_val(struct bk_ble_env_tag* ble_env,struct bk_ble_ind_upd_
 }
 
 static int bk_ble_ind_upd_req_handler(kernel_msg_id_t const msgid,
-                                            struct bk_ble_ind_upd_req const *param,
-                                            kernel_task_id_t const dest_id,
-                                            kernel_task_id_t const src_id)
+                                      struct bk_ble_ind_upd_req const *param,
+                                      kernel_task_id_t const dest_id,
+                                      kernel_task_id_t const src_id)
 {
     int msg_status = KERNEL_MSG_CONSUMED;
     uint8_t state = kernel_state_get(dest_id);
 
     struct prf_task_env *prf_env = NULL;
     struct bk_ble_env_tag* ble_env = NULL;
-    
+
     // retrieve handle information
     uint8_t status = bk_ble_get_prf_by_task(dest_id, &prf_env);
     // retrieve handle information
@@ -200,13 +214,13 @@ static int bk_ble_ind_upd_req_handler(kernel_msg_id_t const msgid,
     {
         // check state of the task
         if(state == BLE_IDLE)
-        {	
+        {
             // update the battery level value
-            kernel_state_set(dest_id, BLE_BUSY);       
+            kernel_state_set(dest_id, BLE_BUSY);
 
             bk_ble_ind_val(ble_env, param);
-            //	ke_state_set(dest_id, FEB3S_IDLE);   
-            msg_status =  KERNEL_MSG_CONSUMED;							       
+            //	ke_state_set(dest_id, FEB3S_IDLE);
+            msg_status =  KERNEL_MSG_CONSUMED;
         }
         else
         {
@@ -229,7 +243,7 @@ static int gattc_att_info_req_ind_handler(kernel_msg_id_t const msgid,
     // retrieve handle information
     struct prf_task_env *prf_env = NULL;
     struct bk_ble_env_tag* ble_env = NULL;
-    
+
     // retrieve handle information
     uint8_t status = bk_ble_get_prf_by_handler(param->handle, &prf_env);
     ble_env = (struct bk_ble_env_tag*)(prf_env->env);
@@ -248,7 +262,7 @@ static int gattc_att_info_req_ind_handler(kernel_msg_id_t const msgid,
             ble_event_cb(BLE_ATT_INFO_REQ, (void *)&att_info);
         }
     }
-    
+
     cfm->length = att_info.length;
     cfm->status = att_info.status;
     kernel_msg_send(cfm);
@@ -265,7 +279,7 @@ static int gattc_read_req_ind_handler(kernel_msg_id_t const msgid, struct gattc_
 
     struct prf_task_env *prf_env = NULL;
     struct bk_ble_env_tag* ble_env = NULL;
-    
+
     // retrieve handle information
     uint8_t status = bk_ble_get_prf_by_handler(param->handle, &prf_env);
 
@@ -286,11 +300,11 @@ static int gattc_read_req_ind_handler(kernel_msg_id_t const msgid, struct gattc_
     cfm = KERNEL_MSG_ALLOC_DYN(GATTC_READ_CFM, src_id, dest_id, gattc_read_cfm, length);
 
     cfm->length = length;
-	cfm->handle = param->handle;
-	cfm->status = status;
-	memcpy(cfm->value,read_req.value,cfm->length);
-    
-	kernel_msg_send(cfm);
+    cfm->handle = param->handle;
+    cfm->status = status;
+    memcpy(cfm->value,read_req.value,cfm->length);
+
+    kernel_msg_send(cfm);
 
     kernel_free(read_req.value);
 
@@ -298,36 +312,36 @@ static int gattc_read_req_ind_handler(kernel_msg_id_t const msgid, struct gattc_
 }
 
 static int gattc_write_req_ind_handler(kernel_msg_id_t const msgid, struct gattc_write_req_ind const *param,
-                                      kernel_task_id_t const dest_id, kernel_task_id_t const src_id)
+                                       kernel_task_id_t const dest_id, kernel_task_id_t const src_id)
 {
     struct gattc_write_cfm * cfm;
     struct prf_task_env *prf_env = NULL;
     struct bk_ble_env_tag* ble_env = NULL;
-    
+
     // retrieve handle information
     uint8_t status = bk_ble_get_prf_by_handler(param->handle, &prf_env);
     uint8_t conidx = KERNEL_IDX_GET(src_id);
     // retrieve handle information
     ble_env = (struct bk_ble_env_tag*)(prf_env->env);
 
-    
-    
+
+
     // If the attribute has been found, status is GAP_ERR_NO_ERROR
     if (status == GAP_ERR_NO_ERROR)
     {
         // Allocate the alert value change indication
-    	struct bk_ble_write_ind *ind = KERNEL_MSG_ALLOC_DYN(BK_BLE_WRITE_REQ_IND,
-            prf_dst_task_get(&(ble_env->prf_env), conidx),
-            dest_id, bk_ble_write_ind, param->length);
-		
-    	// Fill in the parameter structure	
-		memcpy(ind->value,&param->value[0],param->length);
+        struct bk_ble_write_ind *ind = KERNEL_MSG_ALLOC_DYN(BK_BLE_WRITE_REQ_IND,
+                                       prf_dst_task_get(&(ble_env->prf_env), conidx),
+                                       dest_id, bk_ble_write_ind, param->length);
+
+        // Fill in the parameter structure
+        memcpy(ind->value,&param->value[0],param->length);
         ind->att_id = param->handle - ble_env->start_hdl;;
         ind->prf_id = prf_env->id - TASK_BLE_ID_COMMON;
-		ind->conidx = conidx;
-		ind->length = param->length;
-		// Send the message
-		kernel_msg_send(ind);
+        ind->conidx = conidx;
+        ind->length = param->length;
+        // Send the message
+        kernel_msg_send(ind);
     }
 
     //Send write response
@@ -342,10 +356,10 @@ static int gattc_write_req_ind_handler(kernel_msg_id_t const msgid, struct gattc
 static int gattc_cmp_evt_handler(kernel_msg_id_t const msgid,  struct gattc_cmp_evt const *param,
                                  kernel_task_id_t const dest_id, kernel_task_id_t const src_id)
 {
-  	//UART_PRINTF("%s\r\n",__func__);
-  	struct prf_task_env *prf_env = NULL;
+    //UART_PRINTF("%s\r\n",__func__);
+    struct prf_task_env *prf_env = NULL;
     struct bk_ble_env_tag* ble_env = NULL;
-    
+
     // retrieve handle information
     uint8_t status = bk_ble_get_prf_by_task(dest_id, &prf_env);
     // retrieve handle information
@@ -354,19 +368,19 @@ static int gattc_cmp_evt_handler(kernel_msg_id_t const msgid,  struct gattc_cmp_
     if (status == GAP_ERR_NO_ERROR)
     {
         // continue operation execution
-		struct bk_ble_gattc_cmp_evt *evt = KERNEL_MSG_ALLOC(BK_BLE_GATTC_CMP_EVT,
-        prf_dst_task_get(&(ble_env->prf_env), 0),
-        dest_id, bk_ble_gattc_cmp_evt);
-			
-		evt->operation = param->operation;
-		evt->status = param->status;
+        struct bk_ble_gattc_cmp_evt *evt = KERNEL_MSG_ALLOC(BK_BLE_GATTC_CMP_EVT,
+                                           prf_dst_task_get(&(ble_env->prf_env), 0),
+                                           dest_id, bk_ble_gattc_cmp_evt);
+
+        evt->operation = param->operation;
+        evt->status = param->status;
         evt->prf_id = prf_env->id - TASK_BLE_ID_COMMON;
-		evt->att_id = param->seq_num;
-				
-		kernel_state_set(dest_id, BLE_IDLE); 
-		kernel_msg_send(evt);					
+        evt->att_id = param->seq_num;
+
+        kernel_state_set(dest_id, BLE_IDLE);
+        kernel_msg_send(evt);
     }
-		
+
     return (KERNEL_MSG_CONSUMED);
 }
 

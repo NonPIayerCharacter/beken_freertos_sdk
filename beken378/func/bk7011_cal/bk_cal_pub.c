@@ -1,8 +1,22 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
-#include "bk7011_cal_pub.h"
-#include "bk_cal_pub.h"
 
 #if (CFG_SOC_NAME != SOC_BK7231)
+#include "bk7011_cal_pub.h"
+#include "bk_cal_pub.h"
 
 /********************************  power table ********************************/
 #if (CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7221U)
@@ -368,7 +382,7 @@ const TXPWR_ST gtxpwr_tab_def_ble[BLE_2_4_G_CHANNEL_NUM] =
 const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] =
 {
     //trx0x0c[12:15], shift_b, shift_g, shift_ble, xtal_c_delta
-#if (CFG_XTAL_85DEGREE)
+    #if (CFG_XTAL_85DEGREE)
     {  0x00,       -6,      -9,        0,       -18},   // 0     ,-40    -35
     {  0x00,       -6,      -9,        0,       -10},   // 1     ,-35    -30
     {  0x00,       -5,      -9,        0,        -4},   // 2     ,-30    -25
@@ -408,7 +422,7 @@ const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] =
     {  0x00,       10,      13,        3,       127},   // 36    ,140
     {  0x00,       10,      13,        3,       127},   // 37    ,145
     {  0x00,       10,      13,        3,       127},   // 38    ,150
-#else
+    #else
     {  0x00,        -6,      -9,       0,        -1},   // 0     ,-40    -35
     {  0x00,        -6,      -9,       0,         1},   // 1     ,-35    -30
     {  0x00,        -5,      -9,       0,         3},   // 2     ,-30    -25
@@ -448,12 +462,12 @@ const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] =
     {  0x00,        10,      13,        3,        117},   // 36    ,140
     {  0x00,        10,      13,        3,        117},   // 37    ,145
     {  0x00,        10,      13,        3,        117},   // 38    ,150
-#endif
+    #endif
 };
 #elif (CFG_SOC_NAME == SOC_BK7238)
 const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] = {
 //trx0x0c[12:15], shift_b, shift_g, shift_ble, xtal_c_delta
-#if (CFG_XTAL_85DEGREE)
+    #if (CFG_XTAL_85DEGREE)
     {  0x00,       -6,      -9,        0,       -18},   // 0     ,-40    -35
     {  0x00,       -6,      -9,        0,       -10},   // 1     ,-35    -30
     {  0x00,       -5,      -9,        0,        -4},   // 2     ,-30    -25
@@ -493,7 +507,7 @@ const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] = {
     {  0x00,       10,      13,        3,       127},   // 36    ,140
     {  0x00,       10,      13,        3,       127},   // 37    ,145
     {  0x00,       10,      13,        3,       127},   // 38    ,150
-#else
+    #else
     {  0x00,        0,      0,       0,        -5},   // 0     ,-40
     {  0x00,        0,      0,       0,        -2},   // 1     ,-35
     {  0x00,        0,      0,       0,         1},   // 2     ,-30
@@ -533,12 +547,12 @@ const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] = {
     {  0x00,        0,      0,       0,       122},   // 36    ,140
     {  0x00,        0,      0,       0,       166},   // 37    ,145
     {  0x00,        0,      0,       0,       166},   // 38    ,150
-#endif
+    #endif
 };
 #elif (CFG_SOC_NAME == SOC_BK7252N)
 const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] = {
 //trx0x0c[12:15], shift_b, shift_g, shift_ble, xtal_c_delta
-#if (CFG_XTAL_85DEGREE)
+    #if (CFG_XTAL_85DEGREE)
     {  0x00,       -6,      -9,        0,       -18},   // 0     ,-40    -35
     {  0x00,       -6,      -9,        0,       -10},   // 1     ,-35    -30
     {  0x00,       -5,      -9,        0,        -4},   // 2     ,-30    -25
@@ -578,7 +592,7 @@ const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] = {
     {  0x00,       10,      13,        3,       127},   // 36    ,140
     {  0x00,       10,      13,        3,       127},   // 37    ,145
     {  0x00,       10,      13,        3,       127},   // 38    ,150
-#else
+    #else
     {  0x00,        0,      0,       0,         2},   // 0     ,-40     -5
     {  0x00,        0,      0,       0,         5},   // 1     ,-35     -2
     {  0x00,        0,      0,       0,         7},   // 2     ,-30      1
@@ -618,7 +632,7 @@ const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] = {
     {  0x00,        0,      0,       0,       122},   // 36    ,140    122
     {  0x00,        0,      0,       0,       166},   // 37    ,145    166
     {  0x00,        0,      0,       0,       166},   // 38    ,150    166
-#endif
+    #endif
 };
 #else
 const TMP_PWR_ST tmp_pwr_tab[TMP_PWR_TAB_LEN] =
@@ -683,11 +697,15 @@ const UINT16 shift_tab_n40[8] = {0, 1, 1, 2, 2, 4, 4, 6/*4*/}; // n40 mcs7base -
 #endif
 
 #if (CFG_SOC_NAME == SOC_BK7238)
-const INT16 fcc_shift_tab_b_ch13[4] = {-12, -12, -12, -12}; // 11M base,5.5M,2M,1M
-// 54M base -                 54M,48M,36M,24M,18M,12M,9M,6M
-const INT16 fcc_shift_tab_g_ch13[8] = {-12,  -12,  -16,  -16,  -20,  -20,  -20, -20}; // 54M base -  12M,9M,6M//do
-const INT16 fcc_shift_tab_n20_ch13[8] = {-12,  -16,  -20,  -20,  -20,  -24,  -24, -24}; // n20 mcs7base -  mcs0
-const INT16 fcc_shift_tab_n40_ch13[8] = {-12,  -16,  -20,  -20,  -20,  -24,  -24, -24}; // n40 mcs7base -  mcs0
+const INT16 shift_tab_b_fcc[WLAN_2_4_G_CHANNEL_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // ch1~ch14
+const INT16 shift_tab_g_fcc[WLAN_2_4_G_CHANNEL_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // ch1~ch14
+const INT16 shift_tab_n20_fcc[WLAN_2_4_G_CHANNEL_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // ch1~ch14
+const INT16 shift_tab_n40_fcc[WLAN_2_4_G_CHANNEL_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // ch1~ch14
+
+const INT16 shift_tab_b_srrc[WLAN_2_4_G_CHANNEL_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -16, 0}; // ch1~ch14
+const INT16 shift_tab_g_srrc[WLAN_2_4_G_CHANNEL_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -16, -24, 0}; // ch1~ch14
+const INT16 shift_tab_n20_srrc[WLAN_2_4_G_CHANNEL_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -16, -24, 0}; // ch1~ch14
+const INT16 shift_tab_n40_srrc[WLAN_2_4_G_CHANNEL_NUM] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -12, -24, 0}; // ch1~ch14
 #endif // (CFG_SOC_NAME == SOC_BK7238)
 
 float target_pwr_ble = 6.0; //2G4 BLE target power
@@ -702,6 +720,42 @@ UINT32 rwnx_cal_load_user_rfcali_mode(int *rfcali_mode)
 {
     // set to CALI_MODE_AUTO / CALI_MODE_MANUAL
     *rfcali_mode = CALI_MODE_AUTO;
+
+    // return 0 means no used,  return 1 means used
+    return 0;
+}
+
+UINT32 rwnx_cal_load_user_g_power_shift(float *power_shift_g)
+{
+    //default target power of 11G in auto mode is 15.0 dB
+    *power_shift_g = 0;
+
+    // return 0 means no used,  return 1 means used
+    return 0;
+}
+
+UINT32 rwnx_cal_load_user_b_power_shift(float *power_shift_b)
+{
+    //default target power of 11B in auto mode is 17.0 dB
+    *power_shift_b = 0;
+
+    // return 0 means no used,  return 1 means used
+    return 0;
+}
+
+UINT32 rwnx_cal_load_user_n20_power_shift(float *power_shift_n20)
+{
+    //default target power of N20 in auto mode is 14.0 dB
+    *power_shift_n20 = 0;
+
+    // return 0 means no used,  return 1 means used
+    return 0;
+}
+
+UINT32 rwnx_cal_load_user_n40_power_shift(float *power_shift_n40)
+{
+    //default target power of N40 in auto mode is 14.0 dB
+    *power_shift_n40 = 0;
 
     // return 0 means no used,  return 1 means used
     return 0;

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -22,18 +36,18 @@ extern DD_HANDLE sdcard_hdl;
 uint8_t *testbuf;
 
 static SDIO_Error sdcard_test_open(void)
-{   
+{
     UINT32 status;
 
     sdcard_hdl = ddev_open(SDCARD_DEV_NAME, &status, 0);
-    if(DD_HANDLE_UNVALID == sdcard_hdl){
+    if(DD_HANDLE_UNVALID == sdcard_hdl) {
         return (SDIO_Error)status;
     }
     return status;
 }
 
 static void sdcard_test_close(void)
-{   
+{
     ddev_close(sdcard_hdl);
 }
 
@@ -41,68 +55,68 @@ UINT32 sdcard_intf_test(void)
 {
     SDIO_Error ret = SD_OK;
     UINT32 err = SDCARD_SUCCESS;
-    
+
     ret = sdcard_test_open();
-    if(ret != SD_OK){
+    if(ret != SD_OK) {
         SDCARD_FATAL("Can't open sdcard, please check\r\n");
         goto err_out;
     }
     SDCARD_PRT("sdcard_open is ok \r\n");
     return err;
-    
+
 err_out:
     SDCARD_FATAL("sdcard_test err, ret:%d\r\n", ret);
     return SDCARD_FAILURE;
-        
+
 }
 
 UINT32 test_sdcard_read(UINT32 blk)
 {
-	UINT32 ret;
-	if(sdcard_hdl == DD_HANDLE_UNVALID)
-	{
-		os_printf("no init err\r\n");
-		return 1;
-	}
-	testbuf = os_malloc(512);
+    UINT32 ret;
+    if(sdcard_hdl == DD_HANDLE_UNVALID)
+    {
+        os_printf("no init err\r\n");
+        return 1;
+    }
+    testbuf = os_malloc(512);
     os_memset(testbuf, 0, 512);
-	if(testbuf == NULL)
-		return 1;
-	ret = ddev_read(sdcard_hdl, (char*)testbuf, 1, blk);
+    if(testbuf == NULL)
+        return 1;
+    ret = ddev_read(sdcard_hdl, (char*)testbuf, 1, blk);
 
-    for(int i = 0;i<512;i++)
-        {
+    for(int i = 0; i<512; i++)
+    {
         os_printf("%x ",testbuf[i]);
     }
     os_printf("\r\nread over\r\n");
-    
-	os_free(testbuf);
-	return ret;
+
+    os_free(testbuf);
+    return ret;
 }
 
 UINT32 test_sdcard_write(UINT32 blk)
 {
-	UINT32 ret;
+    UINT32 ret;
 
-	UINT32 i;
-	if(sdcard_hdl == DD_HANDLE_UNVALID)
-	{
-		os_printf("no init err\r\n");
-		return 1;
-	}
+    UINT32 i;
+    if(sdcard_hdl == DD_HANDLE_UNVALID)
+    {
+        os_printf("no init err\r\n");
+        return 1;
+    }
     testbuf = os_malloc(512);
     if(testbuf == NULL)
         return 1;
-    for(i=0;i<512;i++)
+    for(i=0; i<512; i++)
         testbuf[i]=0x50;
     //blk = 0x20000;//just for test
     ret = ddev_write(sdcard_hdl, (char*)testbuf, 1, blk);
     os_free(testbuf);
-	return ret;
+    return ret;
 }
 void sdcard_intf_close(void)
 {
-    sdcard_test_close();        
+    sdcard_test_close();
 }
 
 #endif

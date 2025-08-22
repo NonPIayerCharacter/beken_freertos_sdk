@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "rwip_config.h"     // SW configuration
 
 #if (BLE_APP_COMM)
@@ -18,6 +32,9 @@
 #include "attm.h"
 #include "kernel_timer.h"
 #include "ble_ui.h"
+#if BLE_APP_SEC
+#include "app_sec.h"
+#endif
 
 static uint8_t bk_ble_get_prf_by_id(uint16_t id, struct prf_task_env **env)
 {
@@ -46,15 +63,15 @@ ble_err_t bk_ble_create_db (struct bk_ble_db_cfg* ble_db_cfg)
         struct bk_ble_db_cfg *db_cfg;
 
         struct gapm_profile_task_add_cmd *req = KERNEL_MSG_ALLOC_DYN(GAPM_PROFILE_TASK_ADD_CMD,
-                                                  TASK_BLE_GAPM, TASK_BLE_APP,
-                                                  gapm_profile_task_add_cmd, sizeof(struct bk_ble_db_cfg));
+                                                TASK_BLE_GAPM, TASK_BLE_APP,
+                                                gapm_profile_task_add_cmd, sizeof(struct bk_ble_db_cfg));
         // Fill message
         req->operation = GAPM_PROFILE_TASK_ADD;
         req->sec_lvl = ble_db_cfg->svc_perm;
         req->prf_task_id = TASK_BLE_ID_COMMON + ble_db_cfg->prf_task_id;
         req->app_task = TASK_BLE_APP;
-		req->role = PRF_SERVICE;
-		req->start_hdl = 0; //dynamically allocated
+        req->role = PRF_SERVICE;
+        req->start_hdl = 0; //dynamically allocated
 
         req->start_hdl = ble_db_cfg->start_hdl; //req->start_hdl = 0; dynamically allocated
 
@@ -95,9 +112,9 @@ ble_err_t bk_ble_send_ntf_value(uint32_t len, uint8_t *buf, uint16_t prf_id, uin
     {
         // Allocate the message
         struct bk_ble_ntf_upd_req * req = KERNEL_MSG_ALLOC_DYN(BK_BLE_NTF_UPD_REQ,
-                                                        prf_env->task,
-                                                        TASK_BLE_APP,
-                                                        bk_ble_ntf_upd_req,len);
+                                          prf_env->task,
+                                          TASK_BLE_APP,
+                                          bk_ble_ntf_upd_req,len);
 
         req->length = len;
         memcpy(req->value, buf, len);
@@ -126,9 +143,9 @@ ble_err_t bk_ble_conidx_send_ntf(uint8_t conidx,uint32_t len, uint8_t *buf, uint
     if ((status == GAP_ERR_NO_ERROR) && (conhdl != UNKNOW_CONN_HDL) && (conhdl != USED_CONN_HDL)) {
         // Allocate the message
         struct bk_ble_ntf_upd_req * req = KERNEL_MSG_ALLOC_DYN(BK_BLE_NTF_UPD_REQ,
-                                                        prf_env->task,
-                                                        KERNEL_BUILD_ID(TASK_BLE_APP,BLE_APP_INITING_INDEX(conidx)),///TASK_BLE_APP,
-                                                        bk_ble_ntf_upd_req,len);
+                                          prf_env->task,
+                                          KERNEL_BUILD_ID(TASK_BLE_APP,BLE_APP_INITING_INDEX(conidx)),///TASK_BLE_APP,
+                                          bk_ble_ntf_upd_req,len);
 
         req->length = len;
         memcpy(req->value, buf, len);
@@ -148,115 +165,122 @@ ble_err_t bk_ble_conidx_send_ntf(uint8_t conidx,uint32_t len, uint8_t *buf, uint
 
 ble_err_t bk_ble_send_ind_value(uint32_t len, uint8_t *buf, uint16_t prf_id, uint16_t att_idx)
 {
-	ble_err_t ret = ERR_SUCCESS;
-	uint16_t prf_task_id = prf_id + TASK_BLE_ID_COMMON;
-	struct prf_task_env *prf_env = NULL;
+    ble_err_t ret = ERR_SUCCESS;
+    uint16_t prf_task_id = prf_id + TASK_BLE_ID_COMMON;
+    struct prf_task_env *prf_env = NULL;
 
-	uint8_t status = bk_ble_get_prf_by_id(prf_task_id, &prf_env);
+    uint8_t status = bk_ble_get_prf_by_id(prf_task_id, &prf_env);
 
-	if (status == GAP_ERR_NO_ERROR) {
-		// Allocate the message
-		struct bk_ble_ind_upd_req * req = KERNEL_MSG_ALLOC_DYN(BK_BLE_IND_UPD_REQ,
-									prf_env->task,
-									TASK_BLE_APP,
-									bk_ble_ind_upd_req,len);
+    if (status == GAP_ERR_NO_ERROR) {
+        // Allocate the message
+        struct bk_ble_ind_upd_req * req = KERNEL_MSG_ALLOC_DYN(BK_BLE_IND_UPD_REQ,
+                                          prf_env->task,
+                                          TASK_BLE_APP,
+                                          bk_ble_ind_upd_req,len);
 
-		req->length = len;
-		memcpy(req->value, buf, len);
-		req->att_id = att_idx;
-		req->conidx = 0;
+        req->length = len;
+        memcpy(req->value, buf, len);
+        req->att_id = att_idx;
+        req->conidx = 0;
 
-		kernel_msg_send(req);
-	} else {
-		ret = ERR_PROFILE;
-	}
+        kernel_msg_send(req);
+    } else {
+        ret = ERR_PROFILE;
+    }
 
-	return ret;
+    return ret;
 }
 
 ble_err_t bk_ble_conidx_send_ind(uint8_t conidx,uint32_t len, uint8_t *buf, uint16_t prf_id, uint16_t att_idx)
 {
-	ble_err_t ret = ERR_SUCCESS;
-	uint16_t prf_task_id = prf_id + TASK_BLE_ID_COMMON;
-	struct prf_task_env *prf_env = NULL;
+    ble_err_t ret = ERR_SUCCESS;
+    uint16_t prf_task_id = prf_id + TASK_BLE_ID_COMMON;
+    struct prf_task_env *prf_env = NULL;
 
-	uint8_t status = bk_ble_get_prf_by_id(prf_task_id, &prf_env);
-	uint8_t conhdl = app_ble_env.connections[conidx].conhdl;
+    uint8_t status = bk_ble_get_prf_by_id(prf_task_id, &prf_env);
+    uint8_t conhdl = app_ble_env.connections[conidx].conhdl;
 
-	if ((status == GAP_ERR_NO_ERROR) && (conhdl != UNKNOW_CONN_HDL) && (conhdl != USED_CONN_HDL)) {
+    if ((status == GAP_ERR_NO_ERROR) && (conhdl != UNKNOW_CONN_HDL) && (conhdl != USED_CONN_HDL)) {
 
-		// Allocate the message
-		struct bk_ble_ind_upd_req * req = KERNEL_MSG_ALLOC_DYN(BK_BLE_IND_UPD_REQ,
-									prf_env->task,
-									KERNEL_BUILD_ID(TASK_BLE_APP,BLE_APP_INITING_INDEX(conidx)),///TASK_BLE_APP,
-									bk_ble_ind_upd_req,len);
+        // Allocate the message
+        struct bk_ble_ind_upd_req * req = KERNEL_MSG_ALLOC_DYN(BK_BLE_IND_UPD_REQ,
+                                          prf_env->task,
+                                          KERNEL_BUILD_ID(TASK_BLE_APP,BLE_APP_INITING_INDEX(conidx)),///TASK_BLE_APP,
+                                          bk_ble_ind_upd_req,len);
 
-		req->length = len;
-		memcpy(req->value, buf, len);
-		req->att_id = att_idx;
-		req->conidx = conhdl;
+        req->length = len;
+        memcpy(req->value, buf, len);
+        req->att_id = att_idx;
+        req->conidx = conhdl;
 
-		kernel_msg_send(req);
-	} else {
-		ret = ERR_PROFILE;
-	}
+        kernel_msg_send(req);
+    } else {
+        ret = ERR_PROFILE;
+    }
 
-	return ret;
+    return ret;
 }
 
 static int bk_ble_write_req_ind_handler(kernel_msg_id_t const msgid,
-							struct bk_ble_write_ind *param,
-							kernel_task_id_t const dest_id,
-							kernel_task_id_t const src_id)
+                                        struct bk_ble_write_ind *param,
+                                        kernel_task_id_t const dest_id,
+                                        kernel_task_id_t const src_id)
 {
-	write_req_t write_req;
+    write_req_t write_req;
 
-	write_req.conn_idx = app_ble_find_conn_idx_handle(param->conidx);
-	write_req.att_idx = param->att_id;
-	write_req.len = param->length;
-	write_req.prf_id = param->prf_id;
-	write_req.value = &(param->value[0]);
+    write_req.conn_idx = app_ble_find_conn_idx_handle(param->conidx);
+    write_req.att_idx = param->att_id;
+    write_req.len = param->length;
+    write_req.prf_id = param->prf_id;
+    write_req.value = &(param->value[0]);
 
-	if (ble_event_notice)
-		ble_event_notice(BLE_5_WRITE_EVENT, &write_req);
+    if (ble_event_notice)
+        ble_event_notice(BLE_5_WRITE_EVENT, &write_req);
 
-	return (KERNEL_MSG_CONSUMED);
+    return (KERNEL_MSG_CONSUMED);
 }
 
 static int bk_ble_gattc_cmp_evt_handler(kernel_msg_id_t const msgid,  struct bk_ble_gattc_cmp_evt const *param,
-                                 kernel_task_id_t const dest_id, kernel_task_id_t const src_id)
+                                        kernel_task_id_t const dest_id, kernel_task_id_t const src_id)
 {
-	uint8_t conn_idx = (app_ble_env.app_status >> BLE_APP_IDX_POS);
-	uint8_t status = (param->status == GAP_ERR_NO_ERROR) ? ERR_SUCCESS : ERR_CMD_RUN;
+    uint8_t conn_idx = (app_ble_env.app_status >> BLE_APP_IDX_POS);
+    uint8_t status = (param->status == GAP_ERR_NO_ERROR) ? ERR_SUCCESS : ERR_CMD_RUN;
 
-	if( param->operation == GATTC_INDICATE || param->operation == GATTC_NOTIFY) {
-		ble_slave_con_ind_nty_t ind;
-		ind.att_id = param->att_id & 0x7FF;
-		ind.prf_id = param->prf_id;
-		ind.status = status;
-		ind.up_con_idx = app_ble_find_conn_idx_handle((param->att_id >> 11) & 0x1F);
-		ind.operation = (param->operation == GATTC_INDICATE)? 0 : 1;
+    if( param->operation == GATTC_INDICATE || param->operation == GATTC_NOTIFY) {
+        ble_slave_con_ind_nty_t ind;
+        ind.att_id = param->att_id & 0x7FF;
+        ind.prf_id = param->prf_id;
+        ind.status = status;
+        ind.up_con_idx = app_ble_find_conn_idx_handle((param->att_id >> 11) & 0x1F);
+        ind.operation = (param->operation == GATTC_INDICATE)? 0 : 1;
 
-		if (ble_event_notice) {
-			ble_event_notice(BLE_5_TX_DONE, &ind);
-		}
-	}
-	if( status ) {
-		bk_printf("[%s]conn_idx %d status:%d,param->status:%x\r\n",__FUNCTION__,conn_idx,status,param->status);
-	}
-	return KERNEL_MSG_CONSUMED;
+        if (ble_event_notice) {
+            ble_event_notice(BLE_5_TX_DONE, &ind);
+        }
+    }
+    if( status ) {
+        bk_printf("[%s]conn_idx %d status:%d,param->status:%x\r\n",__FUNCTION__,conn_idx,status,param->status);
+        #if BLE_APP_SEC
+        if (((param->status == ATT_ERR_INSUFF_AUTHEN) || (param->status == ATT_ERR_INSUFF_ENC))
+            && app_sec_env.sec_notice_cb) {
+            // sec todo: conidx incorrect
+            app_sec_env.sec_notice_cb(APP_SEC_ATT_ERR_INSUFF_AUTHEN, &conn_idx);
+        }
+        #endif
+    }
+    return KERNEL_MSG_CONSUMED;
 }
 
 const struct kernel_msg_handler app_comm_msg_handler_list[] =
 {
-	// Note: first message is latest message checked by kernel so default is put on top.
-	{KERNEL_MSG_DEFAULT_HANDLER,         (kernel_msg_func_t)app_comm_msg_dflt_handler},
-	{BK_BLE_WRITE_REQ_IND,               (kernel_msg_func_t)bk_ble_write_req_ind_handler},
-	{BK_BLE_GATTC_CMP_EVT,               (kernel_msg_func_t)bk_ble_gattc_cmp_evt_handler},
+    // Note: first message is latest message checked by kernel so default is put on top.
+    {KERNEL_MSG_DEFAULT_HANDLER,         (kernel_msg_func_t)app_comm_msg_dflt_handler},
+    {BK_BLE_WRITE_REQ_IND,               (kernel_msg_func_t)bk_ble_write_req_ind_handler},
+    {BK_BLE_GATTC_CMP_EVT,               (kernel_msg_func_t)bk_ble_gattc_cmp_evt_handler},
 };
 
 const struct app_subtask_handlers app_comm_table_handler =
-	{&app_comm_msg_handler_list[0], (sizeof(app_comm_msg_handler_list)/sizeof(struct kernel_msg_handler))};
+{&app_comm_msg_handler_list[0], (sizeof(app_comm_msg_handler_list)/sizeof(struct kernel_msg_handler))};
 
 #endif
 

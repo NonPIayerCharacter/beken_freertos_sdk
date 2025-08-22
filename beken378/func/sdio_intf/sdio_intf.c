@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -203,7 +217,7 @@ UINT32 outbound_upload_data(RW_RXIFO_PTR rx_info)
 
     ASSERT(rx_info->data == node->addr);
 
-#if 1
+    #if 1
     STM32_FRAME_HDR *frm_hdr_ptr;
     STM32_RXPD_PTR rx_ptr;
 
@@ -215,7 +229,7 @@ UINT32 outbound_upload_data(RW_RXIFO_PTR rx_info)
     rx_ptr = (STM32_RXPD_PTR)&frm_hdr_ptr[1];
     os_memset(rx_ptr, 0, sizeof(STM32_RXPD_S));
     rx_ptr->pkt_ptr = 0x36; // 0x4e;
-#endif
+    #endif
 
     sdio_hdl = ddev_open(SDIO_DEV_NAME, &status, 0);
     if(DD_HANDLE_UNVALID == sdio_hdl)
@@ -354,9 +368,9 @@ UINT32 resp_conversion_mgmt_tx_cfm(struct ke_msg *msg, STM32_FRAME_HDR **frm_ppt
     UINT32 len;
     STM32_FRAME_HDR *frm;
     STM32_CMD_HDR_PTR hdr_ptr;
-#if CFG_WIFI_AP_MODE
+    #if CFG_WIFI_AP_MODE
     struct me_mgmt_tx_cfm *cfm_ptr;
-#endif
+    #endif
 
     len = sizeof(STM32_FRAME_HDR) + sizeof(STM32_CMD_HDR_S);
     frm = (STM32_FRAME_HDR *)os_malloc(len);
@@ -374,7 +388,7 @@ UINT32 resp_conversion_mgmt_tx_cfm(struct ke_msg *msg, STM32_FRAME_HDR **frm_ppt
 
     *frm_pptr = frm;
 
-#if CFG_WIFI_AP_MODE
+    #if CFG_WIFI_AP_MODE
     cfm_ptr = (struct me_mgmt_tx_cfm *)msg->param;
     if(CO_OK == cfm_ptr->status)
     {
@@ -386,7 +400,7 @@ UINT32 resp_conversion_mgmt_tx_cfm(struct ke_msg *msg, STM32_FRAME_HDR **frm_ppt
             os_free((void *)cfm_ptr->hostid);
         }
     }
-#endif
+    #endif
 
     return len;
 }
@@ -438,11 +452,11 @@ UINT32 resp_conversion_connect_ind(struct ke_msg *msg, STM32_FRAME_HDR **frm_ppt
     STM32_FRAME_HDR *frm;
     ASSOC_RESP_PTR assoc_rsp_ptr;
     struct sm_connect_ind *conn_ind_ptr;
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     len = sizeof(STM32_FRAME_HDR) + sizeof(STM32_CMD_HDR_S) + msg->param_len;
-#else
+    #else
     len = sizeof(STM32_FRAME_HDR) + sizeof(ASSOC_RESP_S);
-#endif
+    #endif
     frm = (STM32_FRAME_HDR *)os_malloc(len);
     ASSERT(frm);
 
@@ -456,18 +470,18 @@ UINT32 resp_conversion_connect_ind(struct ke_msg *msg, STM32_FRAME_HDR **frm_ppt
     assoc_rsp_ptr = (ASSOC_RESP_PTR)((UINT32)frm + sizeof(STM32_FRAME_HDR));
     assoc_rsp_ptr->hdr.command = CMD_RET(SCMD_802_11_ASSOCIATE);
 
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     assoc_rsp_ptr->hdr.result  = conn_ind_ptr->status_code;
-#else
+    #else
     assoc_rsp_ptr->hdr.result  = 0;
-#endif
+    #endif
     assoc_rsp_ptr->hdr.seqnum  = resp_inc_seqnum();
     assoc_rsp_ptr->hdr.size    = len - sizeof(STM32_FRAME_HDR);
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     os_memcpy((void *)((UINT32)assoc_rsp_ptr + sizeof(STM32_CMD_HDR_S)), msg->param, msg->param_len);
-#else
+    #else
     assoc_rsp_ptr->statuscode = conn_ind_ptr->status_code;
-#endif
+    #endif
     return len;
 }
 
@@ -476,11 +490,11 @@ UINT32 resp_conversion_scanu_cfm(struct ke_msg *msg, STM32_FRAME_HDR **frm_pptr)
     UINT32 len;
     STM32_FRAME_HDR *frm;
     STM32_SCAN_RSP_PTR stm32_scan_rsp_ptr;
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     len = sizeof(STM32_FRAME_HDR) + sizeof(STM32_CMD_HDR_S);
-#else
+    #else
     len = sizeof(STM32_FRAME_HDR) + sizeof(STM32_SCAN_RSP_S);
-#endif
+    #endif
 
     frm = (STM32_FRAME_HDR *)os_malloc(len);
     ASSERT(frm);
@@ -493,13 +507,13 @@ UINT32 resp_conversion_scanu_cfm(struct ke_msg *msg, STM32_FRAME_HDR **frm_pptr)
     stm32_scan_rsp_ptr->hdr.command = CMD_RET(SCMD_802_11_SCAN);
     stm32_scan_rsp_ptr->hdr.result  = 0;
     stm32_scan_rsp_ptr->hdr.seqnum  = scan_resp_cmd_sn;
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     stm32_scan_rsp_ptr->hdr.size    = 0;
-#else
+    #else
     stm32_scan_rsp_ptr->hdr.size    = len - sizeof(STM32_FRAME_HDR);
     stm32_scan_rsp_ptr->bssdescriptsize = sizeof(BEACON_INFO_S);
     stm32_scan_rsp_ptr->nr_sets      = 0;
-#endif
+    #endif
     return len;
 }
 
@@ -510,13 +524,13 @@ UINT32 resp_conversion_scanu_ret(struct ke_msg *msg, STM32_FRAME_HDR **frm_pptr)
     SCANU_RET_IND_PTR scanu_ret_ptr;
     STM32_SCAN_RSP_PTR stm32_scan_rsp_ptr;
     IEEE80211_PROBE_RSP_PTR probe_rsp_ieee80211_ptr;
-#if (! CFG_REAL_SDIO)
+    #if (! CFG_REAL_SDIO)
     UINT32 vies_len;
     BEACON_INFO_PTR beacon_ptr;
     UINT8 *var_part_addr;
     UINT8 *elmt_addr;
     char ssid[MAC_SSID_LEN + 1];
-#endif
+    #endif
 
     scanu_ret_ptr = (SCANU_RET_IND_PTR)msg->param;
     SDIO_INTF_PRT("____center:%d\r\n", scanu_ret_ptr->center_freq);
@@ -531,10 +545,10 @@ UINT32 resp_conversion_scanu_ret(struct ke_msg *msg, STM32_FRAME_HDR **frm_pptr)
                   , probe_rsp_ieee80211_ptr->bssid[4]
                   , probe_rsp_ieee80211_ptr->bssid[5]);
 
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     len = sizeof(STM32_FRAME_HDR) + sizeof(STM32_CMD_HDR_S)
           + msg->param_len;
-#else
+    #else
     vies_len = scanu_ret_ptr->length - (sizeof(SCANU_RET_IND_S) - (SCANU_RET_PAYLOAD_LEN << 2))
                - (sizeof(IEEE80211_PROBE_RSP_S) - 1) + 10;
     len = sizeof(STM32_FRAME_HDR) + sizeof(STM32_SCAN_RSP_S) - 1
@@ -553,7 +567,7 @@ UINT32 resp_conversion_scanu_ret(struct ke_msg *msg, STM32_FRAME_HDR **frm_pptr)
         ssid[ssid_len] = '\0';
         SDIO_INTF_PRT("____ssid:%s\r\n", ssid);
     }
-#endif
+    #endif
     SDIO_INTF_PRT("\r\n");
 
     frm = (STM32_FRAME_HDR *)os_malloc(len);
@@ -568,10 +582,10 @@ UINT32 resp_conversion_scanu_ret(struct ke_msg *msg, STM32_FRAME_HDR **frm_pptr)
     stm32_scan_rsp_ptr->hdr.command = CMD_RET(SCMD_802_11_SCAN);
     stm32_scan_rsp_ptr->hdr.result  = 0;
     stm32_scan_rsp_ptr->hdr.seqnum  = scan_resp_cmd_sn;
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     stm32_scan_rsp_ptr->hdr.size    = msg->param_len;
-    os_memcpy((void *)((UINT32)stm32_scan_rsp_ptr + sizeof(STM32_CMD_HDR_S)) , msg->param, msg->param_len);
-#else
+    os_memcpy((void *)((UINT32)stm32_scan_rsp_ptr + sizeof(STM32_CMD_HDR_S)), msg->param, msg->param_len);
+    #else
     stm32_scan_rsp_ptr->hdr.size    = len - sizeof(STM32_FRAME_HDR);
     stm32_scan_rsp_ptr->bssdescriptsize = sizeof(BEACON_INFO_S) + vies_len;
     stm32_scan_rsp_ptr->nr_sets     = 1;
@@ -585,7 +599,7 @@ UINT32 resp_conversion_scanu_ret(struct ke_msg *msg, STM32_FRAME_HDR **frm_pptr)
     beacon_ptr->capability = probe_rsp_ieee80211_ptr->rsp.capab_info;
 
     os_memcpy(stm32_scan_rsp_ptr->tlvbuffer, probe_rsp_ieee80211_ptr->rsp.variable, vies_len);
-#endif
+    #endif
 
     return len;
 }
@@ -598,11 +612,11 @@ UINT32 resp_conversion_sm_disconnect_ind(struct ke_msg *msg,
     *frm_pptr = NULL;
     SDIO_INTF_PRT("reason:%d, vif_idx:%d\r\n", disc->reason_code, disc->vif_idx);
 
-#if CFG_WIFI_STATION_MODE
+    #if CFG_WIFI_STATION_MODE
     SDIO_INTF_PRT("exit all application process\r\n");
     SDIO_INTF_PRT("polling sa_station_process to scan and associate\r\n");
     sa_station_set_reconnect_timer();
-#endif
+    #endif
 
     return 0;
 }
@@ -840,11 +854,11 @@ void cmd_conversion_start_apm(STM32_FRAME_HDR *frm_ptr, struct ke_msg **kmsg_ppt
     start_req_ptr->tim_oft = 56;
     start_req_ptr->tim_len = 6;
     start_req_ptr->bcn_int = 100;
-#if CFG_WIFI_WPA
+    #if CFG_WIFI_WPA
     start_req_ptr->flags = 8;
-#else
+    #else
     start_req_ptr->flags = 0;
-#endif
+    #endif
     start_req_ptr->ctrl_port_ethertype = 36488;
     start_req_ptr->vif_idx = 0;
 
@@ -1126,9 +1140,9 @@ void cmd_conversion_assoc_req(STM32_FRAME_HDR *frm_ptr, struct ke_msg **kmsg_ppt
     struct ke_msg *kmsg_dst;
     ASSOC_REQ_PTR asso_ptr;
     struct sm_connect_req *sm_connect_req_ptr;
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     char *temp;
-#endif
+    #endif
 
     asso_ptr = (ASSOC_REQ_PTR)&frm_ptr[1];
 
@@ -1145,22 +1159,22 @@ void cmd_conversion_assoc_req(STM32_FRAME_HDR *frm_ptr, struct ke_msg **kmsg_ppt
 
     *kmsg_pptr = kmsg_dst;
     sm_connect_req_ptr = (struct sm_connect_req *)kmsg_dst->param;
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     temp = (char *)((UINT32)asso_ptr + sizeof(STM32_CMD_HDR_S));
     os_memcpy((char *)&sm_connect_req_ptr->ssid, temp, sizeof(struct mac_ssid));
     os_memcpy((char *)&sm_connect_req_ptr->bssid,
               temp + sizeof(struct mac_ssid) + 1, sizeof(struct sm_connect_req) - sizeof(struct mac_ssid));
 
-#if CFG_WIFI_WEP
+    #if CFG_WIFI_WEP
     sm_connect_req_ptr->auth_type = MAC_AUTH_ALGO_SHARED;
-#else
+    #else
     sm_connect_req_ptr->auth_type = MAC_AUTH_ALGO_OPEN;
-#endif
-#else
-#if (0 == CFG_WIFI_AP_MODE)
+    #endif
+    #else
+    #if (0 == CFG_WIFI_AP_MODE)
     sm_connect_req_ptr->ssid.length = os_strlen((const char *)CFG_OOB_CONNECT_SSID);
     os_memcpy(sm_connect_req_ptr->ssid.array, CFG_OOB_CONNECT_SSID, sm_connect_req_ptr->ssid.length);
-#endif
+    #endif
 
     os_memcpy(&sm_connect_req_ptr->bssid, &asso_ptr->bssid, sizeof(asso_ptr->bssid));
 
@@ -1171,15 +1185,15 @@ void cmd_conversion_assoc_req(STM32_FRAME_HDR *frm_ptr, struct ke_msg **kmsg_ppt
     sm_connect_req_ptr->ctrl_port_ethertype = 36488;
     sm_connect_req_ptr->ie_len = 0; // wpa 24
 
-#if CFG_WIFI_WEP
+    #if CFG_WIFI_WEP
     sm_connect_req_ptr->auth_type = MAC_AUTH_ALGO_SHARED | MAC_AUTH_ALGO_OPEN;
-#else
+    #else
     sm_connect_req_ptr->auth_type = MAC_AUTH_ALGO_OPEN;
-#endif
+    #endif
 
     sm_connect_req_ptr->vif_idx = 0;
     os_memcpy(sm_connect_req_ptr->ie_buf, ie_info, sm_connect_req_ptr->ie_len);
-#endif
+    #endif
     return;
 }
 
@@ -1246,13 +1260,13 @@ void cmd_conversion_add_if_req(STM32_FRAME_HDR *frm_ptr, struct ke_msg **kmsg_pp
 
     mm_add_if_ptr = (struct mm_add_if_req *)kmsg_dst->param;
 
-#if CFG_WIFI_AP_MODE
+    #if CFG_WIFI_AP_MODE
     SDIO_INTF_PRT("vif_ap\r\n");
     mm_add_if_ptr->type = VIF_AP;
-#else
+    #else
     SDIO_INTF_PRT("vif_sta\r\n");
     mm_add_if_ptr->type = VIF_STA;
-#endif
+    #endif
 
     return;
 }
@@ -1263,13 +1277,13 @@ void cmd_conversion_802_11_scan(STM32_FRAME_HDR *frm_ptr, struct ke_msg **kmsg_p
     struct ke_msg *kmsg_dst;
     STM32_CMD_HDR_PTR scmd_hdr_ptr;
     struct scan_start_req *scan_start_ptr;
-#if (! CFG_REAL_SDIO)
+    #if (! CFG_REAL_SDIO)
     UINT32 ssid_id;
     UINT32 channel_id;
     UINT32 ie_total_len;
     MRVL_IE_HDR_PTR mrvl_ie_ptr;
     STM32_CMD_802_11_SCAN_PTR scan_cmd_ptr;
-#endif
+    #endif
 
     kmsg_dst = NULLPTR;
     scmd_hdr_ptr = (STM32_CMD_HDR_PTR)&frm_ptr[1];
@@ -1288,7 +1302,7 @@ void cmd_conversion_802_11_scan(STM32_FRAME_HDR *frm_ptr, struct ke_msg **kmsg_p
     kmsg_dst->hdr.next  = NULL;
     kmsg_dst->src_id    = TASK_API;
 
-#if (! CFG_REAL_SDIO)
+    #if (! CFG_REAL_SDIO)
     /* conversion*/
     ssid_id = 0;
     channel_id = 0;
@@ -1355,17 +1369,17 @@ void cmd_conversion_802_11_scan(STM32_FRAME_HDR *frm_ptr, struct ke_msg **kmsg_p
     scan_start_ptr->ssid[0].length = 0;
     scan_start_ptr->add_ies = 0;
     scan_start_ptr->add_ie_len = 0;
-#endif
+    #endif
 
     ASSERT_ERR(ke_task_local(kmsg_dst->dest_id));
 
     *kmsg_pptr = kmsg_dst;
 
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     scan_start_ptr = (struct scan_start_req *)kmsg_dst->param;
 
     os_memcpy(scan_start_ptr, (void *)&scmd_hdr_ptr[1], kmsg_dst->param_len);
-#endif
+    #endif
     scan_resp_cmd_sn = resp_inc_seqnum();
 
     return;
@@ -1410,11 +1424,11 @@ UINT32 sdio_h2e_msg_conversion(STM32_FRAME_HDR *frm_ptr, struct ke_msg **kmsg_pp
         break;
 
     case SCMD_802_11_SCAN:
-#if CFG_REAL_SDIO
+        #if CFG_REAL_SDIO
         if(1)
-#else
+        #else
         if(0 == scan_start_flag)
-#endif
+        #endif
         {
             scan_start_flag = 1;
             SDIO_INTF_PRT("80211-scan\r\n");
@@ -1493,11 +1507,11 @@ void sdio_emb_rxed_evt(int dummy)
     SDIO_NODE_PTR mem_node_ptr;
     STM32_TX_FRAME *frm_tx_ptr;
     STM32_FRAME_HDR *frm_hdr_ptr;
-#if CFG_REAL_SDIO
+    #if CFG_REAL_SDIO
     UINT8 i = 0;
-#else
+    #else
     STM32_TXPD_S *txpd;
-#endif
+    #endif
 
     queue_idx = AC_VI;
     mem_node_ptr = sdio_get_rxed_node();
@@ -1519,12 +1533,12 @@ void sdio_emb_rxed_evt(int dummy)
             GLOBAL_INT_RESTORE();
 
             frm_tx_ptr = (STM32_TX_FRAME *)mem_node_ptr->addr;
-#if CFG_REAL_SDIO
+            #if CFG_REAL_SDIO
             content_ptr = (UINT8 *)&frm_tx_ptr->frm + 2;
-#else
+            #else
             txpd = &frm_tx_ptr->frm;
             content_ptr = (UINT8 *)&txpd[1];
-#endif
+            #endif
 
             eth_hdr_ptr = (ETHHDR_PTR)content_ptr;
 
@@ -1553,19 +1567,19 @@ void sdio_emb_rxed_evt(int dummy)
             txdesc_new->host.flags            = 0;
             txdesc_new->host.orig_addr        = (UINT32)mem_node_ptr->orig_addr;
             txdesc_new->host.packet_addr      = (UINT32)content_ptr + 14;
-#if CFG_REAL_SDIO
+            #if CFG_REAL_SDIO
             txdesc_new->host.packet_len       = frm_hdr_ptr->len - 14 - sizeof(STM32_FRAME_HDR) - 2;
             txdesc_new->host.staid            = 0;
-#else
+            #else
             txdesc_new->host.packet_len       = frm_hdr_ptr->len - 14 - sizeof(STM32_FRAME_HDR) - sizeof(STM32_TXPD_S);
-#endif
+            #endif
             txdesc_new->host.status_desc_addr = (UINT32)content_ptr + 14;
             txdesc_new->host.ethertype        = eth_hdr_ptr->h_proto;
             txdesc_new->host.tid              = tid;
             txdesc_new->host.vif_idx          = 0;
 
-#if (! CFG_REAL_SDIO)
-#if CFG_WIFI_AP_MODE
+            #if (! CFG_REAL_SDIO)
+            #if CFG_WIFI_AP_MODE
             if(is_broadcast_ether_addr(eth_hdr_ptr->h_dest))
             {
                 txdesc_new->host.staid        = VIF_TO_BCMC_IDX(txdesc_new->host.vif_idx);
@@ -1574,24 +1588,24 @@ void sdio_emb_rxed_evt(int dummy)
             {
                 txdesc_new->host.staid	      = 0;
             }
-#else
+            #else
             txdesc_new->host.staid		      = 0;
-#endif
-#endif
+            #endif
+            #endif
             // Initialize some fields of the descriptor
             txdesc_new->lmac.agg_desc = NULL;
             txdesc_new->lmac.hw_desc->cfm.status = 0;
 
-#if NX_POWERSAVE
+            #if NX_POWERSAVE
             txl_cntrl_inc_pck_cnt();
-#endif
+            #endif
             txu_cntrl_push(txdesc_new, queue_idx);
 
             pushed = true;
 
-#if FOR_SDIO_BLK_512
+            #if FOR_SDIO_BLK_512
             i++;
-#endif
+            #endif
             break;
         }
 
@@ -1624,12 +1638,12 @@ void sdio_emb_rxed_evt(int dummy)
 
         mem_node_ptr = sdio_get_rxed_node();
 
-#if FOR_SDIO_BLK_512
+        #if FOR_SDIO_BLK_512
         if(i > 10)
         {
             mem_node_ptr = 0;
         }
-#endif
+        #endif
     }
 
     if(0 == mem_node_ptr)
@@ -1639,10 +1653,10 @@ void sdio_emb_rxed_evt(int dummy)
 
     if (pushed)
     {
-#if (NX_AMPDU_TX)
+        #if (NX_AMPDU_TX)
         // Check if the current A-MPDU under construction has to be closed
         txl_aggregate_check(queue_idx);
-#endif //(NX_AMPDU_TX)
+        #endif //(NX_AMPDU_TX)
     }
 
 rxed_exception:

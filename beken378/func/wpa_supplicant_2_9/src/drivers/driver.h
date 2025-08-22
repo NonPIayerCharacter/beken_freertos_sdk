@@ -5425,12 +5425,14 @@ union wpa_event_data {
 		const u8 *sa;
 		const u8 *da;
 		u16 reason_code;
+		bool con_ap_frm;
 	} unprot_deauth;
 
 	struct unprot_disassoc {
 		const u8 *sa;
 		const u8 *da;
 		u16 reason_code;
+		bool con_ap_frm;
 	} unprot_disassoc;
 
 	/**

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _USB_PUB_H_
 #define _USB_PUB_H_
 
@@ -31,7 +45,7 @@ enum
     UCMD_UVC_ENABLE_MJPEG,
     UCMD_UVC_ENABLE_H264,
 
-	UCMD_USB_CONNECTED_REGISTER_CB
+    UCMD_USB_CONNECTED_REGISTER_CB
 };
 
 /*UCMD_UVC_SET_PARAM*/
@@ -39,7 +53,7 @@ enum
 #define UVC_DEMUX_FPS(param)                         (param & 0xffff)
 #define UVC_DEMUX_ID(param)                         ((param >> 16) & 0xffff)
 
-typedef enum 
+typedef enum
 {
     USB_HOST_MODE   = 0,
     USB_DEVICE_MODE = 1
@@ -83,19 +97,19 @@ typedef enum
     FPS_10 = 10,
     FPS_5  = 5,
 } E_FRAME_RATE_ID;
-	
+
 /*
 * Finish DRC interrupt processing
 */
 enum
 {
-	BSR_NONE_EVENT = 0,
-	BSR_ERROR_EVENT,
-	BSR_CONNECT_EVENT,
-	BSR_CONNECTED_EVENT,
-	
-	BSR_DISCONNECT_EVENT,
-	BSR_READ_OK_EVENT,
+    BSR_NONE_EVENT = 0,
+    BSR_ERROR_EVENT,
+    BSR_CONNECT_EVENT,
+    BSR_CONNECTED_EVENT,
+
+    BSR_DISCONNECT_EVENT,
+    BSR_READ_OK_EVENT,
     BSR_WRITE_OK_EVENT
 };
 
@@ -122,5 +136,5 @@ void usb_plug_inout_init(void);
 void usb_plug_inout_exit(void);
 #endif // (CFG_SOC_NAME == SOC_BK7221U)
 
-#endif //_USB_PUB_H_ 
+#endif //_USB_PUB_H_
 

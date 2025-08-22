@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include<string.h>
 
 #include "error.h"
@@ -16,24 +30,24 @@
 /*************************************************************************
 *************************************************************************
                              Matter flash map
- ---|-----------------------------START----------------------------------------| 
+ ---|-----------------------------START----------------------------------------|
  |  |                                                                          |
  4KB  |
 -------------flash_option_arr header[FLASH_NAME_SPACE_MAX_ARRAY]----------| //sizeof(namesapce_data_arr)
  |  |                                                                          |
 --
- |  
+ |
  |  |                                                                          |
 8*4KB|
 -------------flash_option_arr data[FLASH_NAME_SPACE_MAX_ARRAY]------------| //Depends on the actual amount of data
 --- |                           4KB * FLASH_NAME_SPACE_MAX_ARRAY               |
---- |--- ----------------------------------------------------------------------| 
+--- |--- ----------------------------------------------------------------------|
 
---- |----------------------------DATA START ------    -------------------------| 
-8*4KB|--------------------4KB * FLASH_NAME_SPACE_MAX_ARRAY----------------------| 
---- |------------------------------DATA END------------------------------------| 
+--- |----------------------------DATA START ------    -------------------------|
+8*4KB|--------------------4KB * FLASH_NAME_SPACE_MAX_ARRAY----------------------|
+--- |------------------------------DATA END------------------------------------|
 
---- |------------------------------END-----------------------------------------| 
+--- |------------------------------END-----------------------------------------|
 **************************************************************************
 *************************************************************************/
 
@@ -53,12 +67,12 @@
  *
  * Funtion Discription:Get Flash data into global variables
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
-uint32_t bk_strnlen (const char *ucdata,uint32_t dwLenMax) 
+uint32_t bk_strnlen (const char *ucdata,uint32_t dwLenMax)
 {
     uint32_t dwDataLen = 0;
 
@@ -74,12 +88,12 @@ uint32_t bk_strnlen (const char *ucdata,uint32_t dwLenMax)
  *
  * Funtion Discription:Get Flash data into global variables
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
-uint32_t _get_matter_flash_base_addr (uint32_t *base_addr, char * ucnamespace) 
+uint32_t _get_matter_flash_base_addr (uint32_t *base_addr, char * ucnamespace)
 {
     bk_logic_partition_t *partition_info = NULL;
 
@@ -148,9 +162,9 @@ uint8_t change_namespace_to_beken(const char **ucnamespace, const char **name, c
  *
  * Funtion Discription:Get Flash data into global variables
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t get_namespace_addr ( const char * ucnamespace,uint32_t np_base_addr,uint32_t *addr,uint32_t *block) //base_addr 要用上
@@ -173,9 +187,9 @@ uint32_t get_namespace_addr ( const char * ucnamespace,uint32_t np_base_addr,uin
         return kGeneralErr;
     }
     memset((char *)namespace_data_arr,0,NAME_SPACE_FLASH_ACTUAL_USE_SIZE);
-    
+
     dw_start_addr = np_base_addr;
-    
+
     flash_hdl = ddev_open((char *)FLASH_DEV_NAME, (UINT32 *)&status, 0);
     ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, &protect_flag);
     protect_param = FLASH_PROTECT_NONE;
@@ -183,13 +197,13 @@ uint32_t get_namespace_addr ( const char * ucnamespace,uint32_t np_base_addr,uin
     ddev_read(flash_hdl,(char *) namespace_data_arr, NAME_SPACE_FLASH_ACTUAL_USE_SIZE, dw_start_addr);
     ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_flag);
 
-    for(dw_loop = 0;dw_loop < FLASH_NAME_SPACE_MAX_ARRAY;dw_loop++)
+    for(dw_loop = 0; dw_loop < FLASH_NAME_SPACE_MAX_ARRAY; dw_loop++)
     {
         if(namespace_data_arr[dw_loop].dwUsingFlag != FLASH_SPACE_USING)
         {
             continue;
         }
-        
+
         if(0 == memcmp(namespace_data_arr[dw_loop].ucNamespace,ucnamespace,bk_strnlen(ucnamespace,sizeof(namespace_data_arr[dw_loop].ucNamespace) - 1)))
         {
             if(strlen(namespace_data_arr[dw_loop].ucNamespace) != strlen(ucnamespace))//针对前面的几个字符相同，后面不相同的情况
@@ -211,7 +225,7 @@ uint32_t get_namespace_addr ( const char * ucnamespace,uint32_t np_base_addr,uin
 
     os_free(namespace_data_arr);
     namespace_data_arr = NULL;
-    
+
     return dw_rtn;
 }
 
@@ -220,12 +234,12 @@ uint32_t get_namespace_addr ( const char * ucnamespace,uint32_t np_base_addr,uin
  *
  * Funtion Discription:Get Flash data into global variables
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
-uint32_t get_name_addr ( const char * ucname,uint32_t base_addr,uint32_t *offset_addr ,uint32_t *data_offset_addr)
+uint32_t get_name_addr ( const char * ucname,uint32_t base_addr,uint32_t *offset_addr,uint32_t *data_offset_addr)
 {
     DD_HANDLE flash_hdl = 0;
     uint32_t status = 0,protect_param = 0,protect_flag = 0;
@@ -244,7 +258,7 @@ uint32_t get_name_addr ( const char * ucname,uint32_t base_addr,uint32_t *offset
         return kGeneralErr;
     }
     memset((char *)name_data_arr,0,NAME_FLASH_TOTAL_SIZE);
-    
+
     flash_hdl = ddev_open((char *)FLASH_DEV_NAME, (UINT32 *)&status, 0);
     ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, &protect_flag);
     protect_param = FLASH_PROTECT_NONE;
@@ -254,7 +268,7 @@ uint32_t get_name_addr ( const char * ucname,uint32_t base_addr,uint32_t *offset
 
     bk_flash_debug_printf("[%s] [%d] data_offset_addr %u %u  \r\n", __FUNCTION__,__LINE__,base_addr,NAME_FLASH_TOTAL_SIZE);
 
-    for(dw_loop = 0;dw_loop < FLASH_NAME_MAX_ARRAY;dw_loop++)
+    for(dw_loop = 0; dw_loop < FLASH_NAME_MAX_ARRAY; dw_loop++)
     {
         if(name_data_arr[dw_loop].dwUsingFlag != FLASH_SPACE_USING)//如果不是正在使用的，直接跳到下一次循环
         {
@@ -264,7 +278,7 @@ uint32_t get_name_addr ( const char * ucname,uint32_t base_addr,uint32_t *offset
         {
             // *data_offset_addr = name_flash_arr[dw_loop].dwOffsetByByte + name_flash_arr[dw_loop].dwlength;
             *data_offset_addr = name_data_arr[dw_loop].dwOffsetByByte;
-             bk_flash_debug_printf("[%s] [%d] data_offset_addr %u %u  \r\n", __FUNCTION__,__LINE__,dw_loop,*data_offset_addr);
+            bk_flash_debug_printf("[%s] [%d] data_offset_addr %u %u  \r\n", __FUNCTION__,__LINE__,dw_loop,*data_offset_addr);
         }
 
         bk_flash_debug_printf("[%s] [%d] data_offset_addr  %u %x %u \r\n", __FUNCTION__,__LINE__,dw_loop,name_data_arr[dw_loop].dwUsingFlag,name_data_arr[dw_loop].dwOffsetByByte);
@@ -290,7 +304,7 @@ uint32_t get_name_addr ( const char * ucname,uint32_t base_addr,uint32_t *offset
 
     os_free(name_data_arr);
     name_data_arr = NULL;
-    
+
     return dw_rtn;
 }
 
@@ -299,9 +313,9 @@ uint32_t get_name_addr ( const char * ucname,uint32_t base_addr,uint32_t *offset
  *
  * Funtion Discription:Get Flash data into global variables
  * base_addr --二级目录的地址
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bk_erase_name_data( uint32_t n_base_addr,uint32_t data_sector_addr)//清除二级目录的数据
@@ -326,13 +340,13 @@ uint32_t bk_erase_name_data( uint32_t n_base_addr,uint32_t data_sector_addr)//�
  *
  * Funtion Discription:Get Flash data into global variables
  * base_addr --二级目录的地址
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
-uint32_t bk_reorganize_name_data( uint32_t n_base_addr,name_flash_t *name_temp ,char *databuf,uint32_t data_sector_addr,
-                                            char *indata,uint32_t dw_data_len,name_flash_t name_data)//清除二级目录的数据
+uint32_t bk_reorganize_name_data( uint32_t n_base_addr,name_flash_t *name_temp,char *databuf,uint32_t data_sector_addr,
+                                  char *indata,uint32_t dw_data_len,name_flash_t name_data)//清除二级目录的数据
 {
     DD_HANDLE flash_hdl = 0;
     uint32_t status = 0,protect_param = 0,protect_flag = 0;
@@ -346,21 +360,21 @@ uint32_t bk_reorganize_name_data( uint32_t n_base_addr,name_flash_t *name_temp ,
     BK_CHECK_POINTER_NULL(name_temp);
     BK_CHECK_POINTER_NULL(databuf);
     BK_CHECK_POINTER_NULL(indata);
-    
+
     flash_hdl = ddev_open((char *)FLASH_DEV_NAME, (UINT32 *)&status, 0);
     ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, &protect_flag);
     protect_param = FLASH_PROTECT_NONE;
     ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_param);
     ddev_control(flash_hdl, CMD_FLASH_ERASE_SECTOR, &n_base_addr);//将这块二级目录的数据erase掉
     ddev_control(flash_hdl, CMD_FLASH_ERASE_SECTOR, &data_sector_addr);//将二级目录对应的数据区erase掉
-    
-    for(dw_loop = 0;dw_loop < FLASH_NAME_MAX_ARRAY;dw_loop++)
+
+    for(dw_loop = 0; dw_loop < FLASH_NAME_MAX_ARRAY; dw_loop++)
     {
         if(name_temp[dw_loop].dwUsingFlag == FLASH_SPACE_USING)//表示该段数据有效
         {
             ddev_write(flash_hdl, (char *)(&databuf[name_temp[dw_loop].dwOffsetByByte]), name_temp[dw_loop].dwlength, dw_data_addr);//先写数据
             dw_data_addr += name_temp[dw_loop].dwlength;
-            
+
             name_temp[dw_loop].dwOffsetByByte = dw_offset;
             dw_offset += name_temp[dw_loop].dwlength;
             ddev_write(flash_hdl, (char *)(&name_temp[dw_loop]), PER_NAME_FLASH_SIZE, dw_name_addr);//写二级目录的数据
@@ -394,9 +408,9 @@ uint32_t bk_reorganize_name_data( uint32_t n_base_addr,name_flash_t *name_temp ,
  *
  * Funtion Discription:Get Flash data into global variables
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bk_set_name_data_new_addr( uint32_t data_sector_addr,uint32_t base_addr,char * indata,uint32_t dw_data_len,name_flash_t name_data)
@@ -410,7 +424,7 @@ uint32_t bk_set_name_data_new_addr( uint32_t data_sector_addr,uint32_t base_addr
     uint32_t dw_rtn = 0;
     uint32_t dw_mask_count = 0;
     //name_flash_t name_temp_2 = {0};
-        
+
     name_temp = (name_flash_t *) os_malloc(NAME_FLASH_TOTAL_SIZE);
     data_buff = (char *) os_malloc(FLASH_SECTOR_SIZE);
     if ((NULL == name_temp) || (NULL == data_buff))
@@ -428,8 +442,8 @@ uint32_t bk_set_name_data_new_addr( uint32_t data_sector_addr,uint32_t base_addr
     ddev_read(flash_hdl,(char *)name_temp, NAME_FLASH_TOTAL_SIZE, base_addr);
 
     bk_flash_debug_printf("[%s] [%d]   [%u] {%u} \r\n", __FUNCTION__,__LINE__,base_addr,NAME_FLASH_TOTAL_SIZE);
-    
-    for(dw_loop = 0;dw_loop < FLASH_NAME_MAX_ARRAY;dw_loop++)
+
+    for(dw_loop = 0; dw_loop < FLASH_NAME_MAX_ARRAY; dw_loop++)
     {
         bk_flash_debug_printf("[%s] [%d]   [%u] {%x} \r\n", __FUNCTION__,__LINE__,dw_loop,name_temp[dw_loop].dwUsingFlag);
         //如果此时即不是被MASK或者被正在用的,表明这个空间可能是第一次使用时的数据，或者是为FLASH_SPACE_UNUSED的数据
@@ -439,7 +453,7 @@ uint32_t bk_set_name_data_new_addr( uint32_t data_sector_addr,uint32_t base_addr
             if((data_offset_addr + dw_data_len) >= FLASH_SECTOR_SIZE) //如果当前的地址可用，判断当前的空间是否可以存贮下，如果存储不下，则进一步处理
             {
                 ddev_read(flash_hdl,(char *)data_buff, FLASH_SECTOR_SIZE, data_sector_addr);//将缓存区中的数据读出来
-                dw_rtn = bk_reorganize_name_data( base_addr,name_temp ,data_buff, data_sector_addr,indata,dw_data_len,name_data);//clean 二级目录的数据
+                dw_rtn = bk_reorganize_name_data( base_addr,name_temp,data_buff, data_sector_addr,indata,dw_data_len,name_data); //clean 二级目录的数据
                 break;//跳出循环
             }
             else//如果能够存储下，则直接将数据写进去
@@ -449,7 +463,7 @@ uint32_t bk_set_name_data_new_addr( uint32_t data_sector_addr,uint32_t base_addr
                 name_data.dwOffsetByByte = data_offset_addr;
                 name_data.dwUsingFlag = FLASH_SPACE_USING;
                 ddev_write(flash_hdl, (char *)&name_data, PER_NAME_FLASH_SIZE, base_addr + dw_loop * PER_NAME_FLASH_SIZE);//先写二级目录的数据
-                
+
                 //ddev_read(flash_hdl,(char *)(&name_temp_2), PER_NAME_FLASH_SIZE, base_addr + dw_loop * PER_NAME_FLASH_SIZE);//将缓存区中的数据读出来
                 //bk_flash_debug_printf("[%s] [%d] %s %u %u %x \r\n", __FUNCTION__,__LINE__,name_temp_2.ucName,name_temp_2.dwlength,name_temp_2.dwOffsetByByte,name_temp_2.dwUsingFlag);
                 break;//跳出循环
@@ -460,7 +474,7 @@ uint32_t bk_set_name_data_new_addr( uint32_t data_sector_addr,uint32_t base_addr
             data_offset_addr = name_temp[dw_loop].dwOffsetByByte + name_temp[dw_loop].dwlength;//给下一次的不是unused或者没有写过的数据使用偏移
             bk_flash_debug_printf("[%s] [%d] %u %u\r\n", __FUNCTION__,__LINE__,name_temp[dw_loop].dwOffsetByByte,name_temp[dw_loop].dwlength);
             bk_flash_debug_printf("[%s] [%d] %u %x\r\n", __FUNCTION__,__LINE__,data_offset_addr,name_temp[dw_loop].dwUsingFlag);
-            
+
             if(name_temp[dw_loop].dwUsingFlag == FLASH_SPACE_MASK)//如果前面有MASK的则计数加一
             {
                 dw_mask_count++;
@@ -469,12 +483,12 @@ uint32_t bk_set_name_data_new_addr( uint32_t data_sector_addr,uint32_t base_addr
     }
 
     if(dw_loop == FLASH_NAME_MAX_ARRAY)
-    {   
+    {
         if(dw_mask_count > 0)//如果names的空间全部都满了,且前面还有被MASK掉的空间，则继续整理
         {
             bk_flash_debug_printf("[%s] [%d] %u %u %s \r\n", __FUNCTION__,__LINE__,data_sector_addr,dw_data_len,indata);
             ddev_read(flash_hdl,(char *)data_buff, FLASH_SECTOR_SIZE, data_sector_addr);//将缓存区中的数据读出来
-            dw_rtn = bk_reorganize_name_data( base_addr,name_temp ,data_buff, data_sector_addr,indata,dw_data_len,name_data);//clean 二级目录的数据
+            dw_rtn = bk_reorganize_name_data( base_addr,name_temp,data_buff, data_sector_addr,indata,dw_data_len,name_data); //clean 二级目录的数据
         }
         else
         {
@@ -497,9 +511,9 @@ uint32_t bk_set_name_data_new_addr( uint32_t data_sector_addr,uint32_t base_addr
  *
  * Funtion Discription:Get Flash data into global variables
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bk_set_namespace ( const char * ucnamespace,uint32_t np_base_addr,uint32_t *addr,uint32_t *block) //base_addr 要用上
@@ -521,7 +535,7 @@ uint32_t bk_set_namespace ( const char * ucnamespace,uint32_t np_base_addr,uint3
         return kGeneralErr;
     }
     memset((char *)namespace_data_arr,0,NAME_SPACE_FLASH_ACTUAL_USE_SIZE);
-    
+
     flash_hdl = ddev_open((char *)FLASH_DEV_NAME, (UINT32 *)&status, 0);
     ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, &protect_flag);
     protect_param = FLASH_PROTECT_NONE;
@@ -529,7 +543,7 @@ uint32_t bk_set_namespace ( const char * ucnamespace,uint32_t np_base_addr,uint3
     ddev_read(flash_hdl,(char *) namespace_data_arr, NAME_SPACE_FLASH_ACTUAL_USE_SIZE, np_base_addr);
 
     //not found
-    for(dw_loop = 0;dw_loop < FLASH_NAME_SPACE_MAX_ARRAY;dw_loop++)
+    for(dw_loop = 0; dw_loop < FLASH_NAME_SPACE_MAX_ARRAY; dw_loop++)
     {
         if(namespace_data_arr[dw_loop].dwUsingFlag != FLASH_SPACE_USING)
         {
@@ -546,7 +560,7 @@ uint32_t bk_set_namespace ( const char * ucnamespace,uint32_t np_base_addr,uint3
     if(NAME_SPACE_ADDR_SET_SUCCESS == dw_set_flag)
     {
         dw_offset_addr = np_base_addr + dw_loop * PER_NAME_SPACE_FLASH_SIZE;
-        
+
         *addr = namespace_data_arr[dw_loop].dwOffsetByByte;
         *block = dw_loop;
 
@@ -573,13 +587,13 @@ uint32_t bk_set_namespace ( const char * ucnamespace,uint32_t np_base_addr,uint3
  *
  * Funtion Discription:Get Flash data into global variables
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bk_set_name_data( const char * ucnamespace,const char * ucname,uint32_t np_base_addr, char * indata,uint32_t dw_data_len,uint32_t dw_n_offset_addr,
-                                   uint32_t dw_offset_block)
+                           uint32_t dw_offset_block)
 {
     DD_HANDLE flash_hdl = 0;
     uint32_t dw_offset_addr = 0,dw_actual_addr = 0,dw_data_offset_addr = 0;
@@ -593,7 +607,7 @@ uint32_t bk_set_name_data( const char * ucnamespace,const char * ucname,uint32_t
     BK_CHECK_POINTER_NULL(ucnamespace);
     BK_CHECK_POINTER_NULL(ucname);
     BK_CHECK_POINTER_NULL(indata);
-    
+
     dw_actual_addr = np_base_addr + dw_n_offset_addr;//如果找到，继续找二级目录
     dw_sec_addr = dw_actual_addr;//二级目录的地址
 
@@ -603,15 +617,15 @@ uint32_t bk_set_name_data( const char * ucnamespace,const char * ucname,uint32_t
     if(kNoErr == get_name_addr(ucname, dw_actual_addr,&dw_offset_addr,&dw_data_offset_addr))//如果二级目录找到，将这个地址中的数据取出来
     {
         dw_actual_addr += dw_offset_addr;//找到对应二级目录对应的数据
-        
+
         flash_hdl = ddev_open((char *)FLASH_DEV_NAME, (UINT32 *)&status, 0);
         ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, &protect_flag);
         protect_param = FLASH_PROTECT_NONE;
         ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_param);
         ddev_read(flash_hdl,(char *) &name_temp, sizeof(name_temp), dw_actual_addr);
-        
+
         dw_actual_addr = np_base_addr + dw_offset_block * FLASH_SECTOR_SIZE + NAME_FLASH_DATA_BASE_ADDR + dw_data_offset_addr ;
-        
+
         ddev_read(flash_hdl,(char *) data_buf,name_temp.dwlength, dw_actual_addr);
         bk_flash_debug_printf("[%s] [%d]  NAME  [%u] [%u] \r\n", __FUNCTION__,__LINE__,dw_data_len,name_temp.dwlength);
 
@@ -635,11 +649,11 @@ uint32_t bk_set_name_data( const char * ucnamespace,const char * ucname,uint32_t
         memcpy(name_temp.ucName,ucname,bk_strnlen(ucname,sizeof(name_temp.ucName) - 1));
 
         dw_actual_addr = np_base_addr + dw_offset_block * FLASH_SECTOR_SIZE + NAME_FLASH_DATA_BASE_ADDR; //数据所在的位置
-        
+
         bk_flash_debug_printf("[%s] [%d]  NAME  [%u] [%u] \r\n", __FUNCTION__,__LINE__,dw_sec_addr,dw_offset_block);
 
         bk_flash_debug_printf("[%s] [%d]  NAME  [%u] [%u] \r\n", __FUNCTION__,__LINE__,dw_actual_addr,dw_data_len);
-        
+
         dw_rtn = bk_set_name_data_new_addr( dw_actual_addr,dw_sec_addr,indata,dw_data_len,name_temp);
     }
 
@@ -649,11 +663,11 @@ uint32_t bk_set_name_data( const char * ucnamespace,const char * ucname,uint32_t
 /*********************************************************************
  * Funtion Name:bk_clean_data
  *
- * Funtion Discription:clean data in the flash 
+ * Funtion Discription:clean data in the flash
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bk_clean_data ( const char * ucnamespace,const char * ucname)
@@ -676,7 +690,7 @@ uint32_t bk_clean_data ( const char * ucnamespace,const char * ucname)
 
     dw_rtn = get_matter_flash_base_addr(&np_base_addr);
     BK_CHECK_RETURN_VAULEL(dw_rtn);
-    
+
     flash_hdl = ddev_open((char *)FLASH_DEV_NAME, (UINT32 *)&status, 0);
 
     if(kNoErr == get_namespace_addr(ucnamespace, np_base_addr,(uint32_t *)&dw_offset_addr,(uint32_t *)&dw_offset_block))//看是否在一级目录中找到对应namespace
@@ -708,7 +722,7 @@ uint32_t bk_clean_data ( const char * ucnamespace,const char * ucname)
         bk_printf("[%s] [%d] No Such Namespace \r\n", __FUNCTION__,__LINE__);
         dw_rtn = kGeneralErr;
     }
-    
+
     ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_flag);
 
     return dw_rtn;
@@ -719,15 +733,15 @@ uint32_t bk_clean_data ( const char * ucnamespace,const char * ucname)
  *
  * Funtion Discription:Clear namespace
  *
- * 
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bK_clear_namespace ( const char * ucnamespace) //base_addr 要用上
 {
     uint32_t dw_rtn = kNoErr ;
     DD_HANDLE flash_hdl = 0;
-    uint32_t dw_offset_addr = 0 ,dw_off_block = 0;
+    uint32_t dw_offset_addr = 0,dw_off_block = 0;
     uint32_t status = 0,protect_param = 0,protect_flag = 0;
     uint32_t dw_start_addr = 0 ;
     uint32_t np_base_addr = 0;
@@ -748,7 +762,7 @@ uint32_t bK_clear_namespace ( const char * ucnamespace) //base_addr 要用上
         return kGeneralErr;
     }
     memset((char *)namespace_temp,0,NAME_SPACE_FLASH_ACTUAL_USE_SIZE);
-    
+
     if(kNoErr == get_namespace_addr(ucnamespace, np_base_addr,&dw_offset_addr,&dw_off_block))//found namespace
     {
         flash_hdl = ddev_open((char *)FLASH_DEV_NAME, (UINT32 *)&status, 0);
@@ -762,10 +776,10 @@ uint32_t bK_clear_namespace ( const char * ucnamespace) //base_addr 要用上
         bk_erase_name_data(dw_start_addr,data_sector_addr);//清除二级目录的数据,把二级目录和其对应的数据全部擦掉
 
         ddev_control(flash_hdl, CMD_FLASH_ERASE_SECTOR, &np_base_addr);//将一级目录对应的数据区erase掉
-        
+
         namespace_temp[dw_off_block].dwUsingFlag = FLASH_SPACE_MASK;
 
-        for(dwLoop = 0;dwLoop < FLASH_NAME_SPACE_MAX_ARRAY;dwLoop++)
+        for(dwLoop = 0; dwLoop < FLASH_NAME_SPACE_MAX_ARRAY; dwLoop++)
         {
             if(FLASH_SPACE_USING == namespace_temp[dwLoop].dwUsingFlag)//如果该命名空间有效，则在写回去,改命名空间的位置不做改变
             {
@@ -789,11 +803,11 @@ uint32_t bK_clear_namespace ( const char * ucnamespace) //base_addr 要用上
 /*********************************************************************
  * Funtion Name:bk_read_data
  *
- * Funtion Discription:read data from flash 
+ * Funtion Discription:read data from flash
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bk_read_data( const char * ucnamespace,const char * ucname,char * out_data,uint32_t dw_read_len,uint32_t *out_length)
@@ -813,13 +827,13 @@ uint32_t bk_read_data( const char * ucnamespace,const char * ucname,char * out_d
     BK_CHECK_POINTER_NULL(out_length);
     char buf[64];
     BK_CHECK_NO_RETURN(change_namespace_to_beken(&ucnamespace, &ucname, buf, 64));
-    
+
     dw_rtn = get_matter_flash_base_addr(&np_base_addr);
     BK_CHECK_RETURN_VAULEL(dw_rtn);
 
     if(kNoErr == get_namespace_addr(ucnamespace, np_base_addr,&dw_offset_addr,&dw_off_block))//如果找到对应的namespace,继续找二级目录
     {
-        dw_sec_base_addr = np_base_addr + dw_offset_addr;//获取二级目录的地址 
+        dw_sec_base_addr = np_base_addr + dw_offset_addr;//获取二级目录的地址
         if(kNoErr == get_name_addr(ucname, dw_sec_base_addr,&dw_offset_addr,&dw_data_offset_addr))//如果二级目录找到，将这个地址中的数据取出来
         {
             bk_flash_debug_printf("[%s] [%d] read  [%u] [%u] [%u] \r\n", __FUNCTION__,__LINE__,dw_sec_base_addr,dw_offset_addr,dw_data_offset_addr);
@@ -832,18 +846,18 @@ uint32_t bk_read_data( const char * ucnamespace,const char * ucname,char * out_d
 
             dw_actual_len = ((dw_read_len > name_temp.dwlength) ? name_temp.dwlength : dw_read_len);//取最小的长度读数据
             *out_length = dw_actual_len;
-            
+
             dw_data_addr = np_base_addr + dw_off_block * FLASH_SECTOR_SIZE + NAME_FLASH_DATA_BASE_ADDR + dw_data_offset_addr ;;//找到对应二级目录中对应数据的位置
             ddev_read(flash_hdl,(char *) out_data, dw_actual_len, dw_data_addr);//读取的长度有外面的变量传进来
             bk_flash_debug_printf("[%s] [%d] read [%s] [%u] [%u] \r\n", __FUNCTION__,__LINE__,out_data,dw_data_addr,dw_actual_len);
 
             ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_flag);
         }
-		else//表示没有找到name
-		{
-			dw_rtn = kGeneralErr;
+        else//表示没有找到name
+        {
+            dw_rtn = kGeneralErr;
             bk_flash_debug_printf("[%s] [%d] NO NAME [%u] [%u] [%u] \r\n", __FUNCTION__,__LINE__,dw_sec_base_addr,dw_offset_addr,dw_data_offset_addr);
-		}
+        }
     }
     else//表示没有找到namespace
     {
@@ -857,11 +871,11 @@ uint32_t bk_read_data( const char * ucnamespace,const char * ucname,char * out_d
 /*********************************************************************
  * Funtion Name:bk_write_data
  *
- * Funtion Discription:read data from flash 
+ * Funtion Discription:read data from flash
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bk_write_data( const char * ucnamespace,const char * ucname, char * indata,uint32_t data_size)
@@ -899,9 +913,9 @@ uint32_t bk_write_data( const char * ucnamespace,const char * ucname, char * ind
  * Funtion Name:bk_ensure_namespace
  * Funtion Discription:check namespace exit or not
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bk_ensure_namespace( const char * ucnamespace)
@@ -939,9 +953,9 @@ uint32_t bk_ensure_namespace( const char * ucnamespace)
  *
  * Funtion Discription:check data exit or not
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t bk_ensure_name_data( const char * ucnamespace,const char * ucname)
@@ -982,9 +996,9 @@ uint32_t bk_ensure_name_data( const char * ucnamespace,const char * ucname)
  * Funtion Name:bk_erase_all
  *
  * Funtion Discription:Erase all Matter Flash data
- * 
  *
- * 
+ *
+ *
  * Date:2022-02-07
  *******************************************************************/
 uint32_t bk_erase_all( bk_partition_t type )
@@ -995,7 +1009,7 @@ uint32_t bk_erase_all( bk_partition_t type )
     uint32_t dw_loop = 0;
     uint32_t status = 0,protect_param = 0,protect_flag = 0;
     bk_logic_partition_t *partition_info = NULL;
-    
+
     partition_info = bk_flash_get_info(type);
     BK_CHECK_POINTER_NULL(partition_info);
 
@@ -1006,10 +1020,10 @@ uint32_t bk_erase_all( bk_partition_t type )
     ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, &protect_flag);
     protect_param = FLASH_PROTECT_NONE;
     ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_param);
-#if 0 //yellan 20221017 debug for pool Empty
-    #define USER_OTA_FLASH_SIZE     0x100000
+    #if 0 //yellan 20221017 debug for pool Empty
+#define USER_OTA_FLASH_SIZE     0x100000
     flash_occu_length=USER_OTA_FLASH_SIZE/NAME_SPACE_FLASH_TOTAL_SIZE;
-    for(dw_loop = 0;dw_loop < flash_occu_length;dw_loop++)
+    for(dw_loop = 0; dw_loop < flash_occu_length; dw_loop++)
     {
         ddev_control(flash_hdl, CMD_FLASH_ERASE_SECTOR, &operation_addr);
         operation_addr += NAME_SPACE_FLASH_TOTAL_SIZE;
@@ -1019,13 +1033,13 @@ uint32_t bk_erase_all( bk_partition_t type )
 
     }
 
-#else
-    for(dw_loop = 0;dw_loop < flash_occu_length / NAME_SPACE_FLASH_TOTAL_SIZE;dw_loop++)
+    #else
+    for(dw_loop = 0; dw_loop < flash_occu_length / NAME_SPACE_FLASH_TOTAL_SIZE; dw_loop++)
     {
         ddev_control(flash_hdl, CMD_FLASH_ERASE_SECTOR, &operation_addr);
         operation_addr += NAME_SPACE_FLASH_TOTAL_SIZE;
     }
-#endif
+    #endif
     ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_flag);
 
     return kNoErr;
@@ -1034,11 +1048,11 @@ uint32_t bk_erase_all( bk_partition_t type )
 /*********************************************************************
  * Funtion Name:bk_write_ota_data_to_flash
  *
- * Funtion Discription:write ota data to flash 
+ * Funtion Discription:write ota data to flash
  *
- * 
  *
- * 
+ *
+ *
  * Date:2022-02-10
  *******************************************************************/
 uint32_t bk_write_ota_data_to_flash( char * indata,uint32_t data_offset_addr,uint32_t data_length)
@@ -1048,21 +1062,21 @@ uint32_t bk_write_ota_data_to_flash( char * indata,uint32_t data_offset_addr,uin
     bk_logic_partition_t *partition_info = NULL;
     DD_HANDLE flash_hdl = 0;
     uint32_t status = 0,protect_param = 0,protect_flag = 0;
-    
+
     BK_CHECK_POINTER_NULL(indata);
-    
+
     partition_info = bk_flash_get_info(BK_PARTITION_OTA);
     BK_CHECK_POINTER_NULL(partition_info);
-    
+
     np_base_addr = partition_info->partition_start_addr;//获取OTA的基地址
-    
+
     flash_hdl = ddev_open((char *)FLASH_DEV_NAME, (UINT32 *)&status, 0);
     ddev_control(flash_hdl, CMD_FLASH_GET_PROTECT, &protect_flag);
     protect_param = FLASH_PROTECT_NONE;
     ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_param);
-    
+
     bk_flash_debug_printf("[%s] [%d]  NAME  [%u] [%u] \r\n", __FUNCTION__,__LINE__,data_offset_addr,data_length);
-    
+
     ddev_write(flash_hdl,indata, data_length, (np_base_addr + data_offset_addr));
     ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, &protect_flag);
 
@@ -1072,11 +1086,11 @@ uint32_t bk_write_ota_data_to_flash( char * indata,uint32_t data_offset_addr,uin
 /*********************************************************************
  * Funtion Name:bk_read_ota_data_in_flash
  *
- * Funtion Discription:read ota data in flash 
+ * Funtion Discription:read ota data in flash
  *
- * 
  *
- * 
+ *
+ *
  * Date:2022-02-10
  *******************************************************************/
 uint32_t bk_read_ota_data_in_flash( char * outdata,uint32_t data_offset_addr,uint32_t data_length)
@@ -1086,26 +1100,26 @@ uint32_t bk_read_ota_data_in_flash( char * outdata,uint32_t data_offset_addr,uin
     BK_CHECK_POINTER_NULL(outdata);
 
     dw_rtn = bk_flash_read( BK_PARTITION_OTA, data_offset_addr, (uint8_t *)outdata, data_length);
-    
+
     return dw_rtn;
 }
 
 /*********************************************************************
  * Funtion Name:bk_erase_ota_data_in_flash
  *
- * Funtion Discription:erase ota data in flash 
+ * Funtion Discription:erase ota data in flash
  *
- * 
  *
- * 
+ *
+ *
  * Date:2022-02-10
  *******************************************************************/
 uint32_t bk_erase_ota_data_in_flash( )
 {
     uint32_t dw_rtn = kNoErr;
-    
+
     dw_rtn = bk_erase_all( BK_PARTITION_OTA);
-    
+
     return dw_rtn;
 }
 
@@ -1146,13 +1160,13 @@ uint32_t bk_erase_ota_data_in_flash_per_sector( uint32_t dw_offaddr)
 
 #if 1
 /*********************************************************************
- * Funtion Name:test bk_flash write 
+ * Funtion Name:test bk_flash write
  *
  * Funtion Discription:check data exit or not
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 void bk_write_data_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv )
@@ -1161,12 +1175,14 @@ void bk_write_data_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
     uint32_t dwLoop = 0;
 
     name_flash_test_t temp_value[] = { \
-        {"bekenspace1" ,"beken_name1" ,"1188888888888811",0}, \
-        {"bekenspace2" ,"beken_name2" ,"2288888888888822",0}, \
-        {"bekenspace3" ,"beken_name3" ,"3388888888888833",0},};
+        {"bekenspace1","beken_name1","1188888888888811",0}, \
+        {"bekenspace2","beken_name2","2288888888888822",0}, \
+        {"bekenspace3","beken_name3","3388888888888833",0},
+    };
 
     name_flash_test_t temp_value1[] = { \
-        {"bekenspace1" ,"beken_name1" ,"1188888888888811909090",0}, };
+        {"bekenspace1","beken_name1","1188888888888811909090",0},
+    };
 
 
     uint32_t dwDataLen = sizeof(temp_value) / sizeof(temp_value[0]);
@@ -1197,7 +1213,7 @@ void bk_write_data_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
 
     if(dwData == 0)
     {
-        for(dwLoop = 0;dwLoop < dwDataLen;dwLoop++)
+        for(dwLoop = 0; dwLoop < dwDataLen; dwLoop++)
         {
             dwRtn = bk_write_data( temp_value[dwLoop].ucNamespace,temp_value[dwLoop].ucName, temp_value[dwLoop].ucData,strlen(temp_value[dwLoop].ucData));
             BK_CHECK_NO_RETURN(dwRtn);
@@ -1205,7 +1221,7 @@ void bk_write_data_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
     }
     else
     {
-        for(dwLoop = 0;dwLoop < dwDataLen1;dwLoop++)
+        for(dwLoop = 0; dwLoop < dwDataLen1; dwLoop++)
         {
             dwRtn = bk_write_data( temp_value1[dwLoop].ucNamespace,temp_value1[dwLoop].ucName, temp_value1[dwLoop].ucData,strlen(temp_value1[dwLoop].ucData));
             BK_CHECK_NO_RETURN(dwRtn);
@@ -1220,9 +1236,9 @@ void bk_write_data_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
  *
  * Funtion Discription:check data exit or not
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 void bk_read_data_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -1231,9 +1247,10 @@ void bk_read_data_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
     uint32_t dwLoop = 0;
     uint32_t dwOut_length = 0;
     name_flash_test_t temp_value[10] = {        \
-        {"bekenspace1" ,"beken_name1" ,"",16},\
-        {"bekenspace2" ,"beken_name2" ,"",16},\
-        {"bekenspace3" ,"beken_name3" ,"",16},};
+        {"bekenspace1","beken_name1","",16},\
+        {"bekenspace2","beken_name2","",16},\
+        {"bekenspace3","beken_name3","",16},
+    };
 
     uint32_t dwDataLen = sizeof(temp_value) / sizeof(temp_value[0]);
     uint32_t dwData = 0;
@@ -1265,9 +1282,9 @@ void bk_read_data_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
         return ;
     }
 
-    dwRtn = bk_read_data(temp_value[dwData].ucNamespace,temp_value[dwData].ucName, temp_value[dwData].ucData, 50 ,&dwOut_length);
+    dwRtn = bk_read_data(temp_value[dwData].ucNamespace,temp_value[dwData].ucName, temp_value[dwData].ucData, 50,&dwOut_length);
     BK_CHECK_NO_RETURN(dwRtn);
-    
+
     bk_printf("Namespace is [%s] \r\n",temp_value[dwData].ucNamespace);
 
     bk_printf("Name is [%s] \r\n",temp_value[dwData].ucName);
@@ -1284,9 +1301,9 @@ void bk_read_data_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char 
  *
  * Funtion Discription:check data exit or not
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 void bk_erase_namespace_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -1294,9 +1311,10 @@ void bk_erase_namespace_test(char *pcWriteBuffer, int xWriteBufferLen, int argc,
     uint32_t dwRtn = 0;
     uint32_t dwLoop = 0;
     name_flash_test_t temp_value[10] = {            \
-        {"bekenspace1" ,"beken_name1" ,"1188888888888811",16}, \
-        {"bekenspace2" ,"beken_name2" ,"2288888888888822",16}, \
-        {"bekenspace3" ,"beken_name3" ,"3388888888888833",16},};
+        {"bekenspace1","beken_name1","1188888888888811",16}, \
+        {"bekenspace2","beken_name2","2288888888888822",16}, \
+        {"bekenspace3","beken_name3","3388888888888833",16},
+    };
 
     uint32_t dwDataLen = sizeof(temp_value) / sizeof(temp_value[0]);
     uint32_t dwData = 0;
@@ -1327,7 +1345,7 @@ void bk_erase_namespace_test(char *pcWriteBuffer, int xWriteBufferLen, int argc,
         bk_printf("dwData [%u] is overflow,the max is %u \r\n",dwData,dwDataLen);
         return ;
     }
-    
+
     dwRtn =  bK_clear_namespace(temp_value[dwData].ucNamespace);
     BK_CHECK_NO_RETURN(dwRtn);
 
@@ -1339,17 +1357,18 @@ void bk_erase_namespace_test(char *pcWriteBuffer, int xWriteBufferLen, int argc,
  *
  * Funtion Discription:check data exit or not
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 void bk_erase_name_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     name_flash_test_t temp_value[10] = {            \
-        {"bekenspace1" ,"beken_name1" ,"1188888888888811",16}, \
-        {"bekenspace2" ,"beken_name2" ,"2288888888888822",16}, \
-        {"bekenspace3" ,"beken_name3" ,"3388888888888833",16},};
+        {"bekenspace1","beken_name1","1188888888888811",16}, \
+        {"bekenspace2","beken_name2","2288888888888822",16}, \
+        {"bekenspace3","beken_name3","3388888888888833",16},
+    };
 
     uint32_t dwDataLen = sizeof(temp_value) / sizeof(temp_value[0]);
     uint32_t dwRtn = 0;
@@ -1376,7 +1395,7 @@ void bk_erase_name_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
         bk_printf("cmd param error \r\n");
         return ;
     }
-    
+
     if(dwData >= dwDataLen)
     {
         bk_printf("dwData [%u] is overflow,the max is %u \r\n",dwData,dwDataLen);
@@ -1394,17 +1413,18 @@ void bk_erase_name_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char
  *
  * Funtion Discription:check data exit or not
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 void  bk_name_data_exits(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
 {
     name_flash_test_t temp_value[10] = {            \
-        {"bekenspace1" ,"beken_name1" ,"1188888888888811",16},\
-        {"bekenspace2" ,"beken_name2" ,"2288888888888822",16},\
-        {"bekenspace3" ,"beken_name3" ,"3388888888888833",16},};
+        {"bekenspace1","beken_name1","1188888888888811",16},\
+        {"bekenspace2","beken_name2","2288888888888822",16},\
+        {"bekenspace3","beken_name3","3388888888888833",16},
+    };
 
     uint32_t dwDataLen = sizeof(temp_value) / sizeof(temp_value[0]);
     uint32_t dwRtn = 0;
@@ -1456,9 +1476,9 @@ void  bk_name_data_exits(char *pcWriteBuffer, int xWriteBufferLen, int argc, cha
  *
  * Funtion Discription:Erase all Matter Flash data
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 void  bk_erase_all_test(char *pcWriteBuffer, int xWriteBufferLen, int argc, char **argv)
@@ -1485,15 +1505,15 @@ extern struct wpa_supplicant *wpa_suppliant_ctrl_get_wpas();
 /*********************************************************************
  * Funtion Name:bk_wifi_info_read
  *
- * Funtion Discription:read wifi data from flash 
+ * Funtion Discription:read wifi data from flash
  *
- * 
  *
- * 
+ *
+ *
  * Date:2021-12-22
  *******************************************************************/
 uint32_t wpa_ssid_key_get(ssid_key_save_t *wpas_get)
-{    
+{
     struct wpa_supplicant *wpa_s = NULL;
 
     if(wpas_get == NULL)

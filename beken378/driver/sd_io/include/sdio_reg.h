@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Beken
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -413,22 +413,22 @@ extern "C" {
 #define SDIO_SD_SLAVE_RDAT_0_POS (0)
 #define SDIO_SD_SLAVE_RDAT_0_MASK (0xFFFFFFFF)
 
-	/* REG_0x14 */
+/* REG_0x14 */
 #define SDIO_REG0X14_ADDR  (SOC_SDIO_REG_BASE + 0x14*4) //REG ADDR :0x458d0050
 #define SDIO_SD_SLAVE_RDAT_1_POS (0)
 #define SDIO_SD_SLAVE_RDAT_1_MASK (0xFFFFFFFF)
 
-	/* REG_0x15 */
+/* REG_0x15 */
 #define SDIO_REG0X15_ADDR  (SOC_SDIO_REG_BASE + 0x15*4) //REG ADDR :0x458d0054
 #define SDIO_SD_SLAVE_WDAT_0_POS (0)
 #define SDIO_SD_SLAVE_WDAT_0_MASK (0xFFFFFFFF)
 
-	/* REG_0x16 */
+/* REG_0x16 */
 #define SDIO_REG0X16_ADDR  (SOC_SDIO_REG_BASE + 0x16*4) //REG ADDR :0x458d0058
 #define SDIO_SD_SLAVE_WDAT_1_POS (0)
 #define SDIO_SD_SLAVE_WDAT_1_MASK (0xFFFFFFFF)
 
-	/* REG_0x17 */
+/* REG_0x17 */
 #define SDIO_REG0X17_ADDR  (SOC_SDIO_REG_BASE + 0x17*4) //REG ADDR :0x458d005c
 #define SDIO_SD_SLAVE_STATUS_ADDR  (SOC_SDIO_REG_BASE + 0x17*4) //REG ADDR :0x458d005c
 #define SDIO_SD_SLAVE_STATUS_CMD_S_RES_DAT_RD_POS (0)

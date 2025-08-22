@@ -1,19 +1,16 @@
-/**
- ****************************************************************************************
- *
- * @file mesh_general_api.h
- *
- * @brief mesh Application general api Module entry point
- *
- * @auth  gang.cheng
- *
- * @date  2019.11.28
- *
- * Copyright (C) Beken 2009-2020
- *
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef MESH_GENERAL_API_H_
 #define MESH_GENERAL_API_H_
@@ -44,10 +41,10 @@
 
 #define LED_SHOW_P1_ENABLE       1
 
-#define POWER_3P5_ENABLE         0  
+#define POWER_3P5_ENABLE         0
 
 typedef uint8_t sys_reset_src_t;
- 
+
 void app_mesh_enable(void);
 void app_mesh_disable(void);
 void app_store_mesh_info(void);

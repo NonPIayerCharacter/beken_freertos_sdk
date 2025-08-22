@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _POWER_SAVE_H_
 #define _POWER_SAVE_H_
 
@@ -80,8 +94,8 @@ typedef enum {
  * @list      list entry that queued to bk_ps_info.wk_list.
  */
 typedef struct ps_do_wkup_sem {
-	beken_semaphore_t wkup_sema;
-	struct co_list_hdr list;
+    beken_semaphore_t wkup_sema;
+    struct co_list_hdr list;
 } PS_DO_WKUP_SEM;
 
 
@@ -102,25 +116,26 @@ typedef struct ps_do_wkup_sem {
  * @wk_list                list of semaphores of tasks that wait for wakeup
  */
 typedef struct ps_sta {
-	PS_ARM_WAKEUP_WAY ps_arm_wakeup_way ;
-	UINT8 ps_real_sleep ;
-	UINT8 sleep_first;
-	UINT8 ps_can_sleep;
-	UINT8 listen_int;
-	PS_LISTEN_MODE listen_mode;
-	UINT8 ps_dtim_period;
-	UINT8 ps_dtim_count;
-	UINT8 ps_dtim_multi;
-	volatile PS_STA_BEACON_STATE waited_beacon;
-	UINT16 ps_beacon_int;
-	UINT32 sleep_count ;
-	struct co_list wk_list;
+    PS_ARM_WAKEUP_WAY ps_arm_wakeup_way ;
+    UINT8 ps_real_sleep ;
+    UINT8 sleep_first;
+    UINT8 ps_can_sleep;
+    UINT8 listen_int;
+    PS_LISTEN_MODE listen_mode;
+    UINT8 keep_alive_per;
+    UINT8 ps_dtim_period;
+    UINT8 ps_dtim_count;
+    UINT8 ps_dtim_multi;
+    volatile PS_STA_BEACON_STATE waited_beacon;
+    UINT16 ps_beacon_int;
+    UINT32 sleep_count ;
+    struct co_list wk_list;
 } STA_PS_INFO;
 
 
 __INLINE struct ps_do_wkup_sem *list2sem(struct co_list_hdr const *l_list)
 {
-	return (struct ps_do_wkup_sem *)(((uint8_t *)l_list) - offsetof(struct ps_do_wkup_sem, list));
+    return (struct ps_do_wkup_sem *)(((uint8_t *)l_list) - offsetof(struct ps_do_wkup_sem, list));
 }
 
 

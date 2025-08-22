@@ -1,19 +1,16 @@
-/**
- ****************************************************************************************
- *
- * @file app_mesh.c
- *
- * @brief mesh Application Module entry point
- *
- * @auth  gang.cheng
- *
- * @date  2018.07.09
- *
- * Copyright (C) Beken 2009-2016
- *
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  ****************************************************************************************
@@ -29,7 +26,7 @@
  ****************************************************************************************
  */
 #include <string.h>
-#include "mesh_general_api.h" 
+#include "mesh_general_api.h"
 #include "lld_adv_test.h"
 #include "app_mesh.h"                // Bracese Application Module Definitions
 #include "app_mm_msg.h"                // Bracese Application Module Definitions
@@ -74,13 +71,13 @@ struct app_mesh_env_tag app_mesh_env;
 uint8_t nvds_ctlset_value = 0;
 uint8_t nvds_ctlset_value_len = 1;
 
-ble_mesh_unprovisioned_data_t unprovisioned_data = 
+ble_mesh_unprovisioned_data_t unprovisioned_data =
 {
     {{0xA8, 0x01, 0x71, 0x33, 0x02, 0x00, 0x00, 0x40, 0x43, 0xF8, 0x07, 0xDA, 0x78, 0x00, 0x00, 0x00}, 0x0000, 0x0},
     {3, 1, 1, 0, 0, 0, 0},
     {0xdd, 0x75, 0x50, 0x72, 0x3b, 0xbe, 0x09, 0xdd, 0xab, 0xc9, 0x60, 0xaa, 0x5e, 0x71, 0x72, 0xf7}
 };
-ble_mesh_composition_data_t composition_data = 
+ble_mesh_composition_data_t composition_data =
 {
     .cid =  0x01A8,
     .feature = M_FEAT_RELAY_NODE_SUP | M_FEAT_PROXY_NODE_SUP | M_FEAT_FRIEND_NODE_SUP | M_FEAT_LOW_POWER_NODE_SUP | M_FEAT_MSG_API_SUP | M_FEAT_PB_GATT_SUP | M_FEAT_DYN_BCN_INTV_SUP,
@@ -101,9 +98,9 @@ void app_mesh_init(void)
     mesh_stack_param_init();
 
     mal_adv_report_register(app_mesh_adv_report_cb);
-#if (MESH_MEM_TB_BUF_DBG)
+    #if (MESH_MEM_TB_BUF_DBG)
     mesh_mem_dbg_init();
-#endif /* MESH_MEM_TB_BUF_DBG */
+    #endif /* MESH_MEM_TB_BUF_DBG */
 }
 
 ble_err_t bk_ble_mesh_create_db(void)
@@ -131,9 +128,9 @@ ble_err_t bk_ble_mesh_create_db(void)
         db_cfg->prf_cfg.pid = composition_data.pid;
         db_cfg->prf_cfg.vid = composition_data.vid;
 
-#if (BLE_MESH_MDL)
+        #if (BLE_MESH_MDL)
         db_cfg->model_cfg.nb_replay = composition_data.crpl;
-#endif // (BLE_MESH_MDL)
+        #endif // (BLE_MESH_MDL)
 
         kernel_state_set(TASK_BLE_APP, APPM_CREATE_DB);
 
@@ -184,13 +181,13 @@ void bk_ble_mesh_set_auth_data(uint8_t *auth_data)
 }
 
 void bk_ble_mesh_set_capabilities(uint8_t number_of_elements,
-                                             uint8_t public_key_type,
-                                             uint8_t static_oob_type,
-                                             uint8_t output_oob_size,
-                                             uint16_t output_oob_action,
-                                             uint8_t input_oob_size,
-                                             uint16_t input_oob_action
-                                             )
+                                  uint8_t public_key_type,
+                                  uint8_t static_oob_type,
+                                  uint8_t output_oob_size,
+                                  uint16_t output_oob_action,
+                                  uint8_t input_oob_size,
+                                  uint16_t input_oob_action
+                                 )
 {
     unprovisioned_data.cap.number_of_elements = number_of_elements;
     unprovisioned_data.cap.public_key_type = public_key_type;
@@ -265,14 +262,14 @@ __STATIC void app_unprov_adv_cb_timerout(void *p_env)
     MESH_APP_PRINT_INFO("%s end!!!\r\n", __func__);
 
     m_bcn_stop_tx_unprov_bcn();
-#if (BLE_MESH_GATT_PROV)
+    #if (BLE_MESH_GATT_PROV)
     m_prov_bearer_gatt_stop();
 
     m_prov_bearer_scan_stop();
-#endif
+    #endif
     rwip_prevent_sleep_clear(BK_MESH_ACTIVE);
 
-#if (UNPROV_TIMEOUT_ADV)
+    #if (UNPROV_TIMEOUT_ADV)
     rwip_prevent_sleep_set(BK_MESH_ACTIVE);
     m_api_prov_param_cfm_t *cfm = KERNEL_MSG_ALLOC(MESH_API_PROV_PARAM_CFM, prf_get_task_from_id(TASK_BLE_ID_MESH), TASK_BLE_APP, m_api_prov_param_cfm);
 
@@ -292,7 +289,7 @@ __STATIC void app_unprov_adv_cb_timerout(void *p_env)
     m_link_open_ack_dis();
     m_stack_param.m_adv_interval = 200;
     m_stack_param.m_bcn_default_unprov_bcn_intv_ms = 60000;
-#endif
+    #endif
 }
 
 void app_unprov_adv_timeout_set(uint32_t timer)
@@ -382,39 +379,42 @@ static int app_mesh_msg_key_ind_handler(kernel_msg_id_t const msgid,
     mem_rcopy(r_key, key->key, MESH_KEY_LEN);
     switch (key->key_type)
     {
-        case M_TB_KEY_DEVICE:
-        {
-            MESH_APP_PRINT_INFO("******************DEVICE key************************\n");
-            MESH_APP_PRINT_INFO("%s\n", mesh_buffer_to_hex(r_key, MESH_KEY_LEN));
-        } break;
-        case M_TB_KEY_NETWORK:
-        {
-            MESH_APP_PRINT_INFO("******************NETWORK key************************\n");
-            MESH_APP_PRINT_INFO("%s\n", mesh_buffer_to_hex(r_key, MESH_KEY_LEN));
-        } break;
-        case M_TB_KEY_APPLICATION:
-        {
-            MESH_APP_PRINT_INFO("******************APPLICATION key********************\n");
-            m_tb_key_app_t *app_key = (m_tb_key_app_t *)param;
-            MESH_APP_PRINT_INFO("%s\n", mesh_buffer_to_hex(r_key, MESH_KEY_LEN));
+    case M_TB_KEY_DEVICE:
+    {
+        MESH_APP_PRINT_INFO("******************DEVICE key************************\n");
+        MESH_APP_PRINT_INFO("%s\n", mesh_buffer_to_hex(r_key, MESH_KEY_LEN));
+    }
+    break;
+    case M_TB_KEY_NETWORK:
+    {
+        MESH_APP_PRINT_INFO("******************NETWORK key************************\n");
+        MESH_APP_PRINT_INFO("%s\n", mesh_buffer_to_hex(r_key, MESH_KEY_LEN));
+    }
+    break;
+    case M_TB_KEY_APPLICATION:
+    {
+        MESH_APP_PRINT_INFO("******************APPLICATION key********************\n");
+        m_tb_key_app_t *app_key = (m_tb_key_app_t *)param;
+        MESH_APP_PRINT_INFO("%s\n", mesh_buffer_to_hex(r_key, MESH_KEY_LEN));
 
-            if(ble_mesh_event_cb)
-            {
-                ble_mesh_event_cb(BLE_MESH_APP_KEY_ADD_DONE, NULL);
-            }
+        if(ble_mesh_event_cb)
+        {
+            ble_mesh_event_cb(BLE_MESH_APP_KEY_ADD_DONE, NULL);
+        }
 
-	        m_tb_state_set_prov_state(M_TB_STATE_PROV_STATE_PROV);
-	        m_tb_state_set_beacon_state(M_CONF_BCN_STATE_BROAD);
-			m_bcn_stop_tx_unprov_bcn();
-#if (BLE_MESH_GATT_PROV)
-    		m_prov_bearer_gatt_stop();
-#endif
-            m_tb_store_config(3); 
-            
-        } break;
+        m_tb_state_set_prov_state(M_TB_STATE_PROV_STATE_PROV);
+        m_tb_state_set_beacon_state(M_CONF_BCN_STATE_BROAD);
+        m_bcn_stop_tx_unprov_bcn();
+        #if (BLE_MESH_GATT_PROV)
+        m_prov_bearer_gatt_stop();
+        #endif
+        m_tb_store_config(3);
 
-        default:
-            break;
+    }
+    break;
+
+    default:
+        break;
     }
 
     return (KERNEL_MSG_CONSUMED);
@@ -429,29 +429,32 @@ static int app_mesh_api_cmp_handler(kernel_msg_id_t const msgid,
     switch (param->cmd_code)
     {
 
-        case M_API_STORAGE_LOAD: //0x50
-        {
-            app_mesh_enable();
-        } break;
+    case M_API_STORAGE_LOAD: //0x50
+    {
+        app_mesh_enable();
+    }
+    break;
 
-        case M_API_ENABLE: //0x0
+    case M_API_ENABLE: //0x0
+    {
+        MESH_APP_PRINT_INFO("M_API_ENABLE param->status %x\n", param->status);
+        if(ble_mesh_event_cb)
         {
-            MESH_APP_PRINT_INFO("M_API_ENABLE param->status %x\n", param->status);
-            if(ble_mesh_event_cb)
-            {
-                ble_mesh_event_cb(BLE_MESH_INIT_DONE, NULL);
-            }
-        } break;
-
-        case M_API_DISABLE: //0x1
-        {
-            // Check that should store the key info to nvs or not.
-            //m_tb_store_nvs_after_stop_scan();
-            //app_mesh_enable();
-            MESH_APP_PRINT_INFO("M_API_DISABLE param->status %x\n", param->status);
+            ble_mesh_event_cb(BLE_MESH_INIT_DONE, NULL);
         }
+    }
+    break;
 
-        default:break;
+    case M_API_DISABLE: //0x1
+    {
+        // Check that should store the key info to nvs or not.
+        //m_tb_store_nvs_after_stop_scan();
+        //app_mesh_enable();
+        MESH_APP_PRINT_INFO("M_API_DISABLE param->status %x\n", param->status);
+    }
+
+    default:
+        break;
     }
 
     return (KERNEL_MSG_CONSUMED);
@@ -464,22 +467,23 @@ static int app_mesh_model_api_cmp_handler(kernel_msg_id_t const msgid,
     MESH_APP_PRINT_INFO("app_mesh_model_api_cmp_handler,cmd_code:0x%x,stu:%x\n", param->cmd_code, param->status);
     switch (param->cmd_code)
     {
-        case MM_API_REGISTER_SERVER://0x0
+    case MM_API_REGISTER_SERVER://0x0
+    {
+        if (param->status == MESH_ERR_NO_ERROR)
         {
-            if (param->status == MESH_ERR_NO_ERROR)
-            {
-                MESH_APP_PRINT_INFO("model register success.\n");
-            }
+            MESH_APP_PRINT_INFO("model register success.\n");
+        }
 
-        } break;
+    }
+    break;
 
-        case MM_API_SRV_SET://200
-        {
+    case MM_API_SRV_SET://200
+    {
 
-        } break;
+    } break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     return (KERNEL_MSG_CONSUMED);
@@ -497,7 +501,7 @@ static int app_mesh_api_prov_auth_data_req_ind_handler(kernel_msg_id_t const msg
 
     cfm->accept = 1;
     cfm->auth_size = param->auth_size;
-    
+
     memcpy(cfm->auth_data, unprovisioned_data.auth_value, param->auth_size);
 
     for (int i =0 ; i < 16; i++)
@@ -591,9 +595,9 @@ static int app_mesh_api_prov_state_ind_handler(kernel_msg_id_t const msgid,
 }
 
 static int app_mesh_api_prov_start_ind_handler(kernel_msg_id_t const msgid,
-		struct m_api_prov_start_ind const *param,
-		kernel_task_id_t const dest_id,
-		kernel_task_id_t const src_id)
+        struct m_api_prov_start_ind const *param,
+        kernel_task_id_t const dest_id,
+        kernel_task_id_t const src_id)
 {
     struct bk_prov_start_ind prov_ind;
 
@@ -602,25 +606,25 @@ static int app_mesh_api_prov_start_ind_handler(kernel_msg_id_t const msgid,
     prov_ind.auth_method = param->auth_method;
     prov_ind.auth_size = param->auth_size;
     prov_ind.pub_key = param->pub_key;
-    
+
     if(ble_mesh_event_cb)
     {
         ble_mesh_event_cb(BLE_MESH_PROV_START, (void *)(&prov_ind));
     }
 
     MESH_APP_PRINT_INFO("+++++%s: \n+++++", __func__);
-	MESH_APP_PRINT_INFO("type= %d, algorithm = %d, pub_key = %d, auth_method= %d, auth_actionio= %d,auth_size =%d\n",
-						param->type,param->algorithm, param->pub_key, 
-					    param->auth_method, param->auth_action, param->auth_size);
+    MESH_APP_PRINT_INFO("type= %d, algorithm = %d, pub_key = %d, auth_method= %d, auth_actionio= %d,auth_size =%d\n",
+                        param->type,param->algorithm, param->pub_key,
+                        param->auth_method, param->auth_action, param->auth_size);
 
     return (KERNEL_MSG_CONSUMED);
 }
 
 static int app_mesh_api_compo_data_ind_handler(
-                    kernel_msg_id_t const msgid,
-                    void const *param,
-                    kernel_task_id_t const dest_id,
-                    kernel_task_id_t const src_id)
+    kernel_msg_id_t const msgid,
+    void const *param,
+    kernel_task_id_t const dest_id,
+    kernel_task_id_t const src_id)
 {
     // m_tb_store_config(5);
     return (KERNEL_MSG_CONSUMED);
@@ -652,7 +656,7 @@ const struct kernel_msg_handler app_mesh_msg_handler_list[] =
 
     {MESH_API_COMPO_DATA_REQ_IND,               (kernel_msg_func_t)app_mesh_api_compo_data_ind_handler},
 
-	{MESH_API_PROV_START_IND,                   (kernel_msg_func_t)app_mesh_api_prov_start_ind_handler},
+    {MESH_API_PROV_START_IND,                   (kernel_msg_func_t)app_mesh_api_prov_start_ind_handler},
 };
 
 const struct kernel_state_handler app_mesh_table_handler =

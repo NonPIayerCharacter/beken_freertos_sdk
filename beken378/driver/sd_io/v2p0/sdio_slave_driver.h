@@ -1,4 +1,4 @@
-// Copyright 2022-2023 Beken
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@
 //LOG's
 typedef enum
 {
-	SDIO_LOG_DEBUG_LEVEL = 0,
-	SDIO_LOG_INFO_LEVEL,
-	SDIO_LOG_WARNING_LEVEL,
-	SDIO_LOG_ERR_LEVEL
-}SDIO_LOG_LEVEL_T;
+    SDIO_LOG_DEBUG_LEVEL = 0,
+    SDIO_LOG_INFO_LEVEL,
+    SDIO_LOG_WARNING_LEVEL,
+    SDIO_LOG_ERR_LEVEL
+} SDIO_LOG_LEVEL_T;
 
 #define SDIO_LOG_OUTPUT_LEVEL (SDIO_LOG_DEBUG_LEVEL)
 
@@ -87,126 +87,126 @@ typedef enum
 
 typedef enum
 {
-	SDIO_CHAN_TX = 0,
-	SDIO_CHAN_RX,
-}chan_direct_t;
+    SDIO_CHAN_TX = 0,
+    SDIO_CHAN_RX,
+} chan_direct_t;
 
 typedef enum
 {
-#ifdef CONFIG_SDIO_CHANNEL_EN
-	SDIO_CHAN_PLATFORM,
-	SDIO_CHAN_WIFI,
-	SDIO_CHAN_MAX_CNT
-#else
-	SDIO_CHAN_PLATFORM,
-	SDIO_CHAN_MAX_CNT
-#endif
-}sdio_chan_id_t;
+    #ifdef CONFIG_SDIO_CHANNEL_EN
+    SDIO_CHAN_PLATFORM,
+    SDIO_CHAN_WIFI,
+    SDIO_CHAN_MAX_CNT
+    #else
+    SDIO_CHAN_PLATFORM,
+    SDIO_CHAN_MAX_CNT
+    #endif
+} sdio_chan_id_t;
 
 typedef enum
 {
-	//CTRL
-	SDIO_CHANNEL_INIT,
-	
-	//READ
-	SDIO_NOTIFY_START_READ,			//CMD53:ISR to Task start to read data to buffer
-	SDIO_READ_TO_FIFO_FINISH,		//sdio block finish,from host to SDIO FIFO
-	SDIO_READ_TO_MEMORY_FINISH,		//DMA finish,from SDIO FIFO to RAM
-	SDIO_MSG_SYNC_READ,
-	SDIO_MSG_ASYNC_READ,
-	
-	//WRITE
-	SDIO_NOTIFY_START_WRITE,		//CMD53:ISR to Task, start to write data from RAM buffer to SDIO FIFO
-	SDIO_WRITE_NOTIFY_FIFO_EMPTY,			//sdio fifo is empty, can write data to SDIO FIFO
-	SDIO_WRITE_TO_FIFO_FINISH,		//DMA finish,from RAM to SDIO FIFO
-	
-	SDIO_WRITE_NODE_FINISH,
-	SDIO_MSG_SYNC_WRITE,
-	SDIO_MSG_ASYNC_WRITE
+    //CTRL
+    SDIO_CHANNEL_INIT,
 
-}sdio_msg_id_t;
+    //READ
+    SDIO_NOTIFY_START_READ,			//CMD53:ISR to Task start to read data to buffer
+    SDIO_READ_TO_FIFO_FINISH,		//sdio block finish,from host to SDIO FIFO
+    SDIO_READ_TO_MEMORY_FINISH,		//DMA finish,from SDIO FIFO to RAM
+    SDIO_MSG_SYNC_READ,
+    SDIO_MSG_ASYNC_READ,
 
-typedef union
-{
-	struct
-	{
-		uint32_t stop : 8;	//1:write, 0:read
-		uint32_t reserve : 24;			//block/byte mode, how many blocks/bytes
-	};
+    //WRITE
+    SDIO_NOTIFY_START_WRITE,		//CMD53:ISR to Task, start to write data from RAM buffer to SDIO FIFO
+    SDIO_WRITE_NOTIFY_FIFO_EMPTY,			//sdio fifo is empty, can write data to SDIO FIFO
+    SDIO_WRITE_TO_FIFO_FINISH,		//DMA finish,from RAM to SDIO FIFO
 
-	uint32_t v;
-}sdio_cmd52_func_arg0_t;
+    SDIO_WRITE_NODE_FINISH,
+    SDIO_MSG_SYNC_WRITE,
+    SDIO_MSG_ASYNC_WRITE
+
+} sdio_msg_id_t;
 
 typedef union
 {
-	struct
-	{
-		uint32_t count : 9;			//block/byte mode, how many blocks/bytes
-#if CONFIG_SDIO_SW_CHANNEL_EN				//BK7256 ASIC not use this bits, SW use it as self-define function
-		uint32_t channel : 3;		//for BK7256 slave channel id
-		uint32_t start_packet : 1;	//Host write:after this CMD53,the data is a new packet start
-		uint32_t end_packet : 1;	//Host write:after this CMD53,the data is a packet end
-		uint32_t sw_reserved : 12;
-#else
-		uint32_t addr : 17;			//SDIO protocal
-#endif
-		uint32_t op_mode : 1;		//1:multi-byte read/write increase address, 0:fixed address;BK7256 not use this bits
-		uint32_t block_mode : 1;	//1:block mode, 0:byte mode
-		uint32_t func_num : 3;		//BK7256 always 1
-		uint32_t rw : 1;			//1:host write, 0:host read
-	};
+    struct
+    {
+        uint32_t stop : 8;	//1:write, 0:read
+        uint32_t reserve : 24;			//block/byte mode, how many blocks/bytes
+    };
 
-	uint32_t v;
-}sdio_cmd53_arg_t;
+    uint32_t v;
+} sdio_cmd52_func_arg0_t;
+
+typedef union
+{
+    struct
+    {
+        uint32_t count : 9;			//block/byte mode, how many blocks/bytes
+        #if CONFIG_SDIO_SW_CHANNEL_EN				//BK7256 ASIC not use this bits, SW use it as self-define function
+        uint32_t channel : 3;		//for BK7256 slave channel id
+        uint32_t start_packet : 1;	//Host write:after this CMD53,the data is a new packet start
+        uint32_t end_packet : 1;	//Host write:after this CMD53,the data is a packet end
+        uint32_t sw_reserved : 12;
+        #else
+        uint32_t addr : 17;			//SDIO protocal
+        #endif
+        uint32_t op_mode : 1;		//1:multi-byte read/write increase address, 0:fixed address;BK7256 not use this bits
+        uint32_t block_mode : 1;	//1:block mode, 0:byte mode
+        uint32_t func_num : 3;		//BK7256 always 1
+        uint32_t rw : 1;			//1:host write, 0:host read
+    };
+
+    uint32_t v;
+} sdio_cmd53_arg_t;
 
 typedef bk_err_t (*sdio_chan_cb_t)(sdio_node_ptr_t head_p, sdio_node_ptr_t tail_p, uint32_t count);
 
 typedef struct
 {
-	//
-	uint32_t buf_cnt;
-	uint32_t buf_size;
+    //
+    uint32_t buf_cnt;
+    uint32_t buf_size;
 
-	//free list
-	sdio_list_t free_list;
-	
-	//txing/rxing list
-	sdio_list_t ongoing_list;
-	//As SDIO each cycle read/write <= 512Bytes, transaction_len record has read/write how many bytes data addr in buffer
-	uint32_t transaction_len;
+    //free list
+    sdio_list_t free_list;
 
-	//tx/rx finish list
-	sdio_list_t finish_list;
+    //txing/rxing list
+    sdio_list_t ongoing_list;
+    //As SDIO each cycle read/write <= 512Bytes, transaction_len record has read/write how many bytes data addr in buffer
+    uint32_t transaction_len;
 
-	//notify app:callback
-	sdio_chan_cb_t cb;
-	void *semaphore;
-	void *lock_p;
-}sdio_chan_buf_t;
+    //tx/rx finish list
+    sdio_list_t finish_list;
 
-typedef struct
-{
-	uint32 tx_direct:1;		//1:enable tx
-	uint32 rx_direct:1;
-	uint32 chan_id:6;
-	uint32 misc_reserve:24;
-
-#if CONFIG_SDIO_BIDIRECT_CHANNEL_EN
-	sdio_chan_buf_t chan_buf[2];	//index 0:tx & index 1:rx
-#else
-	sdio_chan_buf_t chan_buf[1];	//tx or rx
-#endif
-}sdio_chan_t;
+    //notify app:callback
+    sdio_chan_cb_t cb;
+    void *semaphore;
+    void *lock_p;
+} sdio_chan_buf_t;
 
 typedef struct
 {
-	sdio_chan_t chan[SDIO_CHAN_MAX_CNT];
-	void *lock_p;
-}sdio_driver_t;
+    uint32 tx_direct:1;		//1:enable tx
+    uint32 rx_direct:1;
+    uint32 chan_id:6;
+    uint32 misc_reserve:24;
+
+    #if CONFIG_SDIO_BIDIRECT_CHANNEL_EN
+    sdio_chan_buf_t chan_buf[2];	//index 0:tx & index 1:rx
+    #else
+    sdio_chan_buf_t chan_buf[1];	//tx or rx
+    #endif
+} sdio_chan_t;
+
+typedef struct
+{
+    sdio_chan_t chan[SDIO_CHAN_MAX_CNT];
+    void *lock_p;
+} sdio_driver_t;
 
 typedef struct {
-	uint32_t id;
-	uint32_t param;
+    uint32_t id;
+    uint32_t param;
 } sdio_msg_t;
 
 //#define SDIO_MEM_DEBUG
@@ -274,7 +274,7 @@ bk_err_t sdio_slave_notify_host(uint32_t timeout);
  *
  * @return
  *	  - 1:means allow sleep, 0 means host vote bk7256 don't go to sleep.
- *	  - 
+ *	  -
  */
 uint32_t get_controller_wk_slp_status(void);
 
@@ -287,8 +287,8 @@ uint32_t get_controller_wk_slp_status(void);
  * @attention 1. This API should be called after SDIO init.
  *
  * @return
- *	  - 
- *	  - 
+ *	  -
+ *	  -
  */
 void wk_slp_controller_handler(void);
 
@@ -305,13 +305,13 @@ uint64_t check_wakeup_contorller_validity_timeout(void);
  *
  * @param to_host: the gpio num which is used to wake up host or allow host sleep.
  * @param from_host: the gpio num which is used to wake up controller or allow controller sleep from host.
- * 
- * 
+ *
+ *
  * @attention 1. This API should be called after SDIO init.
  *
  * @return
- *	  - 
- *	  - 
+ *	  -
+ *	  -
  */
 void sdio_gpio_notify_transaction_init(uint8_t to_host, uint8_t from_host);
 
@@ -394,13 +394,13 @@ bk_err_t bk_sdio_register_chan_cb(sdio_chan_id_t chan_id, chan_direct_t direct, 
 bk_err_t bk_sdio_slave_sync_read(sdio_chan_id_t chan_id, sdio_node_ptr_t head_p, sdio_node_ptr_t tail_p, uint32_t count);
 
 /**
- * @brief	  
+ * @brief
  *
  * This API .
- *	 - 
- *	 - 
+ *	 -
+ *	 -
  *
- * @attention 1. 
+ * @attention 1.
  *
  * @return
  *	  - BK_OK: succeed
@@ -409,13 +409,13 @@ bk_err_t bk_sdio_slave_sync_read(sdio_chan_id_t chan_id, sdio_node_ptr_t head_p,
 bk_err_t sdio_slave_async_read(sdio_chan_id_t chan_id, sdio_node_ptr_t head_p, sdio_node_ptr_t tail_p, uint32_t count);
 
 /**
- * @brief	  
+ * @brief
  *
  * This API .
- *	 - 
- *	 - 
+ *	 -
+ *	 -
  *
- * @attention 1. 
+ * @attention 1.
  *
  * @return
  *	  - BK_OK: succeed
@@ -425,13 +425,13 @@ bk_err_t bk_sdio_slave_sync_write(sdio_chan_id_t chan_id, sdio_node_ptr_t head_p
 
 
 /**
- * @brief	  
+ * @brief
  *
  * This API .
- *	 - 
- *	 - 
+ *	 -
+ *	 -
  *
- * @attention 1. 
+ * @attention 1.
  *
  * @return
  *	  - BK_OK: succeed
@@ -444,7 +444,7 @@ bk_err_t sdio_slave_async_write(sdio_chan_id_t chan_id, sdio_node_ptr_t head_p, 
  *
  * This API Push the data use finish link list to free list.
  *	 - Link the link list to free list.
- *   - 
+ *   -
  *
  * @param chan_id	The selected chan id.
  * @param direct	The channel used for TX data or RX data
@@ -459,12 +459,12 @@ bk_err_t sdio_slave_async_write(sdio_chan_id_t chan_id, sdio_node_ptr_t head_p, 
  *	  - others: other errors.
  */
 bk_err_t bk_sdio_chan_push_free_list(
-										sdio_chan_id_t chan_id, 
-										chan_direct_t direct,
-										sdio_node_ptr_t head_p,
-										sdio_node_ptr_t tail_p,
-										uint32_t count
-										);
+    sdio_chan_id_t chan_id,
+    chan_direct_t direct,
+    sdio_node_ptr_t head_p,
+    sdio_node_ptr_t tail_p,
+    uint32_t count
+);
 
 /**
  * @brief	  Pop a free node from the selected channel and direct.
@@ -487,22 +487,22 @@ bk_err_t bk_sdio_chan_push_free_list(
 bk_err_t bk_sdio_chan_pop_free_node(sdio_chan_id_t chan_id, chan_direct_t direct, sdio_node_ptr_t *node_p, uint32_t *size_p);
 
 void sdio_chan_push_ongoing_node(
-										sdio_chan_id_t chan_id, 
-										chan_direct_t direct,
-										sdio_node_ptr_t head_p,
-										sdio_node_ptr_t tail_p,
-										uint32_t count
-										);
+    sdio_chan_id_t chan_id,
+    chan_direct_t direct,
+    sdio_node_ptr_t head_p,
+    sdio_node_ptr_t tail_p,
+    uint32_t count
+);
 
 bk_err_t sdio_chan_pop_ongoing_node(sdio_chan_id_t chan_id, chan_direct_t direct, sdio_node_ptr_t *head_p);
 
 bk_err_t sdio_chan_push_finish_list(
-										sdio_chan_id_t chan_id, 
-										chan_direct_t direct,
-										sdio_node_ptr_t head_p,
-										sdio_node_ptr_t tail_p,
-										uint32_t count
-										);
+    sdio_chan_id_t chan_id,
+    chan_direct_t direct,
+    sdio_node_ptr_t head_p,
+    sdio_node_ptr_t tail_p,
+    uint32_t count
+);
 
 bk_err_t sdio_chan_pop_finish_node(sdio_chan_id_t chan_id, chan_direct_t direct, sdio_node_ptr_t *node_p);
 

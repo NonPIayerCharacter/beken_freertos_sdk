@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __RTOS_PUB__
 #define __RTOS_PUB__
 
@@ -75,9 +89,9 @@ typedef enum
 
 typedef enum
 {
-	BEKEN_TIMER_INIT = 0,
-	BEKEN_TIMER_DELETING,
-	BEKEN_TIMER_DELETED,
+    BEKEN_TIMER_INIT = 0,
+    BEKEN_TIMER_DELETING,
+    BEKEN_TIMER_DELETED,
 } beken_timer_state_t;
 
 typedef struct
@@ -85,7 +99,7 @@ typedef struct
     void *          handle;
     timer_handler_t function;
     void *          arg;
-	volatile beken_timer_state_t state;
+    volatile beken_timer_state_t state;
 } beken_timer_t;
 
 typedef struct
@@ -111,9 +125,9 @@ typedef struct
     timer_2handler_t function;
     void *          left_arg;
     void *          right_arg;
-	volatile beken_timer_state_t state;
-	uint32_t        beken_magic;
-}beken2_timer_t;
+    volatile beken_timer_state_t state;
+    uint32_t        beken_magic;
+} beken2_timer_t;
 
 typedef void (*beken_thread_function_t)( beken_thread_arg_t arg);
 
@@ -674,10 +688,10 @@ uint64_t rtos_get_time_us( void );
   * @return    kGeneralErr   : if an error occurred
   */
 OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer,
-									uint32_t time_ms,
-									timer_2handler_t function,
-									void* larg,
-									void* rarg);
+                                  uint32_t time_ms,
+                                  timer_2handler_t function,
+                                  void* larg,
+                                  void* rarg);
 
 
 /**

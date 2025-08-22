@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 
 #if (CFG_USE_APP_DEMO_VIDEO_TRANSFER)
@@ -158,7 +172,7 @@ static int video_buffer_recv_video_data(UINT8 *data, UINT32 len)
                         g_vbuf->start_buf = BUF_STA_ERR;
                         GLOBAL_INT_RESTORE();
                     }
-                   // all frame data have received, wakeup usr thread
+                    // all frame data have received, wakeup usr thread
                     rtos_set_semaphore(&g_vbuf->aready_semaphore);
                 }
             }
@@ -437,28 +451,28 @@ void video_buffer(int argc, char **argv)
     {
         video_buffer_close();
     }
-	else if (strcmp(argv[1], "reg_r") == 0)
-	{
-		extern UINT32 camera_intfer_get_senser_reg(UINT16 addr, UINT8 *data);
-		UINT16 addr;
-		UINT8 data;
+    else if (strcmp(argv[1], "reg_r") == 0)
+    {
+        extern UINT32 camera_intfer_get_senser_reg(UINT16 addr, UINT8 *data);
+        UINT16 addr;
+        UINT8 data;
 
-		hexstr2bin((const char *)argv[2], (UINT8*)&addr, 1);
-		camera_intfer_get_senser_reg(addr, &data);
-		os_printf("read senser reg:%02x, %02x\r\n", addr, data);
-	}
-	else if (strcmp(argv[1], "reg_w") == 0)
-	{
-		extern UINT32 camera_intfer_set_senser_reg(UINT16 addr, UINT8 data);
-		UINT16 addr;
-		UINT8 data;
+        hexstr2bin((const char *)argv[2], (UINT8*)&addr, 1);
+        camera_intfer_get_senser_reg(addr, &data);
+        os_printf("read senser reg:%02x, %02x\r\n", addr, data);
+    }
+    else if (strcmp(argv[1], "reg_w") == 0)
+    {
+        extern UINT32 camera_intfer_set_senser_reg(UINT16 addr, UINT8 data);
+        UINT16 addr;
+        UINT8 data;
 
-		hexstr2bin((const char *)argv[2], (UINT8*)&addr, 1);
-		hexstr2bin((const char *)argv[3], (UINT8*)&data, 1);
+        hexstr2bin((const char *)argv[2], (UINT8*)&addr, 1);
+        hexstr2bin((const char *)argv[3], (UINT8*)&data, 1);
 
-		camera_intfer_set_senser_reg(addr, data);
-		os_printf("write senser reg:%02x, %02x\r\n", addr, data);
-	}
+        camera_intfer_set_senser_reg(addr, data);
+        os_printf("write senser reg:%02x, %02x\r\n", addr, data);
+    }
     else
     {
         os_printf("vbuf open/read len/close/\r\n");

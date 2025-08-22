@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -37,7 +51,7 @@ static void gdma_set_dma_en(UINT32 channel, UINT32 enable)
 static UINT32 gdma_get_dma_en(UINT32 channel)
 {
     UINT32 reg_addr = GENER_DMA0_REG0_CONF + (channel * 8 * 4);
-    
+
     return REG_READ(reg_addr) & GDMA_X_DMA_EN;
 }
 
@@ -245,7 +259,7 @@ static UINT32 gdma_get_remain_len(UINT32 channel)
 {
     UINT32 reg_addr = GENER_DMA0_REG30_INT_CNTS + (channel * 4);
     UINT32 reg_val = REG_READ(reg_addr);
-    
+
     return ((reg_val >> GDMA_X_REMAIN_LEN_POSI) & GDMA_X_REMAIN_LEN_MASK);
 }
 
@@ -257,7 +271,7 @@ static void gdma_set_src_reqmux(UINT32 channel, UINT32 reqmux)
     reg_val &= ~(GDMA_X_SRC_REQ_MASK << GDMA_X_SRC_REQ_POSI);
 
     reg_val |= ((reqmux & GDMA_X_SRC_REQ_MASK) << GDMA_X_SRC_REQ_POSI);
-    
+
     REG_WRITE(reg_addr, reg_val);
 }
 
@@ -269,7 +283,7 @@ static void gdma_set_dst_reqmux(UINT32 channel, UINT32 reqmux)
     reg_val &= ~(GDMA_X_DST_REQ_MASK << GDMA_X_DST_REQ_POSI);
 
     reg_val |= ((reqmux & GDMA_X_DST_REQ_MASK) << GDMA_X_DST_REQ_POSI);
-    
+
     REG_WRITE(reg_addr, reg_val);
 }
 
@@ -289,7 +303,7 @@ static UINT32 gdma_get_finish_cnt(UINT32 channel)
 {
     UINT32 reg_addr = GENER_DMA0_REG30_INT_CNTS + (channel * 4);
     UINT32 reg_val = REG_READ(reg_addr);
-    
+
     return ((reg_val >> GDMA_X_FIN_CNT_POSI) & GDMA_X_FIN_CNT_MASK);
 }
 
@@ -297,7 +311,7 @@ static UINT32 gdma_get_half_finish_cnt(UINT32 channel)
 {
     UINT32 reg_addr = GENER_DMA0_REG30_INT_CNTS + (channel * 4);
     UINT32 reg_val = REG_READ(reg_addr);
-    
+
     return ((reg_val >> GDMA_X_HFIN_CNT_POSI) & GDMA_X_HFIN_CNT_MASK);
 }
 
@@ -333,7 +347,7 @@ static void gdma_clr_finish_interrupt_bit(UINT32 channel)
     UINT32 reg_val;
 
     reg_val = ( 0x1 << channel);
-    
+
     #if (CFG_SOC_NAME == SOC_BK7231)
     REG_WRITE(GENER_DMA_REG20_DMA_INT_STATUS, reg_val);
     #else
@@ -439,8 +453,8 @@ static int gdma_get_received_len(UINT32 channel)
         GENER_DMA_WPRT("gdma channel err\r\n");
         return 0;
     }
-    
-    return (int)gdma_get_remain_len(channel); 
+
+    return (int)gdma_get_remain_len(channel);
 }
 
 // no loop src, no loop dst
@@ -577,11 +591,11 @@ static void gdma_congfig_type4(GDMACFG_TPYES_PTR cfg)
     gdma_set_dst_reqmux(cfg->channel, cfg->dst_module);
     gdma_cfg_work_mode(cfg->channel, 1);  // repeat mode
 
-    gdma_cfg_srcaddr_loop(cfg->channel, 1); 
+    gdma_cfg_srcaddr_loop(cfg->channel, 1);
 
     gdma_cfg_dstaddr_increase(cfg->channel, 0);
     gdma_cfg_srcaddr_increase(cfg->channel, cfg->srcptr_incr);
-    
+
     gdma_cfg_srcdata_width(cfg->channel, cfg->srcdat_width);
     gdma_cfg_dstdata_width(cfg->channel, cfg->dstdat_width);
     gdma_set_channel_prioprity(cfg->channel, cfg->prio);
@@ -596,7 +610,7 @@ static void gdma_congfig_type4(GDMACFG_TPYES_PTR cfg)
         gdma_cfg_finish_inten(cfg->channel, 1);
         p_dma_fin_handler[cfg->channel] = cfg->fin_handler;
     }
-    
+
     if(cfg->half_fin_handler) {
         gdma_cfg_half_fin_inten(cfg->channel, 1);
         p_dma_hfin_handler[cfg->channel] = cfg->half_fin_handler;
@@ -619,11 +633,11 @@ static void gdma_congfig_type5(GDMACFG_TPYES_PTR cfg)
     gdma_set_dst_reqmux(cfg->channel, cfg->dst_module);
     gdma_cfg_work_mode(cfg->channel, 1);  // repeat mode
 
-    gdma_cfg_dstaddr_loop(cfg->channel, 1); 
+    gdma_cfg_dstaddr_loop(cfg->channel, 1);
 
     gdma_cfg_srcaddr_increase(cfg->channel, 0);
     gdma_cfg_dstaddr_increase(cfg->channel, cfg->dstptr_incr);
-    
+
     gdma_cfg_srcdata_width(cfg->channel, cfg->srcdat_width);
     gdma_cfg_dstdata_width(cfg->channel, cfg->dstdat_width);
     gdma_set_channel_prioprity(cfg->channel, cfg->prio);
@@ -638,7 +652,7 @@ static void gdma_congfig_type5(GDMACFG_TPYES_PTR cfg)
         gdma_cfg_finish_inten(cfg->channel, 1);
         p_dma_fin_handler[cfg->channel] = cfg->fin_handler;
     }
-    
+
     if(cfg->half_fin_handler) {
         gdma_cfg_half_fin_inten(cfg->channel, 1);
         p_dma_hfin_handler[cfg->channel] = cfg->half_fin_handler;
@@ -681,23 +695,23 @@ static UINT32 gdma_enable( GDMA_DO_PTR do_st )
 /*---------------------------------------------------------------------------*/
 void gdma_flush(void)
 {
-	UINT32 status;
+    UINT32 status;
 
-	gdma_set_dma_en(GDMA_CHANNEL_0, 0);
-	gdma_set_dma_en(GDMA_CHANNEL_1, 0);
-	gdma_set_dma_en(GDMA_CHANNEL_2, 0);
-	gdma_set_dma_en(GDMA_CHANNEL_3, 0);
-	
-	#if (CFG_SOC_NAME != SOC_BK7231)
-	gdma_set_dma_en(GDMA_CHANNEL_4, 0);
-	gdma_set_dma_en(GDMA_CHANNEL_5, 0);
+    gdma_set_dma_en(GDMA_CHANNEL_0, 0);
+    gdma_set_dma_en(GDMA_CHANNEL_1, 0);
+    gdma_set_dma_en(GDMA_CHANNEL_2, 0);
+    gdma_set_dma_en(GDMA_CHANNEL_3, 0);
+
+    #if (CFG_SOC_NAME != SOC_BK7231)
+    gdma_set_dma_en(GDMA_CHANNEL_4, 0);
+    gdma_set_dma_en(GDMA_CHANNEL_5, 0);
 
     status = REG_READ(GENER_DMA_REG38_DMA_INT_STATUS);
-	REG_WRITE(GENER_DMA_REG38_DMA_INT_STATUS, status);
+    REG_WRITE(GENER_DMA_REG38_DMA_INT_STATUS, status);
     #else
     status = REG_READ(GENER_DMA_REG20_DMA_INT_STATUS);
-	REG_WRITE(GENER_DMA_REG20_DMA_INT_STATUS, status);
-	#endif
+    REG_WRITE(GENER_DMA_REG20_DMA_INT_STATUS, status);
+    #endif
 }
 
 void gdma_init(void)
@@ -707,11 +721,11 @@ void gdma_init(void)
     intc_service_register(IRQ_GENERDMA, PRI_IRQ_GENERDMA, gdma_isr);
     sddev_register_dev(GDMA_DEV_NAME, &gdma_op);
 
-#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
-	UINT32 param;
-	param = PWD_GDMA_CLK_BIT;
-	sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);//clk power up
-#endif
+    #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    UINT32 param;
+    param = PWD_GDMA_CLK_BIT;
+    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);//clk power up
+    #endif
 
     #if (CFG_SOC_NAME != SOC_BK7231)
     for(int i=0; i<GDMA_CHANNEL_MAX; i++) {
@@ -719,9 +733,9 @@ void gdma_init(void)
         p_dma_hfin_handler[i] = NULL;
     }
     #endif // (CFG_SOC_NAME != SOC_BK7231)
-    
+
     os_memset(&cfg, 0, sizeof(GDMACFG_TPYES_ST));
-	gdma_flush();
+    gdma_flush();
 
     cfg.dstdat_width = 32;
     cfg.srcdat_width = 32;
@@ -745,7 +759,7 @@ void gdma_init(void)
     cfg.u.type2.dst_loop_start_addr = NULL;
     cfg.u.type2.dst_loop_end_addr = NULL;
     gdma_congfig_type2(&cfg);
-    
+
     cfg.channel = GDMA_CHANNEL_3;
     cfg.prio = 2;
     cfg.u.type3.src_loop_start_addr = NULL;
@@ -753,8 +767,8 @@ void gdma_init(void)
     cfg.u.type3.dst_loop_start_addr = NULL;
     cfg.u.type3.dst_loop_end_addr = NULL;
     gdma_congfig_type3(&cfg);
-    
-#if (CFG_SOC_NAME != SOC_BK7231)
+
+    #if (CFG_SOC_NAME != SOC_BK7231)
     cfg.channel = GDMA_CHANNEL_4;
     cfg.prio = 0;
     cfg.u.type1.src_loop_start_addr = NULL;
@@ -763,7 +777,7 @@ void gdma_init(void)
     cfg.half_fin_handler = NULL;
     cfg.src_module = GDMA_X_SRC_DST_RESERVE;
     cfg.dst_module = GDMA_X_SRC_DST_RESERVE;
-    gdma_congfig_type1(&cfg);   
+    gdma_congfig_type1(&cfg);
 
     cfg.channel = GDMA_CHANNEL_5;
     cfg.prio = 0;
@@ -773,17 +787,17 @@ void gdma_init(void)
     cfg.half_fin_handler = NULL;
     cfg.src_module = GDMA_X_SRC_DST_RESERVE;
     cfg.dst_module = GDMA_X_SRC_DST_RESERVE;
-    gdma_congfig_type2(&cfg); 
+    gdma_congfig_type2(&cfg);
 
     gdma_set_priority(0);  // round-robin mode, all dma priority are same
     gdma_enable_interrupt();
-#endif // (CFG_SOC_NAME != SOC_BK7231)
+    #endif // (CFG_SOC_NAME != SOC_BK7231)
 }
 
 void gdma_exit(void)
 {
     gdma_disable_interrupt();
-    
+
     REG_WRITE(GENER_DMA0_REG0_CONF, 0);
     REG_WRITE(GENER_DMA1_REG8_CONF, 0);
     REG_WRITE(GENER_DMA2_REG10_CONF, 0);
@@ -791,13 +805,13 @@ void gdma_exit(void)
 
     #if (CFG_SOC_NAME == SOC_BK7231)
     REG_WRITE(GENER_DMA_REG20_DMA_INT_STATUS,
-    REG_READ(GENER_DMA_REG20_DMA_INT_STATUS));
+              REG_READ(GENER_DMA_REG20_DMA_INT_STATUS));
     #else
     REG_WRITE(GENER_DMA4_REG20_CONF, 0);
     REG_WRITE(GENER_DMA5_REG28_CONF, 0);
-    
+
     REG_WRITE(GENER_DMA_REG38_DMA_INT_STATUS,
-    REG_READ(GENER_DMA_REG38_DMA_INT_STATUS));
+              REG_READ(GENER_DMA_REG38_DMA_INT_STATUS));
     #endif // (CFG_SOC_NAME == SOC_BK7231)
 
     sddev_unregister_dev(GDMA_DEV_NAME);
@@ -824,11 +838,11 @@ UINT32 gdma_ctrl(UINT32 cmd, void *param)
     case CMD_GDMA_CFG_HFIN_INT_ENABLE:
         gdma_cfg_half_fin_inten(dma_cfg->channel, dma_cfg->param);
         break;
-    #if (CFG_SOC_NAME != SOC_BK7231)    
+        #if (CFG_SOC_NAME != SOC_BK7231)
     case CMD_GDMA_CFG_WORK_MODE:
         gdma_cfg_work_mode(dma_cfg->channel, dma_cfg->param);
         break;
-    #endif // (CFG_SOC_NAME != SOC_BK7231)      
+        #endif // (CFG_SOC_NAME != SOC_BK7231)
     case CMD_GDMA_CFG_SRCDATA_WIDTH:
         gdma_cfg_srcdata_width(dma_cfg->channel, dma_cfg->param);
         break;
@@ -873,17 +887,17 @@ UINT32 gdma_ctrl(UINT32 cmd, void *param)
         break;
     case CMD_GDMA_GET_REMAIN_LENGTH:
         ret = gdma_get_remain_len(dma_cfg->channel);
-        break;  
-    #if (CFG_SOC_NAME != SOC_BK7231)
+        break;
+        #if (CFG_SOC_NAME != SOC_BK7231)
     case CMD_GDMA_SET_DST_REQ_MUX:
         gdma_set_dst_reqmux(dma_cfg->channel, dma_cfg->param);
         break;
     case CMD_GDMA_SET_SRC_REQ_MUX:
         gdma_set_src_reqmux(dma_cfg->channel, dma_cfg->param);
-        break;  
+        break;
     case CMD_GDMA_SET_DTCM_WRITE_WORD:
         gdma_set_dctm_write_wd(dma_cfg->channel, dma_cfg->param);
-        break;        
+        break;
     case CMD_GDMA_SET_FIN_CNT:
         ret = gdma_get_finish_cnt((UINT32)param);
         break;
@@ -893,7 +907,7 @@ UINT32 gdma_ctrl(UINT32 cmd, void *param)
     case CMD_GDMA_SET_PRIO_MODE:
         gdma_set_priority(dma_cfg->param);
         break;
-    #endif // (CFG_SOC_NAME != SOC_BK7231)   
+        #endif // (CFG_SOC_NAME != SOC_BK7231)
     case CMD_GDMA_GET_FIN_INT_STATUS:
         ret = gdma_get_finish_interrupt_bit(dma_cfg->channel);
         break;
@@ -918,7 +932,7 @@ UINT32 gdma_ctrl(UINT32 cmd, void *param)
     case CMD_GDMA_CFG_TYPE3:
         gdma_congfig_type3((GDMACFG_TPYES_PTR)param);
         break;
-#if (CFG_SOC_NAME != SOC_BK7231)        
+        #if (CFG_SOC_NAME != SOC_BK7231)
     case CMD_GDMA_CFG_TYPE4:
         gdma_congfig_type4((GDMACFG_TPYES_PTR)param);
         break;
@@ -928,16 +942,16 @@ UINT32 gdma_ctrl(UINT32 cmd, void *param)
     case CMD_GDMA_CFG_TYPE6:
         gdma_congfig_type6((GDMACFG_TPYES_PTR)param);
         break;
-#endif        
+        #endif
     case CMD_GDMA_ENABLE:
         gdma_enable((GDMA_DO_PTR)param);
         break;
-    #if (CFG_SOC_NAME != SOC_BK7231)
+        #if (CFG_SOC_NAME != SOC_BK7231)
     case CMD_GDMA_GET_LEFT_LEN:
         ret = gdma_get_received_len((UINT32)param);
         break;
-    #endif // (CFG_SOC_NAME != SOC_BK7231)
-    #if (CFG_SOC_NAME == SOC_BK7221U)
+        #endif // (CFG_SOC_NAME != SOC_BK7231)
+        #if (CFG_SOC_NAME == SOC_BK7221U)
     case CMD_GDMA_SET_SRC_PAUSE_ADDR:
         gdma_set_src_pause_addr(dma_cfg->channel, dma_cfg->param);
         break;
@@ -956,7 +970,7 @@ UINT32 gdma_ctrl(UINT32 cmd, void *param)
     case CMD_GDMA_GET_DST_WRITE_ADDR:
         ret = gdma_get_dest_write_addr(dma_cfg->channel);
         break;
-    #endif // (CFG_SOC_NAME == SOC_BK7221U)
+        #endif // (CFG_SOC_NAME == SOC_BK7221U)
     default:
         break;
     }
@@ -969,14 +983,14 @@ void *gdma_memcpy(void *out, const void *in, UINT32 n)
 {
     GLOBAL_INT_DECLARATION();
     GDMA_DO_ST do_st;
-    
+
     do_st.channel = GDMA_CHANNEL_0;
     do_st.src_addr = (void*)in;
     do_st.length = n;
     do_st.dst_addr = out;
     GLOBAL_INT_DISABLE();
     gdma_enable(&do_st);
-    GLOBAL_INT_RESTORE();    
+    GLOBAL_INT_RESTORE();
 
     return out;
 }
@@ -992,22 +1006,22 @@ static void gdma_isr(void)
 
     for(i = 0; i < GDMA_CHANNEL_MAX; i++)
     {
-        rev_len = gdma_get_transfer_length(i) - gdma_get_remain_len(i); 
+        rev_len = gdma_get_transfer_length(i) - gdma_get_remain_len(i);
         rev_len = rev_len;
-        
+
         cmp_bit = (1 << (i+GENER_DMA_HFIN_INT_STATUS_POSI));
         if(status & cmp_bit)
         {
-            if(p_dma_hfin_handler[i]){
+            if(p_dma_hfin_handler[i]) {
                 p_dma_hfin_handler[i](0);
                 REG_WRITE(GENER_DMA_REG38_DMA_INT_STATUS, cmp_bit);
             }
         }
 
         cmp_bit = (1 << (i+GENER_DMA_FIN_INT_STATUS_POSI));
-        if(status & cmp_bit) 
+        if(status & cmp_bit)
         {
-            if(p_dma_fin_handler[i]){
+            if(p_dma_fin_handler[i]) {
                 p_dma_fin_handler[i](1);
                 REG_WRITE(GENER_DMA_REG38_DMA_INT_STATUS, cmp_bit);
             }

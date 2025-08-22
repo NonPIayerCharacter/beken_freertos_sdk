@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __BK_CAL_PUB_H__
 #define __BK_CAL_PUB_H__
 
@@ -74,10 +88,16 @@ extern const UINT16 shift_tab_b[4];   // 11M base,5.5M,2M,1M
 extern const UINT16 shift_tab_g[8];   // 54M base,48M,36M,24M,18M,12M,9M,6M
 extern const UINT16 shift_tab_n20[8]; // n20 mcs7base -  mcs0
 extern const UINT16 shift_tab_n40[8]; // n40 mcs7base -  mcs0
-extern const INT16 fcc_shift_tab_b_ch13[4];   // 11M base,5.5M,2M,1M
-extern const INT16 fcc_shift_tab_g_ch13[8];   // 54M base,48M,36M,24M,18M,12M,9M,6M
-extern const INT16 fcc_shift_tab_n20_ch13[8]; // n20 mcs7base -  mcs0
-extern const INT16 fcc_shift_tab_n40_ch13[8]; // n40 mcs7base -  mcs0
+
+extern const INT16 shift_tab_b_fcc[WLAN_2_4_G_CHANNEL_NUM];   // ch1~14
+extern const INT16 shift_tab_g_fcc[WLAN_2_4_G_CHANNEL_NUM];   // ch1~14
+extern const INT16 shift_tab_n20_fcc[WLAN_2_4_G_CHANNEL_NUM]; // ch1~14
+extern const INT16 shift_tab_n40_fcc[WLAN_2_4_G_CHANNEL_NUM]; // ch1~14
+
+extern const INT16 shift_tab_b_srrc[WLAN_2_4_G_CHANNEL_NUM];   // ch1~14
+extern const INT16 shift_tab_g_srrc[WLAN_2_4_G_CHANNEL_NUM];   // ch1~14
+extern const INT16 shift_tab_n20_srrc[WLAN_2_4_G_CHANNEL_NUM]; // ch1~14
+extern const INT16 shift_tab_n40_srrc[WLAN_2_4_G_CHANNEL_NUM]; // ch1~14
 
 extern float target_pwr_ble; //2G4 BLE target power
 extern float target_pwr_11b; //2G4 11B target power

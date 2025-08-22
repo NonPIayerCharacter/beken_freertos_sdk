@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Beken
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ bk_err_t bk_sd_card_erase(uint32_t start_block_addr, uint32_t end_block_addr);
  *        So add an API to APP do sync by itself.I.E: FATFS completes read or write will call this API
  *        to confirm data has flushed to sd-card's flash memory.
  *
- * @param 
+ * @param
  * @param end_block_addr end block address
  *
  * @return

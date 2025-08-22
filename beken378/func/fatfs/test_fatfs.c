@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <stdio.h>
 #include <string.h>
 #include "include.h"
@@ -71,13 +85,13 @@ void test_mount(DISK_NUMBER number)
     {
         os_free(pfs);
     }
-	
+
     pfs = os_malloc(sizeof(FATFS));
-	if(NULL == pfs)
-	{
-		os_printf("f_mount malloc failed!\r\n");
-		goto failed_mount;
-	}
+    if(NULL == pfs)
+    {
+        os_printf("f_mount malloc failed!\r\n");
+        goto failed_mount;
+    }
 
     sprintf(cFileName, "%d:", number);
     fr = f_mount(pfs, cFileName, 1);
@@ -89,7 +103,7 @@ void test_mount(DISK_NUMBER number)
     {
         os_printf("f_mount OK!\r\n");
     }
-	
+
 failed_mount:
     os_printf("----- test_mount %d over  -----\r\n\r\n", number);
 }

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "rwip_config.h"
 
 #if (BLE_COMM_SERVER)
@@ -17,14 +31,14 @@ static uint8_t bk_ble_service_init (struct prf_task_env* env, uint16_t* start_hd
 
     //-------------------- allocate memory required for the profile  ---------------------
     ble_env = (struct bk_ble_env_tag* ) kernel_malloc(sizeof(struct bk_ble_env_tag), KERNEL_MEM_ATT_DB);
-    memset(ble_env, 0 , sizeof(struct bk_ble_env_tag));
+    memset(ble_env, 0, sizeof(struct bk_ble_env_tag));
 
     shdl = *start_hdl;
 
     //Create FFF0 in the DB
     //------------------ create the attribute database for the profile -------------------
     status = attm_svc_create_db_128(&(shdl), params->uuid, NULL, params->att_db_nb,
-                 NULL, env->task, (struct attm_desc_128 *)params->att_db, sec_lvl);
+                                    NULL, env->task, (struct attm_desc_128 *)params->att_db, sec_lvl);
 
     //-------------------- Update profile task information  ---------------------
     if (status == ATT_ERR_NO_ERROR)
@@ -35,7 +49,7 @@ static uint8_t bk_ble_service_init (struct prf_task_env* env, uint16_t* start_hd
         *start_hdl = shdl;
         ble_env->start_hdl = *start_hdl;
         ble_env->prf_env.app_task = app_task
-                | (PERM_GET(sec_lvl, SVC_MI) ? PERM(PRF_MI, ENABLE) : PERM(PRF_MI, DISABLE));
+                                    | (PERM_GET(sec_lvl, SVC_MI) ? PERM(PRF_MI, ENABLE) : PERM(PRF_MI, DISABLE));
         ble_env->prf_env.prf_task = env->task | PERM(PRF_MI, DISABLE);
 
         ble_env->att_db_nb = params->att_db_nb;
@@ -96,15 +110,15 @@ static void bk_ble_service_cleanup(struct prf_task_env* env, uint8_t conidx, uin
 ///  Task interface required by profile manager
 const struct prf_task_cbs bk_ble_itf =
 {
-        (prf_init_fnct) bk_ble_service_init,
-        bk_ble_service_destroy,
-        bk_ble_service_create,
-        bk_ble_service_cleanup,
+    (prf_init_fnct) bk_ble_service_init,
+    bk_ble_service_destroy,
+    bk_ble_service_create,
+    bk_ble_service_cleanup,
 };
 
 const struct prf_task_cbs* bk_ble_prf_itf_get(void)
 {
-   return &bk_ble_itf;
+    return &bk_ble_itf;
 }
 
 #endif

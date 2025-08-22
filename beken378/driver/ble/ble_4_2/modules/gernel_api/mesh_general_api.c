@@ -1,19 +1,16 @@
-/**
- ****************************************************************************************
- *
- * @file mesh_general_api.c
- *
- * @brief mesh Application Module general api entry point
- *
- * @auth  gang.cheng
- *
- * @date  2019.11.28
- *
- * Copyright (C) Beken 2009-2020
- *
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  ****************************************************************************************
@@ -22,10 +19,10 @@
  ****************************************************************************************
  */
 
- /*
- * INCLUDE FILES
- ****************************************************************************************
- */
+/*
+* INCLUDE FILES
+****************************************************************************************
+*/
 #include <string.h>
 #include "mesh_general_api.h"                // Bracese Application Module Definitions
 #include "app_mm_msg.h"                // Bracese Application Module Definitions
@@ -55,28 +52,28 @@ uint16_t g_app_key_id = 0;
 
 void app_set_dev_key_param(uint8_t *p_dev_key)
 {
-	if(p_dev_key != NULL)
-	{
-		memcpy(g_dev_key, p_dev_key, MESH_KEY_LEN);
-	}
+    if(p_dev_key != NULL)
+    {
+        memcpy(g_dev_key, p_dev_key, MESH_KEY_LEN);
+    }
 }
 
 void app_set_net_key_param(uint8_t *p_net_key, uint16 key_id)
 {
-	if(p_net_key != NULL)
-	{
-		memcpy(g_net_key, p_net_key, MESH_KEY_LEN);
-		g_net_key_id = key_id;
-	}
+    if(p_net_key != NULL)
+    {
+        memcpy(g_net_key, p_net_key, MESH_KEY_LEN);
+        g_net_key_id = key_id;
+    }
 }
 
 void app_set_app_key_param(uint8_t *p_app_key, uint16 key_id)
 {
-	if(p_app_key != NULL)
-	{
-		memcpy(g_app_key, p_app_key, MESH_KEY_LEN);
-		g_app_key_id = key_id;
-	}
+    if(p_app_key != NULL)
+    {
+        memcpy(g_app_key, p_app_key, MESH_KEY_LEN);
+        g_app_key_id = key_id;
+    }
 }
 
 void app_mesh_enable(void)
@@ -84,17 +81,17 @@ void app_mesh_enable(void)
 
     MESH_APP_PRINT_DEBUG("app_mesh_enable,msgid:%x\r\n", MESH_API_CMD);
 
-#if MAC78da07bcd71b
+    #if MAC78da07bcd71b
     MESH_APP_PRINT_DEBUG("MAC78da07bcd71b\r\n");
-#endif
+    #endif
 
-#if MAC78da07bcd71c
+    #if MAC78da07bcd71c
     MESH_APP_PRINT_DEBUG("MAC78da07bcd71c\r\n");
-#endif
+    #endif
 
-#if MAC78da07bcd71d
+    #if MAC78da07bcd71d
     MESH_APP_PRINT_DEBUG("MAC78da07bcd71d\r\n");
-#endif
+    #endif
     mesh_api_cmd_t *cmd = KERNEL_MSG_ALLOC(MESH_API_CMD, prf_get_task_from_id(TASK_BLE_ID_MESH), TASK_BLE_APP, mesh_api_cmd);
     //
     cmd->cmd_code = M_API_ENABLE;
@@ -137,7 +134,7 @@ uint8_t app_mesh_start_unpb_adv(void)
         cmd->cmd_code = M_API_START_UNPROV;
         kernel_msg_send(cmd);
         // Set the state of the task to APPM_UNPB_ADVTERSING
-        kernel_state_set(TASK_BLE_APP, APPM_UNPB_ADVTERSING);	
+        kernel_state_set(TASK_BLE_APP, APPM_UNPB_ADVTERSING);
     }
     else
     {
@@ -156,7 +153,7 @@ uint8_t app_mesh_stop_unpb_adv(void)
         cmd->cmd_code = M_API_STOP_UNPROV;
         kernel_msg_send(cmd);
         // Set the state of the task to APPM_UNPB_ADVTERSING
-        kernel_state_set(TASK_BLE_APP, APPM_READY);	
+        kernel_state_set(TASK_BLE_APP, APPM_READY);
     }
     else
     {
@@ -179,7 +176,7 @@ uint8_t app_mesh_start_cus_adv(uint32_t adv_len, uint8_t *adv_data, uint32_t rsp
         memcpy(cmd->rsp_data, rsp_data, rsp_len);
         kernel_msg_send(cmd);
         // Set the state of the task to APPM_UNPB_ADVTERSING
-        kernel_state_set(TASK_BLE_APP, APPM_CUSTOMER_ADVTERSING);	
+        kernel_state_set(TASK_BLE_APP, APPM_CUSTOMER_ADVTERSING);
     }
     else
     {
@@ -195,35 +192,35 @@ uint8_t app_mesh_get_adv_state(void)
 
     switch(kernel_state_get(TASK_BLE_APP))
     {
-        case APPM_CUSTOMER_ADVTERSING:
-        {
-            state = CUS_ADV_RUNNING;
-        }
-        break;
+    case APPM_CUSTOMER_ADVTERSING:
+    {
+        state = CUS_ADV_RUNNING;
+    }
+    break;
 
-        case APPM_UNPB_ADVTERSING:
-        {
-            state = PB_ADV_RUNNING;
-        }
-        break;
+    case APPM_UNPB_ADVTERSING:
+    {
+        state = PB_ADV_RUNNING;
+    }
+    break;
 
-        case APPM_UNPB_CUSTOMER_ADVTERSING:
-        {
-            state = PB_CUS_RUNNING;
-        }
-        break;
+    case APPM_UNPB_CUSTOMER_ADVTERSING:
+    {
+        state = PB_CUS_RUNNING;
+    }
+    break;
 
-        case APPM_READY:
-        {
-            state = ADV_IDLE;
-        }
-        break;
+    case APPM_READY:
+    {
+        state = ADV_IDLE;
+    }
+    break;
 
-        default:
-        {
-            state = NEED_WAIT;
-        }
-        break;
+    default:
+    {
+        state = NEED_WAIT;
+    }
+    break;
     }
 
     return state;
@@ -238,7 +235,7 @@ uint8_t app_mesh_stop_cus_adv(void)
         cmd->cmd_code = M_API_STOP_CUS_ADV;
         kernel_msg_send(cmd);
         // Set the state of the task to APPM_UNPB_ADVTERSING
-        kernel_state_set(TASK_BLE_APP, APPM_READY);	
+        kernel_state_set(TASK_BLE_APP, APPM_READY);
     }
     else
     {
@@ -262,7 +259,7 @@ uint8_t app_mesh_start_unpb_cus_adv(uint32_t adv_len, uint8_t *adv_data, uint32_
         kernel_msg_send(cmd);
 
         // Set the state of the task to APPM_UNPB_ADVTERSING
-        kernel_state_set(TASK_BLE_APP, APPM_UNPB_CUSTOMER_ADVTERSING);	
+        kernel_state_set(TASK_BLE_APP, APPM_UNPB_CUSTOMER_ADVTERSING);
     }
     else
     {
@@ -281,7 +278,7 @@ uint8_t app_mesh_stop_unpb_cus_adv(void)
         cmd->cmd_code = M_API_STOP_CUS_PB_ADV;
         kernel_msg_send(cmd);
         // Set the state of the task to APPM_UNPB_ADVTERSING
-        kernel_state_set(TASK_BLE_APP, APPM_READY);	
+        kernel_state_set(TASK_BLE_APP, APPM_READY);
     }
     else
     {
@@ -294,41 +291,41 @@ uint8_t app_mesh_stop_unpb_cus_adv(void)
 uint8_t app_relay_user_adv(uint16_t interval,uint8_t nb_tx,uint8_t data_len, const uint8_t* data)
 {
 
-	//MESH_APP_PRINT_DEBUG("%s\r\n",__func__); 
-	uint8_t status = COMMON_ERROR_COMMAND_DISALLOWED;
+    //MESH_APP_PRINT_DEBUG("%s\r\n",__func__);
+    uint8_t status = COMMON_ERROR_COMMAND_DISALLOWED;
 
-	mal_adv_env_t *p_env = &(p_mal_env->adv);
+    mal_adv_env_t *p_env = &(p_mal_env->adv);
     if(p_env)
     {
         // if(p_env->user_adv_finish == 1)
         {
             status = lld_adv_test_start( interval, 0x07, nb_tx, NULL,
-                            data_len, data, MESH_API_USER_ADV_RELAY_IND, prf_get_task_from_id(TASK_BLE_ID_MESH),
-                           0, 0);
+                                         data_len, data, MESH_API_USER_ADV_RELAY_IND, prf_get_task_from_id(TASK_BLE_ID_MESH),
+                                         0, 0);
             if(status == COMMON_ERROR_NO_ERROR)
             {
                 p_env->user_adv_finish = 0;
             }
         }
     }
-    MESH_APP_PRINT_DEBUG("%s,status:0x%x\r\n",__func__,status); 
+    MESH_APP_PRINT_DEBUG("%s,status:0x%x\r\n",__func__,status);
     return status;
-	
+
 }
 
 sys_reset_src_t sys_check_reset_src(void)
-{    
-#define SYS_MEM_INIT_VAL  0xaaaaaaaa    
-#define SYS_MEM_CHECK_ADDR  0x00817FF0    
-    uint32_t check_val;    
-    check_val = REG_PL_RD(SYS_MEM_CHECK_ADDR);    
+{
+#define SYS_MEM_INIT_VAL  0xaaaaaaaa
+#define SYS_MEM_CHECK_ADDR  0x00817FF0
+    uint32_t check_val;
+    check_val = REG_PL_RD(SYS_MEM_CHECK_ADDR);
     if(check_val == SYS_MEM_INIT_VAL)
-    {        
-        MESH_APP_PRINT_INFO("Sys reset from power on:%x\n", check_val);        
+    {
+        MESH_APP_PRINT_INFO("Sys reset from power on:%x\n", check_val);
         return SYS_RESET_BY_POWER_ON;
     }
-    else    
-    {        
+    else
+    {
         MESH_APP_PRINT_INFO("Sys reset from wdt:%x\n", check_val);
         return SYS_RESET_BY_WDT;
     }
@@ -341,15 +338,15 @@ static void app_test_cb_netkey_added(uint16_t status, m_lid_t net_key_lid)
     if (status == MESH_ERR_NO_ERROR)
     {
         m_tb_key_app_add(g_app_key_id, (const uint8_t *)&g_app_key[0], net_key_lid,
-                                          m_fnd_confs_cb_appkey_added);
+                         m_fnd_confs_cb_appkey_added);
     }
 }
-  
+
 void app_test_add_key(void)
 {
     m_tb_key_dev_add((const uint8_t *)&g_dev_key[0], M_TB_KEY_DEVICE_LID);
-	//m_tb_mio_set_prim_addr(0x0001);
-	//m_tb_key_model_bind(0, 0);
+    //m_tb_mio_set_prim_addr(0x0001);
+    //m_tb_key_model_bind(0, 0);
     m_tb_key_net_add(g_net_key_id, (const uint8_t *)&g_net_key[0], 0, app_test_cb_netkey_added);
 }
 #endif /* UART_CMD_PROV_EN */

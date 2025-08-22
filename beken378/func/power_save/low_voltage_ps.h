@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _LOW_VOLTAGE_PS_H_
 #define _LOW_VOLTAGE_PS_H_
 
@@ -40,7 +54,9 @@
 
 #define MCU_SLEEP_DURATION_MIN     (4)  /* ms*/
 
-#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define MCU_WAKEUP_OFFSET          (34)  /* VALUE/32 ms, related to flash_on_delay configuration*/
+#elif (CFG_SOC_NAME == SOC_BK7238)
 #define MCU_WAKEUP_OFFSET          (48)  /* VALUE/32 ms, related to flash_on_delay configuration*/
 #elif (CFG_SOC_NAME == SOC_BK7231N)
 #define MCU_WAKEUP_OFFSET          (16)  /* VALUE/32 ms, related to flash_on_delay configuration*/
@@ -156,7 +172,7 @@ typedef struct lv_ps_element_env
     //need todo after wakeup
     lv_ps_object_cb     object_cb;
 
-}LV_PS_ELEMENT_ENV;
+} LV_PS_ELEMENT_ENV;
 
 extern bool lv_ps_push_element(LV_PS_ELEMENT_ENV *elem);
 extern LV_PS_ELEMENT_ENV *lv_ps_pop_element(void);
@@ -185,7 +201,7 @@ extern uint8_t lv_ps_mode_enabled;
 extern void lv_ps_init(void);
 extern uint32_t lv_ps_get_keep_timer_duration(void);
 void lv_ps_set_bcn_data(uint64_t bcn_tsf, uint32_t bcn_int,
-uint32_t duration_of_frame, uint32_t duration_to_timestamp);
+                        uint32_t duration_of_frame, uint32_t duration_to_timestamp);
 void lv_ps_set_bcn_timing(uint64_t local_time, uint64_t duration_tbtt_to_rxd);
 uint32_t lv_ps_get_sleep_duration(void);
 void lv_ps_clear_anchor_point(void);

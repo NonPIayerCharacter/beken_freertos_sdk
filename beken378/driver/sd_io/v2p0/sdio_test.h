@@ -1,4 +1,4 @@
-// Copyright 2022-2023 Beken
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,41 +28,41 @@
 #define SDIO_TEST_BUFFER_SIZE (512)
 
 typedef struct {
-	uint8_t main_case;
-	uint8_t sub_case;
-	uint16_t reserved;
-	uint32_t param1;
-	uint32_t param2;
-	uint32_t param3;
-	uint32_t param4;
+    uint8_t main_case;
+    uint8_t sub_case;
+    uint16_t reserved;
+    uint32_t param1;
+    uint32_t param2;
+    uint32_t param3;
+    uint32_t param4;
 } SDIO_TEST_MSG_T;
 
 typedef enum
 {
-	SDIO_TEST_TX,
-	SDIO_TEST_RX,
-	SDIO_TEST_TX_THROUGH_PUT,
-	SDIO_TEST_RX_THROUGH_PUT,
-	SDIO_TEST_MAX_MAIN_CASE,
-}SDIO_TEST_MAIN_CASE_ID_T;
+    SDIO_TEST_TX,
+    SDIO_TEST_RX,
+    SDIO_TEST_TX_THROUGH_PUT,
+    SDIO_TEST_RX_THROUGH_PUT,
+    SDIO_TEST_MAX_MAIN_CASE,
+} SDIO_TEST_MAIN_CASE_ID_T;
 
 typedef enum
 {
-	SDIO_TEST_TX_INIT,
-	SDIO_TEST_TX_SINGLE_PACKET,
-	SDIO_TEST_TX_MANY_SINGLE_PACKETS,
-	SDIO_TEST_TX_MULTI_PACKETS,
-	SDIO_TEST_TX_MAX_SUB_CASE,
-}SDIO_TEST_TX_CASE_ID_T;
+    SDIO_TEST_TX_INIT,
+    SDIO_TEST_TX_SINGLE_PACKET,
+    SDIO_TEST_TX_MANY_SINGLE_PACKETS,
+    SDIO_TEST_TX_MULTI_PACKETS,
+    SDIO_TEST_TX_MAX_SUB_CASE,
+} SDIO_TEST_TX_CASE_ID_T;
 
 typedef enum
 {
-	SDIO_TEST_RX_INIT,
-	SDIO_TEST_RX_SINGLE_PACKET,
-	SDIO_TEST_RX_MANY_SINGLE_PACKETS,
-	SDIO_TEST_RX_MULTI_PACKETS,
-	SDIO_TEST_RX_MAX_SUB_CASE,
-}SDIO_TEST_RX_CASE_ID_T;
+    SDIO_TEST_RX_INIT,
+    SDIO_TEST_RX_SINGLE_PACKET,
+    SDIO_TEST_RX_MANY_SINGLE_PACKETS,
+    SDIO_TEST_RX_MULTI_PACKETS,
+    SDIO_TEST_RX_MAX_SUB_CASE,
+} SDIO_TEST_RX_CASE_ID_T;
 
 /**
  * @brief	Set the sdio test case.
@@ -78,13 +78,13 @@ typedef enum
  *	  - others: other errors.
  */
 bk_err_t bk_sdio_set_test_case(
-							uint8_t main_case,
-							uint8_t sub_case,
-							uint32_t param1,
-							uint32_t param2,
-							uint32_t param3,
-							uint32_t param4
-							);
+    uint8_t main_case,
+    uint8_t sub_case,
+    uint32_t param1,
+    uint32_t param2,
+    uint32_t param3,
+    uint32_t param4
+);
 
 /**
  * @brief	Init the sdio driver test program.

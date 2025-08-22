@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "co_list.h"
 
 #ifndef ARBITRATE_H_
@@ -8,7 +22,7 @@
 #define RF_MSG_QUEUE_COUNT          (20)
 #define THD_RF_PRIORITY             (1)
 #define RF_STACK_SIZE               (2 * 1024)
-#define RF_TIMER_ID                 (1)
+#define RF_TIMER_ID                 (BKTIMER1)
 
 /*
 Rf message
@@ -72,7 +86,7 @@ enum
     RF_NULL_MSG,
 };
 
-typedef struct 
+typedef struct
 {
     uint16_t dtim_period;
     uint8_t dtim_count;
@@ -84,14 +98,14 @@ typedef struct
 
     unsigned bcn_timer_run : 1;
     uint32_t g_time_us;
-}wifi_sta_state_t;
+} wifi_sta_state_t;
 
 #elif (RF_USE_POLICY == BLE_WIFI_CO_REQUEST)
 enum
 {
     RF_BREAK_EN_MASK = 0x1,
     RF_BREAK_EN_POS  = 0,
-    
+
     RF_REQUESTER_MASK     = 0x2,
     RF_REQUESTER_POS      = 1,
 };

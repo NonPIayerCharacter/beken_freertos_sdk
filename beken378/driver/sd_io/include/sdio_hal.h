@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Beken
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ extern "C" {
 
 typedef enum
 {
-	SDIO_HOST_MODE,
-	SDIO_SLAVE_MODE,
-}sdio_host_slave_mode_t;
+    SDIO_HOST_MODE,
+    SDIO_SLAVE_MODE,
+} sdio_host_slave_mode_t;
 
 void sdio_hal_slave_cmd_start(uint32_t value);
 void sdio_hal_rx_set_sd_byte_sel(bool big_endian);
@@ -54,22 +54,22 @@ void sdio_hal_slave_clear_read_int_status(void);
 
 uint32_t sdio_hal_slave_get_rx_count(void);
 
-	void sdio_hal_set_host_slave_mode(sdio_host_slave_mode_t mode);
+void sdio_hal_set_host_slave_mode(sdio_host_slave_mode_t mode);
 
-	void sdio_hal_slave_notify_host_next_block(void);
+void sdio_hal_slave_notify_host_next_block(void);
 
-	uint32 sdio_hal_slave_get_func_reg_value(void);
+uint32 sdio_hal_slave_get_func_reg_value(void);
 
-	void sdio_hal_slave_set_tx_length(uint32_t len);
-	void sdio_hal_slave_clear_stop(void);
-	void sdio_hal_slave_tx_transaction_en(void);
-	void sdio_hal_slave_rx_clear_host_wait_write_data(void);
+void sdio_hal_slave_set_tx_length(uint32_t len);
+void sdio_hal_slave_clear_stop(void);
+void sdio_hal_slave_tx_transaction_en(void);
+void sdio_hal_slave_rx_clear_host_wait_write_data(void);
 
 #if CONFIG_SOC_BK7256XX || CONFIG_SOC_BK7236XX || CONFIG_SOC_BK7239XX || CONFIG_SOC_BK7286XX
-	/* REG_0x0d:reg0xd->SAMP_SEL:0xd[26],sample egde of data 0：neg 1：pos,RW*/
-	uint32_t sdio_hal_slave_get_samp_sel(void);
+/* REG_0x0d:reg0xd->SAMP_SEL:0xd[26],sample egde of data 0：neg 1：pos,RW*/
+uint32_t sdio_hal_slave_get_samp_sel(void);
 
-	void sdio_hal_slave_set_samp_sel(uint32_t value);
+void sdio_hal_slave_set_samp_sel(uint32_t value);
 #endif
 
 #if CONFIG_SDIO_SLAVE

@@ -228,7 +228,7 @@
 
 //	 <o> CFG_RAL <1-8>
 //   <i> CFG NUMBER OF DEVICE IN RAL (1 -- 8)
-#define CFG_RAL			4
+#define CFG_RAL			8
 
 //	 <o> CFG_ACT <1-10>
 //   <i> CFG NUMBER OF ACTIVITIES IN BLE SIMULTANEOUS (1 -- 10)
@@ -253,11 +253,15 @@
 
 // </h>
 
+// Only 2M and 4M flash alloced space for bonding
+#if (CFG_FLASH_SELECTION_TYPE == FLASH_SELECTION_TYPE_2M) || (CFG_FLASH_SELECTION_TYPE == FLASH_SELECTION_TYPE_4M)
 //#define CFG_BLE_SMP
 //#define CFG_SMP_SEC_CON
+#endif
 
 #if defined(CFG_BLE_SMP)
 #define BLE_APP_SEC			1
+#define BLE_APP_SIGN_WRITE	0
 //bk patch
 #define SMP_MD_PDU_NO_ACK_PATCH 1
 #if defined(CFG_SMP_SEC_CON)

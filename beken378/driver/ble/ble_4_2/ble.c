@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "drv_model_pub.h"
 #include "intc_pub.h"
@@ -16,7 +30,7 @@
 #include "common_bt.h"
 #include "rw_pub.h"
 #include "power_save_pub.h"
-#include "gapc_task.h" 
+#include "gapc_task.h"
 #include "bk7011_cal_pub.h"
 #include "flash_pub.h"
 #include "error.h"
@@ -42,7 +56,7 @@ uint8_t ble_active = 0;
 typedef struct ble_cfg_st {
     struct bd_addr mac;
     char name[APP_DEVICE_NAME_LENGTH_MAX];
-}BLE_CFG_ST, *BLE_CFG_PTR; 
+} BLE_CFG_ST, *BLE_CFG_PTR;
 BLE_CFG_ST ble_cfg;
 
 static SDD_OPERATIONS ble_op =
@@ -127,7 +141,7 @@ UINT32 if_rf_wifi_used(void )
 uint8 is_rf_switch_to_ble(void)
 {
     UINT32 param;
-    
+
     sddev_control(SCTRL_DEV_NAME, CMD_BLE_RF_BIT_GET, &param);
 
     return (param > 0 ) ? 1 : 0;
@@ -138,19 +152,19 @@ void ble_switch_rf_to_wifi(void)
 {
     // if in ble dut mode, no need change back to wifi any more.
     // ble dut mode can not exit until power off
-  //  if (!is_rf_switch_to_ble() || power_save_if_rf_sleep())
-  	if (!is_rf_switch_to_ble())
+    //  if (!is_rf_switch_to_ble() || power_save_if_rf_sleep())
+    if (!is_rf_switch_to_ble())
         return;
 
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    
+
     sddev_control(SCTRL_DEV_NAME, CMD_BLE_RF_BIT_CLR, NULL);
     ble_switch_mac_sleeped = 0;
-    
-#if ATE_APP_FUN
+
+    #if ATE_APP_FUN
     if(!get_ate_mode_state())
-#endif
+    #endif
     {
         rwnx_cal_recover_txpwr_for_wifi();
     }
@@ -158,32 +172,32 @@ void ble_switch_rf_to_wifi(void)
     //after swtich wifi check if can stop rf
     power_save_rf_hold_bit_clear(RF_HOLD_BY_BLE_BIT);
 
-	if(power_save_if_rf_sleep())
-	{
-		GLOBAL_INT_RESTORE();
-		return;
-	}
+    if(power_save_if_rf_sleep())
+    {
+        GLOBAL_INT_RESTORE();
+        return;
+    }
 
-	if (ble_switch_old_state != HW_IDLE && nxmac_current_state_getf() == HW_IDLE){
-		if(ke_state_get(TASK_MM) == MM_ACTIVE){
-			nxmac_next_state_setf(ble_switch_old_state);
-			while (nxmac_current_state_getf() != ble_switch_old_state);
-		}
-		ble_switch_old_state = HW_IDLE;
-	}
-	else if(nxmac_current_state_getf() == HW_ACTIVE){
-		ble_switch_old_state = HW_IDLE;
-	}
+    if (ble_switch_old_state != HW_IDLE && nxmac_current_state_getf() == HW_IDLE) {
+        if(ke_state_get(TASK_MM) == MM_ACTIVE) {
+            nxmac_next_state_setf(ble_switch_old_state);
+            while (nxmac_current_state_getf() != ble_switch_old_state);
+        }
+        ble_switch_old_state = HW_IDLE;
+    }
+    else if(nxmac_current_state_getf() == HW_ACTIVE) {
+        ble_switch_old_state = HW_IDLE;
+    }
 
-	if (!power_save_if_rf_sleep())
-	{
-	#if CFG_USE_STA_PS
+    if (!power_save_if_rf_sleep())
+    {
+        #if CFG_USE_STA_PS
         power_save_rf_ps_wkup_semlist_set();
-    #endif
-	}
-	ble_is_revert_all = 0;
+        #endif
+    }
+    ble_is_revert_all = 0;
 
-	//Re-enable MAC interrupts
+    //Re-enable MAC interrupts
     nxmac_enable_master_gen_int_en_setf(1);
     nxmac_enable_master_tx_rx_int_en_setf(1);
     GLOBAL_INT_RESTORE();
@@ -192,49 +206,49 @@ void ble_switch_rf_to_wifi(void)
 
 void ble_used_rf_end(void)
 {
-#if CFG_USE_STA_PS
-	int flag = 0;
-#endif
-	GLOBAL_INT_DECLARATION();
+    #if CFG_USE_STA_PS
+    int flag = 0;
+    #endif
+    GLOBAL_INT_DECLARATION();
 
-	GLOBAL_INT_DISABLE();
+    GLOBAL_INT_DISABLE();
 
-	if(ble_is_revert_all && (ble_switch_mac_sleeped == 0)){
-		if (ble_switch_old_state != HW_IDLE && nxmac_current_state_getf() == HW_IDLE){
-			if(ke_state_get(TASK_MM) == MM_ACTIVE){
-				nxmac_next_state_setf(ble_switch_old_state);
-				while (nxmac_current_state_getf() != ble_switch_old_state);
-			}
-			ble_switch_old_state = HW_IDLE;
-		}
-		else if(nxmac_current_state_getf() == HW_ACTIVE){
-			ble_switch_old_state = HW_IDLE;
-		}
+    if(ble_is_revert_all && (ble_switch_mac_sleeped == 0)) {
+        if (ble_switch_old_state != HW_IDLE && nxmac_current_state_getf() == HW_IDLE) {
+            if(ke_state_get(TASK_MM) == MM_ACTIVE) {
+                nxmac_next_state_setf(ble_switch_old_state);
+                while (nxmac_current_state_getf() != ble_switch_old_state);
+            }
+            ble_switch_old_state = HW_IDLE;
+        }
+        else if(nxmac_current_state_getf() == HW_ACTIVE) {
+            ble_switch_old_state = HW_IDLE;
+        }
 
-		if (!power_save_if_rf_sleep()){
-		#if CFG_USE_STA_PS
-			///power_save_rf_ps_wkup_semlist_set();
-			flag = 1;
-		#endif
-		}
-		//Re-enable MAC interrupts
-		nxmac_enable_master_gen_int_en_setf(1);
-		nxmac_enable_master_tx_rx_int_en_setf(1);
+        if (!power_save_if_rf_sleep()) {
+            #if CFG_USE_STA_PS
+            ///power_save_rf_ps_wkup_semlist_set();
+            flag = 1;
+            #endif
+        }
+        //Re-enable MAC interrupts
+        nxmac_enable_master_gen_int_en_setf(1);
+        nxmac_enable_master_tx_rx_int_en_setf(1);
 
-		ble_is_revert_all = 0;
-	}
-	GLOBAL_INT_RESTORE();
+        ble_is_revert_all = 0;
+    }
+    GLOBAL_INT_RESTORE();
 
-#if CFG_USE_STA_PS
-	if(flag){
-		power_save_rf_ps_wkup_semlist_set();
-	}
-#endif
+    #if CFG_USE_STA_PS
+    if(flag) {
+        power_save_rf_ps_wkup_semlist_set();
+    }
+    #endif
 }
 
 void ps_recover_ble_switch_mac_status(void)
 {
-	ble_used_rf_end();
+    ble_used_rf_end();
 }
 
 
@@ -255,8 +269,8 @@ void ble_switch_data_pend(void)
 
 void ble_switch_clear_mac_interrupts(void)
 {
-    uint32_t fiq_status; 
-        
+    uint32_t fiq_status;
+
     hal_machw_disable_int();
     nxmac_tx_rx_int_ack_clear(0xffffffff);
     nxmac_gen_int_ack_clear(0xffffffff);
@@ -273,7 +287,7 @@ void ble_switch_rf_to_ble(void)
     lld_con_evt_infor(&ble_infor);
 
     if (ble_infor.ble_role == BK_EVT_SLV_MODE) {
-         skip_max = MAX_SKIP_CON;
+        skip_max = MAX_SKIP_CON;
         if (ble_infor.ble_instant) {
             skip_max = 3;
         }
@@ -283,7 +297,7 @@ void ble_switch_rf_to_ble(void)
         if (ble_infor.ble_sync_lose > skip_max) {
             skip_max = 0;
         }
-     }
+    }
 
     if(if_rf_wifi_used())
         return;
@@ -306,13 +320,13 @@ void ble_switch_rf_to_ble(void)
     }
 
     if((REG_READ((ICU_BASE + 19 * 4))
-           & (CO_BIT(FIQ_MAC_TX_RX_MISC)
-              | CO_BIT(FIQ_MAC_TX_RX_TIMER)
-              | CO_BIT(FIQ_MAC_RX_TRIGGER)
-              | CO_BIT(FIQ_MAC_TX_TRIGGER)
-              | CO_BIT(FIQ_MAC_GENERAL)
-              | CO_BIT(FIQ_MAC_PROT_TRIGGER)
-              | CO_BIT(FIQ_DPLL_UNLOCK)
+            & (CO_BIT(FIQ_MAC_TX_RX_MISC)
+               | CO_BIT(FIQ_MAC_TX_RX_TIMER)
+               | CO_BIT(FIQ_MAC_RX_TRIGGER)
+               | CO_BIT(FIQ_MAC_TX_TRIGGER)
+               | CO_BIT(FIQ_MAC_GENERAL)
+               | CO_BIT(FIQ_MAC_PROT_TRIGGER)
+               | CO_BIT(FIQ_DPLL_UNLOCK)
               )) && (ble_switch_skip_cnt < skip_max))
     {
         ble_switch_skip_cnt++;
@@ -341,7 +355,7 @@ void ble_switch_rf_to_ble(void)
         {
             nxmac_next_state_setf(HW_IDLE);
 
-            while(1) 
+            while(1)
             {
                 if(nxmac_status_idle_interrupt_getf() == 1)
                     break;
@@ -379,22 +393,22 @@ void ble_switch_rf_to_ble(void)
         }
         (void)v_tmp;
     }
-    else{
-		///ble_switch_old_state = HW_IDLE;
+    else {
+        ///ble_switch_old_state = HW_IDLE;
     }
     sddev_control(SCTRL_DEV_NAME, CMD_BLE_RF_BIT_SET, NULL);
 
     rwnx_cal_ble_set_rfconfig();
 
-#if ATE_APP_FUN
+    #if ATE_APP_FUN
     if(!get_ate_mode_state())
-#endif
+    #endif
     {
         rwnx_cal_set_txpwr_for_ble_boardcast();
     }
 
     ble_switch_mac_sleeped = 1;
-	ble_is_revert_all = 1;
+    ble_is_revert_all = 1;
 
     GLOBAL_INT_RESTORE();
 
@@ -423,9 +437,9 @@ void ble_set_power_up(uint32 up)
         sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLE_POWERUP, NULL);
     else
     {
-#if ATE_APP_FUN
+        #if ATE_APP_FUN
         if(!get_ate_mode_state())
-#endif
+        #endif
         {
             sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLE_POWERDOWN, NULL);
         }
@@ -435,7 +449,7 @@ void ble_set_power_up(uint32 up)
 void ble_set_pn9_trx(uint32 param)
 {
     UINT32 reg;
-    
+
     if(PN9_RX == param)
     {
         reg = 0x0;
@@ -456,132 +470,132 @@ void ble_set_pn9_trx(uint32 param)
 
 void ble_init(void)
 {
-	intc_service_register( FIQ_BLE, PRI_FIQ_BLE, ble_isr );
-	sddev_register_dev( BLE_DEV_NAME, &ble_op );
+    intc_service_register( FIQ_BLE, PRI_FIQ_BLE, ble_isr );
+    sddev_register_dev( BLE_DEV_NAME, &ble_op );
 
-	return;
+    return;
 }
 
 void ble_exit(void)
 {
-	sddev_unregister_dev( BLE_DEV_NAME );
+    sddev_unregister_dev( BLE_DEV_NAME );
 
-	return;
+    return;
 }
 
 UINT32 ble_ctrl( UINT32 cmd, void *param )
 {
-	UINT32 reg;
-	UINT32 ret = ERR_SUCCESS;
+    UINT32 reg;
+    UINT32 ret = ERR_SUCCESS;
 
-	switch (cmd) {
-	case CMD_BLE_REG_INIT:
-		break;
+    switch (cmd) {
+    case CMD_BLE_REG_INIT:
+        break;
 
-	case CMD_BLE_REG_DEINIT:
-		break;
+    case CMD_BLE_REG_DEINIT:
+        break;
 
-	case CMD_BLE_SET_CHANNEL:
-		reg = REG_READ(BLE_XVR_REG24);
-		reg &= ~(BLE_XVR_CHAN_MASK << BLE_XVR_CHAN_POST);
-		reg |= (*(UINT32 *)param) << BLE_XVR_CHAN_POST;
-		REG_WRITE(BLE_XVR_REG24, reg);
-		break;
+    case CMD_BLE_SET_CHANNEL:
+        reg = REG_READ(BLE_XVR_REG24);
+        reg &= ~(BLE_XVR_CHAN_MASK << BLE_XVR_CHAN_POST);
+        reg |= (*(UINT32 *)param) << BLE_XVR_CHAN_POST;
+        REG_WRITE(BLE_XVR_REG24, reg);
+        break;
 
-	case CMD_BLE_START_TX:
-		reg = REG_READ(BLE_XVR_REG24);
-		reg &= ~(BLE_XVR_AUTO_CHAN_MASK << BLE_XVR_AUTO_CHAN_POST);
-		REG_WRITE(BLE_XVR_REG24, reg);
-		if ((*(UINT8 *)param) == 0x00) {
-			reg = 0x3800;
-		} else if ((*(UINT8 *)param) == 0x01) {
-			reg = 0x3100;
-		} else {
-			bk_printf("unknow ble test mode\r\n");
-		}
-		REG_WRITE(BLE_XVR_REG25, reg);
-		break;
+    case CMD_BLE_START_TX:
+        reg = REG_READ(BLE_XVR_REG24);
+        reg &= ~(BLE_XVR_AUTO_CHAN_MASK << BLE_XVR_AUTO_CHAN_POST);
+        REG_WRITE(BLE_XVR_REG24, reg);
+        if ((*(UINT8 *)param) == 0x00) {
+            reg = 0x3800;
+        } else if ((*(UINT8 *)param) == 0x01) {
+            reg = 0x3100;
+        } else {
+            bk_printf("unknow ble test mode\r\n");
+        }
+        REG_WRITE(BLE_XVR_REG25, reg);
+        break;
 
-	case CMD_BLE_STOP_TX:
-		reg = REG_READ(BLE_XVR_REG24);
-		reg |= (BLE_XVR_AUTO_CHAN_MASK << BLE_XVR_AUTO_CHAN_POST);
-		REG_WRITE(BLE_XVR_REG24, reg);
-		reg = 0;
-		REG_WRITE(BLE_XVR_REG25, reg);
-		break;
+    case CMD_BLE_STOP_TX:
+        reg = REG_READ(BLE_XVR_REG24);
+        reg |= (BLE_XVR_AUTO_CHAN_MASK << BLE_XVR_AUTO_CHAN_POST);
+        REG_WRITE(BLE_XVR_REG24, reg);
+        reg = 0;
+        REG_WRITE(BLE_XVR_REG25, reg);
+        break;
 
-	default:
-		ret = ERR_CMD_NOT_SUPPORT;
-		break;
-	}
+    default:
+        ret = ERR_CMD_NOT_SUPPORT;
+        break;
+    }
 
-	return ret;
+    return ret;
 }
 
 
 void ble_isr(void)
 {
-	rwble_isr();
-	return;
+    rwble_isr();
+    return;
 }
 
 static void ble_main( void *arg )
 {
     memcpy(&common_default_bdaddr, &ble_cfg.mac, sizeof(struct bd_addr));
-    memcpy(&app_dflt_dev_name, &ble_cfg.name, APP_DEVICE_NAME_LENGTH_MAX); 
+    memcpy(&app_dflt_dev_name, &ble_cfg.name, APP_DEVICE_NAME_LENGTH_MAX);
 
     if(!ble_dut_flag)
     {
         UINT8 *mac = (UINT8 *)&ble_cfg.mac;
-        
-        os_printf("ble name:%s, %02x:%02x:%02x:%02x:%02x:%02x\r\n", 
-            app_dflt_dev_name, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+        os_printf("ble name:%s, %02x:%02x:%02x:%02x:%02x:%02x\r\n",
+                  app_dflt_dev_name, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     }
-	
-	rw_main();
+
+    rw_main();
 
     rtos_deinit_queue(&ble_msg_que);
     ble_msg_que = NULL;
     ble_thread_handle = NULL;
-	rtos_delete_thread(NULL);
+    rtos_delete_thread(NULL);
 }
 
 static void ble_thread_start(void)
 {
-	OSStatus ret; 
+    OSStatus ret;
 
-	if (!ble_thread_handle && !ble_msg_que) {
-		ret = rtos_init_queue(&ble_msg_que,
-					"ble_msg_queue",
-					sizeof(BLE_MSG_T),
-					BLE_MSG_QUEUE_COUNT);
-		ASSERT(0 == ret);
+    if (!ble_thread_handle && !ble_msg_que) {
+        ret = rtos_init_queue(&ble_msg_que,
+                              "ble_msg_queue",
+                              sizeof(BLE_MSG_T),
+                              BLE_MSG_QUEUE_COUNT);
+        ASSERT(0 == ret);
 
-		ret = rtos_create_thread(&ble_thread_handle,
-					6,
-					"ble",
-					(beken_thread_function_t)ble_main,
-					(unsigned short)ble_stack_size,
-					(beken_thread_arg_t)0);
+        ret = rtos_create_thread(&ble_thread_handle,
+                                 6,
+                                 "ble",
+                                 (beken_thread_function_t)ble_main,
+                                 (unsigned short)ble_stack_size,
+                                 (beken_thread_arg_t)0);
 
-		ASSERT(0 == ret);
-	} else {
-		os_printf("ble task is already running, no need active again\r\n");
-	}
+        ASSERT(0 == ret);
+    } else {
+        os_printf("ble task is already running, no need active again\r\n");
+    }
 }
 
 void ble_stop(void)
 {
-	if(ble_thread_handle) {
-		if(appm_get_app_status() == APPM_READY) {
-			ble_send_msg(BLE_MSG_EXIT);
+    if(ble_thread_handle) {
+        if(appm_get_app_status() == APPM_READY) {
+            ble_send_msg(BLE_MSG_EXIT);
 
-			while(ble_thread_handle)
-				rtos_delay_milliseconds(100);
-		} else {
-			os_printf("ble is working, can not stop it\r\n");
-		}
-	}
+            while(ble_thread_handle)
+                rtos_delay_milliseconds(100);
+        } else {
+            os_printf("ble is working, can not stop it\r\n");
+        }
+    }
 }
 
 void ble_activate(char *ble_name)
@@ -598,23 +612,23 @@ void ble_activate(char *ble_name)
     ble_stop();
 
     memset(&ble_cfg, 0, sizeof(BLE_CFG_ST));
-    
-    wifi_get_mac_address((char *)&ble_cfg.mac, 2);  // get sta's mac addr 
-    ble_cfg.mac.addr[0] += 1; // add 1, diff from wifi's mac 
+
+    wifi_get_mac_address((char *)&ble_cfg.mac, 2);  // get sta's mac addr
+    ble_cfg.mac.addr[0] += 1; // add 1, diff from wifi's mac
 
     len = strlen(ble_name);
     len = (len > APP_DEVICE_NAME_LENGTH_MAX)? APP_DEVICE_NAME_LENGTH_MAX:len;
     memcpy(&ble_cfg.name, ble_name, len);
-    
+
     ble_thread_start();
 }
 
 void ble_dut_start(void)
 {
-    if(!ble_thread_handle) 
+    if(!ble_thread_handle)
     {
-        ble_dut_flag = 1;		
-		extern uint8_t system_mode;
+        ble_dut_flag = 1;
+        extern uint8_t system_mode;
         system_mode = RW_DUT_MODE;
         os_printf("enter ble dut\r\n");
         rwnx_no_use_tpc_set_pwr();
@@ -625,7 +639,7 @@ void ble_dut_start(void)
         #else
         intc_service_change_handler(IRQ_UART1, uart_isr);
         #endif // (BLE_DUT_UART_PORT == PORT_UART2)
-        
+
         ble_activate(NULL);
     }
 }
@@ -652,17 +666,17 @@ UINT8* ble_get_name(void)
 
 void ble_send_msg(UINT32 data)
 {
-	OSStatus ret;
-	BLE_MSG_T msg;
+    OSStatus ret;
+    BLE_MSG_T msg;
 
     if(ble_msg_que) {
-    	msg.data = data;
-    	
-    	ret = rtos_push_to_queue(&ble_msg_que, &msg, BEKEN_NO_WAIT);
-    	if(0 != ret)
-    	{
-    		//os_printf("ble_send_msg failed\r\n");
-    	}
+        msg.data = data;
+
+        ret = rtos_push_to_queue(&ble_msg_que, &msg, BEKEN_NO_WAIT);
+        if(0 != ret)
+        {
+            //os_printf("ble_send_msg failed\r\n");
+        }
     }
 }
 
@@ -705,19 +719,19 @@ void ble_update_connection2(void)
 unsigned char mhdr_wifi_status = RW_EVT_STA_IDLE;
 void ble_is_wifi_status(void)
 {
-	if((kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED)
-		&& (mhdr_get_station_status() == RW_EVT_STA_GOT_IP) 
-		&& (mhdr_wifi_status != RW_EVT_STA_GOT_IP))
-	{
-		mhdr_wifi_status = mhdr_get_station_status();
-		ble_update_connection2();
+    if((kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED)
+            && (mhdr_get_station_status() == RW_EVT_STA_GOT_IP)
+            && (mhdr_wifi_status != RW_EVT_STA_GOT_IP))
+    {
+        mhdr_wifi_status = mhdr_get_station_status();
+        ble_update_connection2();
     }
-	else if((kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED)
-		&& (mhdr_get_station_status() != RW_EVT_STA_GOT_IP) 
-		&& (mhdr_wifi_status == RW_EVT_STA_GOT_IP))
-	{
-		mhdr_wifi_status = mhdr_get_station_status();
-		ble_update_connection();
+    else if((kernel_state_get(TASK_BLE_APP) == APPM_CONNECTED)
+            && (mhdr_get_station_status() != RW_EVT_STA_GOT_IP)
+            && (mhdr_wifi_status == RW_EVT_STA_GOT_IP))
+    {
+        mhdr_wifi_status = mhdr_get_station_status();
+        ble_update_connection();
     }
 }
 
@@ -748,21 +762,21 @@ void ble_set_read_cb(bk_ble_read_cb_t func)
 
 uint8_t ble_flash_read(uint8_t flash_space, uint32_t address, uint32_t len, uint8_t *buffer, void (*callback)(void))
 {
-	 flash_read((char*)buffer, len, address);
-	 return 0;
+    flash_read((char*)buffer, len, address);
+    return 0;
 }
 
 uint8_t ble_flash_write(uint8_t flash_space, uint32_t address, uint32_t len, uint8_t *buffer, void (*callback)(void))
 {
-	 flash_write((char*)buffer, len, address);
-	 return 0;
+    flash_write((char*)buffer, len, address);
+    return 0;
 }
 
 
 uint8_t ble_flash_erase(uint8_t flash_type, uint32_t address, uint32_t len, void (*callback)(void))
 {
     flash_ctrl(CMD_FLASH_ERASE_SECTOR, &address);
-	return 0;
+    return 0;
 }
 
 void ble_set_role_mode(ble_role_t role)
@@ -784,10 +798,10 @@ UINT32 ble_in_dut_mode(void)
 
 void ble_coex_set_pta(bool enable)
 {
-	(void)enable;
+    (void)enable;
 }
 
 bool ble_coex_pta_is_on(void)
 {
-	return false;
+    return false;
 }

@@ -116,6 +116,14 @@ rf_test:
 rf_use: 
 	@$(MAKE) -f application.mk rf_use
 
+.PHONY: codec_helix
+codec_helix: 
+	@$(MAKE) -f application.mk codec_helix
+
+.PHONY: bk_player
+bk_player: 
+	@$(MAKE) -f application.mk bk_player
+
 .PHONY: clean
 clean:
 	@$(MAKE) -f application.mk clean

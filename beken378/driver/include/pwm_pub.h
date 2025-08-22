@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _PWM_PUB_H_
 #define _PWM_PUB_H_
 
@@ -76,7 +90,7 @@ typedef struct
         UINT8 val;
         struct
         {
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+            #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
             /* cfg--PWM config
                * bit[2:0]: PWM mode selection
                *           000:IDLE
@@ -101,46 +115,46 @@ typedef struct
             UINT8 int_en: 1;
             UINT8 clk: 2;
             UINT8 rsv: 1;
-#else
-           /* cfg--PWM config
-              * bit[0]:   PWM enable
-              *          0:  PWM disable
-              *          1:  PWM enable
-              * bit[1]:   PWM interrupt enable
-              *          0:  PWM interrupt disable
-              *          1:  PWM interrupt enable
-              * bit[3:2]: PWM mode selection
-              *          00: PWM mode
-              *          01: TIMER
-              *          10: Capture Posedge
-              *          11: Capture Negedge
-              * bit[5:4]: PWM clock select
-              *          00: PWM clock 32KHz
-              *          01: PWM clock 26MHz
-              *          10/11: PWM clock DPLL
-              * bit[7:6]: reserved
-              */
+            #else
+            /* cfg--PWM config
+               * bit[0]:   PWM enable
+               *          0:  PWM disable
+               *          1:  PWM enable
+               * bit[1]:   PWM interrupt enable
+               *          0:  PWM interrupt disable
+               *          1:  PWM interrupt enable
+               * bit[3:2]: PWM mode selection
+               *          00: PWM mode
+               *          01: TIMER
+               *          10: Capture Posedge
+               *          11: Capture Negedge
+               * bit[5:4]: PWM clock select
+               *          00: PWM clock 32KHz
+               *          01: PWM clock 26MHz
+               *          10/11: PWM clock DPLL
+               * bit[7:6]: reserved
+               */
             UINT8 en: 1;
             UINT8 int_en: 1;
             UINT8 mode: 2;
             UINT8 clk: 2;
             UINT8 rsv: 2;
-#endif
+            #endif
         } bits;
     } cfg;
 
-#if (CFG_SOC_NAME == SOC_BK7231)
+    #if (CFG_SOC_NAME == SOC_BK7231)
     UINT16 end_value;
     UINT16 duty_cycle;
-#elif (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #elif (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     UINT32 end_value;
     UINT32 duty_cycle1;
     UINT32 duty_cycle2;
     UINT32 duty_cycle3;
-#else
-	UINT32 end_value;
-	UINT32 duty_cycle;
-#endif
+    #else
+    UINT32 end_value;
+    UINT32 duty_cycle;
+    #endif
     PFUNC p_Int_Handler;
 } pwm_param_t;
 
@@ -153,36 +167,40 @@ typedef struct
 
 #define PWM_GROUP_NUM			3
 #define PWM_CHAN_IN_GROUP		2
+#define GET_GROUP_IDXS_BY_PORT(p0, p1)  (((p1 & 0xf) << 4) | (p0 & 0xf))
+#define GET_P0_IDX_FROM_IDXS(idxs)      ((idxs) & 0xf)
+#define GET_P1_IDX_FROM_IDXS(idxs)      (((idxs) >> 4) & 0xf)
+
 typedef struct
 {
-	UINT32 is_active;
-	UINT8 p0_init_level;  // if duty cycle not 0, high level pwm pin first
-	UINT8 p1_init_level;  // if duty cycle not 0, low level pwm pin first
-	UINT8 status;
-	UINT8 group;
-	UINT32 p0_t1;
-	UINT32 p1_t1;
-	UINT32 p1_t2;
-	UINT32 p_t4;
+    UINT32 is_active;
+    UINT8 p0_init_level;  // if duty cycle not 0, high level pwm pin first
+    UINT8 p1_init_level;  // if duty cycle not 0, low level pwm pin first
+    UINT8 status;
+    UINT8 group;
+    UINT32 p0_t1;
+    UINT32 p1_t1;
+    UINT32 p1_t2;
+    UINT32 p_t4;
 } pwm_cw_group_param_t;
 
 typedef struct
 {
-	UINT8 init_level;  // if duty cycle not 0, high level pwm pin first
-	UINT8 status;
-	UINT8 chan;
-	UINT8 is_active;
-	UINT32 t1;
-	UINT32 t4;
+    UINT8 init_level;  // if duty cycle not 0, high level pwm pin first
+    UINT8 status;
+    UINT8 chan;
+    UINT8 is_active;
+    UINT32 t1;
+    UINT32 t4;
 } pwm_param_st;
 
 typedef struct
 {
-	UINT8 mode;   // must be larger than 3
-	UINT8 status;
-	UINT8 chan;
-	UINT8 is_active;
-	PWM_CAP_FUNC p_Int_Handler;
+    UINT8 mode;   // must be larger than 3
+    UINT8 status;
+    UINT8 chan;
+    UINT8 is_active;
+    PWM_CAP_FUNC p_Int_Handler;
 } pwm_cap_param_st;
 
 /*******************************************************************************
@@ -193,6 +211,7 @@ extern void pwm_exit(void);
 extern void pwm_isr(void);
 
 UINT8 pwm_cw_group_check(UINT8 pwm1, UINT8 pwm2);
+UINT8 pwm_check_is_used(UINT8 chan);
 
 UINT8 pwm_init_param(pwm_param_st *pwm_param);
 UINT8 pwm_update_param(pwm_param_st *pwm_param);

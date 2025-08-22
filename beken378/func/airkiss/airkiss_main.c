@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "target_util_pub.h"
@@ -114,8 +128,8 @@ void airkiss_count_usefull_packet(const unsigned char *frame, int size)
     if(!frame || !size)
         return;
 
-    if((MAC_FCTRL_BEACON == (fmac_hdr->fctl & MAC_FCTRL_TYPESUBTYPE_MASK)) 
-        || (MAC_FCTRL_PROBERSP == (fmac_hdr->fctl & MAC_FCTRL_TYPESUBTYPE_MASK)))
+    if((MAC_FCTRL_BEACON == (fmac_hdr->fctl & MAC_FCTRL_TYPESUBTYPE_MASK))
+            || (MAC_FCTRL_PROBERSP == (fmac_hdr->fctl & MAC_FCTRL_TYPESUBTYPE_MASK)))
     {
         uint32_t min_cnt = 0xffffffff;
         int min_idx = 0;
@@ -324,7 +338,7 @@ void airkiss_switch_channel_callback(void *data)
 void airkiss_doing_timeout_callback(void *data)
 {
     int ret;
-	
+
     AIRKISS_WARN("airkiss_doing_timeout, restart channel switch timer\r\n");
 
     // stop doing timer
@@ -363,11 +377,11 @@ void airkiss_monitor_callback(uint8_t *data, int len, wifi_link_info_t *info)
     {
         return;
     }
-			
+
     airkiss_count_usefull_packet(data, len);
-	
+
     GLOBAL_INT_DISABLE();
-	write_to_pingpong_buf(data, AIRKISS_MIN_RX_BUF_SIZE, len);
+    write_to_pingpong_buf(data, AIRKISS_MIN_RX_BUF_SIZE, len);
     GLOBAL_INT_RESTORE();
 
     if(ak_semaphore)
@@ -533,14 +547,14 @@ void airkiss_main( void *arg )
     }
 
     AIRKISS_WARN("Airkiss version: %s\r\n", airkiss_version());
-#if CFG_ROLE_LAUNCH
-	rl_status_set_pause(1);
-	while(!rl_status_is_idle())
-	{
-		bk_printf("rl_get_ap_and_sta_idle delay\r\n");
-		rtos_delay_milliseconds(150);
-	}
-#endif
+    #if CFG_ROLE_LAUNCH
+    rl_status_set_pause(1);
+    while(!rl_status_is_idle())
+    {
+        bk_printf("rl_get_ap_and_sta_idle delay\r\n");
+        rtos_delay_milliseconds(150);
+    }
+    #endif
     // stop monitor mode
     bk_wlan_stop_monitor();
     bk_wlan_register_monitor_cb(NULL);
@@ -593,9 +607,9 @@ void airkiss_main( void *arg )
     // stop monitor mode
     bk_wlan_stop_monitor();
     bk_wlan_register_monitor_cb(NULL);
-#if CFG_ROLE_LAUNCH
-	rl_status_set_pause(0);
-#endif
+    #if CFG_ROLE_LAUNCH
+    rl_status_set_pause(0);
+    #endif
 
     if(ak_result.ssid)
     {
@@ -618,15 +632,15 @@ void airkiss_main( void *arg )
             // start udp boardcast
             if(!airkiss_is_running())
             {
-#if CFG_ROLE_LAUNCH
+                #if CFG_ROLE_LAUNCH
                 LAUNCH_REQ param;
 
                 memset(&param, 0, sizeof(LAUNCH_REQ));
                 param.req_type = LAUNCH_REQ_DELIF_STA;
                 rl_sta_request_enter(&param, 0);
-#else
+                #else
                 bk_wlan_stop(BK_STATION);
-#endif
+                #endif
             }
             else
             {
@@ -652,7 +666,7 @@ kiss_exit:
 
 uint32_t airkiss_is_at_its_context(void)
 {
-	return (NULL != ak_thread_handle);
+    return (NULL != ak_thread_handle);
 }
 
 u32 airkiss_process(u8 start)

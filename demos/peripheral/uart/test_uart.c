@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -20,11 +34,11 @@
 
 static volatile int dma_trans_flag = 0;
 struct uart_message
-{	
-	UINT32 send_len;
-	UINT32 recv_len;
-	UINT8 *send_buf;	
-	UINT16 *recv_buf;
+{
+    UINT32 send_len;
+    UINT32 recv_len;
+    UINT8 *send_buf;
+    UINT16 *recv_buf;
 };
 
 const bk_uart_config_t uart1_config[] =
@@ -38,7 +52,7 @@ const bk_uart_config_t uart1_config[] =
         .flow_control = FLOW_CTRL_DISABLED,
         .flags   = 0,
     },
-    
+
     [1] =
     {
         .baud_rate     = 19200,
@@ -48,7 +62,7 @@ const bk_uart_config_t uart1_config[] =
         .flow_control = FLOW_CTRL_DISABLED,
         .flags   = 0,
     },
-    
+
     [2] =
     {
         .baud_rate     = 115200,
@@ -66,135 +80,135 @@ struct uart_message uart_msg;
 
 void uart_test_send(void)
 {
-	struct uart_message msg;
-	int i,ret = 0;
+    struct uart_message msg;
+    int i,ret = 0;
 
-	msg.recv_len = UART_TX_BUFFER_SIZE;
-	msg.send_len = UART_TX_BUFFER_SIZE;
+    msg.recv_len = UART_TX_BUFFER_SIZE;
+    msg.send_len = UART_TX_BUFFER_SIZE;
 
-	msg.recv_buf =os_malloc(UART_TX_BUFFER_SIZE * sizeof(msg.recv_buf[0]));
-	if(msg.recv_buf == 0)
-	{
-		os_printf("msg.recv_buf malloc failed\r\n");
-		return;
-	}
+    msg.recv_buf =os_malloc(UART_TX_BUFFER_SIZE * sizeof(msg.recv_buf[0]));
+    if(msg.recv_buf == 0)
+    {
+        os_printf("msg.recv_buf malloc failed\r\n");
+        return;
+    }
 
-	msg.send_buf = os_malloc(UART_TX_BUFFER_SIZE * sizeof(msg.send_buf[0]));
-	if(msg.send_buf == 0)
-	{
-		os_printf("msg.send_buf malloc failed\r\n");
-		return;
-	}
-	ring_buf->buffer = msg.send_buf;
+    msg.send_buf = os_malloc(UART_TX_BUFFER_SIZE * sizeof(msg.send_buf[0]));
+    if(msg.send_buf == 0)
+    {
+        os_printf("msg.send_buf malloc failed\r\n");
+        return;
+    }
+    ring_buf->buffer = msg.send_buf;
 
-	for(i=0; i<UART_TX_BUFFER_SIZE; i++)
-	{
-		msg.send_buf[i] = 0x01 + i;
-	}
+    for(i=0; i<UART_TX_BUFFER_SIZE; i++)
+    {
+        msg.send_buf[i] = 0x01 + i;
+    }
 
-	ret =  bk_uart_initialize(UART_TEST_POART1, &uart1_config[0], ring_buf);
-	if (ret != kNoErr)
-	{
-		os_printf("init failed\r\n");
-	}
+    ret =  bk_uart_initialize(UART_TEST_POART1, &uart1_config[0], ring_buf);
+    if (ret != kNoErr)
+    {
+        os_printf("init failed\r\n");
+    }
 
-	bk_uart_send(UART_TEST_POART1, msg.send_buf, UART_TX_BUFFER_SIZE);
+    bk_uart_send(UART_TEST_POART1, msg.send_buf, UART_TX_BUFFER_SIZE);
 
-	for(i=0; i<UART_TX_BUFFER_SIZE; i++)
-	{
-		os_printf("send_buf[%d] =0x%x\r\n",i,msg.send_buf[i]);
-	}	
+    for(i=0; i<UART_TX_BUFFER_SIZE; i++)
+    {
+        os_printf("send_buf[%d] =0x%x\r\n",i,msg.send_buf[i]);
+    }
 }
 
 void uart_test_recv(void)
 {
-	struct uart_message msg;
-	int i,ret = 0;
+    struct uart_message msg;
+    int i,ret = 0;
 
-	msg.recv_len = UART_TX_BUFFER_SIZE;
-	msg.send_len = UART_TX_BUFFER_SIZE;
+    msg.recv_len = UART_TX_BUFFER_SIZE;
+    msg.send_len = UART_TX_BUFFER_SIZE;
 
-	msg.recv_buf =os_malloc(UART_TX_BUFFER_SIZE * sizeof(msg.recv_buf[0]));
-	if(msg.recv_buf == 0)
-	{
-		os_printf("msg.recv_buf malloc failed\r\n");
-		return;
-	}
+    msg.recv_buf =os_malloc(UART_TX_BUFFER_SIZE * sizeof(msg.recv_buf[0]));
+    if(msg.recv_buf == 0)
+    {
+        os_printf("msg.recv_buf malloc failed\r\n");
+        return;
+    }
 
-	msg.send_buf = os_malloc(UART_TX_BUFFER_SIZE * sizeof(msg.send_buf[0]));
-	if(msg.send_buf == 0)
-	{
-		os_printf("msg.send_buf malloc failed\r\n");
-		return;
-	}
+    msg.send_buf = os_malloc(UART_TX_BUFFER_SIZE * sizeof(msg.send_buf[0]));
+    if(msg.send_buf == 0)
+    {
+        os_printf("msg.send_buf malloc failed\r\n");
+        return;
+    }
 
-	ring_buf->buffer = msg.send_buf;
+    ring_buf->buffer = msg.send_buf;
 
-	ret =  bk_uart_initialize(UART_TEST_POART1, &uart1_config[0], ring_buf);
-	if (ret != kNoErr)
-	{
-		os_printf("init failed\r\n");
-	}
+    ret =  bk_uart_initialize(UART_TEST_POART1, &uart1_config[0], ring_buf);
+    if (ret != kNoErr)
+    {
+        os_printf("init failed\r\n");
+    }
 
-	for(i=0; i<UART_RX_BUFFER_SIZE; i++)
-	{
-		os_printf("send_buf[%d] =0x%x\r\n",i,msg.recv_buf[i]);
-	}	
+    for(i=0; i<UART_RX_BUFFER_SIZE; i++)
+    {
+        os_printf("send_buf[%d] =0x%x\r\n",i,msg.recv_buf[i]);
+    }
 }
 
 #if 1
 static void uart_dma_tx_half_handler(UINT32 param)
 {
-	os_printf("uart_dma half hander\r\n");
+    os_printf("uart_dma half hander\r\n");
 }
 
 static void uart_dma_tx_finish_handler(UINT32 param)
 {
-	os_printf("uart_dma finish hander\r\n");
+    os_printf("uart_dma finish hander\r\n");
 }
 static void uart_dma_rx_half_handler(UINT32 param)
 {
-	dma_trans_flag |= 1;
-	os_printf("uart_dma rx half hander\r\n");
+    dma_trans_flag |= 1;
+    os_printf("uart_dma rx half hander\r\n");
 }
 
 static void uart_dma_rx_finish_handler(UINT32 param)
 {
-	dma_trans_flag |=2;
-	os_printf("uart_dma rx finish hander\r\n");
+    dma_trans_flag |=2;
+    os_printf("uart_dma rx finish hander\r\n");
 }
 
 void uart_debug_prt(void)
 {
-	int reg_addr= 0;
+    int reg_addr= 0;
 
-	// wf debug
-	reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x08)* 4));
-	TUART_PRT("reg08:0x%lx\r\n", reg_addr);
-	reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x09)* 4));
-	TUART_PRT("reg09:0x%lx\r\n", reg_addr);
-	reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0a)* 4));
-	TUART_PRT("reg0a:0x%lx\r\n", reg_addr);
-	reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x1b)* 4));
-	TUART_PRT("reg0b:0x%lx\r\n", reg_addr);
-	reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0c)* 4));
-	TUART_PRT("reg0c:0x%lx\r\n", reg_addr);
-	reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0d)* 4));
-	TUART_PRT("reg0d:0x%lx\r\n", reg_addr);
-	reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0e)* 4));
-	TUART_PRT("reg0e:0x%lx\r\n", reg_addr);
-	reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0f)* 4));
-	TUART_PRT("reg0f:0x%lx\r\n", reg_addr);
+    // wf debug
+    reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x08)* 4));
+    TUART_PRT("reg08:0x%lx\r\n", reg_addr);
+    reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x09)* 4));
+    TUART_PRT("reg09:0x%lx\r\n", reg_addr);
+    reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0a)* 4));
+    TUART_PRT("reg0a:0x%lx\r\n", reg_addr);
+    reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x1b)* 4));
+    TUART_PRT("reg0b:0x%lx\r\n", reg_addr);
+    reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0c)* 4));
+    TUART_PRT("reg0c:0x%lx\r\n", reg_addr);
+    reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0d)* 4));
+    TUART_PRT("reg0d:0x%lx\r\n", reg_addr);
+    reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0e)* 4));
+    TUART_PRT("reg0e:0x%lx\r\n", reg_addr);
+    reg_addr = REG_READ(GENER_DMA0_REG0_CONF + ((0x0f)* 4));
+    TUART_PRT("reg0f:0x%lx\r\n", reg_addr);
 
-	(void)reg_addr;
+    (void)reg_addr;
 }
 
 int uart_dma_tx_init(void)
-{	
+{
     GDMACFG_TPYES_ST init_cfg;
     GDMA_CFG_ST en_cfg;
 
-	os_printf("dma init\r\n");
+    os_printf("dma init\r\n");
     os_memset(&init_cfg, 0, sizeof(GDMACFG_TPYES_ST));
     os_memset(&en_cfg, 0, sizeof(GDMA_CFG_ST));
 
@@ -226,7 +240,7 @@ int uart_dma_tx_init(void)
     en_cfg.param = 0; 							// 0:not repeat 1:repeat
     sddev_control(GDMA_DEV_NAME, CMD_GDMA_CFG_WORK_MODE, (void *)&en_cfg);
 
-	return 0;
+    return 0;
 }
 
 int uart_dma_rx_init(void)
@@ -234,7 +248,7 @@ int uart_dma_rx_init(void)
     GDMACFG_TPYES_ST init_cfg;
     GDMA_CFG_ST en_cfg;
 
-	os_printf("dma rx init\r\n");
+    os_printf("dma rx init\r\n");
     os_memset(&init_cfg, 0, sizeof(GDMACFG_TPYES_ST));
     os_memset(&en_cfg, 0, sizeof(GDMA_CFG_ST));
 
@@ -267,15 +281,15 @@ int uart_dma_rx_init(void)
     en_cfg.param = 1; 							// 0:not repeat 1:repeat
     sddev_control(GDMA_DEV_NAME, CMD_GDMA_CFG_WORK_MODE, (void *)&en_cfg);
 
-	return 0;
+    return 0;
 }
 
 static void dma_tx_enable(UINT8 enable)
 {
     GDMA_CFG_ST en_cfg;
 
-	os_printf("dma enable\r\n");
-	en_cfg.channel = UART_TX_DMA_CHANNEL;
+    os_printf("dma enable\r\n");
+    en_cfg.channel = UART_TX_DMA_CHANNEL;
 
     if (enable)
         en_cfg.param = 1;
@@ -288,7 +302,7 @@ static void dma_rx_enable(UINT8 enable)
 {
     GDMA_CFG_ST en_cfg;
 
-	en_cfg.channel = UART_RX_DMA_CHANNEL;
+    en_cfg.channel = UART_RX_DMA_CHANNEL;
 
     if (enable)
         en_cfg.param = 1;
@@ -299,104 +313,104 @@ static void dma_rx_enable(UINT8 enable)
 
 void uart_dma_test_send(void)
 {
-	int i,ret = 0;
+    int i,ret = 0;
 
-	os_printf("uart dma test\r\n");
+    os_printf("uart dma test\r\n");
 
-	uart_msg.recv_len = UART_TX_BUFFER_SIZE;
-	uart_msg.send_len = UART_TX_BUFFER_SIZE;
+    uart_msg.recv_len = UART_TX_BUFFER_SIZE;
+    uart_msg.send_len = UART_TX_BUFFER_SIZE;
 
-	ring_buf->buffer = uart_msg.send_buf;
+    ring_buf->buffer = uart_msg.send_buf;
 
-	uart_msg.recv_buf =os_malloc(UART_TX_BUFFER_SIZE * sizeof(uart_msg.recv_buf[0]));
-	if(uart_msg.recv_buf == 0)
-	{
-		os_printf("uart_msg.recv_buf malloc failed\r\n");
-	}
+    uart_msg.recv_buf =os_malloc(UART_TX_BUFFER_SIZE * sizeof(uart_msg.recv_buf[0]));
+    if(uart_msg.recv_buf == 0)
+    {
+        os_printf("uart_msg.recv_buf malloc failed\r\n");
+    }
 
-	uart_msg.send_buf = os_malloc(UART_TX_BUFFER_SIZE * sizeof(uart_msg.send_buf[0]));
-	if(uart_msg.send_buf == 0)
-	{
-		os_printf("uart_msg.send_buf malloc failed\r\n");
-	}
+    uart_msg.send_buf = os_malloc(UART_TX_BUFFER_SIZE * sizeof(uart_msg.send_buf[0]));
+    if(uart_msg.send_buf == 0)
+    {
+        os_printf("uart_msg.send_buf malloc failed\r\n");
+    }
 
-	for(i=0; i<UART_TX_BUFFER_SIZE; i++)
-	{
-		uart_msg.send_buf[i] = 0x00 + i;
-	}
+    for(i=0; i<UART_TX_BUFFER_SIZE; i++)
+    {
+        uart_msg.send_buf[i] = 0x00 + i;
+    }
 
-	ret =  bk_uart_initialize(UART_TEST_POART1, &uart1_config[0], ring_buf);
-	if (ret != kNoErr)
-	{
-		os_printf("init failed\r\n");
-	}
+    ret =  bk_uart_initialize(UART_TEST_POART1, &uart1_config[0], ring_buf);
+    if (ret != kNoErr)
+    {
+        os_printf("init failed\r\n");
+    }
 
-	uart_dma_tx_init();
-	dma_tx_enable(1);
+    uart_dma_tx_init();
+    dma_tx_enable(1);
 
 
-	for(i=0; i<UART_TX_BUFFER_SIZE; i++)
-	{
-		//os_printf("send_buf[%d] =0x%x\r\n",i,uart_msg.send_buf[i]);
-	}
+    for(i=0; i<UART_TX_BUFFER_SIZE; i++)
+    {
+        //os_printf("send_buf[%d] =0x%x\r\n",i,uart_msg.send_buf[i]);
+    }
 }
-/**********uart fifo 为16 bit：0~7 发送fifo 8~15 ：接收fifo, 
- **********所以DMA接收宽度的时候必须设置为16bit,发送宽度为8bit 
- **********相应的接收数据长度为send 长度的2倍, recv数据也取8~15bit 
+/**********uart fifo 为16 bit：0~7 发送fifo 8~15 ：接收fifo,
+ **********所以DMA接收宽度的时候必须设置为16bit,发送宽度为8bit
+ **********相应的接收数据长度为send 长度的2倍, recv数据也取8~15bit
 ***********/
 void uart_dma_test_recv(void)
 {
-	int i,ret = 0;
-	dma_trans_flag = 0;
+    int i,ret = 0;
+    dma_trans_flag = 0;
 
-	os_printf("uart dma test\r\n");
+    os_printf("uart dma test\r\n");
 
-	uart_msg.recv_len = UART_RX_BUFFER_SIZE;
+    uart_msg.recv_len = UART_RX_BUFFER_SIZE;
 
-	ring_buf->buffer = (uint8_t*)(uart_msg.recv_buf);
+    ring_buf->buffer = (uint8_t*)(uart_msg.recv_buf);
 
-	uart_msg.recv_buf =os_malloc(UART_TX_BUFFER_SIZE * sizeof(uart_msg.recv_buf[0]));
-	if(uart_msg.recv_buf == 0)
-	{
-		os_printf("uart_msg.recv_buf malloc failed\r\n");
-	}
+    uart_msg.recv_buf =os_malloc(UART_TX_BUFFER_SIZE * sizeof(uart_msg.recv_buf[0]));
+    if(uart_msg.recv_buf == 0)
+    {
+        os_printf("uart_msg.recv_buf malloc failed\r\n");
+    }
 
-	uart_msg.send_buf = os_malloc(UART_TX_BUFFER_SIZE * sizeof(uart_msg.send_buf[0]));
-	if(uart_msg.send_buf == 0)
-	{
-		os_printf("uart_msg.send_buf malloc failed\r\n");
-	}
+    uart_msg.send_buf = os_malloc(UART_TX_BUFFER_SIZE * sizeof(uart_msg.send_buf[0]));
+    if(uart_msg.send_buf == 0)
+    {
+        os_printf("uart_msg.send_buf malloc failed\r\n");
+    }
 
-	for(i=0; i<UART_TX_BUFFER_SIZE; i++)
-	{
-		uart_msg.send_buf[i] = 0x00 + i;
-	}
+    for(i=0; i<UART_TX_BUFFER_SIZE; i++)
+    {
+        uart_msg.send_buf[i] = 0x00 + i;
+    }
 
-	ret =  bk_uart_initialize(UART_TEST_POART1, &uart1_config[0], ring_buf);
-	if (ret != kNoErr)
-	{
-		os_printf("init failed\r\n");
-	}
+    ret =  bk_uart_initialize(UART_TEST_POART1, &uart1_config[0], ring_buf);
+    if (ret != kNoErr)
+    {
+        os_printf("init failed\r\n");
+    }
 
-	uart_dma_rx_init();
-	dma_rx_enable(1);
-	while(dma_trans_flag !=3)
-	{
-	}
+    uart_dma_rx_init();
+    dma_rx_enable(1);
+    while(dma_trans_flag !=3)
+    {
+    }
 
-	dma_rx_enable(0);
+    dma_rx_enable(0);
 
-	for(i=0; i<UART_TX_BUFFER_SIZE; i++)
-	{
-		os_printf("recv_buf[%d] =0x%x\r\n",i,uart_msg.recv_buf[i]>>8);
-	}
+    for(i=0; i<UART_TX_BUFFER_SIZE; i++)
+    {
+        os_printf("recv_buf[%d] =0x%x\r\n",i,uart_msg.recv_buf[i]>>8);
+    }
 
 
-	if((uart_msg.recv_buf != NULL)|| (uart_msg.send_buf != NULL)   )
-	{
-		os_free(uart_msg.recv_buf);
-		os_free(uart_msg.send_buf);
-	}
+    if((uart_msg.recv_buf != NULL)|| (uart_msg.send_buf != NULL)   )
+    {
+        os_free(uart_msg.recv_buf);
+        os_free(uart_msg.send_buf);
+    }
 }
 
 #endif

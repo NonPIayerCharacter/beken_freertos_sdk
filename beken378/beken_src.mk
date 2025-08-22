@@ -165,6 +165,15 @@ endif # CFG_WPA_TLS_WOLFSSL
 #INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/mqtt_ui/ssl_mqtt
 #INCLUDES += -I$(ROOT_DIR)/beken378/func/paho-mqtt/mqtt_ui/tcp_mqtt
 
+#codec
+INCLUDES += -I$(ROOT_DIR)/beken378/func/codec
+
+#bk_player
+ifeq ($(CFG_USE_BK_PLAYER), 1)
+INCLUDES += -I$(ROOT_DIR)/beken378/func/bk_player/plugins/sources/hls
+INCLUDES += -I$(ROOT_DIR)/beken378/func/bk_player/include
+endif
+
 ifeq ($(CFG_SUPPORT_BLE),1)
 ifeq ($(CFG_BLE_VERSION),$(BLE_VERSION_4_2))
 INCLUDES += -I$(ROOT_DIR)/beken378/driver/ble/ble_4_2
@@ -378,6 +387,7 @@ SRC_C += ./beken378/app/standalone-station/sa_station.c
 #SRC_C += ./beken378/app/net_work/video_demo_station.c
 #SRC_C += ./beken378/app/net_work/video_demo_softap.c
 #SRC_C += ./beken378/app/net_work/video_demo_p2p.c
+#SRC_C += ./beken378/app/net_work/video_demo_co_ap_p2p.c
 
 
 #demo module
@@ -522,10 +532,10 @@ SRC_FUNC_C += ./beken378/func/sdio_intf/sdio_intf.c
 endif
 
 SRC_LWIP_C =
-#SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/src/apps/ping/ping.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/port/ethernetif.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/port/net.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/port/sys_arch.c
+#SRC_LWIP_C += ./beken378/func/lwip_intf/lwip-2.0.2/src/apps/ping/ping.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/api/api_lib.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/api/api_msg.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/api/err.c
@@ -585,6 +595,7 @@ SRC_FUNC_C += ./beken378/func/misc/target_util.c
 SRC_FUNC_C += ./beken378/func/misc/start_type.c
 SRC_FUNC_C += ./beken378/func/misc/soft_encrypt.c
 SRC_FUNC_C += ./beken378/func/misc/flash_bypass.c
+SRC_FUNC_C += ./beken378/func/misc/mem_check.c
 SRC_FUNC_C += ./beken378/func/power_save/power_save.c
 SRC_FUNC_C += ./beken378/func/power_save/manual_ps.c
 SRC_FUNC_C += ./beken378/func/power_save/mcu_ps.c
@@ -719,7 +730,10 @@ SRC_DRV_C += ./beken378/driver/spi/spi_slave.c
 endif
 
 SRC_DRV_C += ./beken378/driver/spi/spi_bk7231n.c
+SRC_DRV_C += ./beken378/driver/spi/spi_flash.c
 SRC_DRV_C += ./beken378/driver/spi/spi_master_bk7231n.c
+SRC_DRV_C += ./beken378/driver/spi/spi_master_dma_bk7231n.c
+SRC_DRV_C += ./beken378/driver/spi/spi_slave_dma_bk7231n.c
 SRC_DRV_C += ./beken378/driver/spi/spi_slave_bk7231n.c
 
 SRC_FUNC_C += ./beken378/func/wlan_ui/wlan_ui.c
@@ -965,6 +979,7 @@ SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_1/ble_pub/profiles/sdp/src/sdp_comm
 endif #BLE_VERSION_5_1
 ifeq ($(CFG_BLE_VERSION),$(BLE_VERSION_5_2))
 # ble pub
+ifeq ($(CFG_BLE_HOST_RW),1)
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/profiles/bk_comm/src/comm.c
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/profiles/bk_comm/src/comm_task.c
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/profiles/bas/bass/src/bass.c
@@ -979,6 +994,12 @@ SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/app/src/app_findt.c
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/app/src/app_ble.c
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/app/src/app_task.c
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/ui/ble_ui.c
+SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/app/src/app_ble_init.c
+SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/app/src/app_sdp.c
+SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/app/src/app_sec.c
+SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/profiles/bk_sdp/src/sdp_common.c
+endif #CFG_BLE_HOST_RW
+SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/hci/controller_hci.c
 ifeq ($(CFG_SOC_NAME),$(SOC_BK7238))
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/platform/bk7238/entry/ble_main.c
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/platform/bk7238/driver/rf/rf_xvr.c
@@ -991,10 +1012,6 @@ SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/platform/bk7252n/driver/rf/rf_xvr
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/platform/bk7252n/driver/rf/ble_rf_port.c
 SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/platform/bk7252n/driver/uart/uart_ble.c
 endif #SOC_BK7252N
-SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/app/src/app_ble_init.c
-SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/app/src/app_sdp.c
-SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/app/src/app_sec.c
-SRC_BLE_PUB_C += ./beken378/driver/ble/ble_5_2/ble_pub/profiles/bk_sdp/src/sdp_common.c
 endif #BLE_VERSION_5_2
 endif #CFG_SUPPORT_BLE
 
@@ -1150,6 +1167,9 @@ SRC_CAL_C =
 
 SRC_SUPPLICANT_C =
 -include ./beken378/func/wpa_supplicant_2_9/supplicant_lib_src.mk
+ifeq ("${CFG_MBEDTLS}", "1")
+SRC_FUNC_C += ./beken378/func/wpa_supplicant_2_9/src/crypto/crypto_mbedtls.c
+endif
 
 SRC_UART_DEBUG_C =
 -include ./beken378/func/uart_debug/uart_debug_lib_src.mk
@@ -1160,4 +1180,18 @@ SRC_RF_TEST_C =
 SRC_RF_USE_C =
 -include ./beken378/func/rf_use/rf_use_lib_src.mk
 
+SRC_CODEC_HELIX_C =
+ifeq ($(CFG_USE_CODEC_HELIX_MP3), 1)
+-include ./beken378/func/codec/helix/helix_lib_src.mk
+endif
+
+SRC_BK_PLAYER_C =
+ifeq ($(CFG_USE_BK_PLAYER), 1)
+-include ./beken378/func/bk_player/bk_player_lib.mk
+endif
+SRC_FUNC_C += ./beken378/func/bk_player/test/player_test.c
+
+ifeq ($(CFG_USE_WEBCLIENT), 1)
+-include ./beken378/func/webclient/webclient_src.mk
+endif
 

@@ -1,34 +1,48 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __AT_SERVER_H_
 #define __AT_SERVER_H_
 
 #include "_at_svr_opts.h"
 #include "atsvr_unite.h"
 
-typedef enum{
-	ATSVR_OK = 0,
-	ATSVR_SEVERE_ERR = -2,
-	ATSVR_ERROR = -1,
+typedef enum {
+    ATSVR_OK = 0,
+    ATSVR_SEVERE_ERR = -2,
+    ATSVR_ERROR = -1,
 
-	ATSVR_GENERAL = 1,
-	ATSVR_NnMemoryErr = 2,
+    ATSVR_GENERAL = 1,
+    ATSVR_NnMemoryErr = 2,
 
-}_atsvr_st;
+} _atsvr_st;
 
-typedef enum{
-	_ATSVR_ECHO_NONE = 0,
-	_ATSVR_ECHO_NORMAL,
-	_ATSVR_ECHO_ALL,
-}_atsvr_echo_t;
+typedef enum {
+    _ATSVR_ECHO_NONE = 0,
+    _ATSVR_ECHO_NORMAL,
+    _ATSVR_ECHO_ALL,
+} _atsvr_echo_t;
 
-typedef enum{
-	_ATSVR_WK_IDLE = 0,
-	_ATSVR_WK_DOING = 1,
-	_ATSVR_WK_DONE = 2,
-}_atsvr_work_st;
+typedef enum {
+    _ATSVR_WK_IDLE = 0,
+    _ATSVR_WK_DOING = 1,
+    _ATSVR_WK_DONE = 2,
+} _atsvr_work_st;
 
 #if 0
 /* Structure for registering at server commands */
-struct _atsvr_command{
+struct _atsvr_command {
     const char *name;
     const char *help;
 
@@ -41,17 +55,17 @@ typedef unsigned int (*input_msg_get_t)(char *data,unsigned int dat_len);
 
 #endif
 
-typedef struct{
-	_atsvr_echo_t echo;
-	_atsvr_work_st wk_st;
-	resources_protection res_prot;
+typedef struct {
+    _atsvr_echo_t echo;
+    _atsvr_work_st wk_st;
+    resources_protection res_prot;
 
-	const struct _atsvr_command *commands[ATSVR_MAX_COMMANDS];
-	unsigned int num_commands;
+    const struct _atsvr_command *commands[ATSVR_MAX_COMMANDS];
+    unsigned int num_commands;
 
-	output_func_t output_func;
-	input_msg_get_t input_msg_func;
-}_at_svr_ctrl_env_t;
+    output_func_t output_func;
+    input_msg_get_t input_msg_func;
+} _at_svr_ctrl_env_t;
 
 typedef _at_svr_ctrl_env_t _atsvr_env_t;
 

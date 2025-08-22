@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -16,7 +30,7 @@
 void ps_pwm_enable(void)
 {
     UINT32 reg = 0;
-	
+
     reg = REG_READ(PWM_CTL);
     reg &= (~(0xf<<(PS_PWM_ID*4)));
     reg |= (0x7<<(PS_PWM_ID*4));
@@ -26,7 +40,7 @@ void ps_pwm_enable(void)
 void ps_pwm_disable(void )
 {
     UINT32 reg;
-	
+
     reg = REG_READ(PWM_CTL);
     REG_WRITE(PWM_CTL, reg & (~(0xf<<(PS_PWM_ID*4))));
 }
@@ -44,24 +58,24 @@ void ps_pwm_set_period(UINT32 period, UINT8 clk_mux)
     {
         icu_ctrl(CMD_CONF_PWM_PCLK, (void *)&ch);
     }
-    
-#if (CFG_SOC_NAME == SOC_BK7231)
+
+    #if (CFG_SOC_NAME == SOC_BK7231)
     reg = 0;
     reg |= period << PWM0_END_POSI | 0x0 << PWM0_DC_POSI;
-    REG_WRITE(MCU_PS_PWM_COUNTER , reg);
-#else
-	reg = period;
-    REG_WRITE(MCU_PS_PWM_COUNTER , reg);
+    REG_WRITE(MCU_PS_PWM_COUNTER, reg);
+    #else
+    reg = period;
+    REG_WRITE(MCU_PS_PWM_COUNTER, reg);
     reg = 0;
-    REG_WRITE(MCU_PS_PWM_DUTY_CYCLE , reg);   
-#endif
+    REG_WRITE(MCU_PS_PWM_DUTY_CYCLE, reg);
+    #endif
 }
 
 
 void ps_pwm_reconfig(UINT32 period, UINT8 clk_mux)
 {
     //disable
-#if (CFG_SOC_NAME == SOC_BK7231)	
+    #if (CFG_SOC_NAME == SOC_BK7231)
     ps_pwm_disable();
     delay(5);
     //new
@@ -69,9 +83,9 @@ void ps_pwm_reconfig(UINT32 period, UINT8 clk_mux)
     delay(1);
     //reenable
     ps_pwm_enable();
-    
+
     REG_WRITE(PWM_INTERRUPT_STATUS,0x1);
-#else
+    #else
     ps_pwm_disable();
     //new
     ps_pwm_set_period(period, clk_mux);
@@ -80,8 +94,8 @@ void ps_pwm_reconfig(UINT32 period, UINT8 clk_mux)
     delay(5);
 
     REG_WRITE(PWM_INTERRUPT_STATUS,0x3f);
-#endif
-	
+    #endif
+
 }
 
 void ps_pwm_suspend_tick(UINT32 period)
@@ -118,7 +132,7 @@ void ps_timer02_restore(void)
 
 UINT32 ps_timer2_get(void)
 {
-#if (CFG_SOC_NAME == SOC_BK7231U) || (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231U) || (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     UINT32 reg;
     reg = REG_READ(TIMER0_2_READ_CTL);
     reg &= ~(TIMER0_2_READ_INDEX_MASK << TIMER0_2_READ_INDEX_POSI);
@@ -134,9 +148,9 @@ UINT32 ps_timer2_get(void)
     while(REG_READ(TIMER0_2_READ_CTL) & TIMER0_2_READ_OP_BIT);
     reg = REG_READ(TIMER0_2_READ_VALUE);
     return (reg/26000);
-#else
-	return 0;
-#endif
+    #else
+    return 0;
+    #endif
 
 }
 
@@ -145,12 +159,12 @@ void ps_timer3_enable(UINT32 period)
 {
     UINT32 reg;
 
-#if (CFG_SOC_NAME == SOC_BK7231U) || (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231U) || (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     reg = REG_READ(TIMER3_5_READ_CTL);
     reg &= ~(TIMER3_5_READ_INDEX_MASK << TIMER3_5_READ_INDEX_POSI);
     reg |= (TIMER3_5_READ_INDEX_3 << TIMER3_5_READ_INDEX_POSI);
     REG_WRITE(TIMER3_5_READ_CTL,reg);
-#endif
+    #endif
 
     if(fclk_get_tick_id() == BK_TIMER_ID3)
     {
@@ -169,7 +183,7 @@ void ps_timer3_enable(UINT32 period)
 
 UINT32 ps_timer3_measure_prepare(void)
 {
-#if (CFG_SOC_NAME == SOC_BK7231U) || (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231U) || (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     UINT32 reg;
     if(! (REG_READ(TIMER3_5_CTL)&(TIMERCTL3_INT_BIT)))
     {
@@ -177,9 +191,9 @@ UINT32 ps_timer3_measure_prepare(void)
         reg |= TIMER3_5_READ_OP_BIT;
         REG_WRITE(TIMER3_5_READ_CTL,reg);
     }
-#endif
+    #endif
 
-	return 0;
+    return 0;
 }
 
 UINT32 ps_timer3_disable(void)
@@ -191,13 +205,13 @@ UINT32 ps_timer3_disable(void)
     }
     else
     {
-#if (CFG_SOC_NAME == SOC_BK7231U) || (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        #if (CFG_SOC_NAME == SOC_BK7231U) || (SOC_BK7231N == CFG_SOC_NAME) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         while(REG_READ(TIMER3_5_READ_CTL) & TIMER3_5_READ_OP_BIT);
         less = REG_READ(TIMER3_5_READ_VALUE);
-#else
+        #else
         /*timer value can not read*/
         less = 0;
-#endif
+        #endif
     }
 
     reg = REG_READ(TIMER3_5_CTL);

@@ -1,10 +1,24 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _BK7011_CAL_PUB_H_
 #define _BK7011_CAL_PUB_H_
 
 #include "typedef.h"
 #include "sys_config.h"
 #define BK_FLASH_OPT_TLV_HEADER           (0x00564c54)   // ASIC TLV
-typedef enum{
+typedef enum {
     TXID                        = 0x11111100,
     TXPWR_TAB_TAB               = 0x22222200,
     CALI_MAIN_TX                = 0x33333300,
@@ -12,7 +26,7 @@ typedef enum{
     TXPWR_TAB_TAB_V2            = 0x55555500,
     TXEND                       = 0xeeeeeeee,
     TXNON                       = 0xffffffff
-}TXSTRUCT;
+} TXSTRUCT;
 
 #define DEFAULT_TXID_ID           (12345678)
 #if (CFG_SOC_NAME == SOC_BK7231N)
@@ -25,19 +39,19 @@ typedef enum{
 #define DEFAULT_TXID_CHANNEL      (22222222)
 #define DEFAULT_TXID_LPF_CAP_I    (0x80)
 #define DEFAULT_TXID_LPF_CAP_Q    (0x80)
-typedef enum{
+typedef enum {
     TXID_ID                     = TXID+1,
     TXID_MAC,
     TXID_THERMAL,
     TXID_CHANNEL,
     TXID_XTAL,
-    TXID_ADC,    
+    TXID_ADC,
     TXID_LPFCAP,
     TXID_END,
     TXID_NON                    = TXID+0xFF
-}TXIDList;
+} TXIDList;
 
-typedef enum{
+typedef enum {
     TXPWR_ENABLE_ID             = TXPWR_TAB_TAB+1,
     TXPWR_TAB_B_ID,
     TXPWR_TAB_G_ID,
@@ -49,7 +63,7 @@ typedef enum{
     TXPWR_TAB_N20_ID,
     TXPWR_END,
     TXPWR_NON                   = TXPWR_TAB_TAB+0xFF
-}TXPWR_ELEM_ID;
+} TXPWR_ELEM_ID;
 
 typedef enum {
     TXPWR_NONE_RD               = 0u,
@@ -60,7 +74,7 @@ typedef enum {
     TXPWR_TAB_N20_RD            = 0x16u,
 } TXPWR_IS_RD;
 
-typedef enum{
+typedef enum {
     CM_TX_DCOR_MOD              = CALI_MAIN_TX+1,
     CM_TX_DCOR_PA,
     CM_TX_PREGAIN,
@@ -74,15 +88,15 @@ typedef enum{
     CM_TX_PHASE_TY2,
     CM_TX_END,
     CM_TX_NON                   = CALI_MAIN_TX+0xFF
-}CM_TX_ELEM_ID;
+} CM_TX_ELEM_ID;
 
-typedef enum{
+typedef enum {
     CM_RX_DC_GAIN_TAB           = CALI_MAIN_RX+1,
     CM_RX_AMP_ERR_WR,
     CM_RX_PHASE_ERR_WR,
     CM_RX_END,
     CM_RX_NON                   = CALI_MAIN_RX+0xFF
-}CM_RX_ELEM_ID;
+} CM_RX_ELEM_ID;
 
 #define LOAD_FROM_FLASH         1
 #define LOAD_FROM_CALI          0
@@ -120,13 +134,13 @@ typedef struct tmp_pwr_st {
     signed p_index_delta : 6;
     signed p_index_delta_g : 6;
     signed p_index_delta_ble : 6;
-    unsigned xtal_c_dlta : 6; 
+    unsigned xtal_c_dlta : 6;
 } TMP_PWR_ST, *TMP_PWR_PTR;
 #else
 typedef struct tmp_pwr_st {
     UINT8 mod;
     UINT8 pa;
-	UINT16 pwr_idx_shift;
+    UINT16 pwr_idx_shift;
 } TMP_PWR_ST, *TMP_PWR_PTR;
 #endif
 
@@ -169,7 +183,8 @@ extern void rwnx_cal_en_rx_filter_offset(void);
 extern void rwnx_cal_dis_rx_filter_offset(void);
 extern void rwnx_cal_set_txpwr(UINT32 pwr_gain, UINT32 grate);
 extern UINT32 manual_cal_get_pwr_idx_shift(UINT32 rate, UINT32 bandwidth, UINT32 *pwr_gain);
-extern UINT32 manual_cal_get_pwr_idx_shift_fcc(UINT32 rate, UINT32 bandwidth, UINT32 *pwr_gain);
+extern UINT32 manual_cal_get_pwr_idx_shift_fcc(UINT32 rw_rate, UINT32 bandwidth, UINT32 channel, UINT32 *pwr_gain);
+extern UINT32 manual_cal_get_pwr_idx_shift_srrc(UINT32 rw_rate, UINT32 bandwidth, UINT32 channel, UINT32 *pwr_gain);
 extern int manual_cal_get_txpwr(UINT32 rate, UINT32 channel, UINT32 bandwidth, UINT32 *pwr_gain);
 extern void manual_cal_save_txpwr(UINT32 rate, UINT32 channel, UINT32 pwr_gain);
 #if (CFG_SOC_NAME != SOC_BK7231)
@@ -291,6 +306,10 @@ extern UINT32 manual_cal_is_tlv_tag_in_flash(void);
 extern UINT32 manual_cal_txpwr_tab_ready_in_flash(void);
 
 extern UINT32 rwnx_cal_load_user_rfcali_mode(int *rfcali_mode) __attribute__ ((weak));
+extern UINT32 rwnx_cal_load_user_g_power_shift(float *power_shift_g) __attribute__ ((weak));
+extern UINT32 rwnx_cal_load_user_b_power_shift(float *power_shift_b) __attribute__ ((weak));
+extern UINT32 rwnx_cal_load_user_n20_power_shift(float *power_shift_n20) __attribute__ ((weak));
+extern UINT32 rwnx_cal_load_user_n40_power_shift(float *power_shift_n40) __attribute__ ((weak));
 extern UINT32 rwnx_cal_load_user_g_tssi_threshold(int *tssi_g) __attribute__ ((weak));
 extern UINT32 rwnx_cal_load_user_b_tssi_threshold(int *tssi_b) __attribute__ ((weak));
 extern UINT32 rwnx_cal_load_user_n20_tssi_threshold(int *tssi_g) __attribute__ ((weak));

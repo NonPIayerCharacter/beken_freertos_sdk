@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _SCTRL_H_
 #define _SCTRL_H_
 
@@ -252,6 +266,10 @@
 #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
 #define LPEN_DPLL                                (1 << 27)
 #endif
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+#define GADC_BUF_ICTRL_POSI                      (28)
+#define GADC_BUF_ICTRL_MASK                      (0x7)
+#endif
 #define SPI_TRIG_BIT                             (1 << 19)
 #define SPI_DET_EN                               (1 << 4)
 
@@ -305,10 +323,13 @@
 #define BANDGAP_CAL_MANUAL_POSI                  (23)
 #define BANDGAP_CAL_MANUAL_MASK                  (0x3FU)
 #elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+#define GADC_TIMING_CONTROL_POSI                 (25)
+#define GADC_TIMING_CONTROL_MASK                 (0x3FU)
 #define XTALH_CTUNE_POSI                         (1)
 #define XTALH_CTUNE_MASK                         (0xFFU)
 #define BANDGAP_CAL_MANUAL_POSI                  (23)
 #define BANDGAP_CAL_MANUAL_MASK                  (0x3FU)
+#define GADC_NOBUF_ENABLE                        (1 << 16)
 #define ROSC_CAL_MODE_BIT                        (1 << 14) //1:32K,0:31.25K
 #define ROSC_SPI_TRIG_BIT                        (1 << 12)
 #define VREF_SCALE_BIT                           (1 << 0)
@@ -320,6 +341,15 @@
 
 #define SCTRL_ANALOG_CTRL3                    (SCTRL_BASE + 25 * 4)
 #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+#define IBIAS_CTRL_MASK                          (0x3)
+#define IBIAS_CTRL_POS                           (28)
+#define VOSEL_MASK                               (0x1F)
+#define VOSEL_POS                                (20)
+#if (CFG_SOC_NAME == SOC_BK7252N)
+#define ANABUF_SEL_TX_BIT                        (1 << 10)
+#define ANABUF_SEL_TX_MASK                       (0x1)
+#define ANABUF_SEL_TX_POS                        (10)
+#endif
 #define MANU_EN_32K                              (1 << 7)
 #define ANALOG_BUF_SEL_RX_BIT                    (1 << 10)
 #define AMPBIAS_OUTEN_BIT                        (1 << 11)
@@ -348,6 +378,8 @@
 #define GADC_CAL_SEL_POSI                        (24)
 #define GADC_CAL_SEL_MASK                        (0xF)
 #define ANALOG_BUF_SEL_TX_BIT                    (1 << 0)
+#define GADC_CMP_ICTRL_POSI                      (20)
+#define GADC_CMP_ICTRL_MASK                      (0x3)
 #else
 #endif
 
@@ -367,7 +399,8 @@
 #define IOLDO_TRIM_POS                           (29)
 #define IOLDO_TRIM_MASK                          (0x7)
 #define IOLDO_CUR_LIM_ENABLE                     (28)
-#define TRICK_CUR_SELECT                         (27)
+#define TRICK_CUR_POS                            (27)
+#define TRICK_CUR_MASK                           (0x1)
 #define VUSB_4VPOR_SELECT_POS                    (25)
 #define VUSB_4VPOR_SELECT_MASK                   (0x3)
 #define IOLDO_BYPASS_ENABLE                      (24)
@@ -380,7 +413,7 @@
 #define CHG_CC_TOCV_DELAY_ENABLE                 (4)
 #define CHG_CC_TO_CV_DELAY_TIME_POS              (1)
 #define CHG_CC_TO_CV_DELAY_TIME_MASK             (0x7)
-#define CHG_VUSB_DETECTOR_ENABLE                 (0)
+#define CHG_VUSB_DETECTOR_ENABLE_POS             (0)
 
 #elif (CFG_SOC_NAME != SOC_BK7231)
 #define SCTRL_ANALOG_CTRL6                    (SCTRL_BASE + 0x1C*4)
@@ -483,17 +516,19 @@
 #define CHG_VCAL_TRIG                          (1 << 8)
 #define CHG_VCAL_SELECT                        (1 << 9)
 #define CHG_ICAL_MANUAL_CONTROL_POS            (10)
-#define CHG_ICAL_MANUAL_CONTROL_MASK           (0x1F)
+#define CHG_ICAL_MANUAL_CONTROL_MASK           (0x3F)
 #define CHG_ICAL_SELECT                        (1 << 16)
 #define CHG_ICAL_TRIG                          (1 << 17)
 #define CHG_CURRENT_CONTROL_POS                (18)
-#define CHG_CURRENT_CONTROL_MASK               (0x3F)
+#define CHG_CURRENT_CONTROL_MASK               (0x7F)
 #define CHG_CV_END_VOLTAGE_CONTROL_POS         (25)
 #define CHG_CV_END_VOLTAGE_CONTROL_MASK        (0x3)
+#define CHG_LDO_ENABLE_POS                     (27)
 #define CHG_LDO_ENABLE                         (1 << 27)
 #define CHG_TERM_MANUAL_ENABLE                 (1 << 28)
 #define CHG_TRICK_MANUAL_ENABLE                (1 << 29)
 #define CHG_MODE_SELECT                        (1 << 30)
+#define CHG_ENABLE_POS                         (31)
 #define CHG_ENABLE                             (1 << 31)
 
 
@@ -814,12 +849,15 @@ enum
 #define BLK_EN_MIC_L_CHANNEL                     (1 << 17)
 #define BLK_EN_AUDIO_R_CHANNEL                   (1 << 16)
 #define BLK_EN_AUDIO_L_CHANNEL                   (1 << 15)
-#elif (CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+#elif (CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238)
 #define BLK_EN_NC                                (1 << 19)
 #define BLK_EN_MIC_QSPI_RAM_OR_FLASH             (1 << 18)
 #define BLK_EN_MIC_PGA                           (1 << 17)
 #define BLK_EN_AUDIO_PLL                         (1 << 16)
 #define BLK_EN_AUDIO_RANDOM_GENERATOR            (1 << 15)
+#elif (CFG_SOC_NAME == SOC_BK7252N)
+#define BLK_EN_AUDIO                             (1 << 17)
+#define BLK_EN_TRNG                              (1 << 15)
 #elif (CFG_SOC_NAME == SOC_BK7221U)
 #define BLK_EN_NC                                (1 << 19)
 #define BLK_EN_MIC_QSPI_RAM_OR_FLASH             (1 << 18)
@@ -923,20 +961,20 @@ enum
 #include "arm_arch.h"
 __inline static UINT32 sctrl_analog_get(UINT32 address)
 {
-	while(REG_READ(SCTRL_ANALOG_SPI) & (ANA_SPI_STAET_MASK<<ANA_SPI_STATE_POSI));
-	return REG_READ(address);
+    while(REG_READ(SCTRL_ANALOG_SPI) & (ANA_SPI_STAET_MASK<<ANA_SPI_STATE_POSI));
+    return REG_READ(address);
 }
 
 __inline static void sctrl_analog_set(UINT32 address, UINT32 value)
 {
-	REG_WRITE(address, value);
-	while(REG_READ(SCTRL_ANALOG_SPI) & (ANA_SPI_STAET_MASK<<ANA_SPI_STATE_POSI));
+    REG_WRITE(address, value);
+    while(REG_READ(SCTRL_ANALOG_SPI) & (ANA_SPI_STAET_MASK<<ANA_SPI_STATE_POSI));
 }
 
-typedef struct  sctrl_ps_save_values{
-UINT32    peri_clk_cfg;
-UINT32    int_enable_cfg;
-}SCTRL_PS_SAVE_VALUES;
+typedef struct  sctrl_ps_save_values {
+    UINT32    peri_clk_cfg;
+    UINT32    int_enable_cfg;
+} SCTRL_PS_SAVE_VALUES;
 
 #define PS_CLOSE_PERI_CLK            0
 

@@ -75,6 +75,7 @@ int wpas_p2p_find(struct wpa_supplicant *wpa_s, unsigned int timeout,
 		  const u8 *dev_id, unsigned int search_delay,
 		  u8 seek_cnt, const char **seek_string, int freq);
 void wpas_p2p_stop_find(struct wpa_supplicant *wpa_s);
+void wpas_p2p_stop_listen(struct wpa_supplicant *wpa_s);
 int wpas_p2p_listen(struct wpa_supplicant *wpa_s, unsigned int timeout);
 int wpas_p2p_listen_start(struct wpa_supplicant *wpa_s, unsigned int timeout);
 int wpas_p2p_assoc_req_ie(struct wpa_supplicant *wpa_s, struct wpa_bss *bss,

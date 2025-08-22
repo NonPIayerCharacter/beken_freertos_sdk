@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _REG_IPCORE_H_
 #define _REG_IPCORE_H_
 
@@ -4050,5 +4064,21 @@ __INLINE void ip_bkrw_exmem_set(uint32_t addr)
     REG_IP_WR(IP_BKRWEXMEM_ADDR, addr);
 }
 
+__INLINE uint32_t ip_bkrw_exmem_get(void)
+{
+    return REG_IP_RD(IP_BKRWEXMEM_ADDR);
+}
+
+__INLINE uint8_t ip_bkrw_bypass_rftest_getf(void)
+{
+    uint32_t localVal = REG_IP_RD(IP_BKRWEXMEM_ADDR);
+    return ((localVal & ((uint32_t)0x0000000C)) >> 2);
+}
+
+__INLINE void ip_bkrw_bypass_rftest_setf(uint8_t bypassrftest)
+{
+    BLE_ASSERT_ERR((((uint32_t)bypassrftest << 2) & ~((uint32_t)0x0000000C)) == 0);
+    REG_IP_WR(IP_BKRWEXMEM_ADDR, (REG_IP_RD(IP_BKRWEXMEM_ADDR) & ~((uint32_t)0x0000000C)) | ((uint32_t)bypassrftest << 2));
+}
 #endif // _REG_IPCORE_H_
 

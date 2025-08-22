@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __TIME_H__
 #define __TIME_H__
 
@@ -10,36 +24,36 @@ typedef long long time_t_at;
  * and used in other calls.
  */
 struct timeval_at {
-  long	tv_sec;		/* seconds */
-  long	tv_usec;	/* and microseconds */
+    long	tv_sec;		/* seconds */
+    long	tv_usec;	/* and microseconds */
 };
 
 /*
  * Structure defined by POSIX.1b to be like a timeval.
  */
 struct timespec_at {
-  long	tv_sec;		/* seconds */
-  long	tv_nsec;	/* and nanoseconds */
+    long	tv_sec;		/* seconds */
+    long	tv_nsec;	/* and nanoseconds */
 };
 
 struct timezone_at {
-  int tz_minuteswest;	/* minutes west of Greenwich */
-  int tz_dsttime;	/* type of dst correction */
+    int tz_minuteswest;	/* minutes west of Greenwich */
+    int tz_dsttime;	/* type of dst correction */
 };
 
 struct tm_at {
-  int tm_sec;			/* Seconds.	[0-60] (1 leap second) */
-  int tm_min;			/* Minutes.	[0-59] */
-  int tm_hour;			/* Hours.	[0-23] */
-  int tm_mday;			/* Day.		[1-31] */
-  int tm_mon;			/* Month.	[0-11] */
-  int tm_year;			/* Year - 1900. */
-  int tm_wday;			/* Day of week.	[0-6] */
-  int tm_yday;			/* Days in year.[0-365]	*/
-  int tm_isdst;			/* DST.		[-1/0/1]*/
+    int tm_sec;			/* Seconds.	[0-60] (1 leap second) */
+    int tm_min;			/* Minutes.	[0-59] */
+    int tm_hour;			/* Hours.	[0-23] */
+    int tm_mday;			/* Day.		[1-31] */
+    int tm_mon;			/* Month.	[0-11] */
+    int tm_year;			/* Year - 1900. */
+    int tm_wday;			/* Day of week.	[0-6] */
+    int tm_yday;			/* Days in year.[0-365]	*/
+    int tm_isdst;			/* DST.		[-1/0/1]*/
 
-  long int tm_gmtoff;		/* Seconds east of UTC.  */
-  const char *tm_zone;		/* Timezone abbreviation.  */
+    long int tm_gmtoff;		/* Seconds east of UTC.  */
+    const char *tm_zone;		/* Timezone abbreviation.  */
 };
 
 int gettimeofday_at(struct timeval_at *tp, void *ignore);

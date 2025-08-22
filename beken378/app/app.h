@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _APP_H_
 #define _APP_H_
 
@@ -24,17 +38,17 @@ enum
     BMSG_SKT_TX_TYPE        = 4,
     BMSG_MEDIA_TYPE         = 5,
 
-#if CFG_TX_BUFING
+    #if CFG_TX_BUFING
     BMSG_TX_BUFING_TYPE     = 6,
-#endif
+    #endif
     BMSG_STA_PS_TYPE        = 7,
 
     BMSG_TX_RAW_TYPE        = 8,
     BMSG_TX_RAW_CB_TYPE     = 9,
 
-#if (SUPPORT_LSIG_MONITOR)
+    #if (SUPPORT_LSIG_MONITOR)
     BMSG_RX_LSIG = 10,      /* phy receive 802.11 LSIG*/
-#endif
+    #endif
 };
 
 typedef struct bus_message
@@ -44,8 +58,8 @@ typedef struct bus_message
     uint32_t len;
     beken_semaphore_t sema;
 
-	void *cb;
-	void *param;
+    void *cb;
+    void *param;
 } BUS_MSG_T;
 
 #define CORE_QITEM_COUNT          (64)

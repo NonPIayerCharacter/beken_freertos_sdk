@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _BLE_PUB_H_
 #define _BLE_PUB_H_
 
@@ -10,22 +24,22 @@
 enum
 {
     CMD_BLE_REG_INIT = BLE_CMD_MAGIC + 1,
-	CMD_BLE_REG_DEINIT,
-	CMD_BLE_SET_CHANNEL,
-	CMD_BLE_AUTO_CHANNEL_ENABLE,
-	CMD_BLE_AUTO_CHANNEL_DISABLE,
-	CMD_BLE_AUTO_SYNCWD_ENABLE,
-	CMD_BLE_AUTO_SYNCWD_DISABLE,
-	CMD_BLE_SET_PN9_TRX,
-	CMD_BLE_SET_GFSK_SYNCWD,
-	CMD_BLE_HOLD_PN9_ESTIMATE,
-	CMD_BLE_STOP_COUNTING,
-	CMD_BLE_START_COUNTING,
-	CMD_BLE_START_TX,
-	CMD_BLE_START_RX,
-	CMD_BLE_STOP_TX,
-	CMD_BLE_STOP_RX,
-	CMD_BLE_TRIG_RFPLL,
+    CMD_BLE_REG_DEINIT,
+    CMD_BLE_SET_CHANNEL,
+    CMD_BLE_AUTO_CHANNEL_ENABLE,
+    CMD_BLE_AUTO_CHANNEL_DISABLE,
+    CMD_BLE_AUTO_SYNCWD_ENABLE,
+    CMD_BLE_AUTO_SYNCWD_DISABLE,
+    CMD_BLE_SET_PN9_TRX,
+    CMD_BLE_SET_GFSK_SYNCWD,
+    CMD_BLE_HOLD_PN9_ESTIMATE,
+    CMD_BLE_STOP_COUNTING,
+    CMD_BLE_START_COUNTING,
+    CMD_BLE_START_TX,
+    CMD_BLE_START_RX,
+    CMD_BLE_STOP_TX,
+    CMD_BLE_STOP_RX,
+    CMD_BLE_TRIG_RFPLL,
 };
 
 enum

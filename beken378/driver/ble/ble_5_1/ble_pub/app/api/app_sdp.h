@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _APP_SDP_H_
 #define _APP_SDP_H_
 
@@ -7,39 +21,39 @@
 #include "att.h"
 #include "gattc_task.h"
 
-typedef enum{
-	CHARAC_NOTIFY,
-	CHARAC_INDICATE,
-	CHARAC_READ,
-	CHARAC_READ_DONE,
-	CHARAC_WRITE_DONE,
-}CHAR_TYPE;
+typedef enum {
+    CHARAC_NOTIFY,
+    CHARAC_INDICATE,
+    CHARAC_READ,
+    CHARAC_READ_DONE,
+    CHARAC_WRITE_DONE,
+} CHAR_TYPE;
 
 typedef void (*app_sdp_callback)(unsigned char conidx,uint16_t chars_val_hdl,unsigned char uuid_len,unsigned char *uuid);
 typedef void (*app_sdp_charac_callback)(CHAR_TYPE type,uint8 conidx,uint16_t hdl,uint16_t len,uint8 *data);
 
-typedef struct{
-	/// Service UUID Length
-	unsigned char  uuid_len;
-	/// Service UUID
-	unsigned char  uuid[ATT_UUID_128_LEN];
-}app_sdp_service_uuid;
+typedef struct {
+    /// Service UUID Length
+    unsigned char  uuid_len;
+    /// Service UUID
+    unsigned char  uuid[ATT_UUID_128_LEN];
+} app_sdp_service_uuid;
 
 
-typedef struct{
-	/////Filter non-selected service tables
-	unsigned char filtration;
-	///////service tables number
-	unsigned char service_tab_nb;
-	////service tables:Only this table will be registered.But you need to set "filtration" flag
-	app_sdp_service_uuid *service_tab;
+typedef struct {
+    /////Filter non-selected service tables
+    unsigned char filtration;
+    ///////service tables number
+    unsigned char service_tab_nb;
+    ////service tables:Only this table will be registered.But you need to set "filtration" flag
+    app_sdp_service_uuid *service_tab;
 
-	////Tell the properties of the registration
-	app_sdp_callback sdp_cb;
+    ////Tell the properties of the registration
+    app_sdp_callback sdp_cb;
 
-	////Attribute data callback
-	app_sdp_charac_callback charac_cb;
-}app_sdp_env_tag;
+    ////Attribute data callback
+    app_sdp_charac_callback charac_cb;
+} app_sdp_env_tag;
 
 
 ///Internal function

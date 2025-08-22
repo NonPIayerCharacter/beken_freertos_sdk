@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -38,14 +52,14 @@
 #define SPIDMA_RXDATA_TIMEOUT       SPIDMA_DEF_RXDATA_TIMEOUT_VAL
 #endif
 
-#define SPIDMA_CHNAL                GDMA_CHANNEL_5 
+#define SPIDMA_CHNAL                GDMA_CHANNEL_5
 
 DD_HANDLE spidma_hdl = DD_HANDLE_UNVALID;
 SPIDMA_DESC_ST spidma_intf;
 
 #if CFG_GENERAL_DMA
 static void spidma_intf_node_rx_handler(UINT32 dma)
-{   
+{
     UINT16 already_len = spidma_intf.rx_read_len;
     UINT16 copy_len = spidma_intf.node_len;
     GLOBAL_INT_DECLARATION();
@@ -55,7 +69,7 @@ static void spidma_intf_node_rx_handler(UINT32 dma)
     }
 
     already_len += copy_len;
-    
+
     if(already_len >= spidma_intf.rxbuf_len)
         already_len = 0;
 
@@ -66,14 +80,14 @@ static void spidma_intf_node_rx_handler(UINT32 dma)
 #endif
 
 static void spidma_intf_frame_end_handler(void)
-{   
+{
     #if CFG_GENERAL_DMA
     GDMA_CFG_ST en_cfg;
     UINT16 already_len = spidma_intf.rx_read_len;
     UINT32 channel = SPIDMA_CHNAL;
     int left_len = sddev_control(GDMA_DEV_NAME, CMD_GDMA_GET_LEFT_LEN, (void*)channel);
     int rec_len = spidma_intf.node_len - left_len;
-    
+
     if((spidma_intf.node_full_handler != NULL) && (rec_len > 0)) {
         spidma_intf.node_full_handler(spidma_intf.rxbuf + already_len, rec_len, 0, 0);
     }
@@ -87,12 +101,12 @@ static void spidma_intf_frame_end_handler(void)
 
     // turn off dma, so dma can start from first configure. for easy handler
     en_cfg.channel = SPIDMA_CHNAL;
-    en_cfg.param = 0;   
+    en_cfg.param = 0;
     sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_DMA_ENABLE, &en_cfg);
 
     spidma_intf.rx_read_len = 0;
-    en_cfg.param = 1;   
-    sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_DMA_ENABLE, &en_cfg); 
+    en_cfg.param = 1;
+    sddev_control(GDMA_DEV_NAME, CMD_GDMA_SET_DMA_ENABLE, &en_cfg);
     #endif
 
     if((spidma_intf.data_end_handler)) {
@@ -114,12 +128,12 @@ static void spidma_intfer_config_desc(void* data)
     spidma_intf.timeout_val = SPIDMA_RXDATA_TIMEOUT;
     spidma_intf.end_frame_handler = spidma_intf_frame_end_handler;
 
- #if CFG_GENERAL_DMA
+    #if CFG_GENERAL_DMA
     spidma_intf.dma_rx_handler = spidma_intf_node_rx_handler;
     spidma_intf.dma_rx_channel = SPIDMA_CHNAL;
     spidma_intf.dma_tx_handler = NULL;
     spidma_intf.dma_tx_channel = GDMA_CHANNEL_MAX;
-#endif   
+    #endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -127,7 +141,7 @@ void spidma_intfer_init(void* data)
 {
     UINT32 status;
     spidma_intfer_config_desc(data);
-        
+
     spidma_hdl = ddev_open(SPIDMA_DEV_NAME, &status, (UINT32)&spidma_intf);
     SPIDMA_INTF_FATAL("spidma_intfer_init,%p\r\n", spidma_hdl);
 }
@@ -142,18 +156,18 @@ void spidma_intfer_deinit(void)
 }
 
 void spi_camera_flip(UINT8 n)
-{    
+{
     UINT8 data;
 
     if(n)
     {
         data= 1;		//flip 180
     }
-	else
+    else
     {
-        data = 0;		//normal		
+        data = 0;		//normal
     }
-	
+
     bk_gpio_config_output(CAMERA_REV180_GPIO_INDEX);
     bk_gpio_output(CAMERA_REV180_GPIO_INDEX, data);
 }

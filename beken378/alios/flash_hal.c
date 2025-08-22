@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "beken_hal.h"
 #include "rtos_pub.h"
 #include "flash_pub.h"
@@ -6,11 +20,11 @@
 
 int bk_flash_enable_security(PROTECT_TYPE type)
 {
-	DD_HANDLE flash_hdl;
+    DD_HANDLE flash_hdl;
     UINT32 status;
-	uint32_t param = type;
+    uint32_t param = type;
 
-	flash_hdl = ddev_open(FLASH_DEV_NAME, &status, 0);
+    flash_hdl = ddev_open(FLASH_DEV_NAME, &status, 0);
     ASSERT(DD_HANDLE_UNVALID != flash_hdl);
     ddev_control(flash_hdl, CMD_FLASH_SET_PROTECT, (void *)&param);
 
@@ -20,19 +34,19 @@ int bk_flash_enable_security(PROTECT_TYPE type)
 bk_logic_partition_t *bk_flash_get_info(bk_partition_t inPartition)
 {
     hal_logic_partition_t *logic_partition;
-	
-	if(inPartition == BK_PARTITION_RF_FIRMWARE)
-	{
-		logic_partition = hal_flash_get_info(HAL_PARTITION_RF_FIRMWARE);
-	}
-	else if(inPartition == BK_PARTITION_NET_PARAM)
-	{
-		logic_partition = hal_flash_get_info(HAL_PARTITION_PARAMETER_4);
-	}
-	else
-	{
-		logic_partition = NULL;
-	}
+
+    if(inPartition == BK_PARTITION_RF_FIRMWARE)
+    {
+        logic_partition = hal_flash_get_info(HAL_PARTITION_RF_FIRMWARE);
+    }
+    else if(inPartition == BK_PARTITION_NET_PARAM)
+    {
+        logic_partition = hal_flash_get_info(HAL_PARTITION_PARAMETER_4);
+    }
+    else
+    {
+        logic_partition = NULL;
+    }
 
     return (bk_logic_partition_t *)logic_partition;
 }
@@ -64,7 +78,7 @@ OSStatus bk_flash_erase(bk_partition_t inPartition, uint32_t off_set, uint32_t s
     return kNoErr;
 }
 
-OSStatus bk_flash_write(bk_partition_t inPartition, volatile uint32_t off_set, uint8_t *inBuffer , uint32_t inBufferLength)
+OSStatus bk_flash_write(bk_partition_t inPartition, volatile uint32_t off_set, uint8_t *inBuffer, uint32_t inBufferLength)
 {
     UINT32 status;
     DD_HANDLE flash_hdl;

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "rw_msg_tx.h"
 #include "ke_msg.h"
@@ -115,24 +129,24 @@ failed_or_timeout:
 
 int rw_send_me_rc_set_rate(u8 sta_idx, u16 rate_cfg)
 {
-#if RC_ENABLE
-	struct me_rc_set_rate_req *req;
+    #if RC_ENABLE
+    struct me_rc_set_rate_req *req;
 
-	/* Build the ME_RC_SET_RATE_REQ message */
-	req = ke_msg_alloc(ME_RC_SET_RATE_REQ, TASK_ME, TASK_API,
-					   sizeof(struct me_rc_set_rate_req));
-	if (!req)
-		return -ENOMEM;
+    /* Build the ME_RC_SET_RATE_REQ message */
+    req = ke_msg_alloc(ME_RC_SET_RATE_REQ, TASK_ME, TASK_API,
+                       sizeof(struct me_rc_set_rate_req));
+    if (!req)
+        return -ENOMEM;
 
-	/* Set parameters for the ME_RC_SET_RATE_REQ message */
-	req->sta_idx = sta_idx;
-	req->fixed_rate_cfg = rate_cfg;
+    /* Set parameters for the ME_RC_SET_RATE_REQ message */
+    req->sta_idx = sta_idx;
+    req->fixed_rate_cfg = rate_cfg;
 
-	/* Send the ME_RC_SET_RATE_REQ message to FW */
-	return rw_msg_send(req, 0, NULL);
-#else
+    /* Send the ME_RC_SET_RATE_REQ message to FW */
+    return rw_msg_send(req, 0, NULL);
+    #else
     return -1;
-#endif
+    #endif
 }
 
 int rw_msg_send_reset(void)
@@ -171,13 +185,13 @@ int rw_msg_send_me_config_req(void)
 {
     struct me_config_req *req;
 
-#if CFG_IEEE80211N
+    #if CFG_IEEE80211N
     WIPHY_T *wiphy = &g_wiphy;
     struct ieee80211_sta_ht_cap *ht_cap = &wiphy->bands[IEEE80211_BAND_2GHZ].ht_cap;
     struct ieee80211_sta_vht_cap *vht_cap = &wiphy->bands[IEEE80211_BAND_2GHZ].vht_cap;
     uint8_t *ht_mcs = (uint8_t *)&ht_cap->mcs;
     int i;
-#endif // CFG_IEEE80211N
+    #endif // CFG_IEEE80211N
 
     /* Build the ME_CONFIG_REQ message */
     req = ke_msg_alloc(ME_CONFIG_REQ, TASK_ME, TASK_API,
@@ -186,7 +200,7 @@ int rw_msg_send_me_config_req(void)
         return -1;
 
     /* Set parameters for the ME_CONFIG_REQ message */
-#if CFG_IEEE80211N
+    #if CFG_IEEE80211N
     req->ht_supp = ht_cap->ht_supported;
     req->vht_supp = vht_cap->vht_supported;
     req->ht_cap.ht_capa_info = cpu_to_le16(ht_cap->cap);
@@ -208,12 +222,12 @@ int rw_msg_send_me_config_req(void)
     req->vht_cap.rx_mcs_map = cpu_to_le16(vht_cap->vht_mcs.rx_mcs_map);
     req->vht_cap.tx_highest = cpu_to_le16(vht_cap->vht_mcs.tx_highest);
     req->vht_cap.tx_mcs_map = cpu_to_le16(vht_cap->vht_mcs.tx_mcs_map);
-#endif // CFG_IEEE80211N
+    #endif // CFG_IEEE80211N
 
-#if 0//NX_POWERSAVE
+    #if 0//NX_POWERSAVE
     req->ps_on = 1;
     os_printf("rw_msg_send_me_config_req ps_on is %d\r\n", req->ps_on);
-#endif
+    #endif
 
     /* Send the ME_CONFIG_REQ message to LMAC FW */
     return rw_msg_send(req, ME_CONFIG_CFM, NULL);
@@ -292,19 +306,19 @@ int rw_msg_send_add_if(const unsigned char *mac,
     if (!add_if_req_param)
         return -1;
 
-#if CFG_WIFI_P2P
-	p2p = false;
-#endif
+    #if CFG_WIFI_P2P
+    p2p = false;
+    #endif
 
     /* Set parameters for the ADD_IF_REQ message */
     os_memcpy(&(add_if_req_param->addr.array[0]), mac, ETH_ALEN);
     switch (iftype)
     {
-#if CFG_WIFI_P2P
-	case NL80211_IFTYPE_P2P_CLIENT:
-		p2p = true;
-		/* fall through */
-#endif
+        #if CFG_WIFI_P2P
+    case NL80211_IFTYPE_P2P_CLIENT:
+        p2p = true;
+        /* fall through */
+        #endif
     case NL80211_IFTYPE_STATION:
         add_if_req_param->type = VIF_STA;
         break;
@@ -313,11 +327,11 @@ int rw_msg_send_add_if(const unsigned char *mac,
         add_if_req_param->type = VIF_IBSS;
         break;
 
-#if CFG_WIFI_P2P
-	case NL80211_IFTYPE_P2P_GO:
-		p2p = true;
-		/* fall through */
-#endif
+        #if CFG_WIFI_P2P
+    case NL80211_IFTYPE_P2P_GO:
+        p2p = true;
+        /* fall through */
+        #endif
     case NL80211_IFTYPE_AP:
         add_if_req_param->type = VIF_AP;
         break;
@@ -358,7 +372,7 @@ int rw_msg_send_remove_if(u8 vif_index)
 }
 
 int rw_msg_send_apm_start_req(u8 vif_index, u8 channel,
-                     struct apm_start_cfm *cfm)
+                              struct apm_start_cfm *cfm)
 {
     struct apm_start_req *req;
 
@@ -376,8 +390,8 @@ int rw_msg_send_apm_start_req(u8 vif_index, u8 channel,
 
     req->chan.band = 0;
     req->chan.flags = 0;
-	req->chan.freq = rw_ieee80211_get_centre_frequency(channel);
-	req->center_freq1 = rw_ieee80211_get_centre_frequency(channel);
+    req->chan.freq = rw_ieee80211_get_centre_frequency(channel);
+    req->center_freq1 = rw_ieee80211_get_centre_frequency(channel);
     req->center_freq2 = 0;
     req->ch_width = 0;
 
@@ -408,33 +422,33 @@ int rw_msg_send_apm_start_req(u8 vif_index, u8 channel,
 int rw_msg_send_apm_stop_req(u8 vif_index)
 {
     struct apm_stop_req *req;
-	struct apm_stop_cfm *cfm
-			= (struct apm_stop_cfm *)os_malloc(sizeof(struct apm_stop_cfm));
-	int ret;
+    struct apm_stop_cfm *cfm
+        = (struct apm_stop_cfm *)os_malloc(sizeof(struct apm_stop_cfm));
+    int ret;
     /* Build the APM_STOP_REQ message */
     req = ke_msg_alloc(APM_STOP_REQ, TASK_APM, TASK_API,
                        sizeof(struct apm_stop_req));
     if ((!req) || (!cfm))
     {
-    	if(cfm)
-			os_free(cfm);
-		if(req)
-			os_free(req);
+        if(cfm)
+            os_free(cfm);
+        if(req)
+            os_free(req);
         return -1;
     }
 
     /* Set parameters for the APM_STOP_REQ message */
     req->vif_idx = vif_index;
-	bk_printf("[msg]rw_msg_send_apm_stop_req\n");
+    bk_printf("[msg]rw_msg_send_apm_stop_req\n");
 
     /* Send the APM_STOP_REQ message to LMAC FW */
     ret = rw_msg_send(req, APM_STOP_CFM, cfm);
-	if(cfm->status)
-	{
-		bk_printf("[T]APM_STOP_CFM\n");
-	}
-	os_free(cfm);
-	return ret;
+    if(cfm->status)
+    {
+        bk_printf("[T]APM_STOP_CFM\n");
+    }
+    os_free(cfm);
+    return ret;
 }
 
 
@@ -481,10 +495,10 @@ int rw_msg_send_bcn_change(void *bcn_param)
     }
 
     #if CFG_USE_AP_IDLE
-        if(ap_ps_enable_get()
-        && !bk_wlan_has_role(VIF_STA)
-        && bk_wlan_has_role(VIF_AP)
-        )
+    if(ap_ps_enable_get()
+            && !bk_wlan_has_role(VIF_STA)
+            && bk_wlan_has_role(VIF_AP)
+      )
     {
         start_global_ap_bcn_timer();
     }
@@ -504,9 +518,9 @@ int rw_msg_send_me_sta_add(struct add_sta_st *param,
     if (!req)
         return -1;
 
-#if CFG_USE_AP_IDLE
+    #if CFG_USE_AP_IDLE
     ap_idle_stop();
-#endif
+    #endif
     /* Set parameters for the MM_STA_ADD_REQ message */
     os_memcpy(&(req->mac_addr.array[0]), param->sta_addr, ETH_ALEN);
 
@@ -579,12 +593,12 @@ int rw_msg_send_key_add(KEY_PARAM_T *param, struct mm_key_add_cfm *cfm)
     key_add_req = ke_msg_alloc(MM_KEY_ADD_REQ, TASK_MM, TASK_API,
                                sizeof(struct mm_key_add_req));
     if (!key_add_req)
-	{
+    {
         ps_clear_key_prevent();
         mcu_prevent_clear(MCU_PS_ADD_KEY);
         bk_printf("rw_msg_send_key_add NULL\r\n");
         return -1;
-	}
+    }
 
     /* Set parameters for the MM_KEY_ADD_REQ message */
     if (param->sta_idx != 0xFF)
@@ -630,82 +644,82 @@ int rw_msg_send_key_del(u8 hw_key_idx)
 
 int rw_msg_send_scanu_req(SCAN_PARAM_T *scan_param)
 {
-	int i;
-	struct scanu_start_req *req;
-	uint8_t *extra_ies;
+    int i;
+    struct scanu_start_req *req;
+    uint8_t *extra_ies;
 
-#if CFG_ROLE_LAUNCH
-	if (rl_pre_sta_set_status(RL_STATUS_STA_SCANNING)) {
-		rl_pre_sta_set_status(RL_STATUS_STA_SCAN_OVER);
+    #if CFG_ROLE_LAUNCH
+    if (rl_pre_sta_set_status(RL_STATUS_STA_SCANNING)) {
+        rl_pre_sta_set_status(RL_STATUS_STA_SCAN_OVER);
 
-		return -1;
-	}
-#endif
+        return -1;
+    }
+    #endif
 
-	/* Build the SCANU_START_REQ message */
-	req = ke_msg_alloc(SCANU_START_REQ, TASK_SCANU, TASK_API,
-					   sizeof(struct scanu_start_req) + scan_param->extra_ies_len);
-	if (!req)
-		return -1;
+    /* Build the SCANU_START_REQ message */
+    req = ke_msg_alloc(SCANU_START_REQ, TASK_SCANU, TASK_API,
+                       sizeof(struct scanu_start_req) + scan_param->extra_ies_len);
+    if (!req)
+        return -1;
 
-	extra_ies = (uint8_t *)(req + 1);
+    extra_ies = (uint8_t *)(req + 1);
 
-	/* Set parameters */
-	req->vif_idx = scan_param->vif_idx;
-	req->no_cck = 0;
+    /* Set parameters */
+    req->vif_idx = scan_param->vif_idx;
+    req->no_cck = 0;
 
-	// if need scan all chan, set it to 0.
-	if(scan_param->flag == 1)
-	{
-		// in scan only, we not use cancel-scan
-		req->need_cancel_scan = 0;
-	}
-	else
-	{
-		// in connetion, we use cancel-scan for there is only one ssid on all chan in most of case.
-		req->need_cancel_scan = 1;
-	}
+    // if need scan all chan, set it to 0.
+    if(scan_param->flag == 1)
+    {
+        // in scan only, we not use cancel-scan
+        req->need_cancel_scan = 0;
+    }
+    else
+    {
+        // in connetion, we use cancel-scan for there is only one ssid on all chan in most of case.
+        req->need_cancel_scan = 1;
+    }
 
-	int *freqs = scan_param->freqs;
-	if (!freqs[0]) {
-		/* no specified freq, set to all freqs supported */
-		rw_ieee80211_init_scan_chan(req);
-	} else {
-		/* specified freqs: XXX 5g band */
-		for (i = 0; i < ARRAY_SIZE(scan_param->freqs); i++, freqs++) {
-			if (!*freqs)
-				break;
-			req->chan[i].band = IEEE80211_BAND_2GHZ;
-			req->chan[i].flags = 0;
-			req->chan[i].freq = *freqs;
-		}
-		req->chan_cnt = i;
-		//os_printf("Using specified freqs\n");
-	}
+    int *freqs = scan_param->freqs;
+    if (!freqs[0]) {
+        /* no specified freq, set to all freqs supported */
+        rw_ieee80211_init_scan_chan(req);
+    } else {
+        /* specified freqs: XXX 5g band */
+        for (i = 0; i < ARRAY_SIZE(scan_param->freqs); i++, freqs++) {
+            if (!*freqs)
+                break;
+            req->chan[i].band = IEEE80211_BAND_2GHZ;
+            req->chan[i].flags = 0;
+            req->chan[i].freq = *freqs;
+        }
+        req->chan_cnt = i;
+        //os_printf("Using specified freqs\n");
+    }
 
-	os_memcpy(&req->bssid, &scan_param->bssid, sizeof(req->bssid));
-	req->ssid_cnt = scan_param->num_ssids;
-	for (i = 0; i < req->ssid_cnt; i++) {
-		req->ssid[i].length = scan_param->ssids[i].length;
-		os_memcpy(req->ssid[i].array, scan_param->ssids[i].array, req->ssid[i].length);
-	}
+    os_memcpy(&req->bssid, &scan_param->bssid, sizeof(req->bssid));
+    req->ssid_cnt = scan_param->num_ssids;
+    for (i = 0; i < req->ssid_cnt; i++) {
+        req->ssid[i].length = scan_param->ssids[i].length;
+        os_memcpy(req->ssid[i].array, scan_param->ssids[i].array, req->ssid[i].length);
+    }
 
-	req->add_ie_len = scan_param->extra_ies_len;
-	os_memcpy(extra_ies, scan_param->extra_ies, req->add_ie_len);
-	req->add_ies = (uint32_t)extra_ies;
+    req->add_ie_len = scan_param->extra_ies_len;
+    os_memcpy(extra_ies, scan_param->extra_ies, req->add_ie_len);
+    req->add_ies = (uint32_t)extra_ies;
 
-#if CFG_WPA_CTRL_IFACE
-	if (hostapd_scan_started) {
-		wpa_handler_signal((void *)SIGSCAN_START_AP, scan_param->vif_idx);
-	} else {
-		wpa_handler_signal((void *)SIGSCAN_START, scan_param->vif_idx);
-	}
-#endif
+    #if CFG_WPA_CTRL_IFACE
+    if (hostapd_scan_started) {
+        wpa_handler_signal((void *)SIGSCAN_START_AP, scan_param->vif_idx);
+    } else {
+        wpa_handler_signal((void *)SIGSCAN_START, scan_param->vif_idx);
+    }
+    #endif
 
-	mhdr_set_station_stage(RW_STG_STA_SCAN);
+    mhdr_set_station_stage(RW_STG_STA_SCAN);
 
-	/* Send the SCANU_START_REQ message to LMAC FW */
-	return rw_msg_send(req, SCANU_START_CFM, NULL);
+    /* Send the SCANU_START_REQ message to LMAC FW */
+    return rw_msg_send(req, SCANU_START_CFM, NULL);
 }
 
 int rw_msg_send_scanu_fast_req(FAST_SCAN_PARAM_T *fscan_param)
@@ -758,33 +772,33 @@ int rw_msg_get_bss_info(u8 vif_idx, void *cfm)
 
 int rw_msg_get_channel_info(u8 vif_idx, PHY_CHAN_INFO_T *channel_info)
 {
-	struct phy_channel_info info;
-	int channel;
-	uint8_t band;
+    struct phy_channel_info info;
+    int channel;
+    uint8_t band;
 
-	/* get phy channel */
-	phy_get_channel(&info, 0);
+    /* get phy channel */
+    phy_get_channel(&info, 0);
 
-	band = info.info1 & 0xff;
-	channel_info->frequency = (info.info1 >> 16) & 0xffff;
-	channel_info->chanwidth = (info.info1 >> 8) & 0xff;
-	channel_info->center_frq1 = info.info2 & 0xffff;
-	channel_info->center_frq2 = (info.info2 >> 16) & 0xffff;
+    band = info.info1 & 0xff;
+    channel_info->frequency = (info.info1 >> 16) & 0xffff;
+    channel_info->chanwidth = (info.info1 >> 8) & 0xff;
+    channel_info->center_frq1 = info.info2 & 0xffff;
+    channel_info->center_frq2 = (info.info2 >> 16) & 0xffff;
 
-	/* frequency transfer into channel */
-	channel = phy_freq_to_channel(band, channel_info->frequency);
+    /* frequency transfer into channel */
+    channel = phy_freq_to_channel(band, channel_info->frequency);
 
-	/* get seg1_idx */
-	if (channel_info->center_frq2)
-		channel_info->seg1_idx = 36 + (channel_info->center_frq2 - 5180) / 5;
+    /* get seg1_idx */
+    if (channel_info->center_frq2)
+        channel_info->seg1_idx = 36 + (channel_info->center_frq2 - 5180) / 5;
 
-	/* get sec_channel */
-	if (channel_info->chanwidth == PHY_CHNL_BW_20)
-		channel_info->sec_channel = 0;
-	else if (channel_info->chanwidth == PHY_CHNL_BW_40) // FIXME ??
-		channel_info->sec_channel = (((channel - 1) / 4) % 2) ? -1 : 1;
+    /* get sec_channel */
+    if (channel_info->chanwidth == PHY_CHNL_BW_20)
+        channel_info->sec_channel = 0;
+    else if (channel_info->chanwidth == PHY_CHNL_BW_40) // FIXME ??
+        channel_info->sec_channel = (((channel - 1) / 4) % 2) ? -1 : 1;
 
-	return 0;
+    return 0;
 }
 
 int rw_msg_get_channel(void *cfm)
@@ -904,80 +918,80 @@ int rw_msg_send_sm_set_operstate_req(SET_OPERATE_PARAM_T *param)
 #ifdef CONFIG_SME
 int __rw_msg_send_sm_auth_req(AUTH_PARAM_T *sme, void *cfm)
 {
-	struct sm_auth_req *req;
+    struct sm_auth_req *req;
 
-	/* Build the SM_AUTH_REQ message */
-	req = ke_msg_alloc(SM_AUTH_REQ, TASK_SM, TASK_API,
-			sizeof(struct sm_auth_req)/* + sme->ie_len*/ + sme->sae_data_len);
-	if (!req)
-		return -1;
+    /* Build the SM_AUTH_REQ message */
+    req = ke_msg_alloc(SM_AUTH_REQ, TASK_SM, TASK_API,
+                       sizeof(struct sm_auth_req)/* + sme->ie_len*/ + sme->sae_data_len);
+    if (!req)
+        return -1;
 
-	ke_msg_send_basic(SM_CONNCTION_START_IND, TASK_API, TASK_SM);
+    ke_msg_send_basic(SM_CONNCTION_START_IND, TASK_API, TASK_SM);
 
-	/* Set parameters for the SM_CONNECT_REQ message */
-	//req->ssid.length = sme->ssid.length;
-	//os_memcpy(req->ssid.array, sme->ssid.array, sme->ssid.length);
-	os_memcpy(&req->bssid, &sme->bssid, sizeof(sme->bssid));
+    /* Set parameters for the SM_CONNECT_REQ message */
+    //req->ssid.length = sme->ssid.length;
+    //os_memcpy(req->ssid.array, sme->ssid.array, sme->ssid.length);
+    os_memcpy(&req->bssid, &sme->bssid, sizeof(sme->bssid));
 
-	req->vif_idx = sme->vif_idx;
-	req->chan.band = sme->chan.band;
-	req->chan.flags = sme->chan.flags;
-	req->chan.freq = sme->chan.freq;
-	req->chan.tx_power = sme->chan.tx_power;
-	//req->flags = sme->flags;
-	//req->ctrl_port_ethertype = PP_HTONS(ETH_P_PAE);
-	req->ie_len = sme->ie_len;
-	req->auth_type = sme->auth_type;
-	//req->driver_sme = sme->driver_sme;
+    req->vif_idx = sme->vif_idx;
+    req->chan.band = sme->chan.band;
+    req->chan.flags = sme->chan.flags;
+    req->chan.freq = sme->chan.freq;
+    req->chan.tx_power = sme->chan.tx_power;
+    //req->flags = sme->flags;
+    //req->ctrl_port_ethertype = PP_HTONS(ETH_P_PAE);
+    req->ie_len = sme->ie_len;
+    req->auth_type = sme->auth_type;
+    //req->driver_sme = sme->driver_sme;
 
-	/* Fill ie and sae data */
-	//req->ie = (uint8_t *)(req + 1);
-	req->ie_len = sme->ie_len;
-	//req->sae_data = req->ie + sme->ie_len;
-	req->sae_data_len = sme->sae_data_len;
+    /* Fill ie and sae data */
+    //req->ie = (uint8_t *)(req + 1);
+    req->ie_len = sme->ie_len;
+    //req->sae_data = req->ie + sme->ie_len;
+    req->sae_data_len = sme->sae_data_len;
 
-	if (req->ie_len) {
-		ASSERT(sizeof(req->ie) >= req->ie_len);
-		os_memcpy((UINT8 *)req->ie, (UINT8 *)sme->ie_buf, req->ie_len);
-	}
+    if (req->ie_len) {
+        ASSERT(sizeof(req->ie) >= req->ie_len);
+        os_memcpy((UINT8 *)req->ie, (UINT8 *)sme->ie_buf, req->ie_len);
+    }
 
-	if (req->sae_data_len) {
-		//ASSERT(sizeof(req->sae_data) >= req->sae_data_len);
-		os_memcpy((UINT8 *)req->sae_data, (UINT8 *)sme->sae_data, req->sae_data_len);
-	}
+    if (req->sae_data_len) {
+        //ASSERT(sizeof(req->sae_data) >= req->sae_data_len);
+        os_memcpy((UINT8 *)req->sae_data, (UINT8 *)sme->sae_data, req->sae_data_len);
+    }
 
-	/* Send the SM_AUTH_REQ message to ULMAC FW */
-	return rw_msg_send(req, SM_AUTH_CFM, cfm);
+    /* Send the SM_AUTH_REQ message to ULMAC FW */
+    return rw_msg_send(req, SM_AUTH_CFM, cfm);
 }
 
 int rw_msg_send_sm_auth_req(AUTH_PARAM_T *auth_param)
 {
-	int ret;
-	struct mac_scan_result *desired_ap_ptr;
-	struct sm_auth_cfm cfm;
+    int ret;
+    struct mac_scan_result *desired_ap_ptr;
+    struct sm_auth_cfm cfm;
 
-	cfm.status = CO_OK;
-	if (auth_param->chan.freq) {
-		/* for fast connect */
-		auth_param->chan.band = 0;
-		auth_param->chan.flags = 0;
-		auth_param->chan.tx_power = 10;
-	} else {
-		/* normal case */
-		desired_ap_ptr = scanu_search_by_ssid((void *)&auth_param->ssid);
-		if (NULL == desired_ap_ptr)
-			return -1;
-		auth_param->chan = *(desired_ap_ptr->chan);
-		if (0 == auth_param->chan.tx_power)
-			auth_param->chan.tx_power = 10;
-	}
+    cfm.status = CO_OK;
+    if (auth_param->chan.freq) {
+        /* for fast connect */
+        auth_param->chan.band = 0;
+        auth_param->chan.flags = 0;
+        auth_param->chan.tx_power = 10;
+    } else {
+        /* normal case */
+        desired_ap_ptr = scanu_search_by_ssid((void *)&auth_param->ssid);
+        if (NULL == desired_ap_ptr)
+            return -1;
+        auth_param->chan = *(desired_ap_ptr->chan);
+        if (0 == auth_param->chan.tx_power)
+            auth_param->chan.tx_power = 10;
+    }
 
-	ret = __rw_msg_send_sm_auth_req(auth_param, &cfm);
+    ret = __rw_msg_send_sm_auth_req(auth_param, &cfm);
 
-	if (ret < 0 || cfm.status != CO_OK)
-		ret = -1;
+    if (ret < 0 || cfm.status != CO_OK)
+        ret = -1;
 
-	return ret;
+    return ret;
 }
 
 int rw_msg_send_sm_assoc_req( ASSOC_PARAM_T *sme, void *cfm)
@@ -990,8 +1004,8 @@ int rw_msg_send_sm_assoc_req( ASSOC_PARAM_T *sme, void *cfm)
     if (!req)
         return -1;
 
-	//ke_msg_send_basic(SM_CONNCTION_START_IND, TASK_API, TASK_SM);
-	os_printf("%s %d: sme->bcn_len %d\n", __func__, __LINE__, sme->bcn_len);
+    //ke_msg_send_basic(SM_CONNCTION_START_IND, TASK_API, TASK_SM);
+    os_printf("%s %d: sme->bcn_len %d\n", __func__, __LINE__, sme->bcn_len);
 
     /* Set parameters for the SM_CONNECT_REQ message */
     req->ssid.length = sme->ssid.length;
@@ -1006,15 +1020,15 @@ int rw_msg_send_sm_assoc_req( ASSOC_PARAM_T *sme, void *cfm)
     req->ctrl_port_ethertype = PP_HTONS(ETH_P_PAE);
     req->auth_type = sme->auth_type;
     req->ie_len = sme->ie_len;
-	if (req->ie_len) {
-		ASSERT(sizeof(req->ie_buf) >= req->ie_len);
-    	os_memcpy((UINT8 *)req->ie_buf, (UINT8 *)sme->ie_buf, req->ie_len);
-	}
-	req->bcn_len = sme->bcn_len;
-	if (req->bcn_len) {
-		//ASSERT(sizeof(req->bcn_buf) >= req->bcn_len);
-		os_memcpy(req->bcn_buf, sme->bcn_buf, req->bcn_len);
-	}
+    if (req->ie_len) {
+        ASSERT(sizeof(req->ie_buf) >= req->ie_len);
+        os_memcpy((UINT8 *)req->ie_buf, (UINT8 *)sme->ie_buf, req->ie_len);
+    }
+    req->bcn_len = sme->bcn_len;
+    if (req->bcn_len) {
+        //ASSERT(sizeof(req->bcn_buf) >= req->bcn_len);
+        os_memcpy(req->bcn_buf, sme->bcn_buf, req->bcn_len);
+    }
 
     /* Send the SM_ASSOCIATE_REQ message to LMAC FW */
     return rw_msg_send(req, SM_ASSOCIATE_CFM, cfm);
@@ -1048,19 +1062,19 @@ int rw_msg_send_sm_connect_req( CONNECT_PARAM_T *sme, void *cfm)
     req->ie_len = sme->ie_len;
     req->auth_type = sme->auth_type;
     os_memcpy((UINT8 *)req->ie_buf, (UINT8 *)sme->ie_buf, req->ie_len);
-#if CFG_USE_STA_PS
+    #if CFG_USE_STA_PS
     listen_interval = power_save_get_listen_int();
-#endif
+    #endif
     req->listen_interval = listen_interval;
     req->bcn_len = sme->bcn_len;
     if (req->bcn_len)
         os_memcpy((UINT8 *)req->bcn_buf, (UINT8 *)sme->bcn_buf, req->bcn_len);
 
-#if CFG_WLAN_FAST_CONNECT_WITHOUT_SCAN
+    #if CFG_WLAN_FAST_CONNECT_WITHOUT_SCAN
     req->rssi = sme->rssi;
     req->cap_info = sme->cap_info;
     req->beacon_period = sme->beacon_period;
-#endif
+    #endif
 
     /* Send the SM_CONNECT_REQ message to LMAC FW */
     return rw_msg_send(req, SM_CONNECT_CFM, cfm);
@@ -1092,7 +1106,7 @@ int rw_msg_send_tim_update(u8 vif_idx, u16 aid, u8 tx_status)
 
     /* Build the MM_TIM_UPDATE_REQ message */
     req = ke_msg_alloc(MM_TIM_UPDATE_REQ, TASK_MM, TASK_API,
-                          sizeof(struct mm_tim_update_req));
+                       sizeof(struct mm_tim_update_req));
     if (!req)
         return -1;
 
@@ -1111,7 +1125,7 @@ int rw_msg_set_power(u8 vif_idx, u8 power)
 
     /* Build the MM_SET_POWER_REQ message */
     req = ke_msg_alloc(MM_SET_POWER_REQ, TASK_MM, TASK_NONE,
-                          sizeof(struct mm_set_power_req));
+                       sizeof(struct mm_set_power_req));
     if (!req)
         return -1;
 
@@ -1130,7 +1144,7 @@ int rw_msg_set_ap_monitor_coexist_tbtt(u8 vif_idx, uint32_t enable)
 
     /* Build the MM_SET_AP_MONITOR_COEXIST_TBTT_REQ message */
     req = ke_msg_alloc(MM_SET_AP_MONITOR_COEXIST_TBTT_REQ, TASK_MM, TASK_NONE,
-                          sizeof(struct mm_set_ap_monitor_coexist_tbtt_req));
+                       sizeof(struct mm_set_ap_monitor_coexist_tbtt_req));
     if (!req)
         return -1;
 
@@ -1148,7 +1162,7 @@ int rw_msg_set_ap_monitor_coexist_tbtt_dur(u8 vif_idx, uint32_t duration_ms)
 
     /* Build the MM_SET_AP_MONITOR_COEXIST_TBTT_DUR_REQ message */
     req = ke_msg_alloc(MM_SET_AP_MONITOR_COEXIST_TBTT_DUR_REQ, TASK_MM, TASK_NONE,
-                          sizeof(struct mm_set_ap_monitor_coexist_tbtt_dur_req));
+                       sizeof(struct mm_set_ap_monitor_coexist_tbtt_dur_req));
     if (!req)
         return -1;
 
@@ -1164,79 +1178,79 @@ int rw_msg_set_ap_monitor_coexist_tbtt_dur(u8 vif_idx, uint32_t duration_ms)
 #if CFG_WIFI_P2P
 int rw_msg_send_roc(u8 vif_index, unsigned int freq, uint32_t duration)
 {
-	struct mm_remain_on_channel_req *req;
-	struct mm_remain_on_channel_cfm cfm;
-	int ret;
-	struct rwnx_hw *rwnx_hw = &g_rwnx_hw;
-	struct rwnx_roc_elem *roc_elem;
+    struct mm_remain_on_channel_req *req;
+    struct mm_remain_on_channel_cfm cfm;
+    int ret;
+    struct rwnx_hw *rwnx_hw = &g_rwnx_hw;
+    struct rwnx_roc_elem *roc_elem;
 
-	/* FIXME: LOCK */
+    /* FIXME: LOCK */
     /* Check that no other RoC procedure has been launched */
-	//RWNX_LOGI("req:%d %d %d\n", freq, duration, !!rwnx_hw->roc_elem);
+    //RWNX_LOGI("req:%d %d %d\n", freq, duration, !!rwnx_hw->roc_elem);
     if (rwnx_hw->roc_elem) {
         return BK_ERR_IN_PROGRESS;
     }
 
-	roc_elem = os_zalloc(sizeof(struct rwnx_roc_elem));
-	if (!roc_elem)
-		return BK_ERR_NO_MEM;
+    roc_elem = os_zalloc(sizeof(struct rwnx_roc_elem));
+    if (!roc_elem)
+        return BK_ERR_NO_MEM;
 
-	roc_elem->freq = freq;
-	roc_elem->duration = duration;
+    roc_elem->freq = freq;
+    roc_elem->duration = duration;
 
-	req = ke_msg_alloc(MM_REMAIN_ON_CHANNEL_REQ, TASK_MM, TASK_API,
-					   sizeof(struct mm_remain_on_channel_req));
-	if (!req) {
-		os_free(roc_elem);
-		return BK_ERR_NO_MEM;
-	}
+    req = ke_msg_alloc(MM_REMAIN_ON_CHANNEL_REQ, TASK_MM, TASK_API,
+                       sizeof(struct mm_remain_on_channel_req));
+    if (!req) {
+        os_free(roc_elem);
+        return BK_ERR_NO_MEM;
+    }
 
     req->op_code      = MM_ROC_OP_START;
     req->vif_index    = vif_index;
-#if CFG_IEEE80211AX
-	req->chan.band = PHY_BAND_2G4;
-	req->chan.type = PHY_CHNL_BW_20;
-	req->chan.prim20_freq = freq;
-	req->chan.center1_freq = freq;
-#else
-	req->band = PHY_BAND_2G4;
-	req->type = PHY_CHNL_BW_20;
-	req->prim20_freq = freq;
-	req->center1_freq = freq;
-	req->center2_freq = 0;
-#endif
+    #if CFG_IEEE80211AX
+    req->chan.band = PHY_BAND_2G4;
+    req->chan.type = PHY_CHNL_BW_20;
+    req->chan.prim20_freq = freq;
+    req->chan.center1_freq = freq;
+    #else
+    req->band = PHY_BAND_2G4;
+    req->type = PHY_CHNL_BW_20;
+    req->prim20_freq = freq;
+    req->center1_freq = freq;
+    req->center2_freq = 0;
+    #endif
     req->duration_ms  = duration;
 
-	/* Send the MM_REMAIN_ON_CHANNEL_REQ message to LMAC FW */
-	ret = rw_msg_send(req, MM_REMAIN_ON_CHANNEL_CFM, &cfm);
-	if (ret || cfm.status) {
-		os_printf("%s: failed ret %d, cfm.status %d\n", __func__, ret, cfm.status);
-		os_free(roc_elem);
-		return -1;
-	} else {
-		rwnx_hw->roc_elem = roc_elem;
-	}
+    /* Send the MM_REMAIN_ON_CHANNEL_REQ message to LMAC FW */
+    ret = rw_msg_send(req, MM_REMAIN_ON_CHANNEL_CFM, &cfm);
+    if (ret || cfm.status) {
+        os_printf("%s: failed ret %d, cfm.status %d\n", __func__, ret, cfm.status);
+        os_free(roc_elem);
+        return -1;
+    } else {
+        rwnx_hw->roc_elem = roc_elem;
+    }
 
-	return ret;
+    return ret;
 }
 
 int rw_msg_send_cancel_roc(u8 vif_index)
 {
-	struct mm_remain_on_channel_req *req;
-	struct rwnx_hw *rwnx_hw = &g_rwnx_hw;
+    struct mm_remain_on_channel_req *req;
+    struct rwnx_hw *rwnx_hw = &g_rwnx_hw;
 
-	if (!rwnx_hw->roc_elem)
-		return BK_ERR_PARAM;
+    if (!rwnx_hw->roc_elem)
+        return BK_ERR_PARAM;
 
-	req = ke_msg_alloc(MM_REMAIN_ON_CHANNEL_REQ, TASK_MM, TASK_API,
-					   sizeof(struct mm_remain_on_channel_req));
-	if (!req)
-		return BK_ERR_NO_MEM;
+    req = ke_msg_alloc(MM_REMAIN_ON_CHANNEL_REQ, TASK_MM, TASK_API,
+                       sizeof(struct mm_remain_on_channel_req));
+    if (!req)
+        return BK_ERR_NO_MEM;
 
     req->op_code      = MM_ROC_OP_CANCEL;
 
-	/* Send the MM_REMAIN_ON_CHANNEL_REQ message to LMAC FW */
-	return rw_msg_send(req, MM_REMAIN_ON_CHANNEL_REQ, NULL);
+    /* Send the MM_REMAIN_ON_CHANNEL_REQ message to LMAC FW */
+    return rw_msg_send(req, MM_REMAIN_ON_CHANNEL_REQ, NULL);
 }
 
 #endif // CFG_WIFI_P2P
@@ -1244,24 +1258,24 @@ int rw_msg_send_cancel_roc(u8 vif_index)
 #if CFG_WIFI_FTM
 int rw_msg_send_ftm_start(u8 vif_index, u8 ftm_per_burst, u8 nb_ftm_rsp)
 {
-#if CFG_WIFI_FTM_INITIATOR
-	struct ftm_start_req *req;
-	struct ftm_start_cfm cfm;
+    #if CFG_WIFI_FTM_INITIATOR
+    struct ftm_start_req *req;
+    struct ftm_start_cfm cfm;
 
-	req = ke_msg_alloc(FTM_START_REQ, TASK_FTM, TASK_API,
-					   sizeof(struct ftm_start_req));
-	if (!req)
-		return BK_ERR_NO_MEM;
+    req = ke_msg_alloc(FTM_START_REQ, TASK_FTM, TASK_API,
+                       sizeof(struct ftm_start_req));
+    if (!req)
+        return BK_ERR_NO_MEM;
 
-	req->vif_idx = vif_index;
-	req->ftm_per_burst = ftm_per_burst;
-	req->nb_ftm_rsp = nb_ftm_rsp;
+    req->vif_idx = vif_index;
+    req->ftm_per_burst = ftm_per_burst;
+    req->nb_ftm_rsp = nb_ftm_rsp;
 
-	/* Send the MM_REMAIN_ON_CHANNEL_REQ message to LMAC FW */
-	return rw_msg_send(req, FTM_START_CFM, &cfm);
-#else
-	return 0;
-#endif
+    /* Send the MM_REMAIN_ON_CHANNEL_REQ message to LMAC FW */
+    return rw_msg_send(req, FTM_START_CFM, &cfm);
+    #else
+    return 0;
+    #endif
 }
 
 #endif

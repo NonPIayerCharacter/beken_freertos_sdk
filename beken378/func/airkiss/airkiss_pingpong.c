@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "airkiss_pingpong.h"
 #include "mem_pub.h"
@@ -11,8 +25,8 @@ uint32_t read_from_pingpong_buf(void *buf_user, const uint32_t count, uint32_t *
     uint32_t len;
     uint32_t ret = 0;
     struct buff_str *buf;
-	GLOBAL_INT_DECLARATION();
-	struct pingpong_buffer *pp_buf = &g_pp_buf;
+    GLOBAL_INT_DECLARATION();
+    struct pingpong_buffer *pp_buf = &g_pp_buf;
 
     if (pp_buf->read_switch)
     {
@@ -32,10 +46,10 @@ uint32_t read_from_pingpong_buf(void *buf_user, const uint32_t count, uint32_t *
 
     len = _min(count, buf->length - buf->offset);
 
-	os_memcpy(buf_user, buf->addr, len);
+    os_memcpy(buf_user, buf->addr, len);
     ret += len;
     buf->offset += ret;
-	*actual = buf->actual;
+    *actual = buf->actual;
 
     GLOBAL_INT_DISABLE();
     /* get to the buffer end, switch to next buffer */
@@ -53,8 +67,8 @@ uint32_t write_to_pingpong_buf(void *buf_user, const uint32_t count, const uint3
 {
     uint32_t len;
     struct buff_str *buf;
-	GLOBAL_INT_DECLARATION();
-	struct pingpong_buffer *pp_buf = &g_pp_buf;
+    GLOBAL_INT_DECLARATION();
+    struct pingpong_buffer *pp_buf = &g_pp_buf;
 
     if (pp_buf->write_switch)
     {
@@ -73,9 +87,9 @@ uint32_t write_to_pingpong_buf(void *buf_user, const uint32_t count, const uint3
     GLOBAL_INT_RESTORE();
 
     /* use memset instead write operations for test */
-	len = _min(BUF_LEN, count);
-	os_memcpy(buf->addr, buf_user, len);
-	buf->actual = actual;
+    len = _min(BUF_LEN, count);
+    os_memcpy(buf->addr, buf_user, len);
+    buf->actual = actual;
 
     /* when write finished, enable write */
     GLOBAL_INT_DISABLE();
@@ -91,9 +105,9 @@ int pingpong_init(void)
 {
     char *mem1, *mem2;
     struct buff_str *buf1, *buf2;
-	struct pingpong_buffer *pp_buf = &g_pp_buf;
+    struct pingpong_buffer *pp_buf = &g_pp_buf;
 
-	PINIGPONG_PRT("pingpong_init\r\n");
+    PINIGPONG_PRT("pingpong_init\r\n");
     buf1 = &pp_buf->buf1;
     buf2 = &pp_buf->buf2;
 
@@ -103,7 +117,7 @@ int pingpong_init(void)
         PINIGPONG_FATAL("pingpong_init() failed\r\n");
         return -1;
     }
-	PINIGPONG_PRT("buf1_malloc:0x%x\r\n", mem1);
+    PINIGPONG_PRT("buf1_malloc:0x%x\r\n", mem1);
     mem2 = &mem1[BUF_LEN];
 
     buf1->addr = mem1;
@@ -130,14 +144,14 @@ int pingpong_init(void)
 
 void pingpong_free(void)
 {
-	struct pingpong_buffer *pp_buf = &g_pp_buf;
+    struct pingpong_buffer *pp_buf = &g_pp_buf;
 
-	PINIGPONG_PRT("pingpong_free\r\n");
+    PINIGPONG_PRT("pingpong_free\r\n");
     if (pp_buf->buf1.addr)
     {
-		PINIGPONG_PRT("buf1_free:0x%x\r\n", pp_buf->buf1.addr);
+        PINIGPONG_PRT("buf1_free:0x%x\r\n", pp_buf->buf1.addr);
         os_free(pp_buf->buf1.addr);
-		
+
         pp_buf->buf1.addr = NULL;
         pp_buf->buf1.next_buf_addr = NULL;
     }

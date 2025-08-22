@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "video_demo_config.h"
 
@@ -10,7 +24,8 @@
 
 #define VIDE_MODE_STATION        (0x1)
 #define VIDE_MODE_SOFTAP         (0x2)
-#define VIDE_MODE_P2P         	 (0x4)
+#define VIDE_MODE_P2P            (0x4)
+#define VIDE_MODE_CO_AP_P2P      (0x8)
 
 extern void app_demo_sta_start(char *oob_ssid, char *connect_key);
 extern void app_demo_sta_exit(void);
@@ -20,6 +35,9 @@ extern void app_demo_softap_exit(void);
 
 extern void app_demo_p2p_start(char *oob_ssid, char *connect_key);
 extern void app_demo_p2p_exit(void);
+
+extern void app_demo_co_ap_p2p_start(char *oob_ssid, char *connect_key);
+extern void app_demo_co_ap_p2p_exit(void);
 
 extern void tvideo_set_sensor(UINT32 ppi, UINT32 fps);
 
@@ -170,7 +188,7 @@ static int video_transfer(int argc, char **argv)
         #endif
         return 1;
     }
-	 else if (os_strcmp(argv[1], "-p") == 0)
+    else if (os_strcmp(argv[1], "-p") == 0)
     {
         #if (APP_VIDEO_TRANSFER_MODE & VIDEO_TRANSFER_P2P_MODE)
         if (argc < 3)
@@ -210,6 +228,46 @@ static int video_transfer(int argc, char **argv)
         #endif
         return 1;
     }
+    #if (CFG_WIFI_P2P_SOFTAP_COEX)
+    else if (os_strcmp(argv[1], "-cap") == 0)
+    {
+        #if (APP_VIDEO_TRANSFER_MODE & VIDEO_TRANSFER_CO_AP_P2P_MODE)
+        if (argc < 3)
+        {
+            goto __usage;
+        }
+
+        if ((video_transfer_mode & VIDE_MODE_CO_AP_P2P) == 0)
+        {
+            if (argv[2][0] == '0')
+                oob_ssid = tmp_oob_ssid;
+            else
+                oob_ssid = argv[2];
+            if (argc >= 4)
+            {
+                /* video_transfer -s ssid key [options] */
+                connect_key = argv[3];
+                if (argc >= 6)
+                {
+                    video_sensor_config(argv[4], argv[5]);
+                }
+            }
+
+            video_transfer_mode = 0;
+
+            app_demo_co_ap_p2p_start(oob_ssid, connect_key);
+            video_transfer_mode |= VIDE_MODE_CO_AP_P2P;
+        }
+        else
+        {
+            os_printf("p2p mode aready started\n");
+        }
+        #else
+        os_printf("APP_VIDEO_TRANSFER_MODE not support station mode \n");
+        #endif
+        return 1;
+    }
+    #endif // CFG_WIFI_P2P_SOFTAP_COEX
     else
     {
         goto __usage;

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _MCU_PS_PUB_H_
 #define _MCU_PS_PUB_H_
 
@@ -8,9 +22,9 @@
 #define     CFG_MCU_PS_SELECT_120M      1
 
 typedef struct  mcu_ps {
-	UINT8 mcu_ps_on;
-	int peri_busy_count;
-	UINT32 mcu_prevent;
+    UINT8 mcu_ps_on;
+    int peri_busy_count;
+    UINT32 mcu_prevent;
 } MCU_PS_INFO;
 
 typedef enum
@@ -19,21 +33,29 @@ typedef enum
     HIGH_LEVEL        = 1,
     POSEDGE           = 2,
     NEGEDGE           = 3,
+    WAKEUP_GPIO_TYPE_INVALID
 } WAKEUP_GPIO_TYPE;
 
+typedef struct
+{
+    UINT8 wakeup_gpio_index;
+    WAKEUP_GPIO_TYPE wakeup_gpio_type;
+} WAKEUP_GPIO_NODE;
 
 typedef struct  sctrl_mcu_ps {
-	UINT8 hw_sleep ;
-	UINT8 first_sleep ;
-	UINT8 mcu_use_dco;
-	UINT8 wakeup_gpio_index;
-	WAKEUP_GPIO_TYPE wakeup_gpio_type;
-	UINT32 gpio_config_backup;
+    UINT8 hw_sleep ;
+    UINT8 first_sleep ;
+    UINT8 mcu_use_dco;
+    UINT32 gpio_config_backup;
 } SCTRL_MCU_PS_INFO;
 
-#define     MCU_PS_CONNECT      CO_BIT(0)
-#define     MCU_PS_ADD_KEY      CO_BIT(1)
-#define     MCU_PS_GPIO_PREVENT      CO_BIT(2)
+#define     WAKEUP_GPIO_NUM                  4
+#define     WAKEUP_GPIO_INDEX_INVALID        0xFF // UINT8
+
+#define     MCU_PS_CONNECT                   CO_BIT(0)
+#define     MCU_PS_ADD_KEY                   CO_BIT(1)
+#define     MCU_PS_GPIO_PREVENT              CO_BIT(2)
+#define     MCU_PS_ADC_USE_BY_TEMP_DETECT    CO_BIT(3)
 
 #define CHIP_U_MCU_WKUP_USE_TIMER  1
 
@@ -50,7 +72,7 @@ extern UINT32 peri_busy_count_get ( void );
 extern UINT32 mcu_prevent_get ( void );
 extern UINT32 fclk_update_tick ( UINT32 tick );
 extern void mcu_ps_dump ( void );
-extern void ps_pwm_reconfig ( UINT32 , UINT8 );
+extern void ps_pwm_reconfig ( UINT32, UINT8 );
 extern void ps_pwm_resume_tick ( void );
 extern void ps_pwm_suspend_tick ( UINT32 );
 extern void ps_pwm_disable ( void );

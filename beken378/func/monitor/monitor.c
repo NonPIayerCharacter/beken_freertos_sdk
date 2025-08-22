@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "target_util_pub.h"
@@ -92,8 +106,8 @@ static void monitor_tbtt_dur_callback(void)
     3: MONITOR_CHANNEL_SWITCH_TIMER_MARGIN
     ensure switch channel has sufficient time*/
     if (cur_channel == g_mtr_channel_at_tbtt&&
-        cur_channel != g_mtr_channels.softap_channel &&
-        tick_now + MONITOR_CHANNEL_SWITCH_TIMER_MARGIN < g_next_mtr_channel_time_ms) {
+            cur_channel != g_mtr_channels.softap_channel &&
+            tick_now + MONITOR_CHANNEL_SWITCH_TIMER_MARGIN < g_next_mtr_channel_time_ms) {
         bk_wlan_set_channel_sync(cur_channel);
     }
 }
@@ -115,7 +129,7 @@ static void monitor_tbtt_callback(void)
         /*in this condition, change next mtr scan channel time until tbtt_monitor_tbtt_dur timer end*/
         if (rtos_is_timer_running(&mtr_chan_timer)) {
             ret = rtos_change_period(&mtr_chan_timer,
-                                  tick_now + MONITOR_TBTT_DUR_TIMER - g_next_mtr_channel_time_ms);
+                                     tick_now + MONITOR_TBTT_DUR_TIMER - g_next_mtr_channel_time_ms);
             ASSERT(kNoErr == ret);
         }
     }
@@ -146,9 +160,9 @@ static void monitor_switch_channel_callback(void *data)
     if (!g_mtr_exit) {
         ret = rtos_change_period(&mtr_chan_timer, MONITOR_SWITCH_TIMER);
         ASSERT(kNoErr == ret);
-#if CFG_AP_MONITOR_COEXIST_TBTT
+        #if CFG_AP_MONITOR_COEXIST_TBTT
         monitor_calc_time_for_next_monitor_channel();
-#endif
+        #endif
     }
 }
 
@@ -169,21 +183,21 @@ static void monitor_register_cb(void)
 {
     bk_wlan_register_monitor_cb(NULL);
     bk_wlan_register_monitor_cb(monitor_frame_callback);
-#if CFG_AP_MONITOR_COEXIST_TBTT
+    #if CFG_AP_MONITOR_COEXIST_TBTT
     bk_wlan_register_tbtt_cb(NULL);
     bk_wlan_register_tbtt_cb(monitor_tbtt_callback);
     bk_wlan_register_transmitted_bcn_cb(NULL);
     bk_wlan_register_transmitted_bcn_cb(monitor_tbtt_dur_callback);
-#endif
+    #endif
 }
 
 static void monitor_unregister_cb(void)
 {
     bk_wlan_register_monitor_cb(NULL);
-#if CFG_AP_MONITOR_COEXIST_TBTT
+    #if CFG_AP_MONITOR_COEXIST_TBTT
     bk_wlan_register_tbtt_cb(NULL);
     bk_wlan_register_transmitted_bcn_cb(NULL);
-#endif
+    #endif
 }
 
 static void monitor_init(void)
@@ -191,9 +205,9 @@ static void monitor_init(void)
     int result;
 
     result = rtos_init_timer(&mtr_chan_timer,
-                         MONITOR_SWITCH_TIMER,
-                         monitor_switch_channel_callback,
-                         (void *)0);
+                             MONITOR_SWITCH_TIMER,
+                             monitor_switch_channel_callback,
+                             (void *)0);
     ASSERT(kNoErr == result);
 
     monitor_init_scan_channels();
@@ -222,26 +236,26 @@ static void monitor_scan_start(void)
     bk_wlan_stop_monitor();
     monitor_register_cb();
     bk_wlan_start_monitor();
-#if CFG_AP_MONITOR_COEXIST_TBTT
+    #if CFG_AP_MONITOR_COEXIST_TBTT
     bk_wlan_ap_monitor_coexist_tbtt_duration(MONITOR_TBTT_DUR_TIMER);
     bk_wlan_ap_monitor_coexist_tbtt_enable();
-#endif
+    #endif
 // start from first channel
     bk_wlan_set_channel_sync(g_mtr_channels.channel_list[g_mtr_channels.cur_channel_idx]);
 
     result = rtos_start_timer(&mtr_chan_timer);
     ASSERT(kNoErr == result);
 
-#if CFG_AP_MONITOR_COEXIST_TBTT
+    #if CFG_AP_MONITOR_COEXIST_TBTT
     monitor_calc_time_for_next_monitor_channel();
-#endif
+    #endif
 }
 
 static void monitor_scan_end(void)
 {
-#if CFG_AP_MONITOR_COEXIST_TBTT
+    #if CFG_AP_MONITOR_COEXIST_TBTT
     bk_wlan_ap_monitor_coexist_tbtt_disable();
-#endif
+    #endif
     bk_wlan_stop_monitor();
     monitor_unregister_cb();
 
@@ -284,11 +298,11 @@ static uint32_t monitor_start(void)
 
     if (NULL == mtr_thread_handle) {
         ret = rtos_create_thread(&mtr_thread_handle,
-                               BEKEN_DEFAULT_WORKER_PRIORITY,
-                               "monitor",
-                               (beken_thread_function_t)monitor_main,
-                               4096,
-                               (beken_thread_arg_t)0);
+                                 BEKEN_DEFAULT_WORKER_PRIORITY,
+                                 "monitor",
+                                 (beken_thread_function_t)monitor_main,
+                                 4096,
+                                 (beken_thread_arg_t)0);
         if (ret != kNoErr) {
             MONITOR_FATAL("Error: monitor_start_process: %d\r\n", ret);
             ret = kGeneralErr;

@@ -1,4 +1,4 @@
-// Copyright 2020-2021 Beken
+// Copyright 2015-2024 Beken
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,76 +25,76 @@ typedef uint8_t sdio_host_unit_t; /**< sdio host uint id */
 #if (CONFIG_SDIO_V2P0)
 #if (CFG_SOC_NAME == SOC_BK7252N)
 typedef enum {
-	SDIO_HOST_CLK_XTAL_1DIV = 0x11,     /**< 26M/1 division of clock frequency:26MHz */
-	SDIO_HOST_CLK_XTAL_2DIV = 0x12,     /**< 26M/2 division of clock frequency:13MHz */
-	SDIO_HOST_CLK_XTAL_4DIV = 0x13,     /**< 26M/4 division of clock frequency:6.5MHz*/
-	SDIO_HOST_CLK_XTAL_128DIV = 0x14,   /**< 26M/128 division of clock frequency:203KHz */
+    SDIO_HOST_CLK_XTAL_1DIV = 0x11,     /**< 26M/1 division of clock frequency:26MHz */
+    SDIO_HOST_CLK_XTAL_2DIV = 0x12,     /**< 26M/2 division of clock frequency:13MHz */
+    SDIO_HOST_CLK_XTAL_4DIV = 0x13,     /**< 26M/4 division of clock frequency:6.5MHz*/
+    SDIO_HOST_CLK_XTAL_128DIV = 0x14,   /**< 26M/128 division of clock frequency:203KHz */
 
-	/* DCO:120MHz*/
-	SDIO_HOST_CLK_DCO_1DIV = 0x15,     /**< DCO/1 division of clock frequency:120MHz */
-	SDIO_HOST_CLK_DCO_2DIV = 0x16,     /**< DCO/2 division of clock frequency:60MHz */
-	SDIO_HOST_CLK_DCO_4DIV = 0x17,     /**< DCO/4 division of clock frequency:30MHz */
-	SDIO_HOST_CLK_DCO_128DIV = 0x18,   /**< DCO/128 division of clock frequency:937KHz */
+    /* DCO:120MHz*/
+    SDIO_HOST_CLK_DCO_1DIV = 0x15,     /**< DCO/1 division of clock frequency:120MHz */
+    SDIO_HOST_CLK_DCO_2DIV = 0x16,     /**< DCO/2 division of clock frequency:60MHz */
+    SDIO_HOST_CLK_DCO_4DIV = 0x17,     /**< DCO/4 division of clock frequency:30MHz */
+    SDIO_HOST_CLK_DCO_128DIV = 0x18,   /**< DCO/128 division of clock frequency:937KHz */
 } sdio_host_clock_freq_t;
 #else
 typedef enum {
-	SDIO_HOST_CLK_13M = 0,    /**< 26M/2 division of clock frequency */
-	SDIO_HOST_CLK_6_5M = 1,    /**< 26M/4 division of clock frequency */
-	SDIO_HOST_CLK_4_3M = 2,    /**< 26M/6 division of clock frequency */
-	SDIO_HOST_CLK_3_2M = 3,    /**< 26M/8 division of clock frequency */
-	SDIO_HOST_CLK_2_6M = 4,    /**< 26M/10 division of clock frequency */
-	SDIO_HOST_CLK_2_2M = 5,    /**< 26M/12 division of clock frequency */
-	SDIO_HOST_CLK_1_6M = 6,     /**< 26M/16 division of clock frequency */
-	SDIO_HOST_CLK_100K = 7,     /**< 26M/256 division of clock frequency */
+    SDIO_HOST_CLK_13M = 0,    /**< 26M/2 division of clock frequency */
+    SDIO_HOST_CLK_6_5M = 1,    /**< 26M/4 division of clock frequency */
+    SDIO_HOST_CLK_4_3M = 2,    /**< 26M/6 division of clock frequency */
+    SDIO_HOST_CLK_3_2M = 3,    /**< 26M/8 division of clock frequency */
+    SDIO_HOST_CLK_2_6M = 4,    /**< 26M/10 division of clock frequency */
+    SDIO_HOST_CLK_2_2M = 5,    /**< 26M/12 division of clock frequency */
+    SDIO_HOST_CLK_1_6M = 6,     /**< 26M/16 division of clock frequency */
+    SDIO_HOST_CLK_100K = 7,     /**< 26M/256 division of clock frequency */
 
-	//SDIO_HOST_CLK_160M = 8,   /**< 320M/2 division of clock frequency */	//NOT supports this speed now.
-	SDIO_HOST_CLK_80M = 9,     /**< 320M/4 division of clock frequency */
-	SDIO_HOST_CLK_53M = 10,     /**< 320M/6 division of clock frequency */
-	SDIO_HOST_CLK_40M = 11,     /**< 320M/8 division of clock frequency */
-	SDIO_HOST_CLK_32M = 12,     /**< 320M/10 division of clock frequency */
-	SDIO_HOST_CLK_27M = 13,     /**< 320M/12 division of clock frequency */
-	SDIO_HOST_CLK_20M = 14,     /**< 320M/16 division of clock frequency */	
-	SDIO_HOST_CLK_200K = 15,    /**< 128 division of clock frequency */
+    //SDIO_HOST_CLK_160M = 8,   /**< 320M/2 division of clock frequency */	//NOT supports this speed now.
+    SDIO_HOST_CLK_80M = 9,     /**< 320M/4 division of clock frequency */
+    SDIO_HOST_CLK_53M = 10,     /**< 320M/6 division of clock frequency */
+    SDIO_HOST_CLK_40M = 11,     /**< 320M/8 division of clock frequency */
+    SDIO_HOST_CLK_32M = 12,     /**< 320M/10 division of clock frequency */
+    SDIO_HOST_CLK_27M = 13,     /**< 320M/12 division of clock frequency */
+    SDIO_HOST_CLK_20M = 14,     /**< 320M/16 division of clock frequency */
+    SDIO_HOST_CLK_200K = 15,    /**< 128 division of clock frequency */
 } sdio_host_clock_freq_t;
 #endif // (CFG_SOC_NAME == SOC_BK7252N)
 #else
 typedef enum {
-	SDIO_HOST_CLK_26M = 26000000,    /**< 1 division of clock frequency */
-	SDIO_HOST_CLK_13M = 13000000,    /**< 2 division of clock frequency */
-	SDIO_HOST_CLK_6_5M = 6500000,    /**< 4 division of clock frequency */
-	SDIO_HOST_CLK_3_2_5M  = 3250000, /**< 8 division of clock frequency */
-	SDIO_HOST_CLK_1_6M = 1600000,    /**< 16 division of clock frequency */
-	SDIO_HOST_CLK_800K = 800000,     /**< 32 division of clock frequency */
-	SDIO_HOST_CLK_400K = 400000,     /**< 64 division of clock frequency */
-	SDIO_HOST_CLK_200K = 200000,     /**< 128 division of clock frequency */
-	SDIO_HOST_CLK_100K = 100000,     /**< 256 division of clock frequency */
+    SDIO_HOST_CLK_26M = 26000000,    /**< 1 division of clock frequency */
+    SDIO_HOST_CLK_13M = 13000000,    /**< 2 division of clock frequency */
+    SDIO_HOST_CLK_6_5M = 6500000,    /**< 4 division of clock frequency */
+    SDIO_HOST_CLK_3_2_5M  = 3250000, /**< 8 division of clock frequency */
+    SDIO_HOST_CLK_1_6M = 1600000,    /**< 16 division of clock frequency */
+    SDIO_HOST_CLK_800K = 800000,     /**< 32 division of clock frequency */
+    SDIO_HOST_CLK_400K = 400000,     /**< 64 division of clock frequency */
+    SDIO_HOST_CLK_200K = 200000,     /**< 128 division of clock frequency */
+    SDIO_HOST_CLK_100K = 100000,     /**< 256 division of clock frequency */
 } sdio_host_clock_freq_t;
 #endif
 
 typedef enum {
-	SDIO_HOST_CMD_RSP_NONE = 0, /**< sdio host not need slave respond the command */
-	SDIO_HOST_CMD_RSP_SHORT,    /**< sdio host need slave long response */
-	SDIO_HOST_CMD_RSP_LONG,     /**< sdio host need slave short response */
+    SDIO_HOST_CMD_RSP_NONE = 0, /**< sdio host not need slave respond the command */
+    SDIO_HOST_CMD_RSP_SHORT,    /**< sdio host need slave long response */
+    SDIO_HOST_CMD_RSP_LONG,     /**< sdio host need slave short response */
 } sdio_host_cmd_rsp_t;
 
 typedef enum {
-	SDIO_HOST_BUS_WIDTH_1LINE = 0, /**< sdio host bus width 1 line */
-	SDIO_HOST_BUS_WIDTH_4LINE,     /**< sdio host bus width 4 line */
+    SDIO_HOST_BUS_WIDTH_1LINE = 0, /**< sdio host bus width 1 line */
+    SDIO_HOST_BUS_WIDTH_4LINE,     /**< sdio host bus width 4 line */
 } sdio_host_bus_width_t;
 
 typedef enum {
-	SDIO_HOST_RSP0 = 0, /**< sdio host response regiseter 0 */
-	SDIO_HOST_RSP1,     /**< sdio host response regiseter 1 */
-	SDIO_HOST_RSP2,     /**< sdio host response regiseter 2 */
-	SDIO_HOST_RSP3,     /**< sdio host response regiseter 3 */
+    SDIO_HOST_RSP0 = 0, /**< sdio host response regiseter 0 */
+    SDIO_HOST_RSP1,     /**< sdio host response regiseter 1 */
+    SDIO_HOST_RSP2,     /**< sdio host response regiseter 2 */
+    SDIO_HOST_RSP3,     /**< sdio host response regiseter 3 */
 } sdio_host_response_t;
 
 typedef struct {
-	uint32_t cmd_index;           /**< sdio command index, between 0 and 63 */
-	uint32_t argument;            /**< sdio command argument */
-	sdio_host_cmd_rsp_t response; /**< sdio command response type */
-	uint32_t wait_rsp_timeout;    /**< sdio host wait for slave command response timeout */
-	bool crc_check;			      /**< sdio host whether need to check slave response crc value */
+    uint32_t cmd_index;           /**< sdio command index, between 0 and 63 */
+    uint32_t argument;            /**< sdio command argument */
+    sdio_host_cmd_rsp_t response; /**< sdio command response type */
+    uint32_t wait_rsp_timeout;    /**< sdio host wait for slave command response timeout */
+    bool crc_check;			      /**< sdio host whether need to check slave response crc value */
 } sdio_host_cmd_cfg_t;
 
 #ifdef __cplusplus

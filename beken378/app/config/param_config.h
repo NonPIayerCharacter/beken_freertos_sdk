@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _ARCH_CONFIG_H_
 #define _ARCH_CONFIG_H_
 
@@ -55,21 +69,21 @@ typedef struct ap_param
     uint8_t key[65];
     uint8_t key_len;
     bool hidden_ssid;
-#if CFG_WIFI_AP_VSIE
-	uint8_t vsie[255];
-	uint8_t vsie_len;
-#endif
-#if CFG_WIFI_AP_CUSTOM_RATES
-	/* make last basic_rates be zero */
-	int basic_rates[16];
-	/* make last supported_rates be zero */
-	int supported_rates[16];
-	/* don't change mcs_set size */
-	uint8_t mcs_set[16];
-#endif
-#if CFG_WIFI_AP_HW_MODE
-	int hw_mode;
-#endif
+    #if CFG_WIFI_AP_VSIE
+    uint8_t vsie[255];
+    uint8_t vsie_len;
+    #endif
+    #if CFG_WIFI_AP_CUSTOM_RATES
+    /* make last basic_rates be zero */
+    int basic_rates[16];
+    /* make last supported_rates be zero */
+    int supported_rates[16];
+    /* don't change mcs_set size */
+    uint8_t mcs_set[16];
+    #endif
+    #if CFG_WIFI_AP_HW_MODE
+    int hw_mode;
+    #endif
 } ap_param_t;
 
 typedef struct sta_param
@@ -82,22 +96,22 @@ typedef struct sta_param
     uint8_t fast_connect_set;
     fast_connect_param_t fast_connect;
 
-#if CFG_WPA2_ENTERPRISE
-	/* starts of WPA2-Enterprise/WPA3-Enterprise EAP-TLS configuration */
-	char eap[16];					   /**< phase1 authType: TLS/TTLS/SIM */
-	char identity[32];				   /**< user identity */
-	char ca[32];					   /**< CA certificate filename */
-	char client_cert[32];			   /**< client's Certification filename in PEM,DER format */
-	char private_key[32];			   /**< client's private key filename in PEM,DER format */
-	char private_key_passwd[32];	   /**< client's private key password */
-	char phase1[32];				   /**< client's phase1 parameters */
-#endif
+    #if CFG_WPA2_ENTERPRISE
+    /* starts of WPA2-Enterprise/WPA3-Enterprise EAP-TLS configuration */
+    char eap[16];					   /**< phase1 authType: TLS/TTLS/SIM */
+    char identity[32];				   /**< user identity */
+    char ca[32];					   /**< CA certificate filename */
+    char client_cert[32];			   /**< client's Certification filename in PEM,DER format */
+    char private_key[32];			   /**< client's private key filename in PEM,DER format */
+    char private_key_passwd[32];	   /**< client's private key password */
+    char phase1[32];				   /**< client's phase1 parameters */
+    #endif
 
-#if CFG_STA_AUTO_RECONNECT
-	int auto_reconnect_count;		   /**< auto reconnect max count, 0 for always reconnect */
-	int auto_reconnect_timeout; 	   /**< auto reconnect timeout in secs, 0 for no timeout */
-	bool disable_auto_reconnect_after_disconnect;  /**< disable auto reconnect if deauth/disassoc by AP when in connected state */
-#endif
+    #if CFG_STA_AUTO_RECONNECT
+    int auto_reconnect_count;		   /**< auto reconnect max count, 0 for always reconnect */
+    int auto_reconnect_timeout; 	   /**< auto reconnect timeout in secs, 0 for no timeout */
+    bool disable_auto_reconnect_after_disconnect;  /**< disable auto reconnect if deauth/disassoc by AP when in connected state */
+    #endif
 
 } sta_param_t;
 

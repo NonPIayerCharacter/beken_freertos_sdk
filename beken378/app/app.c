@@ -1,13 +1,17 @@
-/**
- ****************************************************************************************
- *
- * @file app.c
- *
- *
- * Copyright (C) Beken Corp 2011-2016
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "mem_pub.h"
 #include "rwnx_config.h"
@@ -73,9 +77,9 @@ extern void extended_app_waiting_for_launch(void);
 
 void bk_wlan_app_init(void)
 {
-#if (!CFG_SUPPORT_RTT)
+    #if (!CFG_SUPPORT_RTT)
     net_wlan_initial();
-#endif
+    #endif
 
     wpas_thread_start();
 }
@@ -118,9 +122,9 @@ static void init_thread_main( void *arg )
  */
 int bmsg_ps_handler_rf_ps_mode_real_wakeup(void)
 {
-#if CFG_USE_STA_PS
+    #if CFG_USE_STA_PS
     power_save_rf_dtim_manual_do_wakeup();
-#endif
+    #endif
     return 0;
 }
 
@@ -161,10 +165,10 @@ void bmsg_tx_handler(BUS_MSG_T *msg)
 
     ps_set_data_prevent();
 
-#if CFG_USE_STA_PS
+    #if CFG_USE_STA_PS
     bmsg_ps_handler_rf_ps_mode_real_wakeup();
     bk_wlan_dtim_rf_ps_mode_do_wakeup();
-#endif
+    #endif
 
     rwm_transfer(vif_idx, q->payload, q->len, 0, 0);
 
@@ -174,90 +178,90 @@ tx_handler_exit:
 
 void bmsg_tx_raw_cb_handler(BUS_MSG_T *msg)
 {
-	rwm_raw_frame_with_cb((uint8_t *)msg->arg, msg->len, msg->cb, msg->param);
+    rwm_raw_frame_with_cb((uint8_t *)msg->arg, msg->len, msg->cb, msg->param);
 }
 
 int bmsg_tx_raw_cb_sender(uint8_t *buffer, int length, void *cb, void *param)
 {
-	void *node;
-	OSStatus ret;
-	BUS_MSG_T msg;
+    void *node;
+    OSStatus ret;
+    BUS_MSG_T msg;
 
-	msg.type = BMSG_TX_RAW_CB_TYPE;
-	msg.len = length;
-	msg.sema = NULL;
-	msg.cb = cb;
-	msg.param = param;
+    msg.type = BMSG_TX_RAW_CB_TYPE;
+    msg.len = length;
+    msg.sema = NULL;
+    msg.cb = cb;
+    msg.param = param;
 
-	/*alloc new buffer, and copy the content*/
-	node = (void *)rwm_raw_frame_prepare_space(buffer, length);
-	msg.arg = (uint32_t)node;
+    /*alloc new buffer, and copy the content*/
+    node = (void *)rwm_raw_frame_prepare_space(buffer, length);
+    msg.arg = (uint32_t)node;
 
-	ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
-	if (ret != kNoErr) {
-		rwm_raw_frame_destroy_space(node);
-		APP_PRT("bmsg_tx_sender failed\r\n");
-	}
+    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
+    if (ret != kNoErr) {
+        rwm_raw_frame_destroy_space(node);
+        APP_PRT("bmsg_tx_sender failed\r\n");
+    }
 
-	return ret;
+    return ret;
 }
 
 void bmsg_tx_raw_handler(BUS_MSG_T *msg)
 {
-	uint8_t *pkt = (uint8_t *)msg->arg;
-	uint16_t len = msg->len;
-	MSDU_NODE_T *node;
-	UINT8 *content_ptr;
-	UINT32 queue_idx = AC_VI;
-	struct txdesc *txdesc_new;
-	struct umacdesc *umac;
+    uint8_t *pkt = (uint8_t *)msg->arg;
+    uint16_t len = msg->len;
+    MSDU_NODE_T *node;
+    UINT8 *content_ptr;
+    UINT32 queue_idx = AC_VI;
+    struct txdesc *txdesc_new;
+    struct umacdesc *umac;
 
-	node = rwm_tx_node_alloc(len);
-	if (node == NULL) {
-		os_printf("rwm_tx_node_alloc failed\r\n");
-		goto exit;
-	}
+    node = rwm_tx_node_alloc(len);
+    if (node == NULL) {
+        os_printf("rwm_tx_node_alloc failed\r\n");
+        goto exit;
+    }
 
-	rwm_tx_msdu_renew(pkt, len, node->msdu_ptr);
-	content_ptr = rwm_get_msdu_content_ptr(node);
+    rwm_tx_msdu_renew(pkt, len, node->msdu_ptr);
+    content_ptr = rwm_get_msdu_content_ptr(node);
 
-	txdesc_new = tx_txdesc_prepare(queue_idx);
-	if(txdesc_new == NULL || TXDESC_STA_USED == txdesc_new->status) {
-		rwm_node_free(node);
-		os_printf("bmsg_tx_raw_handler failed\r\n");
-		goto exit;
-	}
+    txdesc_new = tx_txdesc_prepare(queue_idx);
+    if(txdesc_new == NULL || TXDESC_STA_USED == txdesc_new->status) {
+        rwm_node_free(node);
+        os_printf("bmsg_tx_raw_handler failed\r\n");
+        goto exit;
+    }
 
-	txdesc_new->status = TXDESC_STA_USED;
-	txdesc_new->host.flags = TXU_CNTRL_MGMT;
-	txdesc_new->host.msdu_node = (void *)node;
-	txdesc_new->host.orig_addr = (UINT32)node->msdu_ptr;
-	txdesc_new->host.packet_addr = (UINT32)content_ptr;
-	txdesc_new->host.packet_len = len;
-	txdesc_new->host.status_desc_addr = (UINT32)content_ptr;
-	txdesc_new->host.tid = 0xff;
+    txdesc_new->status = TXDESC_STA_USED;
+    txdesc_new->host.flags = TXU_CNTRL_MGMT;
+    txdesc_new->host.msdu_node = (void *)node;
+    txdesc_new->host.orig_addr = (UINT32)node->msdu_ptr;
+    txdesc_new->host.packet_addr = (UINT32)content_ptr;
+    txdesc_new->host.packet_len = len;
+    txdesc_new->host.status_desc_addr = (UINT32)content_ptr;
+    txdesc_new->host.tid = 0xff;
 
-	umac = &txdesc_new->umac;
-	umac->payl_len = len;
-	umac->head_len = 0;
-	umac->tail_len = 0;
-	umac->hdr_len_802_2 = 0;
+    umac = &txdesc_new->umac;
+    umac->payl_len = len;
+    umac->head_len = 0;
+    umac->tail_len = 0;
+    umac->hdr_len_802_2 = 0;
 
-	umac->buf_control = &txl_buffer_control_24G;
+    umac->buf_control = &txl_buffer_control_24G;
 
-	txdesc_new->lmac.agg_desc = NULL;
-	txdesc_new->lmac.hw_desc->cfm.status = 0;
+    txdesc_new->lmac.agg_desc = NULL;
+    txdesc_new->lmac.hw_desc->cfm.status = 0;
 
     ps_set_data_prevent();
-#if CFG_USE_STA_PS
+    #if CFG_USE_STA_PS
     bmsg_ps_handler_rf_ps_mode_real_wakeup();
     bk_wlan_dtim_rf_ps_mode_do_wakeup();
-#endif
+    #endif
 
-	txl_cntrl_push(txdesc_new, queue_idx);
+    txl_cntrl_push(txdesc_new, queue_idx);
 
 exit:
-	os_free(pkt);
+    os_free(pkt);
 }
 
 void bmsg_ioctl_handler(BUS_MSG_T *msg)
@@ -267,9 +271,9 @@ void bmsg_ioctl_handler(BUS_MSG_T *msg)
 
 void bmsg_music_handler(BUS_MSG_T *msg)
 {
-#if (CONFIG_APP_MP3PLAYER == 1)
+    #if (CONFIG_APP_MP3PLAYER == 1)
     media_msg_sender((void *)msg->arg);
-#endif
+    #endif
 }
 
 void bmsg_skt_tx_sender(void *arg)
@@ -296,7 +300,7 @@ void ps_msg_process(UINT8 ps_msg)
 {
     switch(ps_msg)
     {
-#if CFG_USE_STA_PS
+        #if CFG_USE_STA_PS
     case PS_BMSG_IOCTL_RF_ENABLE:
         power_save_dtim_enable();
         break;
@@ -309,8 +313,8 @@ void ps_msg_process(UINT8 ps_msg)
         bmsg_ps_handler_rf_ps_mode_real_wakeup();
         power_save_dtim_disable();
         break;
-#endif
-#if CFG_USE_MCU_PS
+        #endif
+        #if CFG_USE_MCU_PS
     case PS_BMSG_IOCTL_MCU_ENABLE:
         mcu_ps_init();
         break;
@@ -318,63 +322,63 @@ void ps_msg_process(UINT8 ps_msg)
     case PS_BMSG_IOCTL_MCU_DISABLE:
         mcu_ps_exit();
         break;
-#endif
-#if CFG_USE_STA_PS
+        #endif
+        #if CFG_USE_STA_PS
     case PS_BMSG_IOCTL_RF_TD_SET:
-#if (1 == CFG_LOW_VOLTAGE_PS)
+        #if (1 == CFG_LOW_VOLTAGE_PS)
         if (LV_PS_DISABLED)
-#endif
+        #endif
         {
             ps_set_td_timer();
         }
         break;
 
     case PS_BMSG_IOCTL_RF_TD_STOP:
-#if (0 == CFG_LOW_VOLTAGE_PS)
+        #if (0 == CFG_LOW_VOLTAGE_PS)
         ps_stop_td_timer();
-#endif
+        #endif
         break;
 
         #if PS_USE_WAIT_TIMER
-        case PS_BMSG_IOCTL_WAIT_TM_HANDLER:
-            power_save_wait_timer_real_handler();
-            break;
-        case PS_BMSG_IOCTL_WAIT_TM_SET:
-            power_save_wait_timer_start();
-            break;
+    case PS_BMSG_IOCTL_WAIT_TM_HANDLER:
+        power_save_wait_timer_real_handler();
+        break;
+    case PS_BMSG_IOCTL_WAIT_TM_SET:
+        power_save_wait_timer_start();
+        break;
         #endif
 
         #if PS_USE_KEEP_TIMER
-        case PS_BMSG_IOCTL_RF_KP_HANDLER:
-            power_save_keep_timer_real_handler();
-            break;
+    case PS_BMSG_IOCTL_RF_KP_HANDLER:
+        power_save_keep_timer_real_handler();
+        break;
 
-        case PS_BMSG_IOCTL_RF_KP_SET:
-            power_save_keep_timer_set();
-            break;
+    case PS_BMSG_IOCTL_RF_KP_SET:
+        power_save_keep_timer_set();
+        break;
 
-        case PS_BMSG_IOCTL_RF_KP_STOP:
-            power_save_keep_timer_stop();
-            break;
+    case PS_BMSG_IOCTL_RF_KP_STOP:
+        power_save_keep_timer_stop();
+        break;
 
-        case PS_BMSG_IOCTL_RF_PS_TIMER_INIT:
-#if (1 == CFG_LOW_VOLTAGE_PS)
-            if (LV_PS_ENABLED)
-            {
-                power_save_set_keep_timer_time(lv_ps_get_keep_timer_duration());
-            }
-            else
-#endif
-            {
-                power_save_set_keep_timer_time(20);
-            }
-            break;
-        case PS_BMSG_IOCTL_RF_PS_TIMER_DEINIT:
-            power_save_set_keep_timer_time(0);
-            break;
+    case PS_BMSG_IOCTL_RF_PS_TIMER_INIT:
+        #if (1 == CFG_LOW_VOLTAGE_PS)
+        if (LV_PS_ENABLED)
+        {
+            power_save_set_keep_timer_time(lv_ps_get_keep_timer_duration());
+        }
+        else
         #endif
-#endif
-#if CFG_USE_AP_IDLE
+        {
+            power_save_set_keep_timer_time(20);
+        }
+        break;
+    case PS_BMSG_IOCTL_RF_PS_TIMER_DEINIT:
+        power_save_set_keep_timer_time(0);
+        break;
+        #endif
+        #endif
+        #if CFG_USE_AP_IDLE
     case PS_BMSG_IOCTL_AP_PS_RUN:
         ap_bcn_timer_real_handler();
         break;
@@ -386,16 +390,16 @@ void ps_msg_process(UINT8 ps_msg)
     case PS_BMSG_IOCTL_AP_PS_START:
         start_global_ap_bcn_timer();
         break;
-#endif
+        #endif
 
-#if (1 == CFG_LOW_VOLTAGE_PS)
+        #if (1 == CFG_LOW_VOLTAGE_PS)
     case PS_BMSG_IOCTL_ARP_TX:
         if (LV_PS_ENABLED)
         {
             lv_ps_keepalive_arp_tx();
         }
         break;
-#endif
+        #endif
 
     default:
         break;
@@ -413,7 +417,7 @@ void bmsg_null_sender(void)
     msg.sema = NULL;
 
     if((0 == g_wifi_core.io_queue)
-		|| !rtos_is_queue_empty(&g_wifi_core.io_queue))
+            || !rtos_is_queue_empty(&g_wifi_core.io_queue))
     {
         return;
     }
@@ -479,44 +483,44 @@ int bmsg_tx_sender(struct pbuf *p, uint32_t vif_idx)
 
 int bmsg_tx_raw_sender(uint8_t *payload, uint16_t length)
 {
-	OSStatus ret;
-	BUS_MSG_T msg = {0};
-	void *node;
+    OSStatus ret;
+    BUS_MSG_T msg = {0};
+    void *node;
 
-	msg.type = BMSG_TX_RAW_CB_TYPE;
-	msg.len = length;
+    msg.type = BMSG_TX_RAW_CB_TYPE;
+    msg.len = length;
 
-	/*alloc new buffer, and copy the content*/
-	node = (void *)rwm_raw_frame_prepare_space(payload, length);
-	msg.arg = (uint32_t)node;
+    /*alloc new buffer, and copy the content*/
+    node = (void *)rwm_raw_frame_prepare_space(payload, length);
+    msg.arg = (uint32_t)node;
 
-	if (payload)
-		os_free(payload);
+    if (payload)
+        os_free(payload);
 
-	ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
-	if (ret != kNoErr) {
-		rwm_raw_frame_destroy_space(node);
-		APP_PRT("bmsg_tx_sender failed\r\n");
-	}
+    ret = rtos_push_to_queue(&g_wifi_core.io_queue, &msg, 1 * SECONDS);
+    if (ret != kNoErr) {
+        rwm_raw_frame_destroy_space(node);
+        APP_PRT("bmsg_tx_sender failed\r\n");
+    }
 
-	return ret;
+    return ret;
 }
 
 #if (SUPPORT_LSIG_MONITOR)
 void bmsg_rx_lsig_handler(BUS_MSG_T *msg)
 {
-	lsig_input((msg->arg&0xFFFF0000)>>16, msg->arg&0xFF, msg->len);
+    lsig_input((msg->arg&0xFFFF0000)>>16, msg->arg&0xFF, msg->len);
 }
 
 void bmsg_rx_lsig(uint16_t len, uint8_t rssi)
 {
-	BUS_MSG_T msg;
+    BUS_MSG_T msg;
 
-	msg.type = BMSG_RX_LSIG;
-	msg.arg = (uint32_t)((len << 16) | rssi);
-	msg.len = rtos_get_time();
-	msg.sema = NULL;
-	rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
+    msg.type = BMSG_RX_LSIG;
+    msg.arg = (uint32_t)((len << 16) | rssi);
+    msg.len = rtos_get_time();
+    msg.sema = NULL;
+    rtos_push_to_queue(&g_wifi_core.io_queue, &msg, BEKEN_NO_WAIT);
 }
 #endif
 
@@ -624,9 +628,9 @@ static void core_thread_main( void *arg )
     OSStatus ret;
     BUS_MSG_T msg;
     uint8_t ke_skip = 0;
-#if CFG_USE_STA_PS
+    #if CFG_USE_STA_PS
     uint8_t ps_flag = 0;
-#endif
+    #endif
 
     while(1)
     {
@@ -635,7 +639,7 @@ static void core_thread_main( void *arg )
         {
             switch(msg.type)
             {
-#if CFG_USE_STA_PS
+                #if CFG_USE_STA_PS
             case BMSG_STA_PS_TYPE:
                 if(msg.arg == PS_BMSG_IOCTL_RF_DISABLE)
                 {
@@ -646,7 +650,7 @@ static void core_thread_main( void *arg )
                     ps_flag = 1;
                 }
                 break;
-#endif
+                #endif
 
             case BMSG_RX_TYPE:
                 APP_PRT("bmsg_rx_handler\r\n");
@@ -672,25 +676,25 @@ static void core_thread_main( void *arg )
                 bmsg_music_handler(&msg);
                 break;
 
-#if CFG_TX_BUFING
+                #if CFG_TX_BUFING
             case BMSG_TX_BUFING_TYPE:
                 bmsg_tx_bufing_handler(&msg);
                 break;
-#endif
+                #endif
 
-			case BMSG_TX_RAW_TYPE:
-				bmsg_tx_raw_handler(&msg);
-				break;
+            case BMSG_TX_RAW_TYPE:
+                bmsg_tx_raw_handler(&msg);
+                break;
 
             case BMSG_TX_RAW_CB_TYPE:
                 bmsg_tx_raw_cb_handler(&msg);
                 break;
 
-#if (SUPPORT_LSIG_MONITOR)
-			case BMSG_RX_LSIG:
-				bmsg_rx_lsig_handler(&msg);
-				break;
-#endif
+                #if (SUPPORT_LSIG_MONITOR)
+            case BMSG_RX_LSIG:
+                bmsg_rx_lsig_handler(&msg);
+                break;
+                #endif
             default:
                 APP_PRT("unknown_msg\r\n");
                 break;
@@ -706,14 +710,14 @@ static void core_thread_main( void *arg )
                 ke_skip = 0;
         }
 
-#if CFG_USE_STA_PS
+        #if CFG_USE_STA_PS
         if(ps_flag == 1)
         {
             bmsg_ps_handler(&msg);
             ps_flag = 0;
         }
         power_save_rf_sleep_check();
-#endif
+        #endif
 
     }
 }
@@ -802,22 +806,22 @@ static void start_matter_app(void)
 extern void  user_main(void);
 void __attribute__((weak)) user_main(void)
 {
-#if (CFG_SUPPORT_MATTER)
-	/* start the Matter example thread */
-	start_matter_app();
-#endif
+    #if (CFG_SUPPORT_MATTER)
+    /* start the Matter example thread */
+    start_matter_app();
+    #endif
 }
 
 static void init_app_thread( void *arg )
 {
     extended_app_waiting_for_launch();
-	#if CFG_ENABLE_DEMO_TEST
+    #if CFG_ENABLE_DEMO_TEST
     if(application_start)
     {
         application_start();
     }
-	#endif
-	user_main();
+    #endif
+    user_main();
 
     rtos_delete_thread( NULL );
 }
@@ -850,15 +854,15 @@ void app_pre_start(void)
 
     rf_thread_init();
 
-#if (CONFIG_APP_MP3PLAYER == 1)
+    #if (CONFIG_APP_MP3PLAYER == 1)
     key_init();
     media_thread_init();
-#endif
+    #endif
 
-#if ((CFG_SUPPORT_BLE) && (CFG_BLE_VERSION != BLE_VERSION_4_2))
+    #if ((CFG_SUPPORT_BLE) && (CFG_BLE_VERSION != BLE_VERSION_4_2))
     extern void ble_entry(void);
     ble_entry();
-#endif
+    #endif
     power_save_rf_hold_bit_clear(RF_HOLD_BY_STA_BIT);
 }
 
@@ -867,13 +871,13 @@ void app_start(void)
 {
     app_pre_start();
 
-#if (CFG_OS_FREERTOS) || (CFG_SUPPORT_LITEOS)
+    #if (CFG_OS_FREERTOS) || (CFG_SUPPORT_LITEOS)
     cli_init();
-#endif
+    #endif
 
-#if CFG_UDISK_MP3
+    #if CFG_UDISK_MP3
     um_init();
-#endif
+    #endif
 }
 
 void user_main_entry(void)

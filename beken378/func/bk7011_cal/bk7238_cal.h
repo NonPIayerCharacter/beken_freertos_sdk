@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _BK7231U_CAL_H_
 #define _BK7231U_CAL_H_
 
@@ -673,7 +687,7 @@ typedef union
         volatile unsigned long NC2              : 2; //Reserved control bits;
     } bits;
     volatile unsigned int value;
-}BK7011_TRxV2A_REG0x0_TypeDef;
+} BK7011_TRxV2A_REG0x0_TypeDef;
 
 /// REG0x1
 typedef union
@@ -785,7 +799,7 @@ typedef union
     {
         volatile unsigned long atsel            : 2; //analog test signal selection  00:rip/rin ;01:rip/qip; 10:rssi_tst/tempvo;11:rssi_l/tssio
         volatile unsigned long entst            : 1; //TRX analog test signal output enable
-        volatile unsigned long capcal_sel       : 1; //filter cap control selection, 1:from dig; 0 :from spi 
+        volatile unsigned long capcal_sel       : 1; //filter cap control selection, 1:from dig; 0 :from spi
         volatile unsigned long lpfcapcalq50     : 6; //lpf Q path calibiration input (low 6bits)
         volatile unsigned long lpfcapcali50     : 6; //lpf I path calibiration input  (low 6bits)
         volatile unsigned long dcocq            : 8; //dcoc Q path input
@@ -801,7 +815,7 @@ typedef union
     {
         volatile unsigned long dig_dcoen        : 1; //dcoc input selection,1: digital   0: spi
         volatile unsigned long spilpfrxg30      : 4; //rxif  gain, 0000-1111 0dB  - 45dB step:3dB
-        volatile unsigned long autorxifgen      : 1; //rxif gain control selection, 1: auto control  0: spi 
+        volatile unsigned long autorxifgen      : 1; //rxif gain control selection, 1: auto control  0: spi
         volatile unsigned long dcoc_ctl         : 2; //dcoc gain contrl
         volatile unsigned long txgs             : 1; //txif gain option
         volatile unsigned long lpftxTest_g      : 1; //lpf tx test control bit,1 : tx test mode  0: default (g mode)
@@ -851,7 +865,7 @@ typedef union
         volatile unsigned long grxlnaspi10      : 2; //rx lna gain 00-11 0/+6/+12/+18dBr
         volatile unsigned long grxi2vspi10      : 2; //rx i2v gain 00-11 0/+6/+6/+12dBr
         volatile unsigned long vbsrxlo20        : 3; //rx lo biasing voltage: 000-111 0.4-0.75V
-        volatile unsigned long ibsrxi2v         : 2; //rx i2v ib selection 
+        volatile unsigned long ibsrxi2v         : 2; //rx i2v ib selection
         volatile unsigned long vcmsrxi2v        : 1; //rx i2v vcm selction 0-1 0.6-0.5V
         volatile unsigned long enclip           : 1; //rx i2v vcm selction 0-1 0.6-0.5V
         volatile unsigned long enfsr            : 1; //rx i2v vcm selction 0-1 0.6-0.5V
@@ -913,7 +927,7 @@ typedef union
         volatile unsigned long Dipad            : 4; //PAD bias current programming, Ibias_uA=50 + 50*Dipad;
         volatile unsigned long Dibias           : 4; //TXFE signal path unit current programming (to compensate corner variation)
         volatile unsigned long NC               : 2;
-        volatile unsigned long pacapsw          : 1; //(0_rx: switch out; 1_tx: switch in) a cap at PA output; 
+        volatile unsigned long pacapsw          : 1; //(0_rx: switch out; 1_tx: switch in) a cap at PA output;
         volatile unsigned long pamapen          : 1; //0: spi power control option;  1: direct digital power control (per packet);
     } bits;
     volatile unsigned int value;
@@ -1339,6 +1353,8 @@ typedef struct
 
     INT32 gtx_i_dc_comp;
     INT32 gtx_q_dc_comp;
+    INT32 gtx_i_dc_comp_fcc;
+    INT32 gtx_q_dc_comp_fcc;
 
     INT32 gtx_i_gain_comp;
     INT32 gtx_q_gain_comp;

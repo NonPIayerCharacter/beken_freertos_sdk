@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "test_adc.h"
 #include "include.h"
 
@@ -26,14 +40,14 @@ void test_adc_demo_isr_cb(void)
         saradc_ensure_close();
 
         {
-        UINT32 sum = 0, sum1, sum2;
-        UINT16 *pData = test_adc_demo_adc1.pData;
-        sum1 = pData[1] + pData[2];
-        sum2 = pData[3] + pData[4];
-        sum = sum1/ 2  + sum2 / 2;
-        sum = sum / 2;
-        sum = sum / 4;
-        pData[0] = sum;
+            UINT32 sum = 0, sum1, sum2;
+            UINT16 *pData = test_adc_demo_adc1.pData;
+            sum1 = pData[1] + pData[2];
+            sum2 = pData[3] + pData[4];
+            sum = sum1/ 2  + sum2 / 2;
+            sum = sum / 2;
+            sum = sum / 4;
+            pData[0] = sum;
         }
     }
 }
@@ -72,10 +86,10 @@ VOID test_adc_demo_init(void)
                 break;
             }
         }
-    GLOBAL_INT_RESTORE();
+        GLOBAL_INT_RESTORE();
 
-    rtos_delay_milliseconds(5);
-    ret++;
+        rtos_delay_milliseconds(5);
+        ret++;
     } while(ret<5);
 
     if(ret == 5) {

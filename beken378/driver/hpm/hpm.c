@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "drv_model_pub.h"
@@ -71,11 +85,11 @@ __maybe_unused static void hpm_cfg(UINT16 offset, UINT8 shift, UINT8 period)
     value = REG_READ(HPM_REG0X0_CFG);
 
     value = value & ~(HPM_REG0X0_CFG_HPM_OFFSET_MASK << HPM_REG0X0_CFG_HPM_OFFSET_POSI)
-                  & ~(HPM_REG0X0_CFG_HPM_SHIFT_MASK << HPM_REG0X0_CFG_HPM_SHIFT_POSI)
-                  & ~(HPM_REG0X0_CFG_HPM_PERIOD_MASK << HPM_REG0X0_CFG_HPM_PERIOD_POSI);
+            & ~(HPM_REG0X0_CFG_HPM_SHIFT_MASK << HPM_REG0X0_CFG_HPM_SHIFT_POSI)
+            & ~(HPM_REG0X0_CFG_HPM_PERIOD_MASK << HPM_REG0X0_CFG_HPM_PERIOD_POSI);
     value = value | ((period & HPM_REG0X0_CFG_HPM_OFFSET_MASK) << HPM_REG0X0_CFG_HPM_OFFSET_POSI)
-                  | ((period & HPM_REG0X0_CFG_HPM_SHIFT_MASK) << HPM_REG0X0_CFG_HPM_SHIFT_POSI)
-                  | ((period & HPM_REG0X0_CFG_HPM_PERIOD_MASK) << HPM_REG0X0_CFG_HPM_PERIOD_POSI);
+            | ((period & HPM_REG0X0_CFG_HPM_SHIFT_MASK) << HPM_REG0X0_CFG_HPM_SHIFT_POSI)
+            | ((period & HPM_REG0X0_CFG_HPM_PERIOD_MASK) << HPM_REG0X0_CFG_HPM_PERIOD_POSI);
 
     REG_WRITE(HPM_REG0X0_CFG, value);
 }
@@ -87,9 +101,9 @@ __maybe_unused static void hpm_set_limit(UINT16 dn_limit, UINT16 up_limit)
     value = REG_READ(HPM_REG0X1_THD);
 
     value = value & ~(HPM_REG0X1_THD_HPM_DN_LIMIT_MASK << HPM_REG0X1_THD_HPM_DN_LIMIT_POSI)
-                  & ~(HPM_REG0X1_THD_HPM_UP_LIMIT_MASK << HPM_REG0X1_THD_HPM_UP_LIMIT_POSI);
+            & ~(HPM_REG0X1_THD_HPM_UP_LIMIT_MASK << HPM_REG0X1_THD_HPM_UP_LIMIT_POSI);
     value = value | ((dn_limit & HPM_REG0X1_THD_HPM_DN_LIMIT_MASK) << HPM_REG0X1_THD_HPM_DN_LIMIT_POSI)
-                  | ((up_limit & HPM_REG0X1_THD_HPM_UP_LIMIT_MASK) << HPM_REG0X1_THD_HPM_UP_LIMIT_POSI);
+            | ((up_limit & HPM_REG0X1_THD_HPM_UP_LIMIT_MASK) << HPM_REG0X1_THD_HPM_UP_LIMIT_POSI);
 
     REG_WRITE(HPM_REG0X1_THD, value);
 }
@@ -138,44 +152,44 @@ __maybe_unused static void hpm_set_record_x_valid(UINT8 record_index, UINT8 reco
     {
         value = REG_READ(HPM_REG0X2_RCD1);
         value = value & ~(HPM_REG0X2_RCD1_HPM_RECORD0_VALID)
-                      & ~(HPM_REG0X2_RCD1_HPM_RECORD0_MASK << HPM_REG0X2_RCD1_HPM_RECORD0_POSI);
+                & ~(HPM_REG0X2_RCD1_HPM_RECORD0_MASK << HPM_REG0X2_RCD1_HPM_RECORD0_POSI);
         value = value | ((record_valid & HPM_REG0X2_RCD1_HPM_RECORD0_VALID_MASK)
-                        << HPM_REG0X2_RCD1_HPM_RECORD0_VALID_POSI)
-                      | ((record_value & HPM_REG0X2_RCD1_HPM_RECORD0_MASK)
-                        << HPM_REG0X2_RCD1_HPM_RECORD0_POSI);
+                         << HPM_REG0X2_RCD1_HPM_RECORD0_VALID_POSI)
+                | ((record_value & HPM_REG0X2_RCD1_HPM_RECORD0_MASK)
+                   << HPM_REG0X2_RCD1_HPM_RECORD0_POSI);
         REG_WRITE(HPM_REG0X2_RCD1, value);
     }
     else if(record_index == HPM_RECORD_1)
     {
         value = REG_READ(HPM_REG0X2_RCD1);
         value = value & ~(HPM_REG0X2_RCD1_HPM_RECORD1_VALID)
-                      & ~(HPM_REG0X2_RCD1_HPM_RECORD1_MASK << HPM_REG0X2_RCD1_HPM_RECORD1_POSI);
+                & ~(HPM_REG0X2_RCD1_HPM_RECORD1_MASK << HPM_REG0X2_RCD1_HPM_RECORD1_POSI);
         value = value | ((record_valid & HPM_REG0X2_RCD1_HPM_RECORD1_VALID_MASK)
-                        << HPM_REG0X2_RCD1_HPM_RECORD1_VALID_POSI)
-                      | ((record_value & HPM_REG0X2_RCD1_HPM_RECORD1_MASK)
-                        << HPM_REG0X2_RCD1_HPM_RECORD1_POSI);
+                         << HPM_REG0X2_RCD1_HPM_RECORD1_VALID_POSI)
+                | ((record_value & HPM_REG0X2_RCD1_HPM_RECORD1_MASK)
+                   << HPM_REG0X2_RCD1_HPM_RECORD1_POSI);
         REG_WRITE(HPM_REG0X2_RCD1, value);
     }
     else if(record_index == HPM_RECORD_2)
     {
         value = REG_READ(HPM_REG0X3_RCD2);
         value = value & ~(HPM_REG0X3_RCD2_HPM_RECORD2_VALID)
-                      & ~(HPM_REG0X3_RCD2_HPM_RECORD2_MASK << HPM_REG0X3_RCD2_HPM_RECORD2_POSI);
+                & ~(HPM_REG0X3_RCD2_HPM_RECORD2_MASK << HPM_REG0X3_RCD2_HPM_RECORD2_POSI);
         value = value | ((record_valid & HPM_REG0X3_RCD2_HPM_RECORD2_VALID_MASK)
-                        << HPM_REG0X3_RCD2_HPM_RECORD2_VALID_POSI)
-                      | ((record_value & HPM_REG0X3_RCD2_HPM_RECORD2_MASK)
-                        << HPM_REG0X3_RCD2_HPM_RECORD2_POSI);
+                         << HPM_REG0X3_RCD2_HPM_RECORD2_VALID_POSI)
+                | ((record_value & HPM_REG0X3_RCD2_HPM_RECORD2_MASK)
+                   << HPM_REG0X3_RCD2_HPM_RECORD2_POSI);
         REG_WRITE(HPM_REG0X3_RCD2, value);
     }
     else if(record_index == HPM_RECORD_3)
     {
         value = REG_READ(HPM_REG0X3_RCD2);
         value = value & ~(HPM_REG0X3_RCD2_HPM_RECORD3_VALID)
-                      & ~(HPM_REG0X3_RCD2_HPM_RECORD3_MASK << HPM_REG0X3_RCD2_HPM_RECORD3_POSI);
+                & ~(HPM_REG0X3_RCD2_HPM_RECORD3_MASK << HPM_REG0X3_RCD2_HPM_RECORD3_POSI);
         value = value | ((record_valid & HPM_REG0X3_RCD2_HPM_RECORD3_VALID_MASK)
-                        << HPM_REG0X3_RCD2_HPM_RECORD3_VALID_POSI)
-                      | ((record_value & HPM_REG0X3_RCD2_HPM_RECORD3_MASK)
-                        << HPM_REG0X3_RCD2_HPM_RECORD3_POSI);
+                         << HPM_REG0X3_RCD2_HPM_RECORD3_VALID_POSI)
+                | ((record_value & HPM_REG0X3_RCD2_HPM_RECORD3_MASK)
+                   << HPM_REG0X3_RCD2_HPM_RECORD3_POSI);
         REG_WRITE(HPM_REG0X3_RCD2, value);
     }
 }
@@ -192,12 +206,12 @@ void hpm_exit(void)
 
 UINT32 hpm_ctrl(UINT32 cmd, void *param)
 {
-	switch (cmd) {
-	default:
-		break;
-	}
+    switch (cmd) {
+    default:
+        break;
+    }
 
-	return 0;
+    return 0;
 }
 
 #endif

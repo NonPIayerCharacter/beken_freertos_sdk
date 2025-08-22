@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,7 +82,7 @@ int ota_write_to_flash(uint8_t *src, unsigned len)
     }
 
     if(((u32)ota_data_ptr.flash_address >= ota_data_ptr.ota_partition_start_addr)
-        && (((u32)ota_data_ptr.flash_address + len) < (ota_data_ptr.ota_partition_start_addr + ota_data_ptr.partition_length)))
+            && (((u32)ota_data_ptr.flash_address + len) < (ota_data_ptr.ota_partition_start_addr + ota_data_ptr.partition_length)))
     {
 
         bk_flash_write(BK_PARTITION_OTA,ota_data_ptr.flash_address-ota_data_ptr.ota_partition_start_addr,(uint8_t *)src,len);
@@ -77,7 +91,7 @@ int ota_write_to_flash(uint8_t *src, unsigned len)
         {
 
             bk_flash_read(BK_PARTITION_OTA,ota_data_ptr.flash_address-ota_data_ptr.ota_partition_start_addr,(uint8_t *)buffer_swap,len);
-            if(os_memcmp(src , buffer_swap, len ))
+            if(os_memcmp(src, buffer_swap, len ))
             {
                 Log_e("wr flash write err\n");
                 ret=-1;
@@ -102,31 +116,31 @@ __exit:
 
 static void ota_get_fw_version_parameter(uint8_t *param,int len)
 {
-     bk_flash_read(BK_PARTITION_QCLOUD_OTA_PARAM,0,(uint8_t*)param,len);
+    bk_flash_read(BK_PARTITION_QCLOUD_OTA_PARAM,0,(uint8_t*)param,len);
 }
 
 
 void ota_get_local_fw_version(char **ver, char **md5, char **size,char **start_addr,char **preVer)
 {
-#ifdef FLASH_VERSION_INFO
+    #ifdef FLASH_VERSION_INFO
     ota_get_fw_version_parameter((uint8_t *)version_json,sizeof(version_json));
-#else
+    #else
     strcpy(version_json,DEFAULT_VERSION_INFO);
-#endif
+    #endif
     *ver = LITE_json_value_of(KEY_VER, version_json);
     *md5 = LITE_json_value_of(KEY_MD5, version_json);
     *size = LITE_json_value_of(KEY_SIZE, version_json);
     *start_addr=LITE_json_value_of(KEY_START_ADDR, version_json);
     *preVer  = LITE_json_value_of(KEY_PREVER, version_json);
 
-#ifdef FLASH_VERSION_INFO
+    #ifdef FLASH_VERSION_INFO
     if((NULL == *ver) && (NULL == *preVer))
     {
         strcpy(version_json,DEFAULT_VERSION_INFO);
         bk_flash_erase(BK_PARTITION_QCLOUD_OTA_PARAM,0,FLASH_SECTOR_SIZE);
         bk_flash_write(BK_PARTITION_QCLOUD_OTA_PARAM,0,(uint8_t*)version_json,sizeof(version_json));
     }
-#endif
+    #endif
 
 }
 
@@ -144,10 +158,10 @@ int ota_update_local_fw_info(const char *version, const char *preVer, const char
 
     Log_d("update_local_fw_info:%s",version_json);
 
-#ifdef FLASH_VERSION_INFO
+    #ifdef FLASH_VERSION_INFO
     bk_flash_erase(BK_PARTITION_QCLOUD_OTA_PARAM,0,FLASH_SECTOR_SIZE);
     bk_flash_write(BK_PARTITION_QCLOUD_OTA_PARAM,0,(uint8_t*)version_json,sizeof(version_json));
-#endif
+    #endif
     return ret;
 }
 

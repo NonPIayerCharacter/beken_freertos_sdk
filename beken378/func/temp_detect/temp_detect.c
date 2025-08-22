@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "target_util_pub.h"
@@ -14,7 +28,8 @@
 #include "temp_detect_pub.h"
 #include "temp_detect.h"
 #include "power_save_pub.h"
-#if (1 == CFG_USE_MCU_PS) && (0 == CFG_LOW_VOLTAGE_PS)
+#include "low_voltage_ps.h"
+#if (1 == CFG_USE_MCU_PS)
 #include "mcu_ps_pub.h"
 #endif
 
@@ -37,20 +52,21 @@ beken_thread_t  temp_detct_handle = NULL;
 
 enum
 {
-	TMPD_PAUSE_TIMER          = 0,
+    TMPD_PAUSE_TIMER          = 0,
     TMPD_RESTART_TIMER,
     TMPD_CHANGE_PARAM,
+    TMPD_CHANGE_PARAM_PS,
     TMPD_TIMER_POLL,
     TMPD_INT_POLL,
     VOLT_TIMER_POLL,
     VOLT_INT_POLL,
-	TMPD_EXIT,
+    TMPD_EXIT,
 };
 
 typedef struct temp_message
 {
-	u32 temp_msg;
-}TEMP_MSG_T;
+    u32 temp_msg;
+} TEMP_MSG_T;
 
 #if CFG_USE_TEMPERATURE_DETECT && CFG_USE_VOLTAGE_DETECT
 #define TEMP_DET_QITEM_COUNT          (5+5)
@@ -88,17 +104,17 @@ static void temp_detect_disable_config_sysctrl(void)
 
 void temp_detect_send_msg(u32 new_msg)
 {
-	OSStatus ret;
-	TEMP_MSG_T msg;
+    OSStatus ret;
+    TEMP_MSG_T msg;
 
     if(tempd_msg_que) {
-    	msg.temp_msg = new_msg;
+        msg.temp_msg = new_msg;
 
-    	ret = rtos_push_to_queue(&tempd_msg_que, &msg, BEKEN_NO_WAIT);
-    	if(kNoErr != ret)
-    	{
-    		TMP_DETECT_PRT("temp_detect_send_msg failed\r\n");
-    	}
+        ret = rtos_push_to_queue(&tempd_msg_que, &msg, BEKEN_NO_WAIT);
+        if(kNoErr != ret)
+        {
+            TMP_DETECT_PRT("temp_detect_send_msg failed\r\n");
+        }
     }
 }
 
@@ -111,22 +127,22 @@ UINT32 temp_detect_init(UINT32 init_val)
     if((!temp_detct_handle) && (!tempd_msg_que))
     {
 
-    	ret = rtos_init_queue(&tempd_msg_que,
-    							"temp_det_queue",
-    							sizeof(TEMP_MSG_T),
-    							TEMP_DET_QITEM_COUNT);
-    	if (kNoErr != ret)
-    	{
-    		TMP_DETECT_FATAL("temp detect ceate queue failed\r\n");
+        ret = rtos_init_queue(&tempd_msg_que,
+                              "temp_det_queue",
+                              sizeof(TEMP_MSG_T),
+                              TEMP_DET_QITEM_COUNT);
+        if (kNoErr != ret)
+        {
+            TMP_DETECT_FATAL("temp detect ceate queue failed\r\n");
             return kGeneralErr;
-    	}
+        }
 
         ret = rtos_create_thread(&temp_detct_handle,
-                                      BEKEN_DEFAULT_WORKER_PRIORITY,
-                                      "temp_detct",
-                                      (beken_thread_function_t)temp_detect_main,
-                                      1024,
-                                      (beken_thread_arg_t)init_val);
+                                 BEKEN_DEFAULT_WORKER_PRIORITY,
+                                 "temp_detct",
+                                 (beken_thread_function_t)temp_detect_main,
+                                 1024,
+                                 (beken_thread_arg_t)init_val);
         if (ret != kNoErr)
         {
             rtos_deinit_queue(&tempd_msg_que);
@@ -154,13 +170,13 @@ UINT32 temp_detect_uninit(void)
         manual_cal_temp_pwr_unint();
     }
 
-	return 0;
+    return 0;
 }
 
 void temp_detect_pause_timer(void)
 {
     if(g_temp_detect_config.detect_timer.function
-        && rtos_is_timer_running(&g_temp_detect_config.detect_timer))
+            && rtos_is_timer_running(&g_temp_detect_config.detect_timer))
     {
         temp_detect_send_msg(TMPD_PAUSE_TIMER);
     }
@@ -169,7 +185,7 @@ void temp_detect_pause_timer(void)
 void temp_detect_restart_detect(void)
 {
     if(g_temp_detect_config.detect_timer.function &&
-        !rtos_is_timer_running(&g_temp_detect_config.detect_timer))
+            !rtos_is_timer_running(&g_temp_detect_config.detect_timer))
     {
         temp_detect_send_msg(TMPD_RESTART_TIMER);
     }
@@ -192,9 +208,9 @@ static UINT32 temp_detect_open(void)
 {
     GLOBAL_INT_DECLARATION();
 
-#if (CFG_SOC_NAME == SOC_BK7231)
+    #if (CFG_SOC_NAME == SOC_BK7231)
     turnoff_PA_in_temp_dect();
-#endif // (CFG_SOC_NAME == SOC_BK7231)
+    #endif // (CFG_SOC_NAME == SOC_BK7231)
 
     GLOBAL_INT_DISABLE();
 
@@ -204,8 +220,8 @@ static UINT32 temp_detect_open(void)
         GLOBAL_INT_RESTORE();
         return SARADC_FAILURE;
     }
-	
-#if CFG_SUPPORT_SARADC
+
+    #if CFG_SUPPORT_SARADC
     UINT32 status;
 
     tmp_detect_hdl = ddev_open(SARADC_DEV_NAME, &status, (UINT32)&tmp_detect_desc);
@@ -219,7 +235,7 @@ static UINT32 temp_detect_open(void)
         GLOBAL_INT_RESTORE();
         return SARADC_FAILURE;
     }
-#endif
+    #endif
 
     GLOBAL_INT_RESTORE();
 
@@ -249,7 +265,7 @@ static UINT32 temp_detect_enable(UINT8 channel)
     UINT32 err = SARADC_SUCCESS;
 
     if(tmp_detect_hdl != DD_HANDLE_UNVALID)
-	{
+    {
         //aready enable saradc, so return no err
         TMP_DETECT_PRT("aready open\r\n");
         return SARADC_SUCCESS;
@@ -299,11 +315,11 @@ static void temp_detect_disable(void)
 
 static void temp_detect_timer_handler(void *data)
 {
-#if CFG_USE_TEMPERATURE_DETECT
+    #if CFG_USE_TEMPERATURE_DETECT
     temp_detect_send_msg(TMPD_TIMER_POLL);
-#elif CFG_USE_VOLTAGE_DETECT
+    #elif CFG_USE_VOLTAGE_DETECT
     temp_detect_send_msg(VOLT_TIMER_POLL);
-#endif
+    #endif
 }
 #endif
 
@@ -315,12 +331,20 @@ static void temp_detect_timer_poll(void)
         rtos_reload_timer(&g_temp_detect_config.detect_timer);
         TMP_DETECT_PRT("temp_detect_enable failed, restart detect timer, \r\n");
     }
-#if (1 == CFG_USE_MCU_PS) && (0 == CFG_LOW_VOLTAGE_PS)
+    #if (1 == CFG_USE_MCU_PS)
     else
     {
-        mcu_ps_cb_hold_on(CB_HOLD_BY_TEMP_DETECT);
+        #if CFG_LOW_VOLTAGE_PS
+        if (LV_PS_ENABLED)
+        {
+            mcu_prevent_set(MCU_PS_ADC_USE_BY_TEMP_DETECT); // protect adc
+        } else
+        #endif
+        {
+            mcu_ps_cb_hold_on(CB_HOLD_BY_TEMP_DETECT);
+        }
     }
-#endif
+    #endif
 }
 
 static void temp_detect_polling_handler(void)
@@ -335,31 +359,31 @@ static void temp_detect_polling_handler(void)
     #endif // (CFG_SOC_NAME != SOC_BK7231)
 
     g_temp_detect_config.detect_intval_change++;
-#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     if ((g_temp_detect_config.detect_intval_change > 1)
-    && (g_temp_detect_config.detect_intval_change < ADC_TMEP_DETECT_INTVAL_CHANGE)) {
+            && (g_temp_detect_config.detect_intval_change < ADC_TMEP_DETECT_INTVAL_CHANGE)) {
         cur_val = (UINT16)((float)cur_val * 0.7 + (float)g_temp_detect_config.last_detect_val * 0.3);
         //os_printf("temp_code %d&%d->%d\r\n", tmp_detect_desc.pData[0], g_temp_detect_config.last_detect_val, cur_val);
     }
-#endif
+    #endif
 
     TMP_DETECT_PRT("%d:%d seconds: last:%d, cur:%d, thr:%d\r\n",
-                    g_temp_detect_config.detect_intval,
-					g_temp_detect_config.detect_intval_change,
-                    g_temp_detect_config.last_detect_val,
-                    cur_val,
-                    g_temp_detect_config.detect_thre);
+                   g_temp_detect_config.detect_intval,
+                   g_temp_detect_config.detect_intval_change,
+                   g_temp_detect_config.last_detect_val,
+                   cur_val,
+                   g_temp_detect_config.detect_thre);
 
     UINT16 thre = g_temp_detect_config.detect_thre;
-#if CFG_USE_STA_PS
+    #if CFG_USE_STA_PS
     ps_set_temp_prevent();
     power_save_rf_hold_bit_set(RF_HOLD_BY_TEMP_BIT);
     rwnx_cal_do_temp_detect(cur_val, thre, &g_temp_detect_config.last_detect_val);
     ps_clear_temp_prevent();
     power_save_rf_hold_bit_clear(RF_HOLD_BY_TEMP_BIT);
-#else
+    #else
     rwnx_cal_do_temp_detect(cur_val, thre, &g_temp_detect_config.last_detect_val);
-#endif
+    #endif
 
     if(g_temp_detect_config.detect_intval_change == ADC_TMEP_DETECT_INTVAL_CHANGE)
     {
@@ -367,22 +391,30 @@ static void temp_detect_polling_handler(void)
     }
     else
     {
-#if CFG_USE_VOLTAGE_DETECT
+        #if CFG_USE_VOLTAGE_DETECT
         if (flash_support_wide_voltage()) {
             temp_detect_send_msg(VOLT_TIMER_POLL);
         } else {
             rtos_reload_timer(&g_temp_detect_config.detect_timer);
         }
         (void)err;
-#else
+        #else
         err = rtos_reload_timer(&g_temp_detect_config.detect_timer);
         ASSERT(kNoErr == err);
-#endif
+        #endif
     }
 
-#if (1 == CFG_USE_MCU_PS) && (0 == CFG_LOW_VOLTAGE_PS)
-    mcu_ps_cb_release();
-#endif
+    #if (1 == CFG_USE_MCU_PS)
+    #if CFG_LOW_VOLTAGE_PS
+    if (LV_PS_ENABLED)
+    {
+        mcu_prevent_clear(MCU_PS_ADC_USE_BY_TEMP_DETECT);
+    } else
+    #endif
+    {
+        mcu_ps_cb_release();
+    }
+    #endif
 }
 #endif
 
@@ -396,12 +428,12 @@ static void volt_detect_timer_poll(void)
         err = rtos_reload_timer(&g_temp_detect_config.detect_timer);
         TMP_DETECT_PRT("volt_detect_enable failed, restart detect timer\r\n");
     }
-#if (1 == CFG_USE_MCU_PS) && (0 == CFG_LOW_VOLTAGE_PS)
+    #if (1 == CFG_USE_MCU_PS) && (0 == CFG_LOW_VOLTAGE_PS)
     else
     {
         mcu_ps_cb_hold_on(CB_HOLD_BY_VOLTAGE_DETECT);
     }
-#endif
+    #endif
 }
 
 static void volt_detect_polling_handler(void)
@@ -430,9 +462,9 @@ static void volt_detect_polling_handler(void)
         TMP_DETECT_FATAL("volt_detect_polling_handler, restart detect timer failed\r\n");
     }
 
-#if (1 == CFG_USE_MCU_PS) && (0 == CFG_LOW_VOLTAGE_PS)
+    #if (1 == CFG_USE_MCU_PS) && (0 == CFG_LOW_VOLTAGE_PS)
     mcu_ps_cb_release();
-#endif
+    #endif
 }
 #endif
 
@@ -461,17 +493,18 @@ static void temp_detect_main( beken_thread_arg_t data )
     g_temp_detect_config.xtal_thre_val = ADC_XTAL_DIST_INTIAL_VAL;
     g_temp_detect_config.xtal_init_val = sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_GET_XTALH_CTUNE, NULL);
     TMP_DETECT_PRT("xtal inital:%d, %d, %d\r\n", g_temp_detect_config.last_xtal_val,
-        g_temp_detect_config.xtal_thre_val, g_temp_detect_config.xtal_init_val);
+                   g_temp_detect_config.xtal_thre_val, g_temp_detect_config.xtal_init_val);
     #endif // (CFG_SOC_NAME != SOC_BK7231)
 
-	err = rtos_init_timer(&g_temp_detect_config.detect_timer,
-							g_temp_detect_config.detect_intval * 1000,
-							temp_detect_timer_handler,
-							(void *)0);
+    err = rtos_init_timer(&g_temp_detect_config.detect_timer,
+                          g_temp_detect_config.detect_intval * 1000,
+                          temp_detect_timer_handler,
+                          (void *)0);
     ASSERT(kNoErr == err);
-	err = rtos_start_timer(&g_temp_detect_config.detect_timer);
+    err = rtos_start_timer(&g_temp_detect_config.detect_timer);
 
-	ASSERT(kNoErr == err);
+    ASSERT(kNoErr == err);
+    temp_detect_timer_handler(NULL);
 
     while(1)
     {
@@ -479,51 +512,59 @@ static void temp_detect_main( beken_thread_arg_t data )
         err = rtos_pop_from_queue(&tempd_msg_que, &msg, BEKEN_WAIT_FOREVER);
         if(kNoErr == err)
         {
-        	switch(msg.temp_msg)
+            switch(msg.temp_msg)
             {
-                case TMPD_PAUSE_TIMER:
-                    {
-                        TMP_DETECT_PRT("pause_detect\r\n");
-                        err = rtos_stop_timer(&g_temp_detect_config.detect_timer);
-                        ASSERT(kNoErr == err);
-                    }
-                    break;
-                case TMPD_RESTART_TIMER:
-                    {
-                        TMP_DETECT_PRT(" restart detect timer\r\n");
-                        err = rtos_reload_timer(&g_temp_detect_config.detect_timer);
-                        ASSERT(kNoErr == err);
-                    }
-                    break;
-                case TMPD_CHANGE_PARAM:
-                    {
-                        temp_detect_change_configuration(ADC_TMEP_DETECT_INTVAL,
-                            g_temp_detect_config.detect_thre, ADC_TMEP_DIST_INTIAL_VAL);
-                    }
-                    break;
-#if CFG_USE_TEMPERATURE_DETECT
-                case TMPD_TIMER_POLL:
-                    {
-                        temp_detect_timer_poll();
-                    }
-                    break;
-                case TMPD_INT_POLL:
-                    temp_detect_polling_handler();
-                    break;
-#endif
-#if CFG_USE_VOLTAGE_DETECT
-                case VOLT_TIMER_POLL:
-                    volt_detect_timer_poll();
-                    break;
-                case VOLT_INT_POLL:
-                    volt_detect_polling_handler();
-                    break;
-#endif
-                case TMPD_EXIT:
-                    goto tempd_exit;
-                    break;
-                default:
-                    break;
+            case TMPD_PAUSE_TIMER:
+            {
+                TMP_DETECT_PRT("pause_detect\r\n");
+                err = rtos_stop_timer(&g_temp_detect_config.detect_timer);
+                ASSERT(kNoErr == err);
+            }
+            break;
+            case TMPD_RESTART_TIMER:
+            {
+                TMP_DETECT_PRT(" restart detect timer\r\n");
+                err = rtos_reload_timer(&g_temp_detect_config.detect_timer);
+                ASSERT(kNoErr == err);
+            }
+            break;
+            case TMPD_CHANGE_PARAM:
+            {
+                temp_detect_change_configuration(ADC_TMEP_DETECT_INTVAL,
+                                                 g_temp_detect_config.detect_thre, ADC_TMEP_DIST_INTIAL_VAL);
+            }
+            break;
+            case TMPD_CHANGE_PARAM_PS:
+            {
+                #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+                temp_detect_change_configuration(ADC_TMEP_DETECT_INTVAL_PS,
+                                                 g_temp_detect_config.detect_thre, ADC_TMEP_DIST_INTIAL_VAL);
+                #endif
+            }
+            break;
+            #if CFG_USE_TEMPERATURE_DETECT
+            case TMPD_TIMER_POLL:
+            {
+                temp_detect_timer_poll();
+            }
+            break;
+            case TMPD_INT_POLL:
+                temp_detect_polling_handler();
+                break;
+                #endif
+                #if CFG_USE_VOLTAGE_DETECT
+            case VOLT_TIMER_POLL:
+                volt_detect_timer_poll();
+                break;
+            case VOLT_INT_POLL:
+                volt_detect_polling_handler();
+                break;
+                #endif
+            case TMPD_EXIT:
+                goto tempd_exit;
+                break;
+            default:
+                break;
             }
         }
     }
@@ -556,15 +597,15 @@ static void temp_detect_handler(void)
         return;
     }
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236)
     index = 5; /* drop first 5 items */
-#elif (CFG_SOC_NAME == SOC_BK7231)
+    #elif (CFG_SOC_NAME == SOC_BK7231)
     index = ADC_TEMP_BUFFER_SIZE - 1;
     target = ADC_TEMP_BUFFER_SIZE - 1;
     turnon_PA_in_temp_dect();
-#else
+    #else
     index = 1;
-#endif
+    #endif
 
     temp_detect_disable();
     TMP_DETECT_PRT("buff:%p,%d,%d,%d,%d,%d\r\n", tmp_detect_desc.pData,
@@ -574,11 +615,11 @@ static void temp_detect_handler(void)
     for (; index < ADC_TEMP_BUFFER_SIZE; index++)
     {
         /* 0 is invalid, but saradc may return 0 in power save mode */
-#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         if ((0 != tmp_detect_desc.pData[index]) && (1023 != tmp_detect_desc.pData[index]))
-#else
+        #else
         if ((0 != tmp_detect_desc.pData[index]) && (2048 != tmp_detect_desc.pData[index]))
-#endif
+        #endif
         {
             sum += tmp_detect_desc.pData[index];
             count++;
@@ -592,22 +633,22 @@ static void temp_detect_handler(void)
     else
     {
         sum = sum / count;
-#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         sum = sum / 2;
-#elif (CFG_SOC_NAME != SOC_BK7231)
+        #elif (CFG_SOC_NAME != SOC_BK7231)
         sum = sum / 4;
-#endif
+        #endif
         tmp_detect_desc.pData[target] = sum;
     }
 
-	if (ADC_VOLT_SENSER_CHANNEL == tmp_detect_desc.channel)
-	{
-		temp_detect_send_msg(VOLT_INT_POLL);
-	}
-	else
-	{
-		temp_detect_send_msg(TMPD_INT_POLL);
-	}
+    if (ADC_VOLT_SENSER_CHANNEL == tmp_detect_desc.channel)
+    {
+        temp_detect_send_msg(VOLT_INT_POLL);
+    }
+    else
+    {
+        temp_detect_send_msg(TMPD_INT_POLL);
+    }
 }
 
 void temp_detect_change_configuration(UINT32 intval, UINT32 thre, UINT32 dist)
@@ -624,7 +665,7 @@ void temp_detect_change_configuration(UINT32 intval, UINT32 thre, UINT32 dist)
     TMP_DETECT_WARN("config: intval:%d, thre:%d, dist:%d\r\n", intval, thre, dist);
 
     if((g_temp_detect_config.detect_thre != thre)
-        || (g_temp_detect_config.dist_inital != dist))
+            || (g_temp_detect_config.dist_inital != dist))
     {
         if(g_temp_detect_config.detect_thre != thre)
             g_temp_detect_config.detect_thre = thre;
@@ -633,7 +674,7 @@ void temp_detect_change_configuration(UINT32 intval, UINT32 thre, UINT32 dist)
             g_temp_detect_config.dist_inital = dist;
 
         manual_cal_tmp_pwr_init(g_temp_detect_config.inital_data,
-            g_temp_detect_config.detect_thre, g_temp_detect_config.dist_inital);
+                                g_temp_detect_config.detect_thre, g_temp_detect_config.dist_inital);
     }
 
     if(g_temp_detect_config.detect_intval != intval)
@@ -645,14 +686,19 @@ void temp_detect_change_configuration(UINT32 intval, UINT32 thre, UINT32 dist)
             ASSERT(kNoErr == err);
         }
 
-    	err = rtos_init_timer(&g_temp_detect_config.detect_timer,
-    							g_temp_detect_config.detect_intval * 1000,
-    							temp_detect_timer_handler,
-    							(void *)0);
+        err = rtos_init_timer(&g_temp_detect_config.detect_timer,
+                              g_temp_detect_config.detect_intval * 1000,
+                              temp_detect_timer_handler,
+                              (void *)0);
         ASSERT(kNoErr == err);
 
-    	err = rtos_start_timer(&g_temp_detect_config.detect_timer);
-    	ASSERT(kNoErr == err);
+        err = rtos_start_timer(&g_temp_detect_config.detect_timer);
+        ASSERT(kNoErr == err);
+    }
+    else
+    {
+        err = rtos_reload_timer(&g_temp_detect_config.detect_timer);
+        ASSERT(kNoErr == err);
     }
 }
 
@@ -668,22 +714,22 @@ static UINT32 temp_single_get_enable(UINT8 channel)
 {
     UINT32 status;
 
-#if CFG_USE_TEMPERATURE_DETECT
+    #if CFG_USE_TEMPERATURE_DETECT
     while(tmp_detect_hdl !=  DD_HANDLE_UNVALID)
     {
         rtos_delay_milliseconds(10);
     }
-#endif
+    #endif
     temp_single_get_desc_init(channel);
 
     status = BLK_BIT_TEMPRATURE_SENSOR;
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_BLK_ENABLE, &status);
 
-#if (CFG_SOC_NAME == SOC_BK7231)
+    #if (CFG_SOC_NAME == SOC_BK7231)
     turnoff_PA_in_temp_dect();
-#endif // (CFG_SOC_NAME == SOC_BK7231)
+    #endif // (CFG_SOC_NAME == SOC_BK7231)
 
-#if CFG_SUPPORT_SARADC
+    #if CFG_SUPPORT_SARADC
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
     tmp_single_hdl = ddev_open(SARADC_DEV_NAME, &status, (UINT32)&tmp_single_desc);
@@ -694,7 +740,7 @@ static UINT32 temp_single_get_enable(UINT8 channel)
         return SARADC_FAILURE;
     }
     GLOBAL_INT_RESTORE();
-#endif
+    #endif
 
     return SARADC_SUCCESS;
 }
@@ -731,24 +777,24 @@ static void temp_single_detect_handler(void)
                        tmp_single_desc.pData[2], tmp_single_desc.pData[3],
                        tmp_single_desc.pData[4]);
 
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236)
+        #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7236)
         sum1 = tmp_single_desc.pData[6] + tmp_single_desc.pData[7];
         sum2 = tmp_single_desc.pData[8] + tmp_single_desc.pData[9];
         sum = sum1 / 2 + sum2 / 2;
         sum = sum / 2;
         sum = sum / 4;
-#elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        #elif (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         sum1 = tmp_single_desc.pData[1] + tmp_single_desc.pData[2];
         sum2 = tmp_single_desc.pData[3] + tmp_single_desc.pData[4];
         sum = sum1 / 2 + sum2 / 2;
         sum = sum / 4;
-#else
+        #else
         sum1 = tmp_single_desc.pData[1] + tmp_single_desc.pData[2];
         sum2 = tmp_single_desc.pData[3] + tmp_single_desc.pData[4];
         sum = sum1 / 2 + sum2 / 2;
         sum = sum / 2;
         sum = sum / 4;
-#endif
+        #endif
 
         tmp_single_desc.pData[0] = sum;
         #else
@@ -804,7 +850,7 @@ UINT32 temp_single_get_current_temperature(UINT32 *temp_value)
             *temp_value = tmp_single_desc.pData[4];
             #endif
             ret = 0;
-        }else {
+        } else {
             TMP_DETECT_FATAL("temp_single timeout\r\n");
             ret = 1;
         }
@@ -815,6 +861,20 @@ UINT32 temp_single_get_current_temperature(UINT32 *temp_value)
     }
 
     return ret;
+}
+
+void temp_detect_enter_ps(void)
+{
+#if CFG_USE_TEMPERATURE_DETECT || CFG_USE_VOLTAGE_DETECT
+    temp_detect_send_msg(TMPD_CHANGE_PARAM_PS);
+#endif
+}
+
+void temp_detect_exit_ps(void)
+{
+#if CFG_USE_TEMPERATURE_DETECT || CFG_USE_VOLTAGE_DETECT
+    temp_detect_send_msg(TMPD_CHANGE_PARAM);
+#endif
 }
 
 #if (CFG_SOC_NAME == SOC_BK7231N)
@@ -847,7 +907,7 @@ UINT32 volt_single_get_current_voltage(UINT32 *volt_value)
             *volt_value = tmp_single_desc.pData[4];
             #endif
             ret = 0;
-        }else {
+        } else {
             TMP_DETECT_FATAL("volt_single timeout\r\n");
             ret = 1;
         }

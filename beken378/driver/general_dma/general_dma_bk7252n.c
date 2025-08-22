@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -648,11 +662,11 @@ void gdma_init(void)
     intc_service_register(IRQ_GENERDMA, PRI_IRQ_GENERDMA, gdma_isr);
     sddev_register_dev(GDMA_DEV_NAME, &gdma_op);
 
-#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     UINT32 param;
     param = PWD_GDMA_CLK_BIT;
     sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);//clk power up
-#endif
+    #endif
 
     gdma_set_softreset(1);
 
@@ -737,7 +751,7 @@ void gdma_exit(void)
     REG_WRITE(GENER_DMA_CH0_CTRL_ADDR + 11 * 16 * 4, 0);
 
     REG_WRITE(GENER_DMA_CH0_STATUS_ADDR,
-    REG_READ(GENER_DMA_CH0_STATUS_ADDR));
+              REG_READ(GENER_DMA_CH0_STATUS_ADDR));
 
     sddev_unregister_dev(GDMA_DEV_NAME);
 }
@@ -883,6 +897,9 @@ UINT32 gdma_ctrl(UINT32 cmd, void *param)
     case CMD_GDMA_GET_DST_WRITE_ADDR:
         ret = gdma_get_dest_write_addr(dma_cfg->channel);
         break;
+    case CMD_GDMA_GET_ENABLE:
+        ret = gdma_get_dma_en(dma_cfg->channel);
+        break;
     default:
         break;
     }
@@ -936,68 +953,68 @@ static void gdma_isr(void)
 
 uint32_t bk_dma_get_transfer_len_max(dma_id_t id)
 {
-	return DMA_LL_TRANS_LEN_MAX;
+    return DMA_LL_TRANS_LEN_MAX;
 }
 
 bk_err_t bk_dma_set_transfer_len(dma_id_t id, uint32_t tran_len)
 {
-	gdma_set_transfer_length(id, tran_len);
+    gdma_set_transfer_length(id, tran_len);
 
-	return 0;
+    return 0;
 }
 
 bk_err_t bk_dma_set_dest_addr(dma_id_t id, uint32_t start_addr, uint32_t end_addr)
 {
-	gdma_set_dst_start_addr(id, (void *)start_addr);
-	gdma_set_dstloop_endaddr(id, (void *)end_addr);
-	gdma_set_dstloop_startaddr(id, (void *)start_addr);
+    gdma_set_dst_start_addr(id, (void *)start_addr);
+    gdma_set_dstloop_endaddr(id, (void *)end_addr);
+    gdma_set_dstloop_startaddr(id, (void *)start_addr);
 
-	return 0;
+    return 0;
 }
 
 bk_err_t bk_dma_set_src_addr(dma_id_t id, uint32_t start_addr, uint32_t end_addr)
 {
-	gdma_set_src_start_addr(id, (void *)start_addr);
-	gdma_set_srcloop_endaddr(id, (void *)end_addr);
-	gdma_set_srcloop_startaddr(id, (void *)start_addr);
+    gdma_set_src_start_addr(id, (void *)start_addr);
+    gdma_set_srcloop_endaddr(id, (void *)end_addr);
+    gdma_set_srcloop_startaddr(id, (void *)start_addr);
 
-	return 0;
+    return 0;
 }
 
 bk_err_t bk_dma_start(dma_id_t id)
 {
-	gdma_set_dma_en(id, 1);
+    gdma_set_dma_en(id, 1);
 
-	return 0;
+    return 0;
 }
 
 bk_err_t bk_dma_stop(dma_id_t id)
 {
-	gdma_clr_finish_interrupt_bit(id);
-	gdma_clr_half_finish_interrupt_bit(id);
-	gdma_clr_bus_err_interrupt_bit(id);
+    gdma_clr_finish_interrupt_bit(id);
+    gdma_clr_half_finish_interrupt_bit(id);
+    gdma_clr_bus_err_interrupt_bit(id);
 
-	gdma_set_dma_en(id, 0);
-	return 0;
+    gdma_set_dma_en(id, 0);
+    return 0;
 }
 
 bk_err_t bk_dma_enable_finish_interrupt(dma_id_t id)
 {
-	gdma_cfg_finish_inten(id, 1);
+    gdma_cfg_finish_inten(id, 1);
 
-	return 0;
+    return 0;
 }
 
 bk_err_t bk_dma_register_isr(dma_id_t id, void *half_finish_isr, void *finish_isr)
 {
-	GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DECLARATION();
 
-	GLOBAL_INT_DISABLE();
-	p_dma_fin_handler[id] = (DMA_ISR_FUNC)finish_isr;
-	p_dma_hfin_handler[id] = (DMA_ISR_FUNC)half_finish_isr;
-	GLOBAL_INT_RESTORE();
+    GLOBAL_INT_DISABLE();
+    p_dma_fin_handler[id] = (DMA_ISR_FUNC)finish_isr;
+    p_dma_hfin_handler[id] = (DMA_ISR_FUNC)half_finish_isr;
+    GLOBAL_INT_RESTORE();
 
-	return 0;
+    return 0;
 }
 #endif  // CFG_GENERAL_DMA
 

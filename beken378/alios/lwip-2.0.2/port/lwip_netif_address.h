@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _LWIP_NETIF_ADDR_H_
 #define _LWIP_NETIF_ADDR_H_
 
@@ -16,24 +30,24 @@ typedef enum _wifi_interface_type
 
 /** This data structure represents an IPv4 address */
 struct ipv4_config {
-	/** DHCP_Disable DHCP_CLIENT DHCP_Server */
-	unsigned addr_type;
-	/** The system's IP address in network order. */
-	unsigned address;
-	/** The system's default gateway in network order. */
-	unsigned gw;
-	/** The system's subnet mask in network order. */
-	unsigned netmask;
-	/** The system's primary dns server in network order. */
-	unsigned dns1;
-	/** The system's secondary dns server in network order. */
-	unsigned dns2;
+    /** DHCP_Disable DHCP_CLIENT DHCP_Server */
+    unsigned addr_type;
+    /** The system's IP address in network order. */
+    unsigned address;
+    /** The system's default gateway in network order. */
+    unsigned gw;
+    /** The system's subnet mask in network order. */
+    unsigned netmask;
+    /** The system's primary dns server in network order. */
+    unsigned dns1;
+    /** The system's secondary dns server in network order. */
+    unsigned dns2;
 };
 
 #if LWIP_IPV6
 struct ipv6_config {
-	ip6_addr_t address;
-	u8 addr_state;
+    ip6_addr_t address;
+    u8 addr_state;
 };
 #endif
 
@@ -43,14 +57,14 @@ struct ipv6_config {
  *  for IPv4 as well as IPv6 addresses
  */
 struct wlan_ip_config {
-#if LWIP_IPV6
-	/** The network IPv6 address configuration that should be
-	 * associated with this interface. */
-	struct ipv6_config ipv6[MAX_IPV6_ADDRESSES];
-#endif
-	/** The network IPv4 address configuration that should be
-	 * associated with this interface. */
-	struct ipv4_config ipv4;
+    #if LWIP_IPV6
+    /** The network IPv6 address configuration that should be
+     * associated with this interface. */
+    struct ipv6_config ipv6[MAX_IPV6_ADDRESSES];
+    #endif
+    /** The network IPv4 address configuration that should be
+     * associated with this interface. */
+    struct ipv4_config ipv4;
 };
 
 #endif

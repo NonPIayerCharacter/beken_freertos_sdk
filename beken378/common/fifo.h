@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _FIFO_H_
 #define _FIFO_H_
 
@@ -8,14 +22,14 @@
 
 typedef struct kfifo
 {
-	unsigned int in;
-	unsigned int out;
+    unsigned int in;
+    unsigned int out;
 
-	unsigned int mask;
-	
-	unsigned int size;	
-	unsigned char *buffer;
-}KFIFO_T, *KFIFO_PTR;
+    unsigned int mask;
+
+    unsigned int size;
+    unsigned char *buffer;
+} KFIFO_T, *KFIFO_PTR;
 
 /**
  * kfifo_init - allocates a new FIFO using a preallocated buffer
@@ -29,22 +43,22 @@ typedef struct kfifo
  */
 __INLINE struct kfifo *kfifo_init(unsigned char *buffer, unsigned int size)
 {
-	struct kfifo *fifo;
+    struct kfifo *fifo;
 
-	/* size must be a power of 2 */
-	BUG_ON(size & (size - 1));
+    /* size must be a power of 2 */
+    BUG_ON(size & (size - 1));
 
-	fifo = os_malloc(sizeof(struct kfifo));
-	if (!fifo)
-		return NULLPTR;
+    fifo = os_malloc(sizeof(struct kfifo));
+    if (!fifo)
+        return NULLPTR;
 
-	fifo->buffer = buffer;
-	fifo->size = size;
-	fifo->in = 0;
-	fifo->out = 0;
-	fifo->mask = fifo->size - 1;
+    fifo->buffer = buffer;
+    fifo->size = size;
+    fifo->in = 0;
+    fifo->out = 0;
+    fifo->mask = fifo->size - 1;
 
-	return fifo;
+    return fifo;
 }
 
 /**
@@ -57,19 +71,19 @@ __INLINE struct kfifo *kfifo_init(unsigned char *buffer, unsigned int size)
  */
 __INLINE struct kfifo *kfifo_alloc(unsigned int size)
 {
-	unsigned char *buffer;
-	struct kfifo *ret;
+    unsigned char *buffer;
+    struct kfifo *ret;
 
-	buffer = os_malloc(size);
-	if (!buffer)
-		return 0;
+    buffer = os_malloc(size);
+    if (!buffer)
+        return 0;
 
-	ret = kfifo_init(buffer, size);
+    ret = kfifo_init(buffer, size);
 
-	if (!(ret))
-		os_free(buffer);
+    if (!(ret))
+        os_free(buffer);
 
-	return ret;
+    return ret;
 }
 
 /**
@@ -78,10 +92,10 @@ __INLINE struct kfifo *kfifo_alloc(unsigned int size)
  */
 __INLINE void kfifo_free(struct kfifo *fifo)
 {
-	os_free(fifo->buffer);
-	fifo->buffer = 0;
-	
-	os_free(fifo);
+    os_free(fifo->buffer);
+    fifo->buffer = 0;
+
+    os_free(fifo);
 }
 
 /**
@@ -98,25 +112,25 @@ __INLINE void kfifo_free(struct kfifo *fifo)
  * writer, you don't need extra locking to use these functions.
  */
 __INLINE unsigned int kfifo_put(struct kfifo *fifo,
-			 unsigned char *buffer, unsigned int len)
+                                unsigned char *buffer, unsigned int len)
 {
-	unsigned int l;
+    unsigned int l;
     GLOBAL_INT_DECLARATION();
 
     GLOBAL_INT_DISABLE();
-	len = _min(len, fifo->size - fifo->in + fifo->out);
+    len = _min(len, fifo->size - fifo->in + fifo->out);
 
-	/* first put the data starting from fifo->in to buffer end */
-	l = _min(len, fifo->size - (fifo->in & (fifo->size - 1)));
-	os_memcpy(fifo->buffer + (fifo->in & (fifo->size - 1)), buffer, l);
+    /* first put the data starting from fifo->in to buffer end */
+    l = _min(len, fifo->size - (fifo->in & (fifo->size - 1)));
+    os_memcpy(fifo->buffer + (fifo->in & (fifo->size - 1)), buffer, l);
 
-	/* then put the rest (if any) at the beginning of the buffer */
-	os_memcpy(fifo->buffer, buffer + l, len - l);
+    /* then put the rest (if any) at the beginning of the buffer */
+    os_memcpy(fifo->buffer, buffer + l, len - l);
 
-	fifo->in += len;
+    fifo->in += len;
     GLOBAL_INT_RESTORE();
 
-	return len;
+    return len;
 }
 
 /**
@@ -132,68 +146,68 @@ __INLINE unsigned int kfifo_put(struct kfifo *fifo,
  * writer, you don't need extra locking to use these functions.
  */
 __INLINE unsigned int kfifo_get(struct kfifo *fifo,
-			 unsigned char *buffer, unsigned int len)
+                                unsigned char *buffer, unsigned int len)
 {
-	unsigned int l;
+    unsigned int l;
     GLOBAL_INT_DECLARATION();
 
     GLOBAL_INT_DISABLE();
-	len = _min(len, fifo->in - fifo->out);
+    len = _min(len, fifo->in - fifo->out);
 
-	/* first get the data from fifo->out until the end of the buffer */
-	l = _min(len, fifo->size - (fifo->out & (fifo->size - 1)));
-	os_memcpy(buffer, fifo->buffer + (fifo->out & (fifo->size - 1)), l);
+    /* first get the data from fifo->out until the end of the buffer */
+    l = _min(len, fifo->size - (fifo->out & (fifo->size - 1)));
+    os_memcpy(buffer, fifo->buffer + (fifo->out & (fifo->size - 1)), l);
 
-	/* then get the rest (if any) from the beginning of the buffer */
-	os_memcpy(buffer + l, fifo->buffer, len - l);
+    /* then get the rest (if any) from the beginning of the buffer */
+    os_memcpy(buffer + l, fifo->buffer, len - l);
 
-	fifo->out += len;
+    fifo->out += len;
     GLOBAL_INT_RESTORE();
 
-	return len;
+    return len;
 }
 
 __INLINE unsigned int kfifo_data_size(struct kfifo *fifo)
 {
-	return (fifo->in - fifo->out);
+    return (fifo->in - fifo->out);
 }
 
 __INLINE unsigned int kfifo_unused(struct kfifo *fifo)
 {
-	return (fifo->mask + 1) - (fifo->in - fifo->out);
+    return (fifo->mask + 1) - (fifo->in - fifo->out);
 }
 
 __INLINE void kfifo_copy_out(struct kfifo *fifo, void *dst,
-		unsigned int len, unsigned int off)
+                             unsigned int len, unsigned int off)
 {
-	unsigned int size = fifo->mask + 1;
-	unsigned int l;
+    unsigned int size = fifo->mask + 1;
+    unsigned int l;
 
-	off &= fifo->mask;
+    off &= fifo->mask;
 
-	l = _min(len, size - off);
+    l = _min(len, size - off);
 
-	os_memcpy(dst, (void *)(fifo->buffer + off), l);
-	os_memcpy((void *)((unsigned int)dst + l), (void *)fifo->buffer, len - l);
-	/*
-	 * make sure that the data is copied before
-	 * incrementing the fifo->out index counter
-	 */
+    os_memcpy(dst, (void *)(fifo->buffer + off), l);
+    os_memcpy((void *)((unsigned int)dst + l), (void *)fifo->buffer, len - l);
+    /*
+     * make sure that the data is copied before
+     * incrementing the fifo->out index counter
+     */
 }
 
 __INLINE unsigned int kfifo_out_peek(struct kfifo *fifo,
-			 unsigned char *buffer, unsigned int len)
+                                     unsigned char *buffer, unsigned int len)
 {
-	unsigned int l;
+    unsigned int l;
 
-	l = fifo->in - fifo->out;
-	if (len > l)
-		len = l;
+    l = fifo->in - fifo->out;
+    if (len > l)
+        len = l;
 
-	kfifo_copy_out(fifo, buffer, len, fifo->out);
-	
-	return len;
+    kfifo_copy_out(fifo, buffer, len, fifo->out);
+
+    return len;
 }
 #endif // _FIFO_H_
-// eof 
+// eof
 

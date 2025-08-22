@@ -75,6 +75,7 @@ extern struct app_env_tag app_ble_env;
 static uint8_t app_get_handler(const struct app_subtask_handlers *handler_list_desc,
                                kernel_msg_id_t msgid,
                                void *param,
+                               kernel_task_id_t dest_id,
                                kernel_task_id_t src_id)
 {
     // Counter
@@ -92,7 +93,7 @@ static uint8_t app_get_handler(const struct app_subtask_handlers *handler_list_d
             // If handler is NULL, message should not have been received in this state
             BLE_ASSERT_ERR(handler.func);
 
-            return (uint8_t)(handler.func(msgid, param, TASK_BLE_APP, src_id));
+            return (uint8_t)(handler.func(msgid, param, dest_id, src_id));
         }
     }
 
@@ -130,9 +131,6 @@ static int gapm_activity_created_ind_handler(kernel_msg_id_t const msgid,
 		if (p_param->actv_type == GAPM_ACTV_TYPE_INIT){
 			bk_printf("[%s]conidx:%d,idx:%d,p_param->actv_idx:%d\r\n",__func__,conidx,BLE_APP_INITING_GET_INDEX(conidx), p_param->actv_idx);
 			// Store the scaning activity index
-			#if APP_INIT_REUSE_ACTV_IDX
-			appm_set_initing_actv_idx(BLE_APP_INITING_GET_INDEX(conidx),p_param->actv_idx,BLE_INIT_IDX_USED);
-			#endif
 			app_ble_env.connections[BLE_APP_INITING_GET_INDEX(conidx)].gap_actv_idx = p_param->actv_idx;
 			BLE_APP_MASTER_SET_IDX_STATE(actv_idx,APP_INIT_STATE_CREATED);
 			app_ble_env.actv_cnt.init_actv++;
@@ -187,9 +185,6 @@ static int gapm_activity_stopped_ind_handler(kernel_msg_id_t const msgid,
 		#if CFG_INIT_ENABLE
 			if(BLE_APP_INITING_CHECK_INDEX(conidx)){
 				BLE_APP_MASTER_SET_IDX_STATE(BLE_APP_INITING_GET_INDEX(conidx),APP_INIT_STATE_CREATED);
-			#if APP_INIT_REUSE_ACTV_IDX
-				appm_set_initing_actv_idx(BLE_APP_INITING_GET_INDEX(conidx),p_param->actv_idx,BLE_INIT_IDX_STOPED);
-			#endif
 			}
 		#endif
 	} else {
@@ -645,11 +640,11 @@ static int gapm_cmp_evt_handler(kernel_msg_id_t const msgid,
 			if (actv_idx >= BLE_ACTIVITY_MAX) {
 				bk_printf("unknow actv idx:%d\r\n", actv_idx);
 			} else {
-				if (app_ble_env.cmd == BLE_DELETE_SCAN) {
+				if ((app_ble_env.cmd == BLE_DELETE_SCAN) || (app_ble_env.cmd == BLE_DEINIT_SCAN)) {
 					app_ble_env.actv_cnt.scan_actv--;
 					app_ble_env.op_mask &= ~(1 << BLE_OP_DEL_SCAN_POS);
 					app_ble_env.actvs[actv_idx].actv_status = ACTV_IDLE;
-				} else if (app_ble_env.cmd == BLE_DELETE_ADV) {
+				} else if ((app_ble_env.cmd == BLE_DELETE_ADV) || (app_ble_env.cmd == BLE_DEINIT_ADV)) {
 					app_ble_env.actv_cnt.adv_actv--;
 					app_ble_env.op_mask &= ~(1 << BLE_OP_DEL_ADV_POS);
 					app_ble_env.actvs[actv_idx].actv_status = ACTV_IDLE;
@@ -657,6 +652,16 @@ static int gapm_cmp_evt_handler(kernel_msg_id_t const msgid,
 				app_ble_next_operation(actv_idx, status);
 			}
 		}
+		break;
+	case (GAPM_RESOLV_ADDR):
+		#if (BLE_APP_SEC)
+		if (status) {
+			kernel_msg_send_basic(APP_PEER_ADDR_CMP_CMP, KERNEL_BUILD_ID(TASK_BLE_APP, conidx), KERNEL_BUILD_ID(TASK_BLE_APP, conidx));
+			if (app_sec_env.sec_notice_cb) {
+				app_sec_env.sec_notice_cb(APP_SEC_BONDLIST_COMPARISON_CMP_IND, &conidx);
+			}
+		}
+		#endif
 		break;
 	default:
 		break;
@@ -814,23 +819,25 @@ static int gapc_connection_req_ind_handler(kernel_msg_id_t const msgid,
 			app_ble_env.connections[conn_idx].role = param->role;
 		}
 
+		#if (BLE_APP_SEC)
+		app_sec_search_bond_list(conn_idx);
+		#else
 		// Send connection confirmation
 		uint8_t index = (param->role == APP_BLE_MASTER_ROLE) ? BLE_APP_INITING_INDEX(conn_idx) : conn_idx;
 		struct gapc_connection_cfm *cfm = KERNEL_MSG_ALLOC(GAPC_CONNECTION_CFM,
 									KERNEL_BUILD_ID(TASK_BLE_GAPC, conidx),
 									KERNEL_BUILD_ID(TASK_BLE_APP,index),
 									gapc_connection_cfm);
-#if(BLE_APP_SEC)
-		cfm->auth   = app_sec_get_bond_status() ? GAP_AUTH_REQ_NO_MITM_BOND : GAP_AUTH_REQ_NO_MITM_NO_BOND; // TODO [FBE] restore valid data
-#else // !(BLE_APP_SEC)
+
 		cfm->auth   = GAP_AUTH_REQ_NO_MITM_NO_BOND;
-#endif // (BLE_APP_SEC)
 		// Send the message
 		kernel_msg_send(cfm);
+		#endif // (BLE_APP_SEC)
 
 		conn_info.conn_idx = conn_idx;
 		conn_info.peer_addr_type = param->peer_addr_type;
 		memcpy(conn_info.peer_addr, param->peer_addr.addr, GAP_BD_ADDR_LEN);
+
 		if(param->role == APP_BLE_MASTER_ROLE)   ///BLE_MASTER
 		{
 			bk_printf("KERNEL_IDX:%d,conn_idx:%d\r\n",app_ble_env.connections[conn_idx].conhdl,conn_idx);
@@ -844,9 +851,6 @@ static int gapc_connection_req_ind_handler(kernel_msg_id_t const msgid,
 				ble_event_notice(BLE_5_INIT_CONNECT_EVENT, &conn_info);
 			}
 		}else{
-			#if (BLE_APP_SEC)
-			app_sec_search_bond_list(conn_idx);
-			#endif
 			if (ble_event_notice) {
 				ble_event_notice(BLE_5_CONNECT_EVENT, &conn_info);
 			}
@@ -962,33 +966,51 @@ static int gapc_cmp_evt_handler(kernel_msg_id_t const msgid,
                                 kernel_task_id_t const dest_id,
                                 kernel_task_id_t const src_id)
 {
-	uint8_t conidx = app_ble_find_conn_idx_handle(KERNEL_IDX_GET(src_id));
+    uint8_t conidx = KERNEL_IDX_GET(dest_id);
 
-	if (ble_event_notice) {
-		ble_cmd_cmp_evt_t event;
+    #if BLE_APP_SEC
+    if (param->operation == GAPC_ENCRYPT) {
+        if ((param->status == SMP_ERROR_ENC_KEY_MISSING) && app_sec_env.sec_info[conidx].auth.ltk_present) {
+            app_sec_env.sec_info[conidx].auth.ltk_present = false;
 
-		event.status = param->status;
-		event.conn_idx = conidx;
+            #if (APP_SEC_BOND_STORE)
+            uint8_t peer_idx = app_sec_env.sec_info[conidx].matched_peer_idx;
+            // sec todo: it's better to only change the ltk_present bit.
+            app_sec_remove_bond(peer_idx, true);
+            #endif
+        }
 
-		switch (param->operation) {
-			case GAPC_DISCONNECT:
-				event.cmd = BLE_CONN_DIS_CONN;
-				ble_event_notice(BLE_5_GAP_CMD_CMP_EVENT, &event);
-			break;
-			case GAPC_UPDATE_PARAMS:
-				event.cmd = BLE_CONN_UPDATE_PARAM;
-				ble_event_notice(BLE_5_GAP_CMD_CMP_EVENT, &event);
-			break;
-			case GAPC_SET_PHY:
-				event.cmd = BLE_CONN_SET_PHY;
-				ble_event_notice(BLE_5_GAP_CMD_CMP_EVENT, &event);
-			break;
-			default:
-			break;
-		}
-	}
+        if (param->status && app_sec_env.sec_notice_cb) {
+            app_sec_env.sec_notice_cb(APP_SEC_ENCRYPT_FAIL, &conidx);
+        }
+    }
+    #endif
 
-	return (KERNEL_MSG_CONSUMED);
+    if (ble_event_notice) {
+        ble_cmd_cmp_evt_t event;
+
+        event.status = param->status;
+        event.conn_idx = conidx;
+
+        switch (param->operation) {
+            case GAPC_DISCONNECT:
+                event.cmd = BLE_CONN_DIS_CONN;
+                ble_event_notice(BLE_5_GAP_CMD_CMP_EVENT, &event);
+            break;
+            case GAPC_UPDATE_PARAMS:
+                event.cmd = BLE_CONN_UPDATE_PARAM;
+                ble_event_notice(BLE_5_GAP_CMD_CMP_EVENT, &event);
+            break;
+            case GAPC_SET_PHY:
+                event.cmd = BLE_CONN_SET_PHY;
+                ble_event_notice(BLE_5_GAP_CMD_CMP_EVENT, &event);
+            break;
+            default:
+            break;
+        }
+    }
+
+    return (KERNEL_MSG_CONSUMED);
 }
 
 /**
@@ -1009,32 +1031,75 @@ static int gapc_disconnect_ind_handler(kernel_msg_id_t const msgid,
                                       kernel_task_id_t const src_id)
 {
 
-	uint8_t conidx = KERNEL_IDX_GET(src_id);
-	discon_ind_t dis_info;
-	uint8_t conn_idx = app_ble_find_conn_idx_handle(conidx);
+    uint8_t conhdl = KERNEL_IDX_GET(src_id);
+    uint8_t conn_idx = app_ble_find_conn_idx_handle(conhdl);
+    discon_ind_t dis_info;
 
-	bk_printf("[%s]conidx:%d,conhdl:%d,reason:0x%x\r\n",__func__, conidx, param->conhdl, param->reason);
+    bk_printf("[%s]conidx:%d,conhdl:%d,reason:0x%x\r\n",__func__, conn_idx, param->conhdl, param->reason);
 
-	if (BLE_CONNECTION_MAX == conn_idx) {
-		bk_printf("%s:Unknow conntions\r\n",__func__);
-		return (KERNEL_MSG_CONSUMED);
-	} else {
-		app_ble_env.connections[conn_idx].conhdl = UNKNOW_CONN_HDL;
-	}
-	dis_info.reason = param->reason;
-	dis_info.conn_idx = conn_idx;
-	if (app_ble_env.connections[conn_idx].role == APP_BLE_MASTER_ROLE) {
-		kernel_state_set(KERNEL_BUILD_ID(TASK_BLE_APP,KERNEL_IDX_GET(dest_id)),APPC_LINK_IDLE);
-		if (ble_event_notice) {
-			ble_event_notice(BLE_5_INIT_DISCONNECT_EVENT, &dis_info);
-		}
-	}else{
-		if (ble_event_notice) {
-			ble_event_notice(BLE_5_DISCONNECT_EVENT, &dis_info);
-		}
-		app_ble_env.actv_cnt.conn_actv--;
-	}
-	return (KERNEL_MSG_CONSUMED);
+    if (BLE_CONNECTION_MAX == conn_idx) {
+        bk_printf("%s:Unknow conntions\r\n",__func__);
+        return (KERNEL_MSG_CONSUMED);
+    }
+
+    #if BLE_APP_SIGN_WRITE
+    sec_info_t *sec_info_p = &app_sec_env.sec_info[conn_idx];
+    uint8_t peer_idx = sec_info_p->matched_peer_idx;
+    bond_info_t *bond_info_p;
+
+    if (peer_idx < MAX_BOND_NUM) {
+        bond_info_p = &app_sec_env.bond_info[peer_idx];
+
+        if ((sec_info_p->sign_counter != bond_info_p->sign_counter) ||
+                (sec_info_p->peer_sign_counter != bond_info_p->peer_sign_counter)) {
+            bond_info_p->sign_counter = sec_info_p->sign_counter;
+            bond_info_p->peer_sign_counter = sec_info_p->peer_sign_counter;
+
+            bond_info_p->crc = CRC_DEFAULT_VALUE;
+            bond_info_p->crc = app_sec_crc32(bond_info_p->crc, bond_info_p, sizeof(bond_info_t) - 4);
+
+            #if (APP_SEC_BOND_STORE)
+            bk_flash_enable_security(FLASH_PROTECT_NONE);
+            flash_ctrl(CMD_FLASH_ERASE_SECTOR, &app_sec_env.flash_bond_ptr->partition_start_addr);
+            bk_flash_enable_security(FLASH_UNPROTECT_LAST_BLOCK);
+
+            for (uint8_t i = 0; i < MAX_BOND_NUM; i++) {
+                if ((app_sec_env.bonded >> i) & 1) {
+                    app_sec_env.flash_write_idx[i] = true;
+                } else {
+                    app_sec_env.flash_write_idx[i] = false;
+                }
+            }
+
+            // update bonding info in flash
+            kernel_msg_send_basic(APP_SEC_BOND_SAVE_TIMER, TASK_BLE_APP, TASK_BLE_APP);
+            #endif
+        }
+    }
+
+    memset(sec_info_p, 0, sizeof(sec_info_t));
+    #endif
+
+    #if BLE_APP_SEC
+    app_sec_env.sec_info[conn_idx].matched_peer_idx = INVALID_IDX;
+    #endif
+
+    dis_info.reason = param->reason;
+    dis_info.conn_idx = conn_idx;
+    if (app_ble_env.connections[conn_idx].role == APP_BLE_MASTER_ROLE) {
+        app_ble_env.connections[conn_idx].conhdl = USED_CONN_HDL;
+        kernel_state_set(KERNEL_BUILD_ID(TASK_BLE_APP,KERNEL_IDX_GET(dest_id)),APPC_LINK_IDLE);
+        if (ble_event_notice) {
+            ble_event_notice(BLE_5_INIT_DISCONNECT_EVENT, &dis_info);
+        }
+    }else{
+        app_ble_env.connections[conn_idx].conhdl = UNKNOW_CONN_HDL;
+        if (ble_event_notice) {
+            ble_event_notice(BLE_5_DISCONNECT_EVENT, &dis_info);
+        }
+        app_ble_env.actv_cnt.conn_actv--;
+    }
+    return (KERNEL_MSG_CONSUMED);
 }
 
 /**
@@ -1064,10 +1129,10 @@ static int appm_msg_handler(kernel_msg_id_t const msgid,
         {
             #if (BLE_APP_SEC)
             if ((msgid >= GAPC_BOND_CMD) &&
-                (msgid <= GAPC_SECURITY_IND))
+                (msgid <= GAPC_SIGN_COUNTER_IND))
             {
                 // Call the Security Module
-                msg_pol = app_get_handler(&app_sec_handlers, msgid, param, src_id);
+                msg_pol = app_get_handler(&app_sec_handlers, msgid, param, dest_id, src_id);
             }
             #endif //(BLE_APP_SEC)
             // else drop the message
@@ -1079,7 +1144,7 @@ static int appm_msg_handler(kernel_msg_id_t const msgid,
             if (msgid == GAPM_ADDR_SOLVED_IND)
             {
                 // Call the Security Module
-                msg_pol = app_get_handler(&app_sec_handlers, msgid, param, src_id);
+                msg_pol = app_get_handler(&app_sec_handlers, msgid, param, dest_id, src_id);
             }
             #endif //(BLE_APP_SEC)
         } break;
@@ -1093,7 +1158,7 @@ static int appm_msg_handler(kernel_msg_id_t const msgid,
         case (TASK_BLE_ID_COMMON):
         {
             // Call the Health Thermometer Module
-            msg_pol = app_get_handler(&app_comm_table_handler, msgid, param, src_id);
+            msg_pol = app_get_handler(&app_comm_table_handler, msgid, param, dest_id, src_id);
         } break;
 #endif //(BLE_APP_COMM)
 
@@ -1480,18 +1545,21 @@ static int gattc_cmp_evt_handler(kernel_msg_id_t const msgid,
 	}
 	#endif
 
-	if (ble_event_notice) {
-		ble_cmd_cmp_evt_t event;
-		event.conn_idx = app_ble_find_conn_idx_handle(conidx);
-		event.status = param->status;
-		event.cmd = BLE_CONN_UPDATE_MTU;
-		ble_event_notice(BLE_5_GAP_CMD_CMP_EVENT, &event);
+	if (param->operation == GATTC_MTU_EXCH) {
+		if (ble_event_notice) {
+			ble_cmd_cmp_evt_t event;
+			event.conn_idx = app_ble_find_conn_idx_handle(conidx);
+			event.status = param->status;
+			event.cmd = BLE_CONN_UPDATE_MTU;
+			ble_event_notice(BLE_5_GAP_CMD_CMP_EVENT, &event);
+		}
 	}
 
 	return (KERNEL_MSG_CONSUMED);
 }
 #endif
 
+#if (BLE_APP_SEC)
 #if (APP_SEC_BOND_STORE)
 static int app_sec_bond_save_timer_handler(kernel_msg_id_t const msgid,
 									void const *ind,
@@ -1510,6 +1578,69 @@ static int app_sec_bond_save_timer_handler(kernel_msg_id_t const msgid,
 
 	return (KERNEL_MSG_CONSUMED);
 }
+#endif
+
+static int app_peer_addr_compare_complete_handler(kernel_msg_id_t const msgid,
+                                                        void const *ind,
+                                                        kernel_task_id_t const dest_id,
+                                                        kernel_task_id_t const src_id)
+{
+    uint8_t conidx = KERNEL_IDX_GET(src_id);
+    uint8_t role = app_ble_env.connections[conidx].role;
+    uint8_t conhdl = app_ble_env.connections[conidx].conhdl;
+    sec_info_t *sec_p = &app_sec_env.sec_info[conidx];
+    uint8_t peer_idx = sec_p->matched_peer_idx;
+
+    struct gapc_connection_cfm *cfm = KERNEL_MSG_ALLOC(GAPC_CONNECTION_CFM,
+                                KERNEL_BUILD_ID(TASK_BLE_GAPC, conhdl),
+                                KERNEL_BUILD_ID(TASK_BLE_APP, conidx),
+                                gapc_connection_cfm);
+
+    if (peer_idx == INVALID_IDX) {
+        cfm->auth = GAP_AUTH_REQ_NO_MITM_NO_BOND;
+        cfm->ltk_present = false;
+    } else {
+        bond_info_t *bond_p = &app_sec_env.bond_info[peer_idx];
+        uint8_t dev_sec_req = app_sec_env.pairing_param.sec_req;
+
+        memcpy(&sec_p->auth, &bond_p->auth, sizeof(struct gapc_bond_auth));
+        cfm->auth = sec_p->auth.info;
+        cfm->ltk_present = sec_p->auth.ltk_present;
+
+        #if BLE_APP_SIGN_WRITE
+        sec_p->local_csrk_present = bond_p->local_csrk_present;
+        sec_p->peer_csrk_present = bond_p->peer_csrk_present;
+
+        if (sec_p->local_csrk_present) {
+            sec_p->sign_counter = bond_p->sign_counter;
+            memcpy(&sec_p->csrk, &bond_p->csrk, sizeof(struct gap_sec_key));
+
+            cfm->lsign_counter = sec_p->sign_counter;
+            memcpy(&cfm->lcsrk, &sec_p->csrk, sizeof(struct gap_sec_key));
+        }
+
+        if (sec_p->peer_csrk_present) {
+            memcpy(&sec_p->peer_csrk, &bond_p->peer_csrk, sizeof(struct gap_sec_key));
+            sec_p->peer_sign_counter = bond_p->peer_sign_counter;
+
+            cfm->rsign_counter = sec_p->peer_sign_counter;
+            memcpy(&cfm->rcsrk, &sec_p->peer_csrk, sizeof(struct gap_sec_key));
+        }
+        #endif
+
+        // If ltk present and device security needs encryption, master try to start encrypt.
+        if (sec_p->auth.ltk_present && (role == APP_BLE_MASTER_ROLE) &&
+            (dev_sec_req >= GAP_SEC1_NOAUTH_PAIR_ENC) && (dev_sec_req <= GAP_SEC1_SEC_CON_PAIR_ENC)) {
+            app_sec_send_encryption_cmd(conidx);
+        }
+    }
+
+    // Send the message
+    kernel_msg_send(cfm);
+
+    return (KERNEL_MSG_CONSUMED);
+}
+
 #endif
 
 /*
@@ -1572,8 +1703,11 @@ KERNEL_MSG_HANDLER_TAB(appm)
 	#endif ///#if APP_INIT_STOP_CONN_TIMER_EVENT
 	{APP_INIT_CON_SDP_END_TIMER,  (kernel_msg_func_t)app_init_con_sdp_end_timer_handler},
 	#endif
+    #if (BLE_APP_SEC)
     #if (APP_SEC_BOND_STORE)
     {APP_SEC_BOND_SAVE_TIMER,     (kernel_msg_func_t)app_sec_bond_save_timer_handler},
+    #endif
+    {APP_PEER_ADDR_CMP_CMP,       (kernel_msg_func_t)app_peer_addr_compare_complete_handler},
     #endif
 };
 

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -14,8 +28,8 @@
 
 #if CFG_USE_SPI_MST_PSRAM
 
-#if !CFG_USE_SPI_MASTER
-#error "SPI PSRAM NEED CFG_USE_SPI_MASTER ENABLE!!!"
+#if ((!CFG_USE_SPI) || (!CFG_USE_SPI_MASTER))
+#error "SPI PSRAM NEED CFG_USE_SPI and (CFG_USE_SPI_MASTER or CFG_USE_SPI_DMA_MASTER) ENABLE!!!"
 #endif
 
 #define PSRAM_CMD_SET_BURST               0xC0
@@ -43,7 +57,11 @@ static void spi_psram_enable_voltage(void)
     param = QSPI_IO_3_3V;
     sddev_control(SCTRL_DEV_NAME, CMD_QSPI_IO_VOLTAGE, &param);
 
+    #if (CFG_SOC_NAME == SOC_BK7252N)
+    param = PSRAM_VDD_3_5V_DEF;
+    #else
     param = PSRAM_VDD_3_3V_DEF;
+    #endif
     sddev_control(SCTRL_DEV_NAME, CMD_QSPI_VDDRAM_VOLTAGE, &param);
 }
 
@@ -73,8 +91,15 @@ int32_t spi_psram_init(void)
 {
     spi_psram_enable_voltage();
     spi_psram_init_extral_gpio();
-    
-    return bk_spi_master_init(SPI_DEF_CLK_HZ, SPI_DEF_MODE);
+
+    SPI_CFG_ST cfg;
+    cfg.u.value = 0;
+    cfg.u.cpha = 0;
+    cfg.u.cpol = 0;
+    cfg.u.lsb = 0;
+
+    cfg.u.slave = 0;
+    return bk_spi_master_init(SPI_DEF_CLK_HZ, cfg);
 }
 
 int32_t spi_psram_burst_set(uint32_t burst_size)
@@ -88,7 +113,7 @@ int32_t spi_psram_read_id(uint8_t id[12])
 {
     UINT8 id_buf[PSRAM_ID_LEN] = {0};
     UINT8 id_cmd[] = {PSRAM_CMD_READ_ID};
-      
+
     struct spi_message msg;
 
     os_memset(id_buf, 0, PSRAM_ID_LEN * sizeof(UINT8));
@@ -97,7 +122,7 @@ int32_t spi_psram_read_id(uint8_t id[12])
     msg.send_len = sizeof(id_cmd);
     msg.recv_buf = id_buf;
     msg.recv_len = PSRAM_ID_LEN;
-    
+
     bk_spi_master_xfer(&msg);
 
     BK_SPI_PRT("MF ID:%02x\r\n", id_buf[3]);
@@ -105,7 +130,7 @@ int32_t spi_psram_read_id(uint8_t id[12])
 
     if(id)
         os_memcpy(id, id_buf, PSRAM_ID_LEN);
-    
+
     return 0;
 }
 
@@ -117,10 +142,10 @@ uint32_t spi_psram_read(uint32_t addr, uint8_t* buffer, uint32_t size)
 
     if(buffer == NULL)
         return 1;
-    
+
     if(size == 0)
         return 0;
-    
+
     os_memset(&msg, 0, sizeof(struct spi_message));
     ucmd[1] = ((addr >> 16) & 0xff);
     ucmd[2] = ((addr >> 8) & 0xff);
@@ -128,12 +153,12 @@ uint32_t spi_psram_read(uint32_t addr, uint8_t* buffer, uint32_t size)
 
     msg.send_buf = ucmd;
     msg.send_len = sizeof(ucmd);
-    
+
     msg.recv_buf = buffer;
     msg.recv_len = size;
-    
+
     bk_spi_master_xfer(&msg);
-    
+
     return 0;
 }
 
@@ -151,8 +176,8 @@ uint32_t spi_psram_write(uint32_t addr, uint8_t* buffer, uint32_t size)
 
     ucmd = os_malloc(size + 4);
     if(!ucmd)
-        return 1;  
-    
+        return 1;
+
     os_memset(&msg, 0, sizeof(struct spi_message));
     os_memset(ucmd, 0, size + 4);
 
@@ -170,7 +195,7 @@ uint32_t spi_psram_write(uint32_t addr, uint8_t* buffer, uint32_t size)
     bk_spi_master_xfer(&msg);
 
     os_free(ucmd);
-    
+
     return 0;
 }
 

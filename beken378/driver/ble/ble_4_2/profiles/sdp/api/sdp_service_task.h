@@ -1,15 +1,16 @@
-/**
- ****************************************************************************************
- *
- * @file sdp_service_task.h
- *
- * @brief Header file - SDP Service Client Role Task.
- *
- * Copyright (C) Beken 2009-2015
- *
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 
 #ifndef _SDP_SERVICE_TASK_H_
@@ -38,7 +39,7 @@
 #if (BLE_SDP_CLIENT)
 #include "kernel_task.h"
 #include "prf_types.h"
-#include "rwip_task.h" 
+#include "rwip_task.h"
 
 /*
  * DEFINES
@@ -75,7 +76,7 @@ enum sdp_state
     /// Disconnected state
     SDP_FREE,
     SDP_IDLE,
-	SDP_DISCOVING,
+    SDP_DISCOVING,
     SDP_BUSY,
     SDP_STATE_MAX
 };
@@ -92,7 +93,7 @@ enum sdp_msg_id
     /// Read Characteristic xxxx Response
     SDP_READ_INFO_RSP,
 
-	/// Write Characteristic Value Request
+    /// Write Characteristic Value Request
     SDP_WRITE_VALUE_INFO_REQ,
     /// Write Characteristic Value response
     SDP_WRITE_VALUE_INFO_RSP,
@@ -114,8 +115,8 @@ enum sdpc_info
     SDPC_CHAR_VAL,
     /// Client Characteristic Configuration
     SDPC_CHAR_NTF_CFG,
-	/// Client Characteristic User Description
-	SDPC_CHAR_USER_DESC_VAL,
+    /// Client Characteristic User Description
+    SDPC_CHAR_USER_DESC_VAL,
     /// Characteristic Presentation Format
     SDPC_CHAR_PRES_FORMAT,
 
@@ -194,7 +195,7 @@ struct sdp_write_info_req
 struct sdp_w_ntf_cfg_req
 {
     uint16_t uuid;
-	uint16_t char_num;
+    uint16_t char_num;
     ///Notification Configuration
     uint16_t ntf_cfg;
 

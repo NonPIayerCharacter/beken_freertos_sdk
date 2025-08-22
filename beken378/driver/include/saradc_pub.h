@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _SARADC_PUB_H_
 #define _SARADC_PUB_H_
 
@@ -22,6 +36,7 @@ enum
     SARADC_CMD_PAUSE,
     SARADC_CMD_RESUME,
     SARADC_CMD_RECALI,
+    SARADC_CMD_SET_SUM_FILTER,
 };
 
 typedef enum
@@ -42,9 +57,15 @@ typedef enum
 typedef struct
 {
     UINT16 *pData;
+    #if CFG_SARADC_VERIFY
+    volatile UINT32 current_sample_data_cnt;
+    volatile UINT32 current_read_data_cnt;
+    UINT32 data_buff_size;
+    #else
     volatile UINT8 current_sample_data_cnt;
     volatile UINT8 current_read_data_cnt;
     UINT8 data_buff_size;
+    #endif
     volatile UINT8 has_data; /* 1: has data      0: no data*/
     volatile UINT8 all_done; /* 1: all done      0: still sampling*/
     UINT8 channel;
@@ -83,7 +104,7 @@ typedef struct
     UINT8 channel;
 } saradc_chan_t;
 
-typedef struct 
+typedef struct
 {
     unsigned short val;
     SARADC_MODE mode;

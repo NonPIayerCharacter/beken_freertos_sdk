@@ -11,14 +11,14 @@
 
 #ifdef CONFIG_IEEE80211W
 void sme_event_unprot_disconnect(struct wpa_supplicant *wpa_s, const u8 *sa,
-				 const u8 *da, u16 reason_code);
+				 const u8 *da, u16 reason_code, bool con_ap_frm);
 void sme_event_ch_switch(struct wpa_supplicant *wpa_s);
 void sme_sa_query_rx(struct wpa_supplicant *wpa_s, const u8 *sa,
 		     const u8 *data, size_t len);
 #else
 static inline void sme_event_unprot_disconnect(struct wpa_supplicant *wpa_s,
 					       const u8 *sa, const u8 *da,
-					       u16 reason_code)
+					       u16 reason_code, bool con_ap_frm)
 {
 }
 

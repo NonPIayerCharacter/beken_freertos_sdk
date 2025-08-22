@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _WLAN_UI_PUB_
 #define _WLAN_UI_PUB_
 
@@ -13,7 +27,7 @@
 #endif
 
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
 
 #define ICU_BASE                                     (0x00802000)
@@ -74,7 +88,7 @@ enum bk_wlan_hw_mode {
 /**
  *  @brief  Wi-Fi security type enumeration definition.
  */
- typedef enum bk_wlan_sec_type_e
+typedef enum bk_wlan_sec_type_e
 {
     BK_SECURITY_TYPE_NONE,        /**< Open system. */
     BK_SECURITY_TYPE_WEP,         /**< Wired Equivalent Privacy. WEP security. */
@@ -86,10 +100,10 @@ enum bk_wlan_hw_mode {
     BK_SECURITY_TYPE_WPA2_MIXED,  /**< WPA2 /w AES or TKIP */
     BK_SECURITY_TYPE_WPA3_SAE,	  /**< WPA3 SAE */
     BK_SECURITY_TYPE_WPA3_WPA2_MIXED, /** WPA3 SAE or WPA2 AES */
-	BK_SECURITY_TYPE_EAP,         /**< EAP */
-	BK_SECURITY_TYPE_OWE,         /**< OWE */
+    BK_SECURITY_TYPE_EAP,         /**< EAP */
+    BK_SECURITY_TYPE_OWE,         /**< OWE */
     BK_SECURITY_TYPE_AUTO,        /**< It is used when calling @ref bkWlanStartAdv, _BK_ read security type from scan result. */
-}bk_wlan_sec_type;
+} bk_wlan_sec_type;
 
 enum
 {
@@ -127,8 +141,8 @@ typedef uint8_t wlan_sec_type_t;
  */
 typedef struct
 {
-	uint8_t dhcp;       /**< DHCP mode: @ref DHCP_Disable, @ref DHCP_Client, @ref DHCP_Server.*/
-	char    ip[16];     /**< Local IP address on the target wlan interface: @ref wlanInterfaceTypedef.*/
+    uint8_t dhcp;       /**< DHCP mode: @ref DHCP_Disable, @ref DHCP_Client, @ref DHCP_Server.*/
+    char    ip[16];     /**< Local IP address on the target wlan interface: @ref wlanInterfaceTypedef.*/
     char    gate[16];   /**< Router IP address on the target wlan interface: @ref wlanInterfaceTypedef.*/
     char    mask[16];   /**< Netmask on the target wlan interface: @ref wlanInterfaceTypedef.*/
     char    dns[16];    /**< DNS server IP address.*/
@@ -154,15 +168,15 @@ typedef  struct  _ScanResult
  */
 typedef  struct  _ScanResult_adv
 {
-	char ApNum; 	  /**< The number of access points found in scanning.*/
-	struct ApListStruct
-	{
-		char ssid[33];	/**< The SSID of an access point.*/
-		char ApPower;	/**< Signal strength, min:0, max:100*/
-		uint8_t bssid[6];	/**< The BSSID of an access point.*/
-		char channel;	/**< The RF frequency, 1-13*/
-		wlan_sec_type_t security;	/**< Security type, @ref wlan_sec_type_t*/
-	} *ApList;
+    char ApNum; 	  /**< The number of access points found in scanning.*/
+    struct ApListStruct
+    {
+        char ssid[33];	/**< The SSID of an access point.*/
+        char ApPower;	/**< Signal strength, min:0, max:100*/
+        uint8_t bssid[6];	/**< The BSSID of an access point.*/
+        char channel;	/**< The RF frequency, 1-13*/
+        wlan_sec_type_t security;	/**< Security type, @ref wlan_sec_type_t*/
+    } *ApList;
 } ScanResult_adv;
 
 /**
@@ -176,7 +190,7 @@ typedef struct _network_InitTypeDef_st
     char wifi_mode;               /**< DHCP mode: @ref wlanInterfaceTypedef.*/
     char wifi_ssid[33];           /**< SSID of the wlan needs to be connected.*/
     char wifi_key[108];            /**< Security key of the wlan needs to be connected, ignored in an open system.*/
-                                /**The maximum supported key length is 107 bits.If it exceeds 107 bits,the error "input buffer overflow" will return*/
+    /**The maximum supported key length is 107 bits.If it exceeds 107 bits,the error "input buffer overflow" will return*/
     char local_ip_addr[16];       /**< Static IP configuration, Local IP address. */
     char net_mask[16];            /**< Static IP configuration, Netmask. */
     char gateway_ip_addr[16];     /**< Static IP configuration, Router IP address. */
@@ -187,39 +201,39 @@ typedef struct _network_InitTypeDef_st
     int  wifi_retry_interval;     /**< Retry interval if an error is occured when connecting an access point,
                                      time unit is millisecond. */
     bool hidden_ssid;             /**< hidden ssid, only for softap */
-#if CFG_STA_AUTO_RECONNECT
+    #if CFG_STA_AUTO_RECONNECT
     /* auto reconnect configuration */
     int auto_reconnect_count;		   /**< auto reconnect max count, 0 for always reconnect */
     int auto_reconnect_timeout; 	   /**< auto reconnect timeout in secs, 0 for no timeout */
     bool disable_auto_reconnect_after_disconnect;  /**< disable auto reconnect if deauth/disassoc by AP when in connected state */
-#endif
+    #endif
 
-#if CFG_WIFI_OCV
+    #if CFG_WIFI_OCV
     bool ocv;                     /**< operating channel validation */
-#endif
-#if CFG_WIFI_STA_VSIE || CFG_WIFI_AP_VSIE
+    #endif
+    #if CFG_WIFI_STA_VSIE || CFG_WIFI_AP_VSIE
     uint8_t vsie[255];			  /**< vendor specific IE for probe req/assoc req. */
     uint8_t vsie_len;			  /**< vendor specific IE len. */
-#endif
-#if CFG_WIFI_AP_CUSTOM_RATES
+    #endif
+    #if CFG_WIFI_AP_CUSTOM_RATES
     /* mark last basic_rates be zero */
     int basic_rates[16];
     /* mark last supported_rates be zero */
     int supported_rates[16];
     /* mark last mcs_set be zero, don't change mcs_set length */
     uint8_t mcs_set[16];
-#endif
-#if CFG_WIFI_AP_HW_MODE
+    #endif
+    #if CFG_WIFI_AP_HW_MODE
     /* bk_wlan_hw_mode */
     int hw_mode;
-#endif
-#if CFG_QUICK_TRACK
-	int key_mgmt;
-	int pairwise_cipher;
-	int group_cipher;
-	int proto;		// WPA, RSN
-	int ieee80211w;
-#endif
+    #endif
+    #if CFG_QUICK_TRACK
+    int key_mgmt;
+    int pairwise_cipher;
+    int group_cipher;
+    int proto;		// WPA, RSN
+    int ieee80211w;
+    #endif
 } network_InitTypeDef_st;
 
 /**
@@ -259,8 +273,8 @@ typedef struct _network_InitTypeDef_ap_st
     char wifi_key[64];
     uint8_t channel;
     wlan_sec_type_t security;
-	uint8_t ssid_hidden;
-	uint8_t max_con;
+    uint8_t ssid_hidden;
+    uint8_t max_con;
     char local_ip_addr[16];
     char net_mask[16];
     char gateway_ip_addr[16];
@@ -292,46 +306,46 @@ typedef struct _linkStatus_t
   */
 typedef struct
 {
-	int8_t rssi;
-}wifi_link_info_t;
+    int8_t rssi;
+} wifi_link_info_t;
 
 //same with RL_BSSID_INFO_T{}
 struct wlan_fast_connect_info
 {
-	uint8_t ssid[33];
-	uint8_t bssid[6];
-	uint8_t security;
-	uint8_t channel;
-	uint8_t psk[65];
-	uint8_t pwd[65];
-#if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
-	IPStatusTypedef net_info;
-#endif
+    uint8_t ssid[33];
+    uint8_t bssid[6];
+    uint8_t security;
+    uint8_t channel;
+    uint8_t psk[65];
+    uint8_t pwd[65];
+    #if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
+    IPStatusTypedef net_info;
+    #endif
 
-#if CFG_WLAN_FAST_CONNECT_WITHOUT_SCAN
-	uint16_t freq;
-	u16 beacon_int;
-	uint16_t caps;
-	int level;
-	// u64 tsf;
-	uint16_t ie_len;
-	uint8_t ies[1024];  /* FIXME: use dynamic len */
-#endif
-#if CFG_WLAN_FAST_CONNECT_DEAUTH_FIRST
-	uint8_t pmf;
-	uint8_t tk[16];
-#endif
-#if CFG_WLAN_FAST_CONNECT_WPA3
-	uint8_t pmk_len;
-	uint8_t pmk[64]; // for WPA2 Personal, pmk = psk
-	uint8_t pmkid[16];
-	int akmp;
-#endif
+    #if CFG_WLAN_FAST_CONNECT_WITHOUT_SCAN
+    uint16_t freq;
+    u16 beacon_int;
+    uint16_t caps;
+    int level;
+    // u64 tsf;
+    uint16_t ie_len;
+    uint8_t ies[1024];  /* FIXME: use dynamic len */
+    #endif
+    #if CFG_WLAN_FAST_CONNECT_DEAUTH_FIRST
+    uint8_t pmf;
+    uint8_t tk[16];
+    #endif
+    #if CFG_WLAN_FAST_CONNECT_WPA3
+    uint8_t pmk_len;
+    uint8_t pmk[64]; // for WPA2 Personal, pmk = psk
+    uint8_t pmkid[16];
+    int akmp;
+    #endif
 
-#if (FAST_CONNECT_INFO_ENC_METHOD == ENC_METHOD_AES)
-	/* aes attention: sizeof(RL_BSSID_INFO_T) = 16 * n */
-	uint8_t padding[0] __attribute__ ((aligned (16)));
-#endif
+    #if (FAST_CONNECT_INFO_ENC_METHOD == ENC_METHOD_AES)
+    /* aes attention: sizeof(RL_BSSID_INFO_T) = 16 * n */
+    uint8_t padding[0] __attribute__ ((aligned (16)));
+    #endif
 };
 
 #if CFG_WLAN_FAST_CONNECT_STATIC_IP || CFG_WLAN_SUPPORT_FAST_DHCP
@@ -526,13 +540,13 @@ extern int is_apm_bss_config_empty(void);
  */
 #if CFG_USE_DEEP_PS
 void bk_enter_deep_sleep(UINT32 gpio_index_map,
-								UINT32 gpio_edge_map,
-								UINT32 gpio_last_index_map,
-								UINT32 gpio_last_edge_map,
-								UINT32 sleep_time,
-								UINT32 wake_up_way,
-								UINT32 gpio_stay_lo_map,
-								UINT32 gpio_stay_hi_map);
+                         UINT32 gpio_edge_map,
+                         UINT32 gpio_last_index_map,
+                         UINT32 gpio_last_edge_map,
+                         UINT32 sleep_time,
+                         UINT32 wake_up_way,
+                         UINT32 gpio_stay_lo_map,
+                         UINT32 gpio_stay_hi_map);
 #endif
 /** @brief  Enable dtim power save,close rf,and wakeup by ieee dtim dynamical
  *
@@ -547,6 +561,7 @@ int bk_wlan_dtim_rf_ps_mode_disable(void);
  */
 int power_save_dtim_rf_ps_disable_send_msg(void);
 
+extern int bk_wlan_dtim_rf_ps_get_enable_flag(void);
 extern int bk_wlan_dtim_rf_ps_timer_start(void);
 extern int bk_wlan_dtim_rf_ps_timer_pause(void);
 
@@ -682,6 +697,7 @@ int wlan_sta_disable_ssid_blacklist(void);
 int wlan_p2p_listen(void);
 int wlan_p2p_find(void);
 int wlan_p2p_stop_find(void);
+int wlan_p2p_stop_listen(void);
 int wlan_p2p_cancel(void);
 int wlan_p2p_connect(const uint8_t *mac, int method, int intent);
 
@@ -739,6 +755,7 @@ uint8_t *wlan_get_mesh_bssid(void);
 uint8_t bk_wlan_ap_get_default_channel(void);
 void app_p2p_rw_event_func(void *new_evt);
 void app_p2p_restart_thread(void);
+void app_p2p_stop_thread(void);
 #endif
 
 #if CFG_AP_MONITOR_COEXIST_TBTT

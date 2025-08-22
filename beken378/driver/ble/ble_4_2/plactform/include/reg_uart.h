@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _REG_UART_H_
 #define _REG_UART_H_
 
@@ -15,7 +29,7 @@
 /**
  * @brief UART conf register definition
  * <pre>
- *   Bits           Field Name   Reset Value  
+ *   Bits           Field Name   Reset Value
  *  -----   ------------------   -----------
  *	20:8					UART_CLK_DIVID	0        UART_CLK_DIVID=(UART_CLK/BAND - 1)
  *  		7         UART_STOP_LEN   0				0: 1bit 1:2bits
@@ -24,7 +38,7 @@
  *  04:03         UART_LEN    		0  0:5bit 1:6bit 2:7bit 3:8bit
  *     02         UART_IRDA  			 0
  *     01        	UART_RX_ENABLE   0
- *     00         UART_TX_ENABLE   0					
+ *     00         UART_TX_ENABLE   0
  * </pre>
  */
 #if (BLE_DUT_UART_PORT == PORT_UART2)
@@ -50,21 +64,21 @@ __INLINE void uart_conf_set(uint32_t value)
 
 
 __INLINE void uart_conf_pack(uint8_t txen, uint8_t rxen, uint8_t irda,
-				uint8_t bitlen, uint8_t paren, uint8_t parmode,uint8_t stoplen,uint16_t clkdiv)
+                             uint8_t bitlen, uint8_t paren, uint8_t parmode,uint8_t stoplen,uint16_t clkdiv)
 {
-   
+
     BLE_ASSERT_ERR((((uint32_t)clkdiv << 8) & ~((uint32_t)0x001FFF00)) == 0);
-	BLE_ASSERT_ERR((((uint32_t)stoplen << 7) & ~((uint32_t)0x00000080)) == 0);
+    BLE_ASSERT_ERR((((uint32_t)stoplen << 7) & ~((uint32_t)0x00000080)) == 0);
     BLE_ASSERT_ERR((((uint32_t)parmode << 6) & ~((uint32_t)0x00000040)) == 0);
     BLE_ASSERT_ERR((((uint32_t)paren << 5) & ~((uint32_t)0x00000020)) == 0);
-	
+
     BLE_ASSERT_ERR((((uint32_t)bitlen << 3) & ~((uint32_t)0x00000018)) == 0);
     BLE_ASSERT_ERR((((uint32_t)irda << 2) & ~((uint32_t)0x00000004)) == 0);
     BLE_ASSERT_ERR((((uint32_t)rxen << 1) & ~((uint32_t)0x00000002)) == 0);
     BLE_ASSERT_ERR((((uint32_t)txen << 0) & ~((uint32_t)0x00000001)) == 0);
     REG_PL_WR(UART_CONF_ADDR,  	 ((uint32_t)clkdiv << 8) | ((uint32_t)stoplen << 7) | ((uint32_t)parmode << 6) |
-																((uint32_t)paren << 5)   | ((uint32_t)bitlen << 3) | ((uint32_t)irda << 2) | 
-																((uint32_t)rxen << 1) |  ((uint32_t)txen << 0));
+              ((uint32_t)paren << 5)   | ((uint32_t)bitlen << 3) | ((uint32_t)irda << 2) |
+              ((uint32_t)rxen << 1) |  ((uint32_t)txen << 0));
 }
 
 #if (BLE_DUT_UART_PORT == PORT_UART2)
@@ -76,12 +90,12 @@ __INLINE void uart_conf_pack(uint8_t txen, uint8_t rxen, uint8_t irda,
 
 __INLINE void uart_fifo_conf_pack(uint8_t tx_threshold, uint8_t rx_threshold, uint8_t rx_detect_time)
 {
-		BLE_ASSERT_ERR((((uint32_t)rx_detect_time << 9) & ~((uint32_t)0x00010000)) == 0);
-		BLE_ASSERT_ERR((((uint32_t)rx_threshold << 8) & ~((uint32_t)0x0000FF00)) == 0);
-		BLE_ASSERT_ERR((((uint32_t)tx_threshold << 0) & ~((uint32_t)0x00000000)) == 0);
-	
-	  REG_PL_WR(UART_FIFO_CONF_ADDR, ((uint32_t)rx_detect_time << 9) | ((uint32_t)rx_threshold << 8) | ((uint32_t)tx_threshold << 0));
-		
+    BLE_ASSERT_ERR((((uint32_t)rx_detect_time << 9) & ~((uint32_t)0x00010000)) == 0);
+    BLE_ASSERT_ERR((((uint32_t)rx_threshold << 8) & ~((uint32_t)0x0000FF00)) == 0);
+    BLE_ASSERT_ERR((((uint32_t)tx_threshold << 0) & ~((uint32_t)0x00000000)) == 0);
+
+    REG_PL_WR(UART_FIFO_CONF_ADDR, ((uint32_t)rx_detect_time << 9) | ((uint32_t)rx_threshold << 8) | ((uint32_t)tx_threshold << 0));
+
 }
 
 __INLINE void uart_tx_fifo_threshold_setf(uint8_t threshold)
@@ -169,13 +183,13 @@ __INLINE void uart_flow_cts_polarity_setf(uint8_t cts)
 
 __INLINE uint8_t uart_tx_fifo_count_getf(void)
 {
-		uint32_t localVal = REG_PL_RD(UART_FIFO_STATUS_ADDR);
+    uint32_t localVal = REG_PL_RD(UART_FIFO_STATUS_ADDR);
     return ((localVal & ((uint32_t)0x000000FF)) >> 0);
 }
 
 __INLINE uint8_t uart_rx_fifo_count_getf(void)
 {
-		uint32_t localVal = REG_PL_RD(UART_FIFO_STATUS_ADDR);
+    uint32_t localVal = REG_PL_RD(UART_FIFO_STATUS_ADDR);
     return ((localVal & ((uint32_t)0x0000FF00)) >> 8);
 }
 
@@ -218,7 +232,7 @@ __INLINE uint8_t uart_rx_fifo_rd_ready_getf(void)
 
 __INLINE uint8_t uart_ext_wakeup_getf()
 {
-	return 0 ;
+    return 0 ;
 }
 
 
@@ -266,10 +280,10 @@ __INLINE uint32_t uart_isr_stat_get(void)
 }
 
 __INLINE void uart_isr_stat_set( uint8_t stat)
-{ 
-	 BLE_ASSERT_ERR((((uint32_t)stat << 0) & ~((uint32_t)0x000000FF)) == 0);
-   REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x000000FF)) | ((uint32_t)stat << 0));
-	//(*(volatile uint32_t *)(UART_ISR_STAT_ADDR)) = stat;
+{
+    BLE_ASSERT_ERR((((uint32_t)stat << 0) & ~((uint32_t)0x000000FF)) == 0);
+    REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x000000FF)) | ((uint32_t)stat << 0));
+    //(*(volatile uint32_t *)(UART_ISR_STAT_ADDR)) = stat;
 }
 
 __INLINE uint8_t uart_tx_fifo_need_wr_isr_getf(void)
@@ -293,8 +307,8 @@ __INLINE uint8_t uart_rx_fifo_over_isr_getf(void)
 
 __INLINE void uart_rx_fifo_over_isr_clr_setf(uint8_t rx_fifo_over)
 {
-   BLE_ASSERT_ERR((((uint32_t)rx_fifo_over << 2) & ~((uint32_t)0x00000004)) == 0);
-   REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000004)) | ((uint32_t)rx_fifo_over << 2));
+    BLE_ASSERT_ERR((((uint32_t)rx_fifo_over << 2) & ~((uint32_t)0x00000004)) == 0);
+    REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000004)) | ((uint32_t)rx_fifo_over << 2));
 
 }
 
@@ -307,8 +321,8 @@ __INLINE uint8_t uart_rx_parity_err_isr_getf(void)
 
 __INLINE void uart_rx_parity_err_isr_clr_setf(uint8_t rx_parity_err)
 {
-   BLE_ASSERT_ERR((((uint32_t)rx_parity_err << 3) & ~((uint32_t)0x00000008)) == 0);
-   REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000008)) | ((uint32_t)rx_parity_err << 3));
+    BLE_ASSERT_ERR((((uint32_t)rx_parity_err << 3) & ~((uint32_t)0x00000008)) == 0);
+    REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000008)) | ((uint32_t)rx_parity_err << 3));
 }
 
 __INLINE uint8_t uart_rx_stopbit_err_isr_getf(void)
@@ -319,8 +333,8 @@ __INLINE uint8_t uart_rx_stopbit_err_isr_getf(void)
 
 __INLINE void uart_rx_stopbit_err_isr_clr_setf(uint8_t rx_stopbit_err)
 {
-   BLE_ASSERT_ERR((((uint32_t)rx_stopbit_err << 4) & ~((uint32_t)0x00000010)) == 0);
-   REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000010)) | ((uint32_t)rx_stopbit_err << 4));
+    BLE_ASSERT_ERR((((uint32_t)rx_stopbit_err << 4) & ~((uint32_t)0x00000010)) == 0);
+    REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000010)) | ((uint32_t)rx_stopbit_err << 4));
 }
 
 
@@ -332,8 +346,8 @@ __INLINE uint8_t uart_tx_end_isr_getf(void)
 
 __INLINE void uart_tx_end_isr_clr_setf(uint8_t tx_end)
 {
-   BLE_ASSERT_ERR((((uint32_t)tx_end << 5) & ~((uint32_t)0x00000020)) == 0);
-   REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000020)) | ((uint32_t)tx_end << 5));
+    BLE_ASSERT_ERR((((uint32_t)tx_end << 5) & ~((uint32_t)0x00000020)) == 0);
+    REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000020)) | ((uint32_t)tx_end << 5));
 }
 
 __INLINE uint8_t uart_rx_end_isr_getf(void)
@@ -343,8 +357,8 @@ __INLINE uint8_t uart_rx_end_isr_getf(void)
 }
 __INLINE void uart_rx_end_isr_clr_setf(uint8_t rx_end)
 {
-   BLE_ASSERT_ERR((((uint32_t)rx_end << 6) & ~((uint32_t)0x00000040)) == 0);
-   REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000040)) | ((uint32_t)rx_end << 6));
+    BLE_ASSERT_ERR((((uint32_t)rx_end << 6) & ~((uint32_t)0x00000040)) == 0);
+    REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000040)) | ((uint32_t)rx_end << 6));
 }
 
 __INLINE uint8_t uart_rxd_wakeup_isr_getf(void)
@@ -355,8 +369,8 @@ __INLINE uint8_t uart_rxd_wakeup_isr_getf(void)
 
 __INLINE void uart_rxd_wakeup_isr_clr_setf(uint8_t rxd_wakeup)
 {
-   BLE_ASSERT_ERR((((uint32_t)rxd_wakeup << 7) & ~((uint32_t)0x00000080)) == 0);
-   REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000080)) | ((uint32_t)rxd_wakeup << 7));
+    BLE_ASSERT_ERR((((uint32_t)rxd_wakeup << 7) & ~((uint32_t)0x00000080)) == 0);
+    REG_PL_WR(UART_ISR_STAT_ADDR, (REG_PL_RD(UART_ISR_STAT_ADDR) & ~((uint32_t)0x00000080)) | ((uint32_t)rxd_wakeup << 7));
 }
 
 
@@ -365,7 +379,7 @@ __INLINE void uart_rxd_wakeup_isr_clr_setf(uint8_t rxd_wakeup)
  * <pre>
  *   Bits           Field Name   Reset Value
  *  -----   ------------------   -----------
- *     
+ *
  * </pre>
  */
 #if (BLE_DUT_UART_PORT == PORT_UART2)
@@ -383,21 +397,21 @@ __INLINE void uart_isr_en_set(uint32_t value)
 
 
 __INLINE void uart_isr_en_pack(uint8_t rx_need_rd, uint8_t tx_need_wr, uint8_t rx_over,
-							uint8_t rx_parity_err, uint8_t rx_stopbit_err, uint8_t tx_end, uint8_t rx_end,
-							uint8_t rxd_wakeup)
+                               uint8_t rx_parity_err, uint8_t rx_stopbit_err, uint8_t tx_end, uint8_t rx_end,
+                               uint8_t rxd_wakeup)
 {
-	BLE_ASSERT_ERR((((uint32_t)rxd_wakeup << 7) & ~((uint32_t)0x00000080)) == 0);
-    
+    BLE_ASSERT_ERR((((uint32_t)rxd_wakeup << 7) & ~((uint32_t)0x00000080)) == 0);
+
     BLE_ASSERT_ERR((((uint32_t)rx_end << 6) & ~((uint32_t)0x00000040)) == 0);
     BLE_ASSERT_ERR((((uint32_t)tx_end << 5) & ~((uint32_t)0x00000020)) == 0);
     BLE_ASSERT_ERR((((uint32_t)rx_stopbit_err << 4) & ~((uint32_t)0x00000010)) == 0);
-	BLE_ASSERT_ERR((((uint32_t)rx_parity_err << 3) & ~((uint32_t)0x00000008)) == 0);
-	BLE_ASSERT_ERR((((uint32_t)rx_over << 2) & ~((uint32_t)0x00000004)) == 0);
+    BLE_ASSERT_ERR((((uint32_t)rx_parity_err << 3) & ~((uint32_t)0x00000008)) == 0);
+    BLE_ASSERT_ERR((((uint32_t)rx_over << 2) & ~((uint32_t)0x00000004)) == 0);
     BLE_ASSERT_ERR((((uint32_t)tx_need_wr << 1) & ~((uint32_t)0x00000002)) == 0);
     BLE_ASSERT_ERR((((uint32_t)rx_need_rd << 0) & ~((uint32_t)0x00000001)) == 0);
     REG_PL_WR(UART_ISR_EN_ADDR,  ((uint32_t)rxd_wakeup << 7) | ((uint32_t)rx_end << 6) |
-							((uint32_t)tx_end << 5) | ((uint32_t)rx_stopbit_err << 4) | ((uint32_t)rx_parity_err << 3) |
-							((uint32_t)rx_over << 2) |((uint32_t)tx_need_wr << 1) |((uint32_t)rx_need_rd << 0));
+              ((uint32_t)tx_end << 5) | ((uint32_t)rx_stopbit_err << 4) | ((uint32_t)rx_parity_err << 3) |
+              ((uint32_t)rx_over << 2) |((uint32_t)tx_need_wr << 1) |((uint32_t)rx_need_rd << 0));
 }
 
 

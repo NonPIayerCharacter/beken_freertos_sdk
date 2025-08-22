@@ -82,6 +82,8 @@ struct rxu_unprot_mgt_ind
 	bool deauth;
 	/// reason code
 	uint8_t reason;
+	/// The frame comes from the ap we connected
+	bool con_ap_frm;
 };
 /// @}
 

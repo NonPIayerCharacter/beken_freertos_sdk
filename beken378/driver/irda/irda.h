@@ -1,16 +1,30 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _IRDA_H_
 #define _IRDA_H_
 
 #define IRDA_DEBUG
 
 #ifdef IRDA_DEBUG
-    #define IRDA_PRT      os_printf
-	#define IRDA_WARN     warning_prf
-	#define IRDA_FATAL    fatal_prf
+#define IRDA_PRT      os_printf
+#define IRDA_WARN     warning_prf
+#define IRDA_FATAL    fatal_prf
 #else
-    #define IRDA_PRT      null_prf
-	#define IRDA_WARN     null_prf
-	#define IRDA_FATAL    null_prf
+#define IRDA_PRT      null_prf
+#define IRDA_WARN     null_prf
+#define IRDA_FATAL    null_prf
 #endif
 
 
@@ -46,8 +60,6 @@
 #define STOP_ERR_INT                  (0x01UL << 5)
 
 #define RX_FIFO_DOUT                  (IRDA_BASE + 3 * 4)
-
-#define IRDA_KEY_HTIMER_CHNAL 4 /*timer channle*/
 
 #define TRNG_BASE                     (0x00802480)
 

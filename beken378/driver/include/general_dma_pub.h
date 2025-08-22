@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __GDMA_PUB_H__
 #define __GDMA_PUB_H__
 
@@ -68,6 +82,7 @@ enum
     CMD_GDMA_GET_DST_PAUSE_ADDR,
     CMD_GDMA_GET_SRC_READ_ADDR,
     CMD_GDMA_GET_DST_WRITE_ADDR,
+    CMD_GDMA_GET_ENABLE,
 };
 
 #if (CFG_SOC_NAME == SOC_BK7252N)
@@ -148,19 +163,19 @@ typedef enum
     GDMA_CHANNEL_2,
     GDMA_CHANNEL_3,
 
-#if (CFG_SOC_NAME != SOC_BK7231)
+    #if (CFG_SOC_NAME != SOC_BK7231)
     GDMA_CHANNEL_4,
     GDMA_CHANNEL_5,
-#endif // (CFG_SOC_NAME != SOC_BK7231)
+    #endif // (CFG_SOC_NAME != SOC_BK7231)
 
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     GDMA_CHANNEL_6,
     GDMA_CHANNEL_7,
-#endif
+    #endif
 
     GDMA_CHANNEL_MAX,
     DMA_ID_MAX = GDMA_CHANNEL_MAX
-}dma_id_t;
+} dma_id_t;
 
 #define GDMA_TYPE_0         (0U)  // no loop src, no loop dst, no register
 #define GDMA_TYPE_1         (1U)  // loop src,    no loop dst, no register
@@ -247,41 +262,41 @@ typedef struct generdam_cfg_st
     UINT32 channel;
 } GDMA_CFG_ST, *GDMA_CFG_PTR;
 
-typedef enum{
+typedef enum {
     GDMA_PRIO_MODE_ROUND_ROBIN,
     GDMA_PRIO_MODE_FIXED_PRIORITY
 } GDMA_PRIO_MODE;
 
-typedef enum{
+typedef enum {
     GDMA_CHANNEL_SECURE_ATTR_NON_SECURE,
     GDMA_CHANNEL_SECURE_ATTR_SECURE
 } GDMA_CHANNEL_SECURE_ATTR;
 
-typedef enum{
+typedef enum {
     GDMA_CHANNEL_PRIVILEGED_ATTR_NON_PRIVILEGED,
     GDMA_CHANNEL_PRIVILEGED_ATTR_PRIVILEGED
 } GDMA_CHANNEL_PRIVILEGED_ATTR;
 
-typedef enum{
+typedef enum {
     GDMA_CHANNEL_INT0_STATUS_DIS,
     GDMA_CHANNEL_INT0_STATUS_EN
 } GDMA_CHANNEL_INT0_STATUS;
 
-typedef enum{
+typedef enum {
     GDMA_CHANNEL_INT_ALLOCATE_INT0,
     GDMA_CHANNEL_INT_ALLOCATE_REVD0,
     GDMA_CHANNEL_INT_ALLOCATE_REVD1,
     GDMA_CHANNEL_INT_ALLOCATE_REVD2
 } GDMA_CHANNEL_INT_ALLOCATE;
 
-typedef enum{
+typedef enum {
     GDMA_CHANNEL_SRC_DATA_WIDTH_8BIT,
     GDMA_CHANNEL_SRC_DATA_WIDTH_16BIT,
     GDMA_CHANNEL_SRC_DATA_WIDTH_32BIT,
     GDMA_CHANNEL_SRC_DATA_WIDTH_REVD
 } GDMA_CHANNEL_SRC_DATA_WIDTH;
 
-typedef enum{
+typedef enum {
     GDMA_CHANNEL_DEST_DATA_WIDTH_8BIT,
     GDMA_CHANNEL_DEST_DATA_WIDTH_16BIT,
     GDMA_CHANNEL_DEST_DATA_WIDTH_32BIT,

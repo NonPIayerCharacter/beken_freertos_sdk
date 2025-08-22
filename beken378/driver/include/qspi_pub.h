@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _QSPI_PUB_H_
 #define _QSPI_PUB_H_
 
@@ -44,6 +58,7 @@ enum
     QSPI_DCACHE_CMD_OPEN,
     QSPI_DCACHE_CMD_CLOSE,
     QSPI_CMD_DATA_CONFIG,
+    QSPI_CMD_SWITCH_MODE,
 };
 #if (CFG_SOC_NAME == SOC_BK7252N)
 #define QSPI_DATA_BASE_ADDR          (0x40000000)
@@ -75,36 +90,36 @@ enum
 #define QSPI_MEM_FOR_CPU              (1)
 
 typedef enum {
-	QSPI_READ = 0, /**< QSPI read operation */
-	QSPI_WRITE,    /**< QSPI write operation */
+    QSPI_READ = 0, /**< QSPI read operation */
+    QSPI_WRITE,    /**< QSPI write operation */
 } qspi_op_t;
 
 typedef enum {
-	MEMORY_MAPPED_MODE = 0, /* memory mapped mode, used for psram/flash memory device */
-	INDIRECT_MODE,          /* indirect mode. used for OLED */
+    MEMORY_MAPPED_MODE = 0, /* memory mapped mode, used for psram/flash memory device */
+    INDIRECT_MODE,          /* indirect mode. used for OLED */
 } qspi_work_mode;
 
 typedef enum {
-	QSPI_1WIRE = 0, /**< QSPI 1_wire mode, standard SPI */
-	QSPI_2WIRE,     /**< QSPI 2_wire mode, DUAL SPI */
-	QSPI_4WIRE,     /**< QSPI 4_wire mode, QUAD SPI */
+    QSPI_1WIRE = 0, /**< QSPI 1_wire mode, standard SPI */
+    QSPI_2WIRE,     /**< QSPI 2_wire mode, DUAL SPI */
+    QSPI_4WIRE,     /**< QSPI 4_wire mode, QUAD SPI */
 } qspi_wire_mode_t;
 
 typedef struct {
-	qspi_wire_mode_t wire_mode; /**< wire mode */
-	qspi_work_mode work_mode;   /**< work mode */
-	qspi_op_t op;               /**< QSPI operation */
-	uint32_t cmd;               /**< QSPI command */
-	uint32_t addr;              /**< QSPI address */
-	uint32_t dummy_cycle;       /**< QSPI dummy cycle */
-	uint32_t data_len;          /**< QSPI data length*/
+    qspi_wire_mode_t wire_mode; /**< wire mode */
+    qspi_work_mode work_mode;   /**< work mode */
+    qspi_op_t op;               /**< QSPI operation */
+    uint32_t cmd;               /**< QSPI command */
+    uint32_t addr;              /**< QSPI address */
+    uint32_t dummy_cycle;       /**< QSPI dummy cycle */
+    uint32_t data_len;          /**< QSPI data length*/
 } qspi_cmd_t;
 
 typedef struct {
-	qspi_op_t op;
-	uint32_t addr;
-	uint32_t size;
-	uint8_t *buf;
+    qspi_op_t op;
+    uint32_t addr;
+    uint32_t size;
+    uint8_t *buf;
 } qspi_data_t;
 #else
 //----------------------------------------------
@@ -112,35 +127,35 @@ typedef struct {
 //----------------------------------------------
 typedef struct
 {
-/* mode:     QSPI mode
- * bit[0:1]: QSPI line mode
- *          00:  QSPI line mode 1
- *          01:  QSPI line mode 2
- *          10:  reserved
- *          11:  QSPI line mode 4
- * bit[2]:   QSPI dir
- *          0: write to psram
- *          1: read from psram
- * bit[3]:   QSPI dma enable
- *          0: dma disable
- *          1: dma enable
- * bit[4]:   QSPI ge0/ge1
- *          0: ge0 is working
- *          1: ge1 is working
- * bit[7:5]: reserved
- */
+    /* mode:     QSPI mode
+     * bit[0:1]: QSPI line mode
+     *          00:  QSPI line mode 1
+     *          01:  QSPI line mode 2
+     *          10:  reserved
+     *          11:  QSPI line mode 4
+     * bit[2]:   QSPI dir
+     *          0: write to psram
+     *          1: read from psram
+     * bit[3]:   QSPI dma enable
+     *          0: dma disable
+     *          1: dma enable
+     * bit[4]:   QSPI ge0/ge1
+     *          0: ge0 is working
+     *          1: ge1 is working
+     * bit[7:5]: reserved
+     */
     unsigned char           mode;                       // QSPI mode
 
-/* clk_sel:  QSPI clk set
- * bit[0:2]: QSPI clk devide
- * bit[3]:   reserved
- * bit[5:4]:   QSPI clk select
- *          00: DCO clock
- *          01: 26MHz XTAL clock
- *          10: 120MHz DPLL clock
- *          11: reserved
- * bit[7:6]: reserved
- */
+    /* clk_sel:  QSPI clk set
+     * bit[0:2]: QSPI clk devide
+     * bit[3]:   reserved
+     * bit[5:4]:   QSPI clk select
+     *          00: DCO clock
+     *          01: 26MHz XTAL clock
+     *          10: 120MHz DPLL clock
+     *          11: reserved
+     * bit[7:6]: reserved
+     */
     unsigned char           clk_set;                    // QSPI clk set
     unsigned char           command;
     unsigned char           dummy_size;
@@ -156,31 +171,31 @@ typedef struct
 //----------------------------------------------
 typedef struct
 {
-/* mode:     QSPI mode
- * bit[0:1]: QSPI line mode
- *          00:  QSPI line mode 1
- *          01:  QSPI line mode 2
- *          10:  reserved
- *          11:  QSPI line mode 4
- * bit[2]:   reserved
- * bit[3]:   QSPI dma enable
- *          0: dma disable
- *          1: dma enable
- * bit[4]:   reserved
- * bit[7:5]: reserved
- */
+    /* mode:     QSPI mode
+     * bit[0:1]: QSPI line mode
+     *          00:  QSPI line mode 1
+     *          01:  QSPI line mode 2
+     *          10:  reserved
+     *          11:  QSPI line mode 4
+     * bit[2]:   reserved
+     * bit[3]:   QSPI dma enable
+     *          0: dma disable
+     *          1: dma enable
+     * bit[4]:   reserved
+     * bit[7:5]: reserved
+     */
     unsigned char           mode;                       // QSPI mode
 
-/* clk_sel:  QSPI clk set
- * bit[0:2]: QSPI clk devide
- * bit[3]:   reserved
- * bit[5:4]:   QSPI clk select
- *          00: DCO clock
- *          01: 26MHz XTAL clock
- *          10: 120MHz DPLL clock
- *          11: reserved
- * bit[7:6]: reserved
- */
+    /* clk_sel:  QSPI clk set
+     * bit[0:2]: QSPI clk devide
+     * bit[3]:   reserved
+     * bit[5:4]:   QSPI clk select
+     *          00: DCO clock
+     *          01: 26MHz XTAL clock
+     *          10: 120MHz DPLL clock
+     *          11: reserved
+     * bit[7:6]: reserved
+     */
     unsigned char           clk_set;                    // QSPI clk set
     unsigned char           wr_command;
     unsigned char           rd_command;

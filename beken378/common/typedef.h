@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _TYPEDEF_H_
 #define _TYPEDEF_H_
 #include <stdint.h>
@@ -24,9 +38,9 @@ typedef double         		  FP64;			/* Double precision floating point */
 typedef unsigned int          size_t;
 typedef unsigned char         BOOLEAN;
 
-//#if (CFG_OS_FREERTOS) || (CFG_SUPPORT_RTT) || (CFG_SUPPORT_ALIOS) || (CFG_SUPPORT_MATTER)
+#if (CFG_OS_FREERTOS) || (CFG_SUPPORT_RTT) || (CFG_SUPPORT_ALIOS) || (CFG_SUPPORT_MATTER)
 typedef unsigned char         BOOL;
-//#endif
+#endif
 
 #define LPVOID              void *
 #define VOID                void
@@ -35,17 +49,17 @@ typedef volatile signed long  VS32;
 typedef volatile signed short VS16;
 typedef volatile signed char  VS8;
 
-typedef volatile signed long  const VSC32;  
-typedef volatile signed short const VSC16;  
-typedef volatile signed char  const VSC8;  
+typedef volatile signed long  const VSC32;
+typedef volatile signed short const VSC16;
+typedef volatile signed char  const VSC8;
 
 typedef volatile unsigned long  VU32;
 typedef volatile unsigned short VU16;
 typedef volatile unsigned char  VU8;
 
-typedef volatile unsigned long  const VUC32;  
-typedef volatile unsigned short const VUC16;  
-typedef volatile unsigned char  const VUC8; 
+typedef volatile unsigned long  const VUC32;
+typedef volatile unsigned short const VUC16;
+typedef volatile unsigned char  const VUC8;
 
 #ifndef HAVE_UTYPES
 typedef unsigned char              u8;

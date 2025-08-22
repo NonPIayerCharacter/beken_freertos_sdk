@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "rwprf_config.h"     // SW configuration
 
 #if (BLE_FINDME_TARGET)
@@ -18,59 +32,59 @@
 
 ble_err_t bk_findt_create_db(struct findt_db_cfg *g_findt_db_cfg)
 {
-	ble_err_t ret = ERR_SUCCESS;
+    ble_err_t ret = ERR_SUCCESS;
 
-	if (kernel_state_get(TASK_BLE_APP) == APPM_READY) {
-		struct findt_db_cfg *db_cfg;
+    if (kernel_state_get(TASK_BLE_APP) == APPM_READY) {
+        struct findt_db_cfg *db_cfg;
 
-		struct gapm_profile_task_add_cmd *req = KERNEL_MSG_ALLOC_DYN(GAPM_PROFILE_TASK_ADD_CMD,
-													TASK_BLE_GAPM,TASK_BLE_APP,
-													gapm_profile_task_add_cmd,
-													sizeof(struct findt_db_cfg));
-		// Fill message
-		req->operation = GAPM_PROFILE_TASK_ADD;
-		req->sec_lvl = 0;
-		req->prf_api_id = TASK_BLE_ID_FINDT;
-		req->app_task = TASK_BLE_APP;
-		req->user_prio = 0;
-		req->start_hdl = 0;
+        struct gapm_profile_task_add_cmd *req = KERNEL_MSG_ALLOC_DYN(GAPM_PROFILE_TASK_ADD_CMD,
+                                                TASK_BLE_GAPM,TASK_BLE_APP,
+                                                gapm_profile_task_add_cmd,
+                                                sizeof(struct findt_db_cfg));
+        // Fill message
+        req->operation = GAPM_PROFILE_TASK_ADD;
+        req->sec_lvl = 0;
+        req->prf_api_id = TASK_BLE_ID_FINDT;
+        req->app_task = TASK_BLE_APP;
+        req->user_prio = 0;
+        req->start_hdl = 0;
 
-		//Set parameters
-		db_cfg = (struct findt_db_cfg* ) req->param;
-		memcpy(db_cfg, g_findt_db_cfg, sizeof(struct findt_db_cfg));
+        //Set parameters
+        db_cfg = (struct findt_db_cfg* ) req->param;
+        memcpy(db_cfg, g_findt_db_cfg, sizeof(struct findt_db_cfg));
 
-		kernel_state_set(TASK_BLE_APP, APPM_CREATE_DB);
-		//Send the message
-		kernel_msg_send(req);
-	} else {
-		ret = ERR_CREATE_DB;
-	}
+        kernel_state_set(TASK_BLE_APP, APPM_CREATE_DB);
+        //Send the message
+        kernel_msg_send(req);
+    } else {
+        ret = ERR_CREATE_DB;
+    }
 
-	return ret;
+    return ret;
 }
 
 void bk_findt_init(void)
 {
-	struct findt_db_cfg g_findt_db_cfg;
-	g_findt_db_cfg.dummy = 0;
-	bk_findt_create_db(&g_findt_db_cfg);
+    struct findt_db_cfg g_findt_db_cfg;
+    g_findt_db_cfg.dummy = 0;
+    bk_findt_create_db(&g_findt_db_cfg);
 }
 __STATIC int findt_alert_ind_handler(kernel_msg_id_t const msgid, struct findt_alert_ind const *p_param,
-									kernel_task_id_t const dest_id, kernel_task_id_t const src_id)
+                                     kernel_task_id_t const dest_id, kernel_task_id_t const src_id)
 {
-	bk_printf("[%s] alert_lvl=%d\r\n",__func__,p_param->alert_lvl);
-	return (KERNEL_MSG_CONSUMED);
+    bk_printf("[%s] alert_lvl=%d\r\n",__func__,p_param->alert_lvl);
+    return (KERNEL_MSG_CONSUMED);
 }
 
 /// Default State handlers definition
 __STATIC const struct kernel_msg_handler app_findt_msg_handler_tab[] =
 {
-	// Note: all messages must be sorted in ID ascending ordser
-	{FINDT_ALERT_IND,               (kernel_msg_func_t) findt_alert_ind_handler},
+    // Note: all messages must be sorted in ID ascending ordser
+    {FINDT_ALERT_IND,               (kernel_msg_func_t) findt_alert_ind_handler},
 };
 
 const struct app_subtask_handlers app_findt_table_handler =
-	{&app_findt_msg_handler_tab[0], (sizeof(app_findt_msg_handler_tab)/sizeof(struct kernel_msg_handler))};
+{&app_findt_msg_handler_tab[0], (sizeof(app_findt_msg_handler_tab)/sizeof(struct kernel_msg_handler))};
 
 #endif
 

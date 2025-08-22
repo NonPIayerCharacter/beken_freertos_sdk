@@ -62,6 +62,9 @@ extern uint32_t ble_cal_get_txpwr(uint8_t idx);
 extern void rwnx_cal_set_txif_2rd(uint8_t txif_2rd_b, uint8_t txif_2rd_g);
 extern void bk7011_set_rx_hpf_bypass(UINT8 bypass);
 extern UINT32 sctrl_ctrl(UINT32 cmd, void *param);
+extern bool ble_sch_is_busy(void);
+void ble_controller_ok(void);
+void ble_host_ok(void);
 
 enum {
 	DUT_IDLE,
@@ -130,7 +133,7 @@ void bdaddr_env_init()
 		ble_mac[i] = sta_mac[BD_ADDR_LEN - 1 - i];
 	}
 
-	bk_printf("ble public addr:%02x-%02x-%02x-%02x-%02x-%02x\r\n",
+	bk_printf("ble mac: %02x:%02x:%02x:%02x:%02x:%02x\r\n",
 		ble_mac[5], ble_mac[4], ble_mac[3], ble_mac[2], ble_mac[1], ble_mac[0]);
 
 #if CFG_BLE_RANDOM_STATIC_ADDR
@@ -143,7 +146,7 @@ void bdaddr_env_init()
 		common_static_addr.addr[5] |= 0xC0;
 	}
 	ble_mac = &common_static_addr.addr[0];
-	bk_printf("ble static addr:%02x-%02x-%02x-%02x-%02x-%02x\r\n",
+	bk_printf("ble static mac:%02x:%02x:%02x:%02x:%02x:%02x\r\n",
 		ble_mac[5], ble_mac[4], ble_mac[3], ble_mac[2], ble_mac[1], ble_mac[0]);
 #endif
 }
@@ -303,6 +306,12 @@ void enter_normal_app_mode(void)
 	#else
 	sctrl_ctrl(CMD_BLE_RF_PTA_DIS,NULL);
 	#endif
+
+	#if CFG_BLE_DIAGNOSTIC_PORT
+	//ble test code for debug pin
+	ble_diagcntl_pack(1,0x03,1,0x03,0,0,0,0);
+	#endif
+
 	while (1) {
 		OSStatus err;
 		BLE_MSG_T msg;
@@ -311,15 +320,12 @@ void enter_normal_app_mode(void)
 		if (kNoErr == err) {
 			switch (msg.data) {
 				case BLE_MSG_POLL:
-					#if CFG_BLE_DIAGNOSTIC_PORT
-					//ble test code for debug pin
-					ble_diagcntl_pack(1,0x03,1,0x03,0,0,0,0);
-					#endif
 					//schedule all pending events
 					rwip_schedule();
 					break;
 				case BLE_THREAD_EXIT:
 					bk_printf("ble thread exit\r\n");
+					rwip_reset();
 					goto exit_normal_loop;
 					break;
 				default:
@@ -448,6 +454,7 @@ void ble_thread_main(void *arg)
 
 	bk_printf("tx_pwr_idx:%d\r\n", tx_pwr_idx);
 
+	ble_controller_ok();
 	if (ble_get_sys_mode() == DUT_FCC_MODE) {
 		enter_dut_fcc_mode();
 	} else {
@@ -463,6 +470,10 @@ void ble_thread_main(void *arg)
 	#endif
 	rtos_delete_thread(NULL);
 }
+
+static uint8_t ble_stack_is_ok;
+beken_semaphore_t controller_sem = NULL;
+beken_semaphore_t host_sem = NULL;
 
 void ble_thread_exit(void)
 {
@@ -501,6 +512,8 @@ void ble_thread_exit(void)
             rtos_deinit_queue(&ble_msg_que);
             ble_msg_que = NULL;
         }
+
+        ble_stack_is_ok = 0;
     }
 }
 
@@ -509,26 +522,79 @@ bool ble_thread_is_up(void)
 	return (ble_thread_handle) ? true : false;
 }
 
+bool ble_thread_is_busy(void)
+{
+	if (ble_thread_is_up()) {
+		return ble_sch_is_busy();
+	} else {
+		return false;
+	}
+}
+
 void ble_entry(void)
 {
-    OSStatus ret;
+	OSStatus ret;
 
-    if (!ble_thread_handle && !ble_msg_que) {
-    	ret = rtos_init_queue(&ble_msg_que, 
-    							"ble_msg_queue",
-    							sizeof(BLE_MSG_T),
-    							BLE_MSG_QUEUE_COUNT);
-        ASSERT(0 == ret);
-        
-    	ret = rtos_create_thread(&ble_thread_handle, 
-    			4,
-    			"ble", 
-    			(beken_thread_function_t)ble_thread_main, 
-    			BLE_STACK_SIZE, 
-    			(beken_thread_arg_t)0);
-    	
-        ASSERT(0 == ret);
+	if (!ble_thread_handle && !ble_msg_que && (ble_stack_is_ok == 0)) {
+
+		rtos_init_semaphore(&controller_sem,1);
+
+		#if (CFG_BLE_HOST_RW)
+		rtos_init_semaphore(&host_sem,1);
+		#endif
+
+		ret = rtos_init_queue(&ble_msg_que,
+								"ble_msg_queue",
+								sizeof(BLE_MSG_T),
+								BLE_MSG_QUEUE_COUNT);
+		ASSERT(0 == ret);
+
+		ret = rtos_create_thread(&ble_thread_handle,
+				4,
+				"ble",
+				(beken_thread_function_t)ble_thread_main,
+				BLE_STACK_SIZE,
+				(beken_thread_arg_t)0);
+
+		ASSERT(0 == ret);
+
+		if (rtos_get_semaphore(&controller_sem,1000)) {
+			bk_printf("ble controller init failed\r\n");
+			ble_stack_is_ok = 0;
+		} else {
+			ble_stack_is_ok = 1;
+		}
+
+		#if (CFG_BLE_HOST_RW)
+		if (ble_stack_is_ok && rtos_get_semaphore(&host_sem,1000)) {
+			bk_printf("ble host init failed\r\n");
+			ble_stack_is_ok = 0;
+		}
+		rtos_deinit_semaphore(&host_sem);
+		host_sem = NULL;
+		#endif
+		rtos_deinit_semaphore(&controller_sem);
+		controller_sem = NULL;
     }
+}
+
+bool ble_stack_is_ready(void)
+{
+	return (ble_stack_is_ok) ? true : false;
+}
+
+void ble_controller_ok(void)
+{
+	if (controller_sem) {
+		rtos_set_semaphore(&controller_sem);
+	}
+}
+
+void ble_host_ok(void)
+{
+	if (host_sem) {
+		rtos_set_semaphore(&host_sem);
+	}
 }
 
 UINT32 ble_ctrl( UINT32 cmd, void *param )

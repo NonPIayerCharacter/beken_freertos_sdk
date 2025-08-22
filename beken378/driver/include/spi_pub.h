@@ -1,7 +1,22 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _SPI_PUB_H_
 #define _SPI_PUB_H_
 
 #include "uart_pub.h"
+#include "gpio_pub.h"
 
 #define SPI_FAILURE                (1)
 #define SPI_SUCCESS                (0)
@@ -16,10 +31,11 @@ enum
     CMD_SPI_SET_CKPOL,
     CMD_SPI_SET_BITWIDTH,
     CMD_SPI_SET_NSSMD,
+    CMD_SPI_SET_LINE_MODE, /* configure spi to 3-wire mode or 4-wire mode*/
     CMD_SPI_SET_CKR,
     CMD_SPI_RXINT_EN,
     CMD_SPI_TXINT_EN,
-    CMD_SPI_RXOVR_EN,
+    CMD_SPI_RXOVR_EN, /* offset 0x0a*/
     CMD_SPI_TXOVR_EN,
     CMD_SPI_RXFIFO_CLR,
     CMD_SPI_RXINT_MODE,
@@ -33,15 +49,25 @@ enum
     CMD_SPI_LSB_EN,
     CMD_SPI_TX_EN,
     CMD_SPI_RX_EN,
+    CMD_SPI_TRX_EN,
     CMD_SPI_TXFINISH_EN,
     CMD_SPI_RXFINISH_EN,
     CMD_SPI_TXTRANS_EN,
     CMD_SPI_RXTRANS_EN,
     CMD_SPI_CS_EN,
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
     CMD_SPI_SET_TX_FINISH_INT_CALLBACK,
     CMD_SPI_SET_RX_FINISH_INT_CALLBACK,
-#endif
+    #endif
+    CMD_SPI_SET_BYTE_INTVAL,
+};
+
+enum
+{
+    SPI_EVEN_NONE = 0,
+    SPI_EVEN_TRX_DONE,
+    SPI_EVEN_TRX_LOSE,
+    SPI_EVEN_OTHERS,
 };
 
 #define BK_SPI_DEBUG                0
@@ -64,6 +90,10 @@ enum
 
 #define SPI_DEF_CLK_HZ              (10 * 1000 * 1000)
 #define TX_FINISH_FLAG              (1 << 0)
+#define RX_FINISH_FLAG              (1 << 1)
+#define TX_FINISH_DELAY_FLAG        (1 << 2)
+#define WAIT_DONE_FLAG              (1 << 3)
+#define TRX_ABORT_FLAG              (1 << 4)
 
 #define BK_SPI_CPOL                 0x01
 #define BK_SPI_CPHA                 0x02
@@ -93,34 +123,37 @@ enum
 
 struct spi_message
 {
-#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7236) && (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
     UINT8 *send_buf;
     UINT32 send_len;
 
     UINT8 *recv_buf;
     UINT32 recv_len;
-#else
-    UINT8*send_buf;
-    UINT32 send_len;
-
-    UINT8*recv_buf;
-    UINT32 recv_len;
-    UINT32 repeat_cnt;
-#endif
 };
 
 /**
  * SPI configuration structure
  */
-struct spi_configuration
-{
-    UINT8 mode;
-    UINT8 data_width;
-    UINT16 reserved;
-    UINT32 max_hz;
-};
+typedef struct spi_configuration {
+    union {
+        struct {
+                uint32_t cpha:	1; /**< bit[0] cpha */
+                uint32_t cpol:	1; /**< bit[1] cpol */
+                uint32_t lsb:	1; /**< bit[2] 0:msb send first; 1:lsb send first */
+                uint32_t slave:	1; /**< bit[3] 0:master; 1:slave */
+                uint32_t dma:	1; /**< bit[4] 0:not use dma; 1: use dma */
+                uint32_t wdth:	1; /**< bit[5] data unit, 0: 8 bits; 1: 16 bits */
+                uint32_t line:	1; /**< bit[6] line_mode, 0: 4 lines; 1: 3 lines */
+                uint32_t group:	1; /**< bit[7] io group, 0: p16-p20, 1: p30-p33 */
+                uint32_t interval:	6;  /**< bit[8:13] the interval between each data unit, count by spi sck clock */
+                uint32_t reserved:	17; /**< bit[14:30] reserved */
+                uint32_t status:1; /**< bit[31] status, 0: un inited, 1: inited */
+            };
+        UINT32 value;
+    } u;
+} SPI_CFG_ST, *SPI_CFG_PTR;
 
 typedef void (*spi_callback)(int port, void *param);
+typedef void (*spi_master_dma_fin_cb)(UINT32 event, struct spi_message *msg);
 struct spi_callback_des
 {
     spi_callback callback;
@@ -153,21 +186,28 @@ int bk_spi_slave_xfer(struct spi_message *msg);
 int bk_spi_slave_deinit(void);
 
 /*master api*/
-int bk_spi_master_init(UINT32 rate,UINT32 mode);
+int bk_spi_master_init(UINT32 rate, UINT32 mode);
 int bk_spi_master_xfer(struct spi_message *msg);
 int bk_spi_master_deinit(void);
 
-#if CFG_USE_SPI_DMA
-int bk_spi_slave_dma_init(UINT32 mode, UINT32 rate, struct spi_message *spi_msg);
-int bk_spi_slave_dma_transfer(struct spi_message*spi_msg );
-int bk_spi_dma_init(UINT32 mode, UINT32 rate, struct spi_message *spi_msg);
-int bk_spi_dma_transfer(UINT32 mode, struct spi_message *spi_msg);
-int bk_spi_slave_dma_send(struct spi_message *spi_msg);
-int bk_spi_slave_dma_tx_init(UINT32 mode, UINT32 rate, struct spi_message *spi_msg);
+#if CFG_USE_SPI_DMA_MASTER
+#define BK_SPI_M_DMA_DEF_WAIT_TIME     (5000)
+int bk_spi_master_dma_xfer(struct spi_message *msg, UINT32 wait_time_ms);
+int bk_spi_master_dma_init(UINT32 rate, UINT32 mode);
+int bk_spi_master_dma_deinit(UINT32 force_deinit);
+int bk_spi_master_dma_abort_xfer(void);
+int bk_spi_master_dma_check_busy(void);
+int bk_spi_master_dma_set_finish_callback(spi_master_dma_fin_cb cb);
+int bk_spi_master_dma_enable_finish_callback(UINT32 enable);
+int bk_spi_master_dma_get_xfering_data_count(void);
+int bk_spi_master_dma_pause_xfer(void);
+int bk_spi_master_dma_continue_xfer(void);
+#endif
 
-int bk_spi_master_dma_tx_loop_init(UINT32 mode, UINT32 rate, struct spi_message *spi_msg);
-int bk_spi_master_dma_send_loop(struct spi_message *spi_msg);
-int bk_spi_master_dma_tx_loop_deinit(void);
+#if CFG_USE_SPI_DMA_SLAVE
+int bk_spi_slave_dma_xfer(struct spi_message *msg);
+int bk_spi_slave_dma_init(UINT32 rate, UINT32 mode);
+int bk_spi_slave_dma_deinit(void);
 #endif
 
 #endif //_SPI_PUB_H_

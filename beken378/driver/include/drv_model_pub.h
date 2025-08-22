@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _DRV_MODEL_PUB_H_
 #define _DRV_MODEL_PUB_H_
 
@@ -42,8 +56,8 @@ extern UINT32 drv_model_init(void);
 extern UINT32 drv_model_uninit(void);
 extern DD_HANDLE ddev_open(char *dev_name, UINT32 *status, UINT32 op_flag);
 extern UINT32 ddev_close(DD_HANDLE handle);
-extern UINT32 ddev_read(DD_HANDLE handle, char *user_buf , UINT32 count, UINT32 op_flag);
-extern UINT32 ddev_write(DD_HANDLE handle, char *user_buf , UINT32 count, UINT32 op_flag);
+extern UINT32 ddev_read(DD_HANDLE handle, char *user_buf, UINT32 count, UINT32 op_flag);
+extern UINT32 ddev_write(DD_HANDLE handle, char *user_buf, UINT32 count, UINT32 op_flag);
 extern UINT32 ddev_control(DD_HANDLE handle, UINT32 cmd, VOID *param);
 extern UINT32 sddev_control(char *dev_name, UINT32 cmd, VOID *param);
 extern UINT32 ddev_register_dev(char *dev_name, DD_OPERATIONS *optr);

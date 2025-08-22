@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "sys_rtos.h"
 #include "error.h"
 #include "rtos_pub.h"
@@ -17,8 +31,8 @@
 /******************************************************
  *               Function Definitions
  ******************************************************/
-OSStatus rtos_create_thread( beken_thread_t* thread, uint8_t priority, const char* name, 
-                        beken_thread_function_t function, uint32_t stack_size, beken_thread_arg_t arg )
+OSStatus rtos_create_thread( beken_thread_t* thread, uint8_t priority, const char* name,
+                             beken_thread_function_t function, uint32_t stack_size, beken_thread_arg_t arg )
 {
     if(thread == RT_NULL)
     {
@@ -62,9 +76,9 @@ OSStatus rtos_delete_thread( beken_thread_t* thread )
 
 BOOL rtos_is_current_thread(beken_thread_t *thread)
 {
-	rt_thread_t t = (rt_thread_t)*thread;
+    rt_thread_t t = (rt_thread_t)*thread;
 
-	return rt_thread_self() == t;
+    return rt_thread_self() == t;
 }
 
 void rtos_thread_sleep(uint32_t seconds)
@@ -78,6 +92,10 @@ static rt_uint32_t rtos_mutex_cnt = 0;
 OSStatus rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount )
 {
     *semaphore = rt_sem_create("rtos_sem", 0,  RT_IPC_FLAG_FIFO);
+
+    rt_sem_t sem = *semaphore;
+    sem->max_value = maxCount;
+
     RTOS_DBG("rtos_init_semaphore:%8x\n", *semaphore);
     rtos_sem_cnt++;
 
@@ -86,11 +104,11 @@ OSStatus rtos_init_semaphore( beken_semaphore_t* semaphore, int maxCount )
 
 OSStatus rtos_init_semaphore_adv(beken_semaphore_t* semaphore, int maxCount, int initCount)
 {
-	*semaphore = rt_sem_create("rtos_sem", initCount, RT_IPC_FLAG_FIFO);
-	RTOS_DBG("rtos_init_semaphore_adv:%8x\n", *semaphore);
-	rtos_sem_cnt++;
+    *semaphore = rt_sem_create("rtos_sem", initCount, RT_IPC_FLAG_FIFO);
+    RTOS_DBG("rtos_init_semaphore_adv:%8x\n", *semaphore);
+    rtos_sem_cnt++;
 
-	return (*semaphore != RT_NULL) ? kNoErr : kGeneralErr;
+    return (*semaphore != RT_NULL) ? kNoErr : kGeneralErr;
 }
 
 OSStatus rtos_init_semaphore_ex( beken_semaphore_t* semaphore, const char *name, int maxCount, int initCount )
@@ -114,9 +132,9 @@ OSStatus rtos_get_semaphore(beken_semaphore_t* semaphore, uint32_t timeout_ms )
     }
     else
     {
-#if RTOS_DEBUG
+        #if RTOS_DEBUG
         struct rt_object *object = (struct rt_object *)(*semaphore);
-#endif
+        #endif
         RTOS_DBG("%s take semaphore failed %d \n", object->name, result);
         return kTimeoutErr;
     }
@@ -126,7 +144,7 @@ int rtos_get_sema_count(beken_semaphore_t* semaphore )
 {
     RTOS_DBG("rtos_get_sema_count\n");
     rt_sem_t sem = *semaphore;
-    
+
     return sem->value;
 }
 
@@ -141,7 +159,7 @@ int rtos_set_semaphore( beken_semaphore_t* semaphore)
         return kGeneralErr;
     }
 
-    return kNoErr;    
+    return kNoErr;
 }
 
 OSStatus rtos_deinit_semaphore(beken_semaphore_t *semaphore )
@@ -151,7 +169,7 @@ OSStatus rtos_deinit_semaphore(beken_semaphore_t *semaphore )
     {
         RTOS_DBG("rtos_deinit_sucess:%8x\n");
         rt_sem_delete(*semaphore);
-        rtos_sem_cnt--;        
+        rtos_sem_cnt--;
         *semaphore = RT_NULL;
         return kNoErr;
 
@@ -162,12 +180,12 @@ OSStatus rtos_deinit_semaphore(beken_semaphore_t *semaphore )
 
 void rtos_lock_scheduling( void )
 {
-	rt_enter_critical();
+    rt_enter_critical();
 }
 
 void rtos_unlock_scheduling( void )
 {
-	rt_exit_critical();
+    rt_exit_critical();
 }
 
 OSStatus rtos_init_mutex( beken_mutex_t* mutex )
@@ -219,31 +237,31 @@ OSStatus rtos_init_queue(beken_queue_t* queue, const char* name, uint32_t messag
     beken_queue_t mq = RT_NULL;
 
     mq = rt_malloc(sizeof(struct beken_queue));
-	if(RT_NULL == mq)
-		return kGeneralErr;
-	
+    if(RT_NULL == mq)
+        return kGeneralErr;
+
     rt_memset(mq, 0, sizeof(struct beken_queue));
     *queue = mq;
 
     RTOS_DBG("rtos_init_queue!\r\n");
     mq->handle = rt_mb_create("rtos_queue", number_of_messages, RT_IPC_FLAG_FIFO);
-	if (mq->handle == RT_NULL)
-	{
-		RTOS_DBG("rt_mailbox_create: 0x%08X!\r\n", mq->handle);
-		goto _exit;
-	}
+    if (mq->handle == RT_NULL)
+    {
+        RTOS_DBG("rt_mailbox_create: 0x%08X!\r\n", mq->handle);
+        goto _exit;
+    }
     RTOS_DBG("mq->handle:%08p!\r\n", mq->handle);
     RTOS_DBG("rt_mp_create!\r\n");
-	mq->mp = rt_mp_create("rtos_queue", number_of_messages, message_size);
-	if (mq->mp == RT_NULL)
-	{
-		RTOS_DBG("rt_mempool_create: 0x%08X!\r\n", mq->mp);
-		goto _exit;
-	}
-    
+    mq->mp = rt_mp_create("rtos_queue", number_of_messages, message_size);
+    if (mq->mp == RT_NULL)
+    {
+        RTOS_DBG("rt_mempool_create: 0x%08X!\r\n", mq->mp);
+        goto _exit;
+    }
+
     RTOS_DBG("rt_mp_create done!\r\n");
-    
-	mq->message_size       = message_size;
+
+    mq->message_size       = message_size;
     mq->number_of_messages = number_of_messages;
 
     return kNoErr;
@@ -260,13 +278,13 @@ _exit:
         rt_mp_delete(mq->mp);
         mq->mp = RT_NULL;
     }
-	
-	if(mq != RT_NULL)
-	{
-		free(mq);
-		mq = RT_NULL;
-	}
-	return kGeneralErr;
+
+    if(mq != RT_NULL)
+    {
+        free(mq);
+        mq = RT_NULL;
+    }
+    return kGeneralErr;
 }
 
 OSStatus rtos_push_to_queue(beken_queue_t* queue, void* message, uint32_t timeout_ms)
@@ -275,28 +293,28 @@ OSStatus rtos_push_to_queue(beken_queue_t* queue, void* message, uint32_t timeou
     void *msg_tmp = RT_NULL;
     beken_queue_t mq = *queue;
 
-	msg_tmp = rt_mp_alloc(mq->mp, rt_tick_from_millisecond(timeout_ms));
-	if(msg_tmp)
-	{
-		memcpy(msg_tmp, message, mq->message_size);
-		ret = rt_mb_send_wait(mq->handle, (rt_uint32_t)msg_tmp, rt_tick_from_millisecond(timeout_ms));
-		if(ret != RT_EOK)
-		{
-			if(msg_tmp)
-			{
-				rt_mp_free(msg_tmp);
-			}
-			RTOS_DBG("%s rt_mb_send_wait ret:%d!\r\n", __FUNCTION__, ret);
-			return kGeneralErr;
-		}
-	}
-	else
-	{
-		RTOS_DBG("%s rt_mp_alloc failed! queue->message_size: %d\r\n", __FUNCTION__, mq->message_size);
-		return kGeneralErr;
-	}
+    msg_tmp = rt_mp_alloc(mq->mp, rt_tick_from_millisecond(timeout_ms));
+    if(msg_tmp)
+    {
+        memcpy(msg_tmp, message, mq->message_size);
+        ret = rt_mb_send_wait(mq->handle, (rt_uint32_t)msg_tmp, rt_tick_from_millisecond(timeout_ms));
+        if(ret != RT_EOK)
+        {
+            if(msg_tmp)
+            {
+                rt_mp_free(msg_tmp);
+            }
+            RTOS_DBG("%s rt_mb_send_wait ret:%d!\r\n", __FUNCTION__, ret);
+            return kGeneralErr;
+        }
+    }
+    else
+    {
+        RTOS_DBG("%s rt_mp_alloc failed! queue->message_size: %d\r\n", __FUNCTION__, mq->message_size);
+        return kGeneralErr;
+    }
 
-	return kNoErr;
+    return kNoErr;
 }
 
 OSStatus rtos_push_to_queue_front(beken_queue_t* queue, void* message, uint32_t timeout_ms)
@@ -311,26 +329,26 @@ OSStatus rtos_pop_from_queue(beken_queue_t* queue, void* message, uint32_t timeo
     beken_queue_t mq = *queue;
     rt_err_t result;
 
-	result = rt_mb_recv(mq->handle, (rt_uint32_t *)&msg_tmp, rt_tick_from_millisecond(timeout_ms));
-	if(result != RT_EOK)
-	{
-		RTOS_DBG("%s rt_mb_recv ret:%d, ms:=%d!\r\n", __FUNCTION__, result, rt_tick_from_millisecond(timeout_ms));
+    result = rt_mb_recv(mq->handle, (rt_uint32_t *)&msg_tmp, rt_tick_from_millisecond(timeout_ms));
+    if(result != RT_EOK)
+    {
+        RTOS_DBG("%s rt_mb_recv ret:%d, ms:=%d!\r\n", __FUNCTION__, result, rt_tick_from_millisecond(timeout_ms));
         // RTOS_DBG("mq->handle:%08p!\r\n", mq->handle);
-		return kGeneralErr;
-	}
+        return kGeneralErr;
+    }
 
-	if(msg_tmp)
-	{
-		memcpy(message, msg_tmp, mq->message_size);
-		rt_mp_free(msg_tmp);
-	}
-	else
-	{
-		RTOS_DBG("%s rt_mb_recv item:0x%08X!\r\n", __FUNCTION__, msg_tmp);
-		return kGeneralErr;
-	}
+    if(msg_tmp)
+    {
+        memcpy(message, msg_tmp, mq->message_size);
+        rt_mp_free(msg_tmp);
+    }
+    else
+    {
+        RTOS_DBG("%s rt_mb_recv item:0x%08X!\r\n", __FUNCTION__, msg_tmp);
+        return kGeneralErr;
+    }
 
-	return kNoErr;
+    return kNoErr;
 }
 
 OSStatus rtos_deinit_queue(beken_queue_t* queue)
@@ -354,7 +372,7 @@ OSStatus rtos_deinit_queue(beken_queue_t* queue)
     mq->number_of_messages = 0;
 
     rt_free(mq);
-	mq = RT_NULL;
+    mq = RT_NULL;
     return kNoErr;
 }
 
@@ -366,10 +384,10 @@ BOOL rtos_is_queue_empty(beken_queue_t* queue )
     if(mq->handle->entry == 0)
     {
         rt_exit_critical();
-        
+
         return true;
     }
-    
+
     rt_exit_critical();
 
     return false;
@@ -394,8 +412,8 @@ BOOL rtos_is_queue_full(beken_queue_t* queue)
 
 OSStatus rtos_delay_milliseconds( uint32_t num_ms)
 {
-	rt_thread_delay(rt_tick_from_millisecond(num_ms));
-	return kNoErr;
+    rt_thread_delay(rt_tick_from_millisecond(num_ms));
+    return kNoErr;
 }
 
 static void timer_oneshot_callback(void* parameter)
@@ -404,10 +422,10 @@ static void timer_oneshot_callback(void* parameter)
 
     RTOS_DBG("one shot callback\n");
 
-	if(BEKEN_MAGIC_WORD != timer->beken_magic)
-	{
-		return;
-	}
+    if(BEKEN_MAGIC_WORD != timer->beken_magic)
+    {
+        return;
+    }
     if (timer->function)
     {
         timer->function(timer->left_arg, timer->right_arg );
@@ -471,19 +489,19 @@ OSStatus rtos_oneshot_reload_timer( beken2_timer_t* timer)
     return kNoErr;
 }
 
-OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer, 
-									uint32_t time_ms, 
-									timer_2handler_t function,
-									void* larg, 
-									void* rarg )
+OSStatus rtos_init_oneshot_timer( beken2_timer_t *timer,
+                                  uint32_t time_ms,
+                                  timer_2handler_t function,
+                                  void* larg,
+                                  void* rarg )
 {
-	OSStatus ret = kNoErr;
+    OSStatus ret = kNoErr;
 
     RTOS_DBG("create oneshot_timer \n");
     timer->function = function;
     timer->left_arg = larg;
-    timer->right_arg = rarg;	
-	timer->beken_magic = BEKEN_MAGIC_WORD;
+    timer->right_arg = rarg;
+    timer->beken_magic = BEKEN_MAGIC_WORD;
 
     timer->handle = rt_timer_create("rtos_oneshot_time",
                                     timer_oneshot_callback,
@@ -536,7 +554,7 @@ static void wait_os_timer_callback_processing_completed(rt_timer_t os_timer)
         }
 
         uint32_t delay_cnt = 0;
-        
+
         while (os_timer_callback_is_processing(os_timer)) {
             rtos_delay_milliseconds(10);
             delay_cnt ++;
@@ -549,7 +567,7 @@ static void wait_os_timer_callback_processing_completed(rt_timer_t os_timer)
                 break;
             }
         }
-    }while(0);
+    } while(0);
 }
 
 static OSStatus deinit_oneshot_timer( beken2_timer_t* timer, BOOL blocked)
@@ -607,12 +625,12 @@ static OSStatus deinit_oneshot_timer( beken2_timer_t* timer, BOOL blocked)
 
 OSStatus rtos_deinit_oneshot_timer_block( beken2_timer_t* timer )
 {
-	return deinit_oneshot_timer(timer, true);
+    return deinit_oneshot_timer(timer, true);
 }
 
 OSStatus rtos_deinit_oneshot_timer( beken2_timer_t* timer )
 {
-	return deinit_oneshot_timer(timer, false);
+    return deinit_oneshot_timer(timer, false);
 }
 
 static void timer_period_callback(void* parameter)
@@ -707,7 +725,7 @@ OSStatus rtos_change_period_1( beken2_timer_t* timer, uint32_t time_ms)
 
 OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_t function, void* arg)
 {
-	OSStatus ret = kNoErr;
+    OSStatus ret = kNoErr;
 
     RTOS_DBG("create period_timer \n");
     timer->function = function;
@@ -726,13 +744,13 @@ OSStatus rtos_init_timer( beken_timer_t* timer, uint32_t time_ms, timer_handler_
     {
         ((rt_timer_t)(timer->handle))->user_timer = timer;
     }
-    
+
     return ret;
 }
 
 OSStatus rtos_init_timer_ex( beken_timer_t* timer, const char* name, uint32_t time_ms, timer_handler_t function, void* arg)
 {
-	OSStatus ret = kNoErr;
+    OSStatus ret = kNoErr;
 
     RTOS_DBG("create period_timer_ex \n");
     timer->function = function;
@@ -751,7 +769,7 @@ OSStatus rtos_init_timer_ex( beken_timer_t* timer, const char* name, uint32_t ti
     {
         ((rt_timer_t)(timer->handle))->user_timer = timer;
     }
-    
+
     return ret;
 }
 
@@ -827,14 +845,25 @@ uint32_t rtos_get_time(void)
     return rt_tick_get();
 }
 
+extern uint64_t rtc_reg_get_time_us(void);
+extern uint64_t cal_get_time_us(void);
+uint64_t rtos_get_time_us(void)
+{
+    #if !(CFG_SOC_NAME == SOC_BK7252N)
+    return (uint64_t)cal_get_time_us();
+    #else
+    return (uint64_t)rtc_reg_get_time_us();
+    #endif
+}
+
 uint32_t rtos_get_free_mem() {
-#ifdef RT_USING_HEAP
+    #ifdef RT_USING_HEAP
     uint32_t total;
     uint32_t used;
     rt_memory_info(&total, &used, NULL);
 
     return total - used;
-#else
+    #else
     return 0;
-#endif
+    #endif
 }

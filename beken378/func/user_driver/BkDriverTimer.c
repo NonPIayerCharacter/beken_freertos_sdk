@@ -1,30 +1,16 @@
-/**
- ******************************************************************************
- * @file    BkDriverTimer.h
- * @brief   This file provides all the headers of timer operation functions.
- ******************************************************************************
- *
- *  The MIT License
- *  Copyright (c) 2017 BEKEN Inc.
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is furnished
- *  to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
- *  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- ******************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "include.h"
 #include "rtos_pub.h"
@@ -46,7 +32,7 @@ OSStatus bk_timer_initialize(uint8_t timer_id, uint32_t time_ms, void *callback)
 {
     UINT32 ret;
     timer_param_t param;
-    
+
     param.channel = timer_id;
     param.div = 1;              //timer0 timer1 timer2 26M // timer4 timer5 32K (n+1) division
     param.period = time_ms;
@@ -68,7 +54,7 @@ OSStatus bk_timer_initialize_us(uint8_t timer_id, uint32_t time_us, void *callba
 {
     UINT32 ret;
     timer_param_t param;
-    
+
     param.channel = timer_id;
     param.div = 1;              //timer0 timer1 timer2 26M // timer4 timer5 32K (n+1) division
     param.period = time_us;
@@ -91,8 +77,8 @@ UINT32 bk_get_timer_cnt(uint8_t timer_id)
 
     param.channel = timer_id;
 
-    if(sddev_control(TIMER_DEV_NAME, CMD_TIMER_READ_CNT, &param) != BK_TIMER_SUCCESS){
-		return 0xFFFFFFFFU;
+    if(sddev_control(TIMER_DEV_NAME, CMD_TIMER_READ_CNT, &param) != BK_TIMER_SUCCESS) {
+        return 0xFFFFFFFFU;
     }
 
     return param.period;
@@ -111,7 +97,7 @@ OSStatus bk_timer_stop(uint8_t timer_id)
 {
     UINT32 ret;
     UINT32 timer_channel;
-    
+
     timer_channel = timer_id;
     ret = sddev_control(TIMER_DEV_NAME, CMD_TIMER_UNIT_DISABLE, &timer_channel);
     ASSERT(BK_TIMER_SUCCESS == ret);
@@ -121,18 +107,18 @@ OSStatus bk_timer_stop(uint8_t timer_id)
 #if BKDRIVERTIMRE_TEST_DEMO
 static void bk_timer_test_isr_cb(UINT8 arg)
 {
-	bk_printf("%s %d rtos-time: %d mS\r\n",__FUNCTION__,__LINE__,rtos_get_time());
+    bk_printf("%s %d rtos-time: %d mS\r\n",__FUNCTION__,__LINE__,rtos_get_time());
 }
 
 void bk_timer_test_start(void)
 {
-	bk_timer_initialize(BKTIMER5,1000,bk_timer_test_isr_cb);
+    bk_timer_initialize(BKTIMER5,1000,bk_timer_test_isr_cb);
 }
 
 void user_main(void)
 {
-	bk_printf("%s %s\r\n",__FILE__,__FUNCTION__);
-	bk_timer_test_start();
+    bk_printf("%s %s\r\n",__FILE__,__FUNCTION__);
+    bk_timer_test_start();
 }
 
 #endif

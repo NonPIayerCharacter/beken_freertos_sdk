@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "typedef.h"
@@ -186,8 +200,8 @@ static void i2s_set_freq_datawidth(i2s_rate_t *p_rate)
     UINT32 value = 0, sys_clk= 0;
 
     if( (p_rate->freq != 8000) && (p_rate->freq != 16000) &&
-        (p_rate->freq != 24000) && (p_rate->freq != 32000) &&(p_rate->freq != 48000)&&
-        (p_rate->freq != 11025) && (p_rate->freq != 22050) &&(p_rate->freq != 44100) )
+            (p_rate->freq != 24000) && (p_rate->freq != 32000) &&(p_rate->freq != 48000)&&
+            (p_rate->freq != 11025) && (p_rate->freq != 22050) &&(p_rate->freq != 44100) )
     {
         return;
     }
@@ -256,20 +270,20 @@ static void i2s_set_freq_datawidth(i2s_rate_t *p_rate)
     smpratio = datalen;
     value = REG_READ(PCM_CTRL);
     value = value & ~(DATALEN_MASK << DATALEN_POSI)
-                  & ~(SMPRATIO_MASK << SMPRATIO_POSI)
-                  & ~(BITRATIO_MASK << BITRATIO_POSI);
+            & ~(SMPRATIO_MASK << SMPRATIO_POSI)
+            & ~(BITRATIO_MASK << BITRATIO_POSI);
     value = value | ((datalen & DATALEN_MASK) << DATALEN_POSI)
-                  | ((smpratio & SMPRATIO_MASK) << SMPRATIO_POSI)
-                  | ((bitratio & BITRATIO_MASK) << BITRATIO_POSI);
+            | ((smpratio & SMPRATIO_MASK) << SMPRATIO_POSI)
+            | ((bitratio & BITRATIO_MASK) << BITRATIO_POSI);
     REG_WRITE(PCM_CTRL, value);
 
     bitratio = (bitratio >> 8);
     smpratio = (smpratio >> 5);
     value = REG_READ(PCM_CN);
     value = value & ~(SMPRATIO_H2B_MASK << SMPRATIO_H2B_POSI)
-                  & ~(SMPRATIO_H4B_MASK << SMPRATIO_H4B_POSI);
+            & ~(SMPRATIO_H4B_MASK << SMPRATIO_H4B_POSI);
     value = value | ((smpratio & SMPRATIO_H2B_MASK) << SMPRATIO_H2B_POSI)
-                  | ((bitratio & SMPRATIO_H4B_MASK) << SMPRATIO_H4B_POSI);
+            | ((bitratio & SMPRATIO_H4B_MASK) << SMPRATIO_H4B_POSI);
     REG_WRITE(PCM_CN, value);
 }
 
@@ -568,7 +582,7 @@ static void i2s_master_enable(UINT32 enable)
 
 static void i2s_dma_master_enable(UINT32 enable)
 {
-    UINT32 value , ultemp;
+    UINT32 value, ultemp;
 
     ultemp = 1;
 
@@ -667,11 +681,11 @@ __maybe_unused static UINT32 i2s_write_txfifo(UINT32 data)
 
 void i2s_init(int register_isr)
 {
-	if (register_isr) {
+    if (register_isr) {
         intc_service_register(IRQ_I2S_PCM, PRI_IRQ_I2S_PCM, i2s_isr);
-	}
+    }
     sddev_register_dev(I2S_DEV_NAME, &i2s_op);
-	REG_WRITE(I2S_CLK_RST, I2S_CLK_RST_SOFT_RESET_POS);
+    REG_WRITE(I2S_CLK_RST, I2S_CLK_RST_SOFT_RESET_POS);
 }
 
 void i2s_exit(void)
@@ -779,7 +793,7 @@ static UINT32 i2s_ctrl(UINT32 cmd, void *param)
         break;
     }
 
-   // peri_busy_count_dec();
+    // peri_busy_count_dec();
 
     return ret;
 }
@@ -791,36 +805,36 @@ UINT32 i2s_configure(UINT32 fifo_level, UINT32 sample_rate, UINT32 bits_per_samp
     i2s_rate_t rate;
     rate.datawidth = bits_per_sample;
     rate.freq = sample_rate;
-/*
-    mode:
-    bit29~27:   mode & (0x07 << 27)
-                000:I2S
-                001:Left Justified
-                010:Right Justified
-                011:reserve
-                100:Short Frame Sync
-                101:Long Frame Sync
-                110:Normal 2B+D
-                111:Delay 2B+D
+    /*
+        mode:
+        bit29~27:   mode & (0x07 << 27)
+                    000:I2S
+                    001:Left Justified
+                    010:Right Justified
+                    011:reserve
+                    100:Short Frame Sync
+                    101:Long Frame Sync
+                    110:Normal 2B+D
+                    111:Delay 2B+D
 
-    bit26:      mode & (0x01 << 26)
-                0:LRCK no turn
-                1:LRCK turn
+        bit26:      mode & (0x01 << 26)
+                    0:LRCK no turn
+                    1:LRCK turn
 
-    bit25:      mode & (0x01 << 25)
-                0:SCK no turn
-                1:SCK turn
+        bit25:      mode & (0x01 << 25)
+                    0:SCK no turn
+                    1:SCK turn
 
-    bit24:      mode & (0x01 << 24)
-                0:MSB first send/receive
-                1:LSB first send/receive
+        bit24:      mode & (0x01 << 24)
+                    0:MSB first send/receive
+                    1:LSB first send/receive
 
-    bit23~21:   mode & (0x07 << 21)
-                0~7:Sync length only Long Frame Sync effective(vav=1~7 -> bit_clk_cycle=2~8)
+        bit23~21:   mode & (0x07 << 21)
+                    0~7:Sync length only Long Frame Sync effective(vav=1~7 -> bit_clk_cycle=2~8)
 
-    bit15~13:   mode & (0x07 << 13)
-                0~7:2B+D's D length in PCM_mode
-*/
+        bit15~13:   mode & (0x07 << 13)
+                    0~7:2B+D's D length in PCM_mode
+    */
     /* set work mode */
     param = (mode & (0x07 << 27));
     param = param >> 27;
@@ -899,7 +913,7 @@ UINT32 i2s_close(void)
 }
 
 // Todo: this i2s_transfer() API looks like can not transfer data
-UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count, UINT32 param )
+UINT32 i2s_transfer(UINT32 *i2s_send_buf, UINT32 *i2s_recv_buf, UINT32 count, UINT32 param )
 {
     GLOBAL_INT_DECLARATION();
 
@@ -925,7 +939,7 @@ UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count, U
     i2s_ctrl(I2S_CMD_SET_RXFIFO_CLR, NULL);
     i2s_ctrl(I2S_CMD_SET_TXFIFO_CLR, NULL);
 
-#ifdef MASTER_MODE_AND_RECEIVE_DATA
+    #ifdef MASTER_MODE_AND_RECEIVE_DATA
     /* master enable */
     i2s_ctrl(I2S_CMD_MASTER_ENABLE,(void*)&param);
 
@@ -939,9 +953,9 @@ UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count, U
             i2s_trans.trans_done = 1;
         }
     }
-#endif
+    #endif
 
-#ifdef SLAVE_MODE_AND_RECEIVE_DATA
+    #ifdef SLAVE_MODE_AND_RECEIVE_DATA
     /* slave enable */
     i2s_ctrl(I2S_CMD_SLAVE_ENABLE,(void*)&param);
 
@@ -955,7 +969,7 @@ UINT32 i2s_transfer(UINT32 *i2s_send_buf , UINT32 *i2s_recv_buf, UINT32 count, U
             i2s_trans.trans_done = 1;
         }
     }
-#endif
+    #endif
 
     delay_ms(1000);
     i2s_trans.trans_done = 0;
@@ -979,10 +993,18 @@ void i2s_isr(void)
     {
         switch(i2s_fifo_level.tx_level)
         {
-            case FIFO_LEVEL_1  : data_num = 1; break;
-            case FIFO_LEVEL_8  : data_num = 8; break;
-            case FIFO_LEVEL_16  : data_num = 16; break;
-            default : data_num = 24; break;
+        case FIFO_LEVEL_1  :
+            data_num = 1;
+            break;
+        case FIFO_LEVEL_8  :
+            data_num = 8;
+            break;
+        case FIFO_LEVEL_16  :
+            data_num = 16;
+            break;
+        default :
+            data_num = 24;
+            break;
         }
 
         if(i2s_trans.p_tx_buf == NULL)
@@ -1007,10 +1029,18 @@ void i2s_isr(void)
     {
         switch(i2s_fifo_level.rx_level)
         {
-            case FIFO_LEVEL_1  : data_num = 1; break;
-            case FIFO_LEVEL_8  : data_num = 8; break;
-            case FIFO_LEVEL_16  : data_num = 16; break;
-            default : data_num = 24; break;
+        case FIFO_LEVEL_1  :
+            data_num = 1;
+            break;
+        case FIFO_LEVEL_8  :
+            data_num = 8;
+            break;
+        case FIFO_LEVEL_16  :
+            data_num = 16;
+            break;
+        default :
+            data_num = 24;
+            break;
         }
 
         if(data_num > i2s_trans.rx_remain_data_cnt)

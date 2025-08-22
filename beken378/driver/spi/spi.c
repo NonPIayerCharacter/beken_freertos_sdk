@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -11,6 +25,7 @@
 #include "gpio_pub.h"
 #include "uart_pub.h"
 
+#if ((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7221U))
 #if CFG_USE_SPI
 
 #define SPI_PERI_CLK_26M		(26 * 1000 * 1000)
@@ -137,37 +152,37 @@ static void spi_set_clock(UINT32 max_hz)
 
         if(max_hz > 30000000) // 180M/2 / (2 + 1) = 30M
         {
-            spi_clk = 30000000; 
+            spi_clk = 30000000;
             BK_SPI_PRT("input clk > 30MHz, set input clk = 30MHz\n");
         } else {
             spi_clk = max_hz;
         }
-        
+
         source_clk = SPI_PERI_CLK_DCO;
         param = PCLK_POSI_SPI;
-    	sddev_control(ICU_DEV_NAME, CMD_CONF_PCLK_DCO, &param);
+        sddev_control(ICU_DEV_NAME, CMD_CONF_PCLK_DCO, &param);
     }
-    else 
+    else
     {
         BK_SPI_PRT("config spi clk source 26MHz\n");
 
         spi_clk = max_hz;
-#if CFG_XTAL_FREQUENCE
+        #if CFG_XTAL_FREQUENCE
         source_clk = CFG_XTAL_FREQUENCE;
-#else
+        #else
         source_clk = SPI_PERI_CLK_26M;
-#endif
-            
+        #endif
+
         param = PCLK_POSI_SPI;
-	    sddev_control(ICU_DEV_NAME, CMD_CONF_PCLK_26M, &param);
+        sddev_control(ICU_DEV_NAME, CMD_CONF_PCLK_26M, &param);
     }
 
     // spi_clk = in_clk / (2 * (div + 1))
-    div = ((source_clk >> 1) / spi_clk) - 1; 
+    div = ((source_clk >> 1) / spi_clk) - 1;
 
     if (div < 2)
     {
-        div = 2; 
+        div = 2;
     }
     else if (div >= 255)
     {
@@ -178,7 +193,7 @@ static void spi_set_clock(UINT32 max_hz)
     param &= ~(SPI_CKR_MASK << SPI_CKR_POSI);
     param |= (div << SPI_CKR_POSI);
     REG_WRITE(SPI_CTRL, param);
-    
+
     BK_SPI_PRT("div = %d \n", div);
     BK_SPI_PRT("spi_clk = %d \n", spi_clk);
     BK_SPI_PRT("source_clk = %d \n", source_clk);
@@ -257,7 +272,7 @@ static void spi_rxint_mode(UINT8 val)
 
     value &= ~(RXINT_MODE_MASK << RXINT_MODE_POSI);
     value |= ((val & RXINT_MODE_MASK) << RXINT_MODE_POSI);
-    
+
     REG_WRITE(SPI_CTRL, value);
 }
 
@@ -269,7 +284,7 @@ static void spi_txint_mode(UINT8 val)
 
     value &= ~(TXINT_MODE_MASK << TXINT_MODE_POSI);
     value |= ((val & TXINT_MODE_MASK) << TXINT_MODE_POSI);
-    
+
     REG_WRITE(SPI_CTRL, value);
 }
 
@@ -286,7 +301,7 @@ static void spi_slave_set_cs_finish_interrupt(UINT32 enable)
     {
         value &= ~(SPI_S_CS_UP_INT_EN);
     }
-    
+
     // don't clean cs finish status
     value &= ~(SPI_S_CS_UP_INT_STATUS);
 
@@ -295,28 +310,28 @@ static void spi_slave_set_cs_finish_interrupt(UINT32 enable)
 
 void spi_gpio_configuration(void)
 {
-	uint32_t val;
+    uint32_t val;
 
-#if (USE_SPI_GPIO_NUM == USE_SPI_GPIO_14_17)
-		val = GFUNC_MODE_SPI;
-#elif (USE_SPI_GPIO_NUM == USE_SPI_GPIO_30_33)
-		val = GFUNC_MODE_SPI1;
-#else
-    #error "USE_SPI_GPIO_NUM must set to gpio14-17 or gpio30-33"
-#endif
+    #if (USE_SPI_GPIO_NUM == USE_SPI_GPIO_14_17)
+    val = GFUNC_MODE_SPI;
+    #elif (USE_SPI_GPIO_NUM == USE_SPI_GPIO_30_33)
+    val = GFUNC_MODE_SPI1;
+    #else
+#error "USE_SPI_GPIO_NUM must set to gpio14-17 or gpio30-33"
+    #endif
 
 
-	sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &val);
+    sddev_control(GPIO_DEV_NAME, CMD_GPIO_ENABLE_SECOND, &val);
 }
 
 static void spi_icu_configuration(UINT32 enable)
 {
     UINT32 param;
 
-    if(enable) 
+    if(enable)
     {
         param = PWD_SPI_CLK_BIT;
-	    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
+        sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
 
         param = (IRQ_SPI_BIT);
         sddev_control(ICU_DEV_NAME, CMD_ICU_INT_ENABLE, &param);
@@ -325,23 +340,23 @@ static void spi_icu_configuration(UINT32 enable)
     {
         param = (IRQ_SPI_BIT);
         sddev_control(ICU_DEV_NAME, CMD_ICU_INT_DISABLE, &param);
-        
+
         param = PWD_SPI_CLK_BIT;
-	    sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, &param);
+        sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, &param);
     }
 }
 
 static void spi_init_msten(UINT8 param)
 {
     UINT32 value = 0;
-	UINT8 msten = (param & 0x0F);
+    UINT8 msten = (param & 0x0F);
 
-	value = REG_READ(SPI_CTRL);
-	value &= ~((TXINT_MODE_MASK << TXINT_MODE_POSI) | (RXINT_MODE_MASK << RXINT_MODE_POSI));
-	value |= RXOVR_EN
-		  | TXOVR_EN
-		  | (0x3UL << RXINT_MODE_POSI)   // has 1byte 
-		  | (0x3UL << TXINT_MODE_POSI);	// 12byte left
+    value = REG_READ(SPI_CTRL);
+    value &= ~((TXINT_MODE_MASK << TXINT_MODE_POSI) | (RXINT_MODE_MASK << RXINT_MODE_POSI));
+    value |= RXOVR_EN
+             | TXOVR_EN
+             | (0x3UL << RXINT_MODE_POSI)   // has 1byte
+             | (0x3UL << TXINT_MODE_POSI);	// 12byte left
 
     REG_WRITE(SPI_CTRL, value);
     if(msten == 0)
@@ -352,7 +367,7 @@ static void spi_init_msten(UINT8 param)
     {
         spi_slave_set_cs_finish_interrupt(0);
     }
-    
+
     spi_icu_configuration(1);
     spi_gpio_configuration();
 }
@@ -362,7 +377,7 @@ static void spi_deinit_msten(void)
     UINT32 status, slv_status;
 
     spi_icu_configuration(0);
-    
+
     REG_WRITE(SPI_CTRL, 0);
 
     status = REG_READ(SPI_STAT);
@@ -388,22 +403,22 @@ static UINT8 spi_get_busy(void)
 static void spi_rxfifo_clr(void)
 {
     UINT32 value;
-    
+
     value = REG_READ(SPI_STAT);
-    
+
     while((value & RXFIFO_EMPTY) == 0)
     {
         REG_READ(SPI_DAT);
         value = REG_READ(SPI_STAT);
-    } 
+    }
 }
 
 UINT32 spi_read_rxfifo(UINT8 *data)
 {
     UINT32 value;
-    
+
     value = REG_READ(SPI_STAT);
-    
+
     if((value & RXFIFO_EMPTY) == 0)
     {
         value = REG_READ(SPI_DAT);
@@ -418,21 +433,21 @@ UINT32 spi_read_rxfifo(UINT8 *data)
 static void spi_txfifo_fill(void)
 {
     UINT32 value;
-    
+
     value = REG_READ(SPI_STAT);
-    
+
     while((value & TXFIFO_FULL) == 0)
     {
         REG_WRITE(SPI_DAT, 0xff);
-    } 
+    }
 }
 
 UINT32 spi_write_txfifo(UINT8 data)
 {
     UINT32 value;
-    
+
     value = REG_READ(SPI_STAT);
-    
+
     if((value & TXFIFO_FULL) == 0)
     {
         REG_WRITE(SPI_DAT, data);
@@ -533,23 +548,23 @@ UINT32 spi_ctrl(UINT32 cmd, void *param)
         (*((UINT8 *)param)) = spi_get_busy();
         break;
     case CMD_SPI_SET_RX_CALLBACK:
-        {
-            struct spi_callback_des *callback = (struct spi_callback_des *)param;
-            spi_rx_callback_set(callback->callback, callback->param);
-        }
-        break;
+    {
+        struct spi_callback_des *callback = (struct spi_callback_des *)param;
+        spi_rx_callback_set(callback->callback, callback->param);
+    }
+    break;
     case CMD_SPI_SET_TX_NEED_WRITE_CALLBACK:
-        {
-            struct spi_callback_des *callback = (struct spi_callback_des *)param;
-            spi_tx_fifo_needwr_callback_set(callback->callback, callback->param);
-        }
-        break;
+    {
+        struct spi_callback_des *callback = (struct spi_callback_des *)param;
+        spi_tx_fifo_needwr_callback_set(callback->callback, callback->param);
+    }
+    break;
     case CMD_SPI_SET_TX_FINISH_CALLBACK:
-        {
-            struct spi_callback_des *callback = (struct spi_callback_des *)param;
-            spi_tx_end_callback_set(callback->callback, callback->param);
-        }
-        break;
+    {
+        struct spi_callback_des *callback = (struct spi_callback_des *)param;
+        spi_tx_end_callback_set(callback->callback, callback->param);
+    }
+    break;
     case CMD_SPI_DEINIT_MSTEN:
         spi_deinit_msten();
         break;
@@ -613,12 +628,12 @@ void spi_isr(void)
     {
         os_printf("rxovr\r\n");
     }
-	
+
     if(status & MODF)
     {
         os_printf("spi mode error\r\n");
     }
-	
+
     if(status & TXFIFO_EMPTY)
     {
         if (spi_tx_end_callback.callback != 0)
@@ -634,7 +649,7 @@ void spi_isr(void)
         }
     }
 }
-// eof 
+// eof
 
 #endif // CFG_USE_SPI
-
+#endif // ((CFG_SOC_NAME == SOC_BK7231U) || (CFG_SOC_NAME == SOC_BK7221U))

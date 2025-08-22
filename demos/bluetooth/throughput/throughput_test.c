@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 
 /*
  * INCLUDE FILES
@@ -129,14 +143,15 @@ void ble_tp_cmd_cb(ble_cmd_t cmd, ble_cmd_param_t *param)
     bk_printf("cmd:%d idx:%d status:%d\r\n", cmd, param->cmd_idx, param->status);
 
     switch (cmd) {
-        case BLE_INIT_CREATE:
-        {
-            bk_ble_init_set_connect_dev_addr(param->cmd_idx, &peer_addr, 0);
-            bk_ble_init_start_conn(param->cmd_idx,10000,ble_tp_cmd_cb);
-        } break;
-        default:
-        {
-        } break;
+    case BLE_INIT_CREATE:
+    {
+        bk_ble_init_set_connect_dev_addr(param->cmd_idx, &peer_addr, 0);
+        bk_ble_init_start_conn(param->cmd_idx,10000,ble_tp_cmd_cb);
+    }
+    break;
+    default:
+    {
+    } break;
     }
 }
 
@@ -202,7 +217,7 @@ static void ble_tg_send_value(uint32_t len,uint8_t *buf)
 static void ble_throughput_send_start_handler(void * param)
 {
 
-    uint8 write_buffer[ATT_DATA_LEN]={0};
+    uint8 write_buffer[ATT_DATA_LEN]= {0};
 
     if (tp_env.state < SLAVE_CONNECTION) {
         bk_printf("ERROR: no connection!\r\n");
@@ -323,112 +338,112 @@ static void ble_throughput_set_duration_handler(void * param)
 static void ble_tp_notice_cb(ble_notice_t notice, void *param)
 {
     switch (notice) {
-        case BLE_5_CONNECT_EVENT:
-        {
-            conn_ind_t *c_ind = (conn_ind_t *)param;
-            bk_printf("c_ind:conn_idx:%d, addr_type:%d, peer_addr:%02x:%02x:%02x:%02x:%02x:%02x\r\n",
-                c_ind->conn_idx, c_ind->peer_addr_type, c_ind->peer_addr[0], c_ind->peer_addr[1],
-                c_ind->peer_addr[2], c_ind->peer_addr[3], c_ind->peer_addr[4], c_ind->peer_addr[5]);
-            ble_throughput_post_msg(TP_SLAVE_CONFIG, NULL, 0);
-            break;
+    case BLE_5_CONNECT_EVENT:
+    {
+        conn_ind_t *c_ind = (conn_ind_t *)param;
+        bk_printf("c_ind:conn_idx:%d, addr_type:%d, peer_addr:%02x:%02x:%02x:%02x:%02x:%02x\r\n",
+                  c_ind->conn_idx, c_ind->peer_addr_type, c_ind->peer_addr[0], c_ind->peer_addr[1],
+                  c_ind->peer_addr[2], c_ind->peer_addr[3], c_ind->peer_addr[4], c_ind->peer_addr[5]);
+        ble_throughput_post_msg(TP_SLAVE_CONFIG, NULL, 0);
+        break;
+    }
+    case BLE_5_INIT_CONNECT_EVENT:
+    {
+        conn_ind_t *c_ind = (conn_ind_t *)param;
+        bk_printf("BLE_5_INIT_CONNECT_EVENT:conn_idx:%d, addr_type:%d, peer_addr:%02x:%02x:%02x:%02x:%02x:%02x\r\n",
+                  c_ind->conn_idx, c_ind->peer_addr_type, c_ind->peer_addr[0], c_ind->peer_addr[1],
+                  c_ind->peer_addr[2], c_ind->peer_addr[3], c_ind->peer_addr[4], c_ind->peer_addr[5]);
+        ble_throughput_post_msg(TP_MASTER_CONFIG, &c_ind->conn_idx, 1);
+        break;
+    }
+    case BLE_5_DISCONNECT_EVENT:
+    case BLE_5_INIT_DISCONNECT_EVENT:
+    {
+        tp_env.sending = SEND_READY;
+        ble_throughput_post_msg(TP_DISCONNECTED, NULL, 0);
+        break;
+    }
+    case BLE_5_CREATE_DB:
+    {
+        create_db_t *cd_ind = (create_db_t *)param;
+        bk_printf("cd_ind:prf_id:%d, status:%d\r\n", cd_ind->prf_id, cd_ind->status);
+        break;
+    }
+    case BLE_5_MTU_CHANGE:
+    {
+        mtu_change_t *m_ind = (mtu_change_t *)param;
+        bk_printf("BLE_5_MTU_CHANGE:conn_idx:%d, mtu_size:%d\r\n", m_ind->conn_idx, m_ind->mtu_size);
+        break;
+    }
+    case BLE_5_PHY_IND_EVENT:
+    {
+        conn_phy_ind_t *p_ind = (conn_phy_ind_t *)param;
+        bk_printf(" tx_phy=0x%x, rx_phy=0x%x\r\n", p_ind->tx_phy, p_ind->rx_phy);
+        if ((p_ind->tx_phy != (1 << 1)) || (p_ind->rx_phy != (1 << 1))) {
+            bk_printf("ERROR: 2M PHY set fail!\r\n");
         }
-        case BLE_5_INIT_CONNECT_EVENT:
-        {
-            conn_ind_t *c_ind = (conn_ind_t *)param;
-            bk_printf("BLE_5_INIT_CONNECT_EVENT:conn_idx:%d, addr_type:%d, peer_addr:%02x:%02x:%02x:%02x:%02x:%02x\r\n",
-                c_ind->conn_idx, c_ind->peer_addr_type, c_ind->peer_addr[0], c_ind->peer_addr[1],
-                c_ind->peer_addr[2], c_ind->peer_addr[3], c_ind->peer_addr[4], c_ind->peer_addr[5]);
-            ble_throughput_post_msg(TP_MASTER_CONFIG, &c_ind->conn_idx, 1);
-            break;
-        }
-        case BLE_5_DISCONNECT_EVENT:
-        case BLE_5_INIT_DISCONNECT_EVENT:
-        {
-            tp_env.sending = SEND_READY;
-            ble_throughput_post_msg(TP_DISCONNECTED, NULL, 0);
-            break;
-        }
-        case BLE_5_CREATE_DB:
-        {
-            create_db_t *cd_ind = (create_db_t *)param;
-            bk_printf("cd_ind:prf_id:%d, status:%d\r\n", cd_ind->prf_id, cd_ind->status);
-            break;
-        }
-        case BLE_5_MTU_CHANGE:
-        {
-            mtu_change_t *m_ind = (mtu_change_t *)param;
-            bk_printf("BLE_5_MTU_CHANGE:conn_idx:%d, mtu_size:%d\r\n", m_ind->conn_idx, m_ind->mtu_size);
-            break;
-        }
-        case BLE_5_PHY_IND_EVENT:
-        {
-            conn_phy_ind_t *p_ind = (conn_phy_ind_t *)param;
-            bk_printf(" tx_phy=0x%x, rx_phy=0x%x\r\n", p_ind->tx_phy, p_ind->rx_phy);
-            if ((p_ind->tx_phy != (1 << 1)) || (p_ind->rx_phy != (1 << 1))) {
-                bk_printf("ERROR: 2M PHY set fail!\r\n");
+        break;
+    }
+    case BLE_5_WRITE_EVENT:
+    {
+        write_req_t *w_cmd = (write_req_t *)param;
+        if (w_cmd->len == STOP_CMD_LEN) {
+            if ((tp_env.receiving != RECEIVE_READY) && !os_memcmp(tx_stopped_msg, w_cmd->value, STOP_CMD_LEN)) {
+                bk_printf("Recieve TX_Stopped_MSG, Stop RX!\r\n");
+                ble_throughput_post_msg(TP_WC_RECV_STOP, NULL, 0);
+            } else if ((tp_env.sending == SEND_ONGOING) && !os_memcmp(rx_stopped_msg, w_cmd->value, STOP_CMD_LEN)) {
+                bk_printf("Recieve RX_Stopped_MSG, Stop TX!\r\n");
+                tp_env.sending = SEND_READY;
             }
-            break;
         }
-        case BLE_5_WRITE_EVENT:
-        {
-            write_req_t *w_cmd = (write_req_t *)param;
-            if (w_cmd->len == STOP_CMD_LEN) {
-                if ((tp_env.receiving != RECEIVE_READY) && !os_memcmp(tx_stopped_msg, w_cmd->value, STOP_CMD_LEN)) {
-                    bk_printf("Recieve TX_Stopped_MSG, Stop RX!\r\n");
-                    ble_throughput_post_msg(TP_WC_RECV_STOP, NULL, 0);
-                } else if ((tp_env.sending == SEND_ONGOING) && !os_memcmp(rx_stopped_msg, w_cmd->value, STOP_CMD_LEN)) {
-                    bk_printf("Recieve RX_Stopped_MSG, Stop TX!\r\n");
-                    tp_env.sending = SEND_READY;
-                }
+        if (w_cmd->len == ATT_DATA_LEN) {
+            if (tp_env.receiving == RECEIVE_READY) {
+                ble_throughput_post_msg(TP_WC_RECV_SATRT, NULL, 0);
             }
-            if (w_cmd->len == ATT_DATA_LEN) {
-                if (tp_env.receiving == RECEIVE_READY) {
-                    ble_throughput_post_msg(TP_WC_RECV_SATRT, NULL, 0);
-                }
-                ble_throughput_post_msg(TP_WC_RECV_PKT, w_cmd->value, w_cmd->len);
-            }
-            break;
+            ble_throughput_post_msg(TP_WC_RECV_PKT, w_cmd->value, w_cmd->len);
         }
-        default:
-            break;
+        break;
+    }
+    default:
+        break;
     }
 }
 
 static void ble_tp_sdp_event_cb(sdp_notice_t notice, void *param)
 {
     switch (notice) {
-        case SDP_CHARAC_NOTIFY_EVENT:
-        {
-            sdp_event_t *g_sdp = (sdp_event_t *)param;
-            if (g_sdp->value_length == STOP_CMD_LEN) {
-                if ((tp_env.receiving != RECEIVE_READY) && !os_memcmp(tx_stopped_msg, g_sdp->value, STOP_CMD_LEN)) {
-                    bk_printf("Recieve TX_Stopped_MSG, Stop RX!\r\n");
-                    ble_throughput_post_msg(TP_NTF_RECV_STOP, NULL, 0);
-                } else if ((tp_env.sending == SEND_ONGOING) && !os_memcmp(rx_stopped_msg, g_sdp->value, STOP_CMD_LEN)) {
-                    bk_printf("Recieve RX_Stopped_MSG, Stop TX!\r\n");
-                    tp_env.sending = SEND_READY;
-                }
+    case SDP_CHARAC_NOTIFY_EVENT:
+    {
+        sdp_event_t *g_sdp = (sdp_event_t *)param;
+        if (g_sdp->value_length == STOP_CMD_LEN) {
+            if ((tp_env.receiving != RECEIVE_READY) && !os_memcmp(tx_stopped_msg, g_sdp->value, STOP_CMD_LEN)) {
+                bk_printf("Recieve TX_Stopped_MSG, Stop RX!\r\n");
+                ble_throughput_post_msg(TP_NTF_RECV_STOP, NULL, 0);
+            } else if ((tp_env.sending == SEND_ONGOING) && !os_memcmp(rx_stopped_msg, g_sdp->value, STOP_CMD_LEN)) {
+                bk_printf("Recieve RX_Stopped_MSG, Stop TX!\r\n");
+                tp_env.sending = SEND_READY;
             }
-            if (g_sdp->value_length == ATT_DATA_LEN) {
-                if (tp_env.receiving == RECEIVE_READY) {
-                    ble_throughput_post_msg(TP_NTF_RECV_SATRT, NULL, 0);
-                }
-                ble_throughput_post_msg(TP_NTF_RECV_PKT, g_sdp->value, g_sdp->value_length);
+        }
+        if (g_sdp->value_length == ATT_DATA_LEN) {
+            if (tp_env.receiving == RECEIVE_READY) {
+                ble_throughput_post_msg(TP_NTF_RECV_SATRT, NULL, 0);
             }
-            break;
+            ble_throughput_post_msg(TP_NTF_RECV_PKT, g_sdp->value, g_sdp->value_length);
         }
-        case SDP_DISCOVER_SVR_DONE:
-        {
-            bk_printf("[SDP_DISCOVER_SVR_DONE]\r\n");
-            break;
-        }
-        case SDP_CHARAC_WRITE_DONE:
-            break;
-        default:
-        {
-            bk_printf("[%s]Event:%d\r\n",__func__,notice);
-            break;
-        }
+        break;
+    }
+    case SDP_DISCOVER_SVR_DONE:
+    {
+        bk_printf("[SDP_DISCOVER_SVR_DONE]\r\n");
+        break;
+    }
+    case SDP_CHARAC_WRITE_DONE:
+        break;
+    default:
+    {
+        bk_printf("[%s]Event:%d\r\n",__func__,notice);
+        break;
+    }
     }
 }
 
@@ -491,7 +506,7 @@ static void ble_tp_start_init_handler(void *param)
     if (!interval) {
         interval = CONN_INTERVAL;
     }
-    memset(&init_par, 0 , sizeof(init_par));
+    memset(&init_par, 0, sizeof(init_par));
     init_par.conn_intv_max = interval;
     init_par.conn_intv_min = interval;
     bk_ble_gap_prefer_ext_connect_params_set(phy_mask, &init_par, NULL, NULL);
@@ -505,45 +520,45 @@ static void ble_tp_start_init_handler(void *param)
 static void throuthput_msg_handler(ble_tp_msg_t *msg)
 {
     switch (msg->msg_id) {
-        case TP_START_ADV:
-            ble_tp_start_adv_handler();
-            break;
-        case TP_START_INIT:
-            ble_tp_start_init_handler(msg->data);
-            break;
-        case TP_SLAVE_CONFIG:
-            ble_throughtput_slave_config_handler();
-            break;
-        case TP_SET_DURATION:
-            ble_throughput_set_duration_handler(msg->data);
-            break;
-        case TP_MASTER_CONFIG:
-            ble_throughtput_master_config_handler(msg->data);
-            break;
-        case TP_DISCONNECTED:
-            ble_throughtput_disconnect_handler();
-            break;
-        case TP_NTF_SEND_START:
-        case TP_WC_SEND_START:
-            ble_throughput_send_start_handler(msg->data);
-            break;
-        case TP_NTF_SEND_STOP:
-        case TP_WC_SEND_STOP:
-            break;
-        case TP_NTF_RECV_SATRT:
-        case TP_WC_RECV_SATRT:
-            ble_throughput_recv_start_handler();
-            break;
-        case TP_NTF_RECV_PKT:
-        case TP_WC_RECV_PKT:
-            ble_throughput_recv_pkt_handler(msg->data);
-            break;
-        case TP_NTF_RECV_STOP:
-        case TP_WC_RECV_STOP:
-            ble_throughput_recv_stop_handler(RECV_STOP_CODE_TX_STOP);
-            break;
-        default:
-            break;
+    case TP_START_ADV:
+        ble_tp_start_adv_handler();
+        break;
+    case TP_START_INIT:
+        ble_tp_start_init_handler(msg->data);
+        break;
+    case TP_SLAVE_CONFIG:
+        ble_throughtput_slave_config_handler();
+        break;
+    case TP_SET_DURATION:
+        ble_throughput_set_duration_handler(msg->data);
+        break;
+    case TP_MASTER_CONFIG:
+        ble_throughtput_master_config_handler(msg->data);
+        break;
+    case TP_DISCONNECTED:
+        ble_throughtput_disconnect_handler();
+        break;
+    case TP_NTF_SEND_START:
+    case TP_WC_SEND_START:
+        ble_throughput_send_start_handler(msg->data);
+        break;
+    case TP_NTF_SEND_STOP:
+    case TP_WC_SEND_STOP:
+        break;
+    case TP_NTF_RECV_SATRT:
+    case TP_WC_RECV_SATRT:
+        ble_throughput_recv_start_handler();
+        break;
+    case TP_NTF_RECV_PKT:
+    case TP_WC_RECV_PKT:
+        ble_throughput_recv_pkt_handler(msg->data);
+        break;
+    case TP_NTF_RECV_STOP:
+    case TP_WC_RECV_STOP:
+        ble_throughput_recv_stop_handler(RECV_STOP_CODE_TX_STOP);
+        break;
+    default:
+        break;
     }
 }
 
@@ -576,17 +591,17 @@ void ble_throughput_test_start(void)
 
     if (ble_throughput_msg_que == NULL) {
         ret = rtos_init_queue(&ble_throughput_msg_que,
-                                "ble_throughput_msg_que",
-                                sizeof(ble_tp_msg_t),
-                                20);
+                              "ble_throughput_msg_que",
+                              sizeof(ble_tp_msg_t),
+                              20);
         ASSERT(0 == ret);
 
         ret = rtos_create_thread(NULL,
-                7,
-                "ble_throughput",
-                ble_throughput_thread,
-                0x400,
-                0);
+                                 7,
+                                 "ble_throughput",
+                                 ble_throughput_thread,
+                                 0x400,
+                                 0);
         ASSERT(0 == ret);
     }
 }

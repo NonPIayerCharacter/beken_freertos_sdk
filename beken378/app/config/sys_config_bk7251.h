@@ -379,6 +379,7 @@
 
 #define CFG_USE_FORCE_LOWVOL_PS                    0
 // required for bk7251 supplicant lib
-#define CFG_WPA_TLS_WOLFSSL                        1
+//#define CFG_WPA_TLS_WOLFSSL                        1
+#define CFG_WRAP_LIBC                              1
 
 #endif // _SYS_CONFIG_H_

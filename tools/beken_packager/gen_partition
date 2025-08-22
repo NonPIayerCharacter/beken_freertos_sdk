@@ -1,0 +1,113 @@
+import json
+import re
+import warnings
+import codecs
+
+def parse_c_structs_to_json(c_structs):
+    json_obj = {}
+    json_packager = {}
+    if ("bk_logic_partition_t" in c_structs):
+        c = re.compile(".partition_description = (.*),")
+        patition_name = c.findall(c_structs)
+        c = re.compile(".partition_start_addr = (.*),")
+        patition_start_addr = c.findall(c_structs)
+        c = re.compile(".partition_length = (.*),")
+        patition_length = c.findall(c_structs)
+
+        i = 0
+        tab = []
+        p_tab = []
+        app_start_addr = 0
+        app_len = 0
+        ota_start_addr = 0
+        ota_len = 0
+        while (i < len(patition_name)) :
+            pjson = {}
+            pack_json = {}
+            name = patition_name[i]
+            if name == '"Bootloader"' :
+                pack_json["name"] = "bootloader"
+                pjson["name"] = "bootloader"
+                pjson["flash_name"] = "beken_onchip_crc"
+                addr = int(patition_start_addr[i], 0)
+                if(addr != 0) :
+                    raise ValueError("\033[31m Bootloader.partition_start_addr should be 0 \033[0m")
+                pjson["offset"] = "0x{:08x}".format(addr)
+                pack_json["start_addr"] = "0x{:08x}".format(addr)
+
+                length = int(patition_length[i], 0)
+                if(length > 69632) :
+                    raise ValueError("\033[31m Bootloader.partition_length should be less than 68K \033[0m")
+                pack_json["size"] = "{:}".format(length)
+                length = ((int)(length / 34)) * 32
+                pjson["len"] = "{:}".format(length)
+                tab.append(pjson)
+                p_tab.append(pack_json)
+            elif name == '"Application"' :
+                pack_json["name"] = "app"
+                pjson["name"] = "app"
+                pjson["flash_name"] = "beken_onchip_crc"
+                addr = int(patition_start_addr[i], 0)
+                if(addr != 69632) :
+                    raise ValueError("\033[31m Application.partition_start_addr should be 0x11000 \033[0m")
+                pack_json["start_addr"] = "0x{:08x}".format(addr)
+                addr = ((int)(addr / 34)) * 32
+                pjson["offset"] = "0x{:08x}".format(addr)
+                app_start_addr = addr
+
+                length = int(patition_length[i], 0)
+                pack_json["size"] = "{:}".format(length)
+                length = ((int)(length / 34)) * 32
+                pjson["len"] = "{:}".format(length)
+                app_len = length
+                tab.append(pjson)
+                p_tab.append(pack_json)
+            elif name == '"ota"' :
+                pjson["name"] = "download"
+                pjson["flash_name"] = "beken_onchip"
+                if(app_start_addr == 0) & (app_len == 0):
+                    raise ValueError("\033[31m Application.partition should be ahead of ota partition \033[0m")
+                low = ((((int)(((app_start_addr + app_len) - 4096) / 32)) * 34) & 0xfffff000)
+                high = low + 8192
+                addr = int(patition_start_addr[i], 0)
+                if(addr < high) :
+                    raise ValueError("\033[31m ota.partition_start_addr should be larger than app.addr+app.len, the best is \033[0m" "\033[32m0x{:08x}\033[0m".format(high))
+                pjson["offset"] = "0x{:08x}".format(addr)
+                ota_start_addr = addr
+
+                length = int(patition_length[i], 0)
+                compass_rate = float(length) / app_len
+                if(compass_rate < 0.6) :
+                    warnings.warn("\033[33m ota.patition_length may not enough, should large than 0.6, current compass rate is \033[0m" "\033[33m{:03}\033[0m".format(compass_rate))
+
+                pjson["len"] = "{:}".format(length)
+                ota_len = length
+                tab.append(pjson)
+            elif name == '"RF Firmware"' :
+                if(ota_start_addr == 0) & (ota_len == 0) :
+                    raise ValueError("\033[31m ota.partition should be ahead of RF Firmware partition \033[0m")
+                addr = int(patition_start_addr[i], 0)
+                if((ota_start_addr + ota_len) > addr) & (addr > ota_start_addr):
+                    warnings.warn("\033[33m RF Firmware.partition_start_addr should be be larger than ota.addr+ota.len, the best is \033[0m" "\033[33m0x{:08x}\033[0m".format(ota_start_addr + ota_len))
+            i = i + 1
+        json_obj["part_table"] = tab
+        json_packager["section"] = p_tab
+    json_list =[json_obj, json_packager]
+    return json_list
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) != 2:
+        print("Usage: python3 partition.o")
+        sys.exit(1)
+
+    file_path = sys.argv[1]
+
+    with open(file_path, 'r') as file:
+        content = file.read()
+        json_output = parse_c_structs_to_json(content)
+        #print(json.dumps(json_output, indent=4))
+        with codecs.open("partition.json", 'w', encoding='utf-8') as file:
+            json.dump(json_output[0], file, ensure_ascii=False, indent=4)
+        with codecs.open("packager.json", 'w', encoding='utf-8') as file:
+            json.dump(json_output[1], file, ensure_ascii=False, indent=4)

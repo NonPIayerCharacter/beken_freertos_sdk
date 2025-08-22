@@ -102,6 +102,7 @@ enum app_msg_id
     APP_INIT_CON_SDP_END_TIMER,
 #endif
     APP_SEC_BOND_SAVE_TIMER,
+    APP_PEER_ADDR_CMP_CMP,
 };
 
 struct app_task_event_ind

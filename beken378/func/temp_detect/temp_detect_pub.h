@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef __TEMP_DETECT_PUB_H__
 #define __TEMP_DETECT_PUB_H__
 
@@ -37,7 +51,12 @@
 #define ADC_TEMP_BUFFER_SIZE                        5
 #endif
 
+#if (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+#define ADC_TMEP_DETECT_INTVAL                      (1)   // 1s   how many second
+#define ADC_TMEP_DETECT_INTVAL_PS                   (15)  // 15s  how many second
+#else
 #define ADC_TMEP_DETECT_INTVAL                      (15)  // 15s  how many second
+#endif
 #if CFG_USE_TEMPERATURE_DETECT && CFG_USE_VOLTAGE_DETECT
 #define ADC_TMEP_DETECT_INTVAL_INIT                 (2)   // 2s
 #define ADC_TMEP_XTAL_INIT                          (60)  // 60s
@@ -83,6 +102,9 @@ UINT32 temp_get_detect_time(void);
 UINT32 temp_detect_is_opened_saradc(void) ;
 UINT32 temp_detect_is_init(void);
 #endif
+
+void temp_detect_enter_ps(void);
+void temp_detect_exit_ps(void);
 
 UINT32 temp_single_get_current_temperature(UINT32 *temp_value);
 UINT32 volt_single_get_current_voltage(UINT32 *volt_value);

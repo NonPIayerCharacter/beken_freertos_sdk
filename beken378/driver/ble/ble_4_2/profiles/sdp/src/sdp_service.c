@@ -1,15 +1,16 @@
-/**
- ****************************************************************************************
- *
- * @file sdp_service.c
- *
- * @brief Sdp Service Client implementation.
- *
- * Copyright (C) Beken 2009-2015
- *
- *
- ****************************************************************************************
- */
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /*
  * INCLUDE FILES
@@ -52,19 +53,19 @@ void sdp_service_init_env(void)
         adp_serv_env[i].use_status = INVALID_STATUS;
         adp_serv_env[i].db_env[0].cnx_env = &cnx_env[i];
     }
-	sdp_need_dis_flag = 0;
+    sdp_need_dis_flag = 0;
 }
 
 static uint8_t sdp_init (struct prf_task_env* env, uint16_t* start_hdl, uint16_t app_task, uint8_t sec_lvl,  void* params)
 {
     os_printf("%s \r\n",__func__);
     uint8_t idx;
-	int i;
+    int i;
     struct sdp_db_env *db_env = (struct sdp_db_env *)params;
-	
+
     os_printf("db_env->prf_nb = %x\r\n",db_env->prf_nb);
     os_printf("db_env->sdp.chars_nb = %x\r\n",db_env->cnx_env->sdp.chars_nb);
-	
+
     for(i =0; i < db_env->cnx_env->sdp.chars_nb; i++)
     {
         os_printf("uuid = 0x%02x,char_hdl = 0x%02x,val_hdl = 0x%02x,prop = 0x%02x\r\n",db_env->cnx_env->sdp.chars[i].uuid,db_env->cnx_env->sdp.chars[i].char_hdl,db_env->cnx_env->sdp.chars[i].val_hdl,db_env->cnx_env->sdp.chars[i].prop);
@@ -73,10 +74,10 @@ static uint8_t sdp_init (struct prf_task_env* env, uint16_t* start_hdl, uint16_t
     {
         os_printf("uuid = 0x%02x,desc_hdl = 0x%02x\r\n",db_env->cnx_env->sdp.descs[i].uuid,db_env->cnx_env->sdp.descs[i].desc_hdl);
     }
-	
+
     //-------------------- allocate memory required for the profile  ---------------------
     struct sdp_env_tag* sdp_env = &adp_serv_env[db_env->prf_nb];
-	
+
     // allocate  required environment variable
     env->env = (prf_env_t*) sdp_env;
     sdp_env->prf_env.app_task = app_task
@@ -91,7 +92,7 @@ static uint8_t sdp_init (struct prf_task_env* env, uint16_t* start_hdl, uint16_t
     for(idx = 0; idx < SDP_IDX_MAX ; idx++)
     {
         sdp_env->db_env[0].cnx_env = db_env->cnx_env; //init env
-        
+
         // service is ready, go into an Idle state
         kernel_state_set(KERNEL_BUILD_ID(env->task, idx), SDP_IDLE);
     }
@@ -104,7 +105,7 @@ static uint8_t sdp_init (struct prf_task_env* env, uint16_t* start_hdl, uint16_t
         }
     }
     os_printf("%s end!!\r\n",__func__);
-	
+
     return GAP_ERR_NO_ERROR;
 }
 
@@ -120,12 +121,12 @@ static uint8_t sdp_init (struct prf_task_env* env, uint16_t* start_hdl, uint16_t
 static void sdp_destroy(struct prf_task_env* env)
 {
     os_printf("sdp_destroy START env->id = 0x%x,role = %x\r\n",env->id,env->role);
-		
-	if(sdp_need_dis_flag == 1)
-	{
-		os_printf("no need sdp_destroy \r\n");
-		return;
-	}
+
+    if(sdp_need_dis_flag == 1)
+    {
+        os_printf("no need sdp_destroy \r\n");
+        return;
+    }
     uint8_t idx;
     struct sdp_env_tag* sdp_env = (struct sdp_env_tag*) env->env;
     os_printf("use_status = 0x%x\r\n",sdp_env->use_status);
@@ -171,11 +172,11 @@ static void sdp_cleanup(struct prf_task_env* env, uint8_t conidx, uint8_t reason
 {
 
     os_printf("sdp_cleanup env->id = 0x%x,role = %x,conidx = %x reason = 0x%x\r\n",env->id,env->role,conidx,reason);
-	if(sdp_need_dis_flag == 1)
-	{
-		os_printf("no need sdp_cleanup \r\n");
-		return;
-	}
+    if(sdp_need_dis_flag == 1)
+    {
+        os_printf("no need sdp_cleanup \r\n");
+        return;
+    }
     struct sdp_env_tag* sdp_env = (struct sdp_env_tag*) env->env;
     os_printf("use_status = 0x%x\r\n",sdp_env->use_status);
     sdp_env->use_status = INVALID_STATUS;
@@ -196,9 +197,9 @@ static void sdp_cleanup(struct prf_task_env* env, uint8_t conidx, uint8_t reason
             struct kernel_msg *msg = kernel_msg2param(sdp_env->operation);
             os_printf("operation = 0x%08x\r\n",(uint32_t)sdp_env->operation);
             os_printf("msgid = 0x%02x,dest_id = 0x%02x,src_id = 0x%02x\r\n",msg->id,msg->dest_id,msg->src_id);
-					
+
             kernel_free(sdp_env->operation);
-					
+
         }
         if(sdp_env->db_env[conidx].cnx_env->sdp.chars_nb != 0)
         {
@@ -243,8 +244,8 @@ void sdp_discover_all_service(void)
     os_printf("sdp_discover_all_service\r\n");
     sdp_service_init_env();
     struct gattc_sdp_svc_disc_cmd * svc_req = KERNEL_MSG_ALLOC_DYN(GATTC_SDP_SVC_DISC_CMD,
-					            TASK_BLE_GATTC, TASK_BLE_APP,
-					            gattc_sdp_svc_disc_cmd, ATT_UUID_16_LEN);
+            TASK_BLE_GATTC, TASK_BLE_APP,
+            gattc_sdp_svc_disc_cmd, ATT_UUID_16_LEN);
     //gatt request type: by UUID
     svc_req->operation         = GATTC_SDP_DISC_SVC_ALL;
     //start handle;
@@ -253,7 +254,7 @@ void sdp_discover_all_service(void)
     svc_req->end_hdl          = ATT_1ST_REQ_END_HDL;
     // UUID search
     svc_req->uuid_len = ATT_UUID_16_LEN;
-	
+
     //set the first two bytes to the value array, LSB to MSB:Health Thermometer Service UUID first
     common_write16p(&(svc_req->uuid[0]), 0x0000);
     //send the message to GATT, which will send back the response when it gets it
@@ -265,7 +266,7 @@ void sdp_extract_svc_info(struct gattc_sdp_svc_ind const *ind)
 {
     os_printf("*************************************************************************************************\r\n");
     uint8_t sdp_env_idx = 0;
-	int i;
+    int i;
     uint8_t add_svc_flag = false;
     os_printf("prf_env.prf_used  = %d\r\n",prf_env.prf_used);
     if(prf_env.prf_used == SDP_NB_SERVICE_INSTANCES_MAX )
@@ -459,7 +460,7 @@ void sdp_add_profiles(struct sdp_db_env *db_env)
     req->sec_lvl = 0;//PERM(SVC_AUTH, ENABLE);
     req->prf_task_id = TASK_BLE_ID_SDP + prf_nb++;
     req->app_task = TASK_BLE_APP;
-    req->start_hdl = 0; 
+    req->start_hdl = 0;
     env = (struct sdp_db_env *)req->param ;
     env->cnx_env = db_env->cnx_env;
     env->prf_nb = db_env->prf_nb;
@@ -473,8 +474,8 @@ void sdp_enable_rsp_send(struct sdp_env_tag *sdp_env, uint8_t conidx, uint8_t st
 {
     // Send APP the details of the discovered attributes on
     struct sdp_enable_rsp * rsp = KERNEL_MSG_ALLOC(SDP_ENABLE_RSP,
-                                  prf_dst_task_get(&(sdp_env->prf_env) ,conidx),
-                                  prf_src_task_get(&(sdp_env->prf_env) ,conidx),
+                                  prf_dst_task_get(&(sdp_env->prf_env),conidx),
+                                  prf_src_task_get(&(sdp_env->prf_env),conidx),
                                   sdp_enable_rsp);
     rsp->status = status;
     kernel_msg_send(rsp);

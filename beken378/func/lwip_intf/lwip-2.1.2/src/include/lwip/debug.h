@@ -79,6 +79,7 @@
 /** @name Debug message types (LWIP_DBG_TYPES_ON)
  * @{
  */
+ #define LWIP_BK_DBG_TRACE         0x80U
 /** flag for LWIP_DEBUGF indicating a tracing message (to follow program flow) */
 #define LWIP_DBG_TRACE         0x40U
 /** flag for LWIP_DEBUGF indicating a state debug message (to follow module states) */
@@ -115,6 +116,9 @@
 #ifndef LWIP_NOASSERT
 #define LWIP_ASSERT(message, assertion) do { if (!(assertion)) { \
   LWIP_PLATFORM_ASSERT(message); }} while(0)
+#ifndef LWIP_PLATFORM_ASSERT
+#error "If you want to use LWIP_ASSERT, LWIP_PLATFORM_ASSERT(message) needs to be defined in your arch/cc.h"
+#endif
 #else  /* LWIP_NOASSERT */
 #define LWIP_ASSERT(message, assertion)
 #endif /* LWIP_NOASSERT */
@@ -142,6 +146,9 @@
 #endif
 
 #ifdef LWIP_DEBUG
+#ifndef LWIP_PLATFORM_DIAG
+#error "If you want to use LWIP_DEBUG, LWIP_PLATFORM_DIAG(message) needs to be defined in your arch/cc.h"
+#endif
 #define LWIP_DEBUGF(debug, message) do { \
                                if ( \
                                    ((debug) & LWIP_DBG_ON) && \

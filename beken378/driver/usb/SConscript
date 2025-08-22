@@ -78,7 +78,7 @@ libs = [usb_lib_name]
 libpath = [cwd + '/']
 
 if (platform_match == 'yes') and (GetLocalDepend(options, 'CFG_USB') == 1):
-    print 'using usb: lib' + usb_lib_name + '.a'
+    print('using usb: lib' + usb_lib_name + '.a')
     group_use_lib = DefineGroup('beken_usb_lib', [], depend = [''], CPPPATH = path, LIBS = libs, LIBPATH = libpath)
     group_build_lib = DefineGroup('beken_usb', src, depend = ['BUILD_LIB'], CPPPATH = path, LIBS = libs, LIBPATH = libpath, LIBNAME = 'lib' + usb_lib_name + '.a')
     group = group_use_lib + group_build_lib

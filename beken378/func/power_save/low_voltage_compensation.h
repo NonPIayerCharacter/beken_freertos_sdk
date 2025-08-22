@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _LOW_VOLTAGE_COMPENSATION_H_
 #define _LOW_VOLTAGE_COMPENSATION_H_
 
@@ -41,25 +55,25 @@
 
 typedef struct _lv_item_
 {
-	uint32_t wakeup_time_up_to_bcn;
-	int32_t wakeup_time_up_to_tbtt;
-#if SMOOTHED_LEAD_VALUE_CALC
-	int32_t duration_clock_drift;
-#endif
-}BCN_ITEM_T;
+    uint32_t wakeup_time_up_to_bcn;
+    int32_t wakeup_time_up_to_tbtt;
+    #if SMOOTHED_LEAD_VALUE_CALC
+    int32_t duration_clock_drift;
+    #endif
+} BCN_ITEM_T;
 
 typedef struct _lv_bundle_
 {
-	uint32_t item_index;
-	BCN_ITEM_T lv_item[ITEM_COUNT_IN_BUNDLE];
+    uint32_t item_index;
+    BCN_ITEM_T lv_item[ITEM_COUNT_IN_BUNDLE];
 
-#if LV_PS_BUNDLE_DEBUG
-	int32_t duration_of_lead;
-	int32_t duration_of_setting;
-	int32_t duration_of_compensation;
-	int32_t drift_spur_detected;
-#endif
-}BCN_BUNDLE_T;
+    #if LV_PS_BUNDLE_DEBUG
+    int32_t duration_of_lead;
+    int32_t duration_of_setting;
+    int32_t duration_of_compensation;
+    int32_t drift_spur_detected;
+    #endif
+} BCN_BUNDLE_T;
 
 extern uint64_t g_dpll_lock_delay;
 

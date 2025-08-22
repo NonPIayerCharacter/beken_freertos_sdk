@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _GENERIC_H_
 #define _GENERIC_H_
 #include <stdbool.h>
@@ -80,6 +94,10 @@ extern void bk_printf(const char *fmt, ...);
         while(1);                                   \
     }                                               \
 }
+
+#ifdef ASSERT
+#undef ASSERT
+#endif
 #define ASSERT(exp)                                 \
 {                                                   \
     if ( !(exp) )                                   \
@@ -110,29 +128,31 @@ extern void bk_printf(const char *fmt, ...);
 #define NULLPTR                  ((void *)0)
 #endif
 
+#ifndef BIT
 #define BIT(i)                   (1UL << (i))
+#endif
 
 static inline unsigned short __bswap16_bk( unsigned short _x)
 {
 
-	return (( unsigned short)((_x >> 8) | ((_x << 8) & 0xff00)));
+    return (( unsigned short)((_x >> 8) | ((_x << 8) & 0xff00)));
 }
 
 static inline  unsigned int __bswap32_bk(unsigned int _x)
 {
 
-	return ((unsigned int)((_x >> 24) | ((_x >> 8) & 0xff00) |
-	    ((_x << 8) & 0xff0000) | ((_x << 24) & 0xff000000)));
+    return ((unsigned int)((_x >> 24) | ((_x >> 8) & 0xff00) |
+                           ((_x << 8) & 0xff0000) | ((_x << 24) & 0xff000000)));
 }
 
 static inline unsigned long long  __bswap64_bk(unsigned long long _x)
 {
 
-	return ((unsigned long long)((_x >> 56) | ((_x >> 40) & 0xff00) |
-	    ((_x >> 24) & 0xff0000) | ((_x >> 8) & 0xff000000) |
-	    ((_x << 8) & ((unsigned long long)0xff << 32)) |
-	    ((_x << 24) & ((unsigned long long)0xff << 40)) |
-	    ((_x << 40) & ((unsigned long long)0xff << 48)) | ((_x << 56))));
+    return ((unsigned long long)((_x >> 56) | ((_x >> 40) & 0xff00) |
+                                 ((_x >> 24) & 0xff0000) | ((_x >> 8) & 0xff000000) |
+                                 ((_x << 8) & ((unsigned long long)0xff << 32)) |
+                                 ((_x << 24) & ((unsigned long long)0xff << 40)) |
+                                 ((_x << 40) & ((unsigned long long)0xff << 48)) | ((_x << 56))));
 }
 
 #define __swab16(x) __bswap16_bk((unsigned char *)&(x))

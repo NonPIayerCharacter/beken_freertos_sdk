@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "fake_clock_pub.h"
 #include "pwm_pub.h"
@@ -14,6 +28,11 @@
 #include "mcu_ps_pub.h"
 #endif
 
+#if !(CFG_SOC_NAME == SOC_BK7252N)
+#include "calendar_pub.h"
+#else
+#include "rtc_reg_pub.h"
+#endif
 static volatile UINT32 current_clock = 0;
 static volatile UINT32 current_seconds = 0;
 static UINT32 second_countdown = FCLK_SECOND;
@@ -28,23 +47,23 @@ __maybe_unused static UINT32 fclk_freertos_update_tick(UINT32 tick);
 
 static void fclk_hdl(UINT8 param)
 {
-	GLOBAL_INT_DECLARATION();
-	GLOBAL_INT_DISABLE();
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
 
-	current_clock ++;
+    current_clock ++;
 
     rt_tick_increase();
-	GLOBAL_INT_RESTORE();
+    GLOBAL_INT_RESTORE();
 
-	if (--second_countdown == 0) 
-	{
-		current_seconds ++;
-		second_countdown = FCLK_SECOND;
+    if (--second_countdown == 0)
+    {
+        current_seconds ++;
+        second_countdown = FCLK_SECOND;
 
         #if defined(RT_USING_ALARM)
         rt_alarm_update(NULL, 0);
         #endif
-	}
+    }
 }
 
 static UINT32 fclk_freertos_update_tick(UINT32 tick)
@@ -83,7 +102,7 @@ UINT32 rtt_update_tick(UINT32 tick)
         rt_timer_check();
         rt_exit_critical();
     }
-	return 0;
+    return 0;
 }
 #endif
 
@@ -121,7 +140,68 @@ void fclk_reset_count(void)
     current_seconds = 0;
 }
 
-#if (CFG_SOC_NAME != SOC_BK7231)
+#if CFG_USE_TICK_CAL
+/// save last tick for runtime tick calibration
+static CAL_TICK_T cal_tick_save;
+/// indicate whether use tsf to calibrate tick
+//UINT32 use_cal_net = 0;
+
+/* Forward Declaration */
+#if (0 == CFG_LOW_VOLTAGE_PS)
+void cal_timer_set(void);
+void cal_timer_deset(void);
+#else
+void fclk_cal_init(void);
+#endif
+
+/**
+ * Init os tick calibration.
+ * when normal sleep    use 26M & mac & tsf
+ * when low voltage     use 32k
+ * @param setting indicates whether use tsf to calibrate tick
+*/
+UINT32 bk_cal_init(UINT32 setting)
+{
+    GLOBAL_INT_DECLARATION();
+    GLOBAL_INT_DISABLE();
+
+    if(1 == setting)
+    {
+        use_cal_net = 1;
+        #if (0 == CFG_LOW_VOLTAGE_PS)
+        cal_timer_deset();
+        mcu_ps_machw_init();
+        #else
+        fclk_cal_init();
+        #endif
+        #if (CFG_OS_FREERTOS)
+        os_printf("decset:%d %d %d %d\r\n",use_cal_net, fclk_freertos_get_tick32(), fclk_get_second(), xTaskGetTickCount());
+        #endif
+    }
+    else
+    {
+        use_cal_net = 0;
+        #if (0 == CFG_LOW_VOLTAGE_PS)
+        mcu_ps_machw_cal();
+        cal_timer_set();
+        mcu_ps_machw_reset();
+        #else
+        fclk_cal_init();
+        #endif
+        #if (CFG_OS_FREERTOS)
+        os_printf("cset:%d %d %d %d\r\n",use_cal_net, fclk_freertos_get_tick32(), fclk_get_second(), xTaskGetTickCount());
+        #endif
+    }
+    GLOBAL_INT_RESTORE();
+
+    return 0;
+}
+
+#if (0 == CFG_LOW_VOLTAGE_PS)
+/**
+ * use 26M timer to calibrate tick
+ * timer period setted to 15s
+*/
 UINT32 timer_cal_init(void)
 {
     UINT32 fclk;
@@ -174,10 +254,10 @@ UINT32 timer_cal_tick(void)
     }
     #endif
     //os_printf("tc:%d\r\n",lost);
-    
-#if CFG_USE_MCU_PS
+
+    #if CFG_USE_MCU_PS
     mcu_ps_machw_init();
-#endif
+    #endif
     GLOBAL_INT_RESTORE();
     return 0 ;
 }
@@ -185,9 +265,9 @@ UINT32 timer_cal_tick(void)
 
 void cal_timer_hdl(UINT8 param)
 {
-#if CFG_USE_MCU_PS
+    #if CFG_USE_MCU_PS
     timer_cal_tick();
-#endif
+    #endif
 }
 
 void cal_timer_set(void)
@@ -226,38 +306,60 @@ void cal_timer_deset(void)
     #endif
     timer_cal_init();
 }
-
-UINT32 bk_cal_init(UINT32 setting)
+#else
+/**
+ * Use 32K time_us to calibrate tick by calculate
+ * the lost tick, please notice that there are two
+ * places (fclk_hdl & lv_ps_sleep_check) we do tick cal.
+*/
+void fclk_cal_init(void)
 {
+    UINT64 fclk, time_us;
+
+    fclk = BK_TICKS_TO_MS(fclk_get_tick());
+    #if !(CFG_SOC_NAME == SOC_BK7252N)
+    time_us = cal_get_time_us();
+    #else
+    time_us = rtc_reg_get_time_us();
+    #endif
+
+    cal_tick_save.fclk_tick = fclk;
+    cal_tick_save.time_us = time_us;
+}
+
+void fclk_cal_tick(void)
+{
+    UINT64 delta_fclk, delta_time;
+    INT32 lost;
+
     GLOBAL_INT_DECLARATION();
     GLOBAL_INT_DISABLE();
-    
-    if(1 == setting)
-    {
-        cal_timer_deset();
-        use_cal_net = 1;
-#if CFG_USE_MCU_PS
-        mcu_ps_machw_init();
-#endif
-        os_printf("decset:%d %d %d %d\r\n",use_cal_net,current_clock,fclk_get_second(),rt_tick_get());
-    }
-    else
-    {
-#if CFG_USE_MCU_PS
-        mcu_ps_machw_cal();
-#endif
-        cal_timer_set();
-        use_cal_net = 0;
-#if CFG_USE_MCU_PS
-        mcu_ps_machw_reset();
-#endif
-        os_printf("cset:%d %d %d %d\r\n",use_cal_net,current_clock,fclk_get_second(),rt_tick_get());
-    }
-    GLOBAL_INT_RESTORE();
 
-	return 0;
+    delta_fclk = fclk_get_tick() - cal_tick_save.fclk_tick;
+    #if !(CFG_SOC_NAME == SOC_BK7252N)
+    delta_time = cal_get_time_us() - cal_tick_save.time_us;
+    #else
+    delta_time = rtc_reg_get_time_us() - cal_tick_save.time_us;
+    #endif
+
+    lost = (INT32)(delta_time/1000 - BK_TICKS_TO_MS(delta_fclk));
+    os_null_printf("tick lost:%d\r\n", lost);
+
+    if( lost >= (2*FCLK_DURATION_MS) )
+    {
+        lost -= FCLK_DURATION_MS;
+        fclk_update_tick(BK_MS_TO_TICKS(lost));
+    }
+    else if( lost < 0 )
+    {
+        os_null_printf("tick go fast:%d\r\n", lost);
+    }
+
+    GLOBAL_INT_RESTORE();
 }
 #endif
+#endif
+
 UINT32 fclk_cal_endvalue(UINT32 mode)
 {
     UINT32 value = 1;
@@ -270,7 +372,7 @@ UINT32 fclk_cal_endvalue(UINT32 mode)
     else if(PWM_CLK_26M == mode)
     {
         /*26m clock*/
-    	value = CFG_XTAL_FREQUENCE / RT_TICK_PER_SECOND;
+        value = CFG_XTAL_FREQUENCE / RT_TICK_PER_SECOND;
     }
 
     return value;
@@ -286,9 +388,9 @@ void fclk_timer_hw_init(BK_HW_TIMER_INDEX timer_id)
 {
     UINT32 ret;
 
-#if (CFG_SOC_NAME == SOC_BK7231)
+    #if (CFG_SOC_NAME == SOC_BK7231)
     ASSERT(timer_id>= BK_PWM_TIMER_ID0);
-#endif
+    #endif
 
     fclk_id = timer_id;
 
@@ -302,18 +404,18 @@ void fclk_timer_hw_init(BK_HW_TIMER_INDEX timer_id)
         param.cfg.bits.int_en = PWM_INT_EN;
         param.cfg.bits.mode   = PWM_TIMER_MODE;
 
-#if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)  // FPGA:PWM0-2-32kCLK, pwm3-5-24CLK
+        #if(CFG_RUNNING_PLATFORM == FPGA_PLATFORM)  // FPGA:PWM0-2-32kCLK, pwm3-5-24CLK
         param.cfg.bits.clk    = PWM_CLK_32K;
-#else
+        #else
         param.cfg.bits.clk    = PWM_CLK_26M;
-#endif
+        #endif
 
         param.p_Int_Handler   = fclk_hdl;
-#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
+        #if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N)
         param.duty_cycle1     = 0;
-#else
+        #else
         param.duty_cycle      = 0;
-#endif
+        #endif
         param.end_value       = fclk_cal_endvalue((UINT32)param.cfg.bits.clk);
 
         ret = sddev_control(PWM_DEV_NAME, CMD_PWM_INIT_PARAM, &param);

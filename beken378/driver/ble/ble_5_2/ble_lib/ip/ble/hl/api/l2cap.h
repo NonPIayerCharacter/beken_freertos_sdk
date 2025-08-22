@@ -379,7 +379,7 @@ uint16_t l2cap_chan_fix_register(uint8_t conidx, uint16_t cid, uint16_t mtu, con
 /**
  ****************************************************************************************
  * @brief Internal function used to unregister a dynamic or a fixed channel.
- *        After sending this command, it’s no more possible to receive or send SDUs onto
+ *        After sending this command, it's no more possible to receive or send SDUs onto
  *        the channel.
  *
  * @param[in]  conidx       Connection Index

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "typedef.h"
 #include "arm_arch.h"
@@ -44,16 +58,16 @@ uint8_t usb_status= 0;
 
 static DD_OPERATIONS usb_op =
 {
-	usb_open,
-	usb_close,
-#if (CFG_SOC_NAME == SOC_BK7271)
-	NULL, //usb_read, FIXME
-	NULL, //usb_write, FIXME
-#else
-	usb_read,
-	usb_write,
-#endif
-	usb_ctrl
+    usb_open,
+    usb_close,
+    #if (CFG_SOC_NAME == SOC_BK7271)
+    NULL, //usb_read, FIXME
+    NULL, //usb_write, FIXME
+    #else
+    usb_read,
+    usb_write,
+    #endif
+    usb_ctrl
 };
 
 
@@ -173,10 +187,10 @@ UINT32 usb_open (UINT32 op_flag)
 
     USB_PRT("usb_open\r\n");
 
-#if ((SOC_BK7231U == CFG_SOC_NAME) || (SOC_BK7221U == CFG_SOC_NAME))
+    #if ((SOC_BK7231U == CFG_SOC_NAME) || (SOC_BK7221U == CFG_SOC_NAME))
     USB_PRT("gpio_usb_second_function\r\n");
     gpio_usb_second_function();
-#endif
+    #endif
 
     /*step0.0: power up usb subsystem*/
     param = 0;
@@ -200,30 +214,30 @@ UINT32 usb_open (UINT32 op_flag)
     param = PWD_USB_CLK_BIT;
     sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_UP, &param);
 
-#ifndef GUWENFU_SETTING
+    #ifndef GUWENFU_SETTING
     VREG_USB_TEST_MODE = 0x01;
-#endif
+    #endif
 
-#ifdef GUWENFU_SETTING
+    #ifdef GUWENFU_SETTING
     VREG_USB_INTRRX1E = 0x0;
     VREG_USB_INTRTX1E = 0x0;
     VREG_USB_INTRUSBE = 0x0;
     REG_AHB2_USB_VTH &= ~(1 << 7);
-#endif
+    #endif
 
-#ifndef GUWENFU_SETTING
-#ifdef MUSB_FORCE_FULLSPEED
+    #ifndef GUWENFU_SETTING
+    #ifdef MUSB_FORCE_FULLSPEED
     VREG_USB_POWER = 0x01;
-#else
+    #else
     VREG_USB_POWER |= 0x21;
-#endif
+    #endif
 
     VREG_USB_FADDR = 0;
     VREG_USB_DEVCTL = 0x01;
-#endif
+    #endif
 
 
-#ifdef GUWENFU_SETTING
+    #ifdef GUWENFU_SETTING
     if (usb_mode == USB_HOST_MODE)
     {
         os_printf("usb host\r\n");
@@ -251,11 +265,11 @@ UINT32 usb_open (UINT32 op_flag)
 
     /*dp and dn driver current selection*/
     REG_AHB2_USB_GEN = (0x7 << 4) | (0x7 << 0);
-#endif
+    #endif
 
 
-#if CFG_USB
-	int ret = 0;
+    #if CFG_USB
+    int ret = 0;
     if (usb_sw_init() == 0)
     {
         os_printf("usb_sw_init OK\r\n");
@@ -269,7 +283,7 @@ UINT32 usb_open (UINT32 op_flag)
     ASSERT(USB_SUCCESS == ret);
 
 //    os_printf("usb_sw_init OK\r\n");
-#endif
+    #endif
 
     /*step2: interrupt setting about usb*/
     intc_enable(IRQ_USB);
@@ -291,9 +305,9 @@ UINT32 usb_close (void)
     param = PWD_USB_CLK_BIT;
     sddev_control(ICU_DEV_NAME, CMD_CLK_PWR_DOWN, &param);
 
-#if CFG_USB
+    #if CFG_USB
     usb_sw_uninit();
-#endif
+    #endif
 
     return USB_SUCCESS;
 }
@@ -406,19 +420,19 @@ UINT32 usb_ctrl(UINT32 cmd, void *param)
         }
         break;
 
-#if CFG_SUPPORT_MSD
+        #if CFG_SUPPORT_MSD
     case UCMD_MSC_REGISTER_FIDDLE_CB:
         MGC_RegisterCBTransferComplete((FUNCPTR)param);
         break;
-#endif // CFG_SUPPORT_MSD
+        #endif // CFG_SUPPORT_MSD
 
     default:
         break;
     }
 
-#if CFG_SUPPORT_UVC
+    #if CFG_SUPPORT_UVC
     ret = usb_uvc_ctrl(cmd, param);
-#endif // CFG_SUPPORT_UVC
+    #endif // CFG_SUPPORT_UVC
 
     return ret;
 }
@@ -430,12 +444,12 @@ void usb_isr(void)
 
 void usb_check_int_handler(void)
 {
-	if (usb_status > 100)
-		usb_status = 0;
+    if (usb_status > 100)
+        usb_status = 0;
 
-	if ((usb_status % 10) == 0)
-		USB_NPRT("[usb_debug]usb int handler:%d\r\n", usb_status);
-	usb_status ++;
+    if ((usb_status % 10) == 0)
+        USB_NPRT("[usb_debug]usb int handler:%d\r\n", usb_status);
+    usb_status ++;
 }
 #endif
 
@@ -479,9 +493,9 @@ UINT32 usb_plug_inout_open(UINT32 op_flag)
 
     param = 0;
     sddev_control(SCTRL_DEV_NAME, CMD_SCTRL_USB_POWERUP, &param);
-    
+
     usb_plug_inout_icu_int_open();
-    
+
     param = 1;
     sddev_control(GPIO_DEV_NAME, CMD_GPIO_EN_USB_PLUG_IN_INT, &param);
 
@@ -516,10 +530,10 @@ UINT32 usb_plug_inout_close(void)
     usb_plug.handler = NULL;
     usb_plug.usr_data = NULL;
 
-	return 0;
+    return 0;
 }
 
-void usb_plug_inout_init(void) 
+void usb_plug_inout_init(void)
 {
     usb_plug.handler = NULL;
     usb_plug.usr_data = NULL;

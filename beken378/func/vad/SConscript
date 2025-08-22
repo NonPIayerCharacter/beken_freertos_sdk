@@ -12,7 +12,7 @@ vad_lib_name = 'vad'
 libs = [vad_lib_name]
 libpath = [cwd + '/']
 
-print 'using vad: lib' + vad_lib_name + '.a'
+print('using vad: lib' + vad_lib_name + '.a')
 
 group_use_lib = DefineGroup('beken_vad_lib', [], depend = [''], CPPPATH = path, LIBS = libs, LIBPATH = libpath)
 

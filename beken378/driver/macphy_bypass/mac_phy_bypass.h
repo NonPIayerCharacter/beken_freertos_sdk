@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _MAC_PHY_BYPASSH_
 #define _MAC_PHY_BYPASS_H_
 
@@ -5,289 +19,289 @@
 
 typedef union
 {
-	struct {
-		VU32 bypass_en:1;
-		VU32 resv0:3;
-		VU32 mode:2;
-		VU32 resv1:2;
-		VU32 single_txen:1;
-		VU32 resv2:23;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x0_TypeDef;
+    struct {
+        VU32 bypass_en:1;
+        VU32 resv0:3;
+        VU32 mode:2;
+        VU32 resv1:2;
+        VU32 single_txen:1;
+        VU32 resv2:23;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x0_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 pre_rxdelay:20;
-		VU32 resv2:12;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x1_TypeDef;
+    struct {
+        VU32 pre_rxdelay:20;
+        VU32 resv2:12;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x1_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 rxdelay:20;
-		VU32 resv2:12;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x2_TypeDef;
+    struct {
+        VU32 rxdelay:20;
+        VU32 resv2:12;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x2_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 pre_txdelay:20;
-		VU32 resv2:12;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x3_TypeDef;
+    struct {
+        VU32 pre_txdelay:20;
+        VU32 resv2:12;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x3_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txdelay:20;
-		VU32 resv2:12;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x4_TypeDef;
+    struct {
+        VU32 txdelay:20;
+        VU32 resv2:12;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x4_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 rxstat:20;
-		VU32 resv2:12;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x8_TypeDef;
+    struct {
+        VU32 rxstat:20;
+        VU32 resv2:12;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x8_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txstat:20;
-		VU32 resv2:12;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x9_TypeDef;
+    struct {
+        VU32 txstat:20;
+        VU32 resv2:12;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x9_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 rxerrstat:20;
-		VU32 resv2:12;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0xA_TypeDef;
+    struct {
+        VU32 rxerrstat:20;
+        VU32 resv2:12;
+    } bits;
+
+    VU32 value;
+} MPB_REG0xA_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txerrstat:20;
-		VU32 resv2:12;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0xB_TypeDef;
+    struct {
+        VU32 txerrstat:20;
+        VU32 resv2:12;
+    } bits;
+
+    VU32 value;
+} MPB_REG0xB_TypeDef;
 
 
 typedef union
 {
-	struct {
-		VU32 txvector0:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x80_TypeDef;
+    struct {
+        VU32 txvector0:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x80_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector1:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x81_TypeDef;
+    struct {
+        VU32 txvector1:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x81_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector2:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x82_TypeDef;
+    struct {
+        VU32 txvector2:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x82_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector3:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x83_TypeDef;
+    struct {
+        VU32 txvector3:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x83_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector4:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x84_TypeDef;
+    struct {
+        VU32 txvector4:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x84_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector5:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x85_TypeDef;
+    struct {
+        VU32 txvector5:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x85_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector6:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x86_TypeDef;
+    struct {
+        VU32 txvector6:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x86_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector7:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x87_TypeDef;
+    struct {
+        VU32 txvector7:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x87_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector8:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x88_TypeDef;
+    struct {
+        VU32 txvector8:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x88_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector9:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x89_TypeDef;
+    struct {
+        VU32 txvector9:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x89_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector10:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x8A_TypeDef;
+    struct {
+        VU32 txvector10:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x8A_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector11:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x8B_TypeDef;
+    struct {
+        VU32 txvector11:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x8B_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector12:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x8C_TypeDef;
+    struct {
+        VU32 txvector12:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x8C_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector13:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x8D_TypeDef;
+    struct {
+        VU32 txvector13:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x8D_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector14:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x8E_TypeDef;
+    struct {
+        VU32 txvector14:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x8E_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector15:8;
-		VU32 resv1:24;		
-	}bits;
-	
-	VU32 value;
-}MPB_REG0x8F_TypeDef;
+    struct {
+        VU32 txvector15:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x8F_TypeDef;
 
 #if (SOC_BK7252N == CFG_SOC_NAME)
 typedef union
 {
-	struct {
-		VU32 txvector16:8;
-		VU32 resv1:24;
-	}bits;
+    struct {
+        VU32 txvector16:8;
+        VU32 resv1:24;
+    } bits;
 
-	VU32 value;
-}MPB_REG0x90_TypeDef;
-
-typedef union
-{
-	struct {
-		VU32 txvector17:8;
-		VU32 resv1:24;
-	}bits;
-
-	VU32 value;
-}MPB_REG0x91_TypeDef;
+    VU32 value;
+} MPB_REG0x90_TypeDef;
 
 typedef union
 {
-	struct {
-		VU32 txvector18:8;
-		VU32 resv1:24;
-	}bits;
+    struct {
+        VU32 txvector17:8;
+        VU32 resv1:24;
+    } bits;
 
-	VU32 value;
-}MPB_REG0x92_TypeDef;
+    VU32 value;
+} MPB_REG0x91_TypeDef;
+
+typedef union
+{
+    struct {
+        VU32 txvector18:8;
+        VU32 resv1:24;
+    } bits;
+
+    VU32 value;
+} MPB_REG0x92_TypeDef;
 #endif
 
 struct MPB_TypeDef {
@@ -298,9 +312,9 @@ struct MPB_TypeDef {
     volatile MPB_REG0x4_TypeDef  *r4;
     volatile MPB_REG0x8_TypeDef  *r8;
     volatile MPB_REG0x9_TypeDef  *r9;
-    volatile MPB_REG0xA_TypeDef  *r10;    
+    volatile MPB_REG0xA_TypeDef  *r10;
     volatile MPB_REG0xB_TypeDef  *r11;
-    
+
     volatile MPB_REG0x80_TypeDef  *r128;
     volatile MPB_REG0x81_TypeDef  *r129;
     volatile MPB_REG0x82_TypeDef  *r130;
@@ -317,11 +331,11 @@ struct MPB_TypeDef {
     volatile MPB_REG0x8D_TypeDef  *r141;
     volatile MPB_REG0x8E_TypeDef  *r142;
     volatile MPB_REG0x8F_TypeDef  *r143;
-#if (SOC_BK7252N == CFG_SOC_NAME)
+    #if (SOC_BK7252N == CFG_SOC_NAME)
     volatile MPB_REG0x90_TypeDef  *r144;
     volatile MPB_REG0x91_TypeDef  *r145;
     volatile MPB_REG0x92_TypeDef  *r146;
-#endif
+    #endif
 };
 
 extern UINT32 mpb_ctrl(UINT32 cmd, void *param);

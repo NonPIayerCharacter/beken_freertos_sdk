@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 #include "drv_model_pub.h"
@@ -9,6 +23,7 @@
 #include "intc_pub.h"
 #include "icu_pub.h"
 #include "gpio_pub.h"
+#include "common_reg_rw.h"
 
 #if (CFG_SOC_NAME == SOC_BK7252N)
 
@@ -54,7 +69,7 @@ static void yuv_buf_set_reset(UINT32 set)
         reg &= ~YUV_BUF_SOFT_RESET;
 
     //reg |= YUV_BUF_CLK_GATE;
-    REG_WRITE(YUV_BUF_CLK_CTL_ADDR, reg);
+    REG_WRITE_QSPI_RST(YUV_BUF_CLK_CTL_ADDR, reg);
 }
 
 static void yuv_buf_soft_reset()
@@ -68,7 +83,7 @@ static void yuv_buf_reset_config_to_default(void)
     UINT32 reg;
     reg = REG_READ(YUV_BUF_CLK_CTL_ADDR);
     reg |= YUV_BUF_SOFT_RESET;
-    REG_WRITE(YUV_BUF_CLK_CTL_ADDR, reg);
+    REG_WRITE_QSPI_RST(YUV_BUF_CLK_CTL_ADDR, reg);
 }
 
 static void yuv_buf_init_common(void)
@@ -106,7 +121,7 @@ static void yuv_buf_set_mclk_div(UINT8 mclk_div)
     reg = REG_READ(YUV_BUF_REG0X4_ADDR);
     reg &= ~(YUV_BUF_MCLK_DIV_MASK << YUV_BUF_MCLK_DIV_POSI);
     reg |= ((mclk_div & YUV_BUF_MCLK_DIV_MASK) << YUV_BUF_MCLK_DIV_POSI);
-    REG_WRITE(YUV_BUF_REG0X4_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X4_ADDR, reg);
 }
 
 static void yuv_buf_set_x_pixel(UINT32 x_pixel)
@@ -115,7 +130,7 @@ static void yuv_buf_set_x_pixel(UINT32 x_pixel)
     reg = REG_READ(YUV_BUF_REG0X5_ADDR);
     reg &= ~(YUV_BUF_X_PIXEL_MASK << YUV_BUF_X_PIXEL_POSI);
     reg |= ((x_pixel & YUV_BUF_X_PIXEL_MASK) << YUV_BUF_X_PIXEL_POSI);
-    REG_WRITE(YUV_BUF_REG0X5_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X5_ADDR, reg);
 }
 
 static void yuv_buf_set_y_pixel(UINT32 y_pixel)
@@ -124,7 +139,7 @@ static void yuv_buf_set_y_pixel(UINT32 y_pixel)
     reg = REG_READ(YUV_BUF_REG0X5_ADDR);
     reg &= ~(YUV_BUF_Y_PIXEL_MASK << YUV_BUF_Y_PIXEL_POSI);
     reg |= ((y_pixel & YUV_BUF_Y_PIXEL_MASK) << YUV_BUF_Y_PIXEL_POSI);
-    REG_WRITE(YUV_BUF_REG0X5_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X5_ADDR, reg);
 }
 
 __maybe_unused static void yuv_buf_set_frame_blk(UINT32 frame_blk)
@@ -133,22 +148,22 @@ __maybe_unused static void yuv_buf_set_frame_blk(UINT32 frame_blk)
     reg = REG_READ(YUV_BUF_REG0X5_ADDR);
     reg &= ~(YUV_BUF_FRAME_BLK_MASK << YUV_BUF_FRAME_BLK_POSI);
     reg |= ((frame_blk & YUV_BUF_FRAME_BLK_MASK) << YUV_BUF_FRAME_BLK_POSI);
-    REG_WRITE(YUV_BUF_REG0X5_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X5_ADDR, reg);
 }
 
 static void yuv_buf_set_pixel_partial(UINT32 x_l, UINT32 x_r, UINT32 y_l, UINT32 y_r)
 {
     UINT32 reg = 0;
     reg = (x_l) + (x_r << 16);
-    REG_WRITE(YUV_BUF_REG0X6_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X6_ADDR, reg);
 
     reg = (y_l) + (y_r << 16);
-    REG_WRITE(YUV_BUF_REG0X7_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X7_ADDR, reg);
 
     // disable partial encode
     reg = REG_READ(YUV_BUF_REG0X4_ADDR);
     reg &= ~YUV_BUF_PARTIAL_DISPLAY_ENA;
-    REG_WRITE(YUV_BUF_REG0X4_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X4_ADDR, reg);
 }
 
 static void yuv_buf_set_yuv_format(UINT8 yuv_format)
@@ -157,7 +172,7 @@ static void yuv_buf_set_yuv_format(UINT8 yuv_format)
     reg = REG_READ(YUV_BUF_REG0X4_ADDR);
     reg &= ~(YUV_BUF_YUV_FMT_SEL_MASK << YUV_BUF_YUV_FMT_SEL_POSI);
     reg |= ((yuv_format & YUV_BUF_YUV_FMT_SEL_MASK) << YUV_BUF_YUV_FMT_SEL_POSI);
-    REG_WRITE(YUV_BUF_REG0X4_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X4_ADDR, reg);
 }
 
 static void yuv_buf_set_x_pixel_resize(UINT32 x_pixel_resize)
@@ -166,7 +181,7 @@ static void yuv_buf_set_x_pixel_resize(UINT32 x_pixel_resize)
     reg = REG_READ(YUV_BUF_REG0XD_ADDR);
     reg &= ~(YUV_BUF_X_PIXEL_RESIZE_MASK << YUV_BUF_X_PIXEL_RESIZE_POSI);
     reg |= ((x_pixel_resize & YUV_BUF_X_PIXEL_RESIZE_MASK) << YUV_BUF_X_PIXEL_RESIZE_POSI);
-    REG_WRITE(YUV_BUF_REG0XD_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0XD_ADDR, reg);
 }
 
 static void yuv_buf_set_y_pixel_resize(UINT32 y_pixel_resize)
@@ -175,7 +190,7 @@ static void yuv_buf_set_y_pixel_resize(UINT32 y_pixel_resize)
     reg = REG_READ(YUV_BUF_REG0XD_ADDR);
     reg &= ~(YUV_BUF_Y_PIXEL_RESIZE_MASK << YUV_BUF_Y_PIXEL_RESIZE_POSI);
     reg |= ((y_pixel_resize & YUV_BUF_Y_PIXEL_RESIZE_MASK) << YUV_BUF_Y_PIXEL_RESIZE_POSI);
-    REG_WRITE(YUV_BUF_REG0XD_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0XD_ADDR, reg);
 }
 
 __maybe_unused static void yuv_buf_enable_sync_edge_dect(UINT8 enable)
@@ -186,7 +201,7 @@ __maybe_unused static void yuv_buf_enable_sync_edge_dect(UINT8 enable)
         reg |= YUV_BUF_SUNC_EDGE_DECT_ENA;
     else
         reg &= ~YUV_BUF_SUNC_EDGE_DECT_ENA;
-    REG_WRITE(YUV_BUF_REG0X4_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X4_ADDR, reg);
 }
 
 static void yuv_buf_set_encode_begin_hsync_posedge(UINT8 enable)
@@ -197,7 +212,7 @@ static void yuv_buf_set_encode_begin_hsync_posedge(UINT8 enable)
         reg |= YUV_BUF_SOI_HSYNC;
     else
         reg &= ~YUV_BUF_SOI_HSYNC;
-    REG_WRITE(YUV_BUF_REG0X4_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X4_ADDR, reg);
 }
 
 static void yuv_buf_set_int(UINT32 en, UINT32 bits)
@@ -207,7 +222,7 @@ static void yuv_buf_set_int(UINT32 en, UINT32 bits)
     reg &= ~(bits & YUV_INT_MASK);
     if (en)
         reg |= (bits & YUV_INT_MASK);
-    REG_WRITE(YUV_BUF_REG0X9_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X9_ADDR, reg);
 }
 
 static void yuv_buf_enable_int(void)
@@ -236,12 +251,12 @@ static void yuv_buf_set_config_common(UINT32 x_pixel, UINT32 y_pixel, UINT8 mclk
 
 static void yuv_buf_set_em_base_addr(UINT32 em_base_addr)
 {
-    REG_WRITE(YUV_BUF_EM_BASE_ADDR, em_base_addr);
+    REG_WRITE_PROTECT(YUV_BUF_EM_BASE_ADDR, em_base_addr);
 }
 
 static void yuv_buf_set_emr_base_addr(UINT32 emr_base_addr)
 {
-    REG_WRITE(YUV_BUF_EMR_BASE_ADDR, emr_base_addr);
+    REG_WRITE_PROTECT(YUV_BUF_EMR_BASE_ADDR, emr_base_addr);
 }
 
 static void yuv_buf_set_pingpong_mode(UINT32 mode)
@@ -249,7 +264,7 @@ static void yuv_buf_set_pingpong_mode(UINT32 mode)
     UINT32 reg = REG_READ(YUV_BUF_REG0XD_ADDR);
     reg &= ~(YUV_BUF_BPS_PINGPONG);
     reg |= (mode && 0x1);
-    REG_WRITE(YUV_BUF_REG0XD_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0XD_ADDR, reg);
 }
 
 static void yuv_buf_set_jpeg_mode_config(yuv_buf_config_t *config)
@@ -268,7 +283,7 @@ static void yuv_buf_mode_init(yuv_buf_config_t *config)
     yuv_config = (yuv_buf_config_t*)os_malloc(sizeof(yuv_buf_config_t));
     if (yuv_config)
     {
-        os_memset(yuv_config, 0 ,sizeof(yuv_buf_config_t));
+        os_memset(yuv_config, 0,sizeof(yuv_buf_config_t));
         os_memcpy(yuv_config, config, sizeof(yuv_buf_config_t));
     }
     else
@@ -285,6 +300,12 @@ static void yuv_buf_mode_init(yuv_buf_config_t *config)
 static void yuv_buf_mode_deinit(void)
 {
     yuv_buf_set_reset(0);
+
+    if(yuv_config)
+    {
+        os_free(yuv_config);
+        yuv_config = NULL;
+    }
 }
 
 static void yuv_buf_soft_mode_config()
@@ -292,16 +313,16 @@ static void yuv_buf_soft_mode_config()
     UINT32 reg = REG_READ(YUV_BUF_REG0X4_ADDR);
     reg |= 0x6000;
     reg |= (1 << 18);
-    REG_WRITE(YUV_BUF_REG0X4_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X4_ADDR, reg);
 
     reg = REG_READ(YUV_BUF_REG0X9_ADDR);
     reg &= ~(1 << 8);
-    REG_WRITE(YUV_BUF_REG0X9_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X9_ADDR, reg);
 }
 
 static void yuv_buf_send_renc_start()
 {
-    REG_WRITE(YUV_BUF_RENC_START_ADDR, 0x1);
+    REG_WRITE_PROTECT(YUV_BUF_RENC_START_ADDR, 0x1);
 }
 
 static void yuv_buf_em_base_addr_set(UINT32 addr)
@@ -329,7 +350,7 @@ static void yuv_buf_set_yuv_buf_mode(UINT8 enable)
         reg |= YUV_BUF_YUV_MODE;
     else
         reg &= ~YUV_BUF_YUV_MODE;
-    REG_WRITE(YUV_BUF_REG0X4_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X4_ADDR, reg);
 }
 
 static void yuv_buf_set_h264_encode_mode(UINT8 enable)
@@ -340,7 +361,7 @@ static void yuv_buf_set_h264_encode_mode(UINT8 enable)
         reg |= YUV_BUF_H264_MODE;
     else
         reg &= ~YUV_BUF_H264_MODE;
-    REG_WRITE(YUV_BUF_REG0X4_ADDR, reg);
+    REG_WRITE_PROTECT(YUV_BUF_REG0X4_ADDR, reg);
 }
 
 __maybe_unused static void yuv_buf_start_yuv_mode(void)
@@ -411,29 +432,29 @@ void yuv_buf_exit(void)
 UINT32 yuv_buf_ctrl(UINT32 cmd, void *param)
 {
     switch (cmd) {
-        case YUV_BUF_CTRL_INIT:
-            yuv_buf_mode_init(param);
-            break;
-        case YUV_BUF_SOFT_MODE:
-            yuv_buf_soft_mode_config();
-            break;
-        case YUV_BUF_RENC_START:
-            yuv_buf_send_renc_start();
-            break;
-        case YUV_BUF_EMADDR_SET:
-            yuv_buf_em_base_addr_set(*(UINT32 *)param);
-            break;
-        case YUV_BUF_EMADDR_GET:
-            yuv_buf_em_base_addr_get(param);
-            break;
-        case YUV_BUF_CTRL_DEINIT:
-            yuv_buf_mode_deinit();
-            break;
-        case YUV_BUF_CMD_RESET:
-            yuv_buf_soft_reset();
-            break;
-        default:
-            break;
+    case YUV_BUF_CTRL_INIT:
+        yuv_buf_mode_init(param);
+        break;
+    case YUV_BUF_SOFT_MODE:
+        yuv_buf_soft_mode_config();
+        break;
+    case YUV_BUF_RENC_START:
+        yuv_buf_send_renc_start();
+        break;
+    case YUV_BUF_EMADDR_SET:
+        yuv_buf_em_base_addr_set(*(UINT32 *)param);
+        break;
+    case YUV_BUF_EMADDR_GET:
+        yuv_buf_em_base_addr_get(param);
+        break;
+    case YUV_BUF_CTRL_DEINIT:
+        yuv_buf_mode_deinit();
+        break;
+    case YUV_BUF_CMD_RESET:
+        yuv_buf_soft_reset();
+        break;
+    default:
+        break;
     }
 
     return 0;
@@ -443,7 +464,7 @@ void yuv_buf_isr(void)
 {
     UINT32 yuv_buf_int_status;
     yuv_buf_int_status = REG_READ(YUV_BUF_REG0XA_ADDR);
-    REG_WRITE(YUV_BUF_REG0XA_ADDR, yuv_buf_int_status);
+    REG_WRITE_PROTECT(YUV_BUF_REG0XA_ADDR, yuv_buf_int_status);
     if (yuv_buf_int_status & YUV_BUF_YSYNC_NEGE_INT)
     {
         yuv_isr_info_prt("vsync \r\n");

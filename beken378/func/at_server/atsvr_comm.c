@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <stdio.h>
 #include "drv_model_pub.h"
 #include "flash_pub.h"
@@ -11,42 +25,42 @@
 extern int log_enable();
 extern int log_disable();
 
-int write_env_to_flash(AT_ENV_TAG tag, int datalen ,uint8* buf)
+int write_env_to_flash(AT_ENV_TAG tag, int datalen,uint8* buf)
 {
-	int state = 0;
-	bk_flash_enable_security(FLASH_PROTECT_NONE);
-	bk_flash_erase(BK_PARTITION_USR_CONFIG,tag,datalen);
-	state = bk_flash_write(BK_PARTITION_USR_CONFIG,tag,buf,datalen);
-	bk_flash_enable_security(FLASH_UNPROTECT_LAST_BLOCK);
+    int state = 0;
+    bk_flash_enable_security(FLASH_PROTECT_NONE);
+    bk_flash_erase(BK_PARTITION_USR_CONFIG,tag,datalen);
+    state = bk_flash_write(BK_PARTITION_USR_CONFIG,tag,buf,datalen);
+    bk_flash_enable_security(FLASH_UNPROTECT_LAST_BLOCK);
 
-	return state;
+    return state;
 }
 
-int read_env_from_flash(AT_ENV_TAG tag, int len ,uint8* buf)
+int read_env_from_flash(AT_ENV_TAG tag, int len,uint8* buf)
 {
-	return bk_flash_read(BK_PARTITION_USR_CONFIG,tag,buf,len);
+    return bk_flash_read(BK_PARTITION_USR_CONFIG,tag,buf,len);
 }
 
 void log_output_state(int flag)
 {
-	if(flag)
-	{
-		log_enable();
-	}
-	else
-	{
-		log_disable();
-	}
-	return ;
+    if(flag)
+    {
+        log_enable();
+    }
+    else
+    {
+        log_disable();
+    }
+    return ;
 }
 
 
 void *at_malloc(unsigned int size)
 {
-	return os_malloc(size);
+    return os_malloc(size);
 }
 
 void at_free(void *p)
 {
-	os_free(p);
+    os_free(p);
 }

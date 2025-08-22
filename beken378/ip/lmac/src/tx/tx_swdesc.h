@@ -440,6 +440,19 @@ __INLINE uint8_t get_user_pos(struct txdesc * txdesc)
 struct txdesc *tx_txdesc_prepare(UINT32 ac);
 void tx_txdesc_obtain(struct txdesc *desc, UINT32 ac);
 
+/**
+ ****************************************************************************************
+ * @brief Return the THD attached to the descriptor passed as parameter.
+ * @param[in] txdesc  Tx descriptor pointer.
+ * @return The pointer to the THD attached to the descriptor
+ ****************************************************************************************
+ */
+__INLINE struct tx_hd *tx_desc_thd(struct txdesc *txdesc)
+{
+    return &txdesc->lmac.hw_desc->thd;
+}
+
+
 /// @}
 /// @}
 

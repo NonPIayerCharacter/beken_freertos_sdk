@@ -76,7 +76,7 @@ case $1 in
 		modify_config ${SYS_CFG_FILE} CFG_SUPPORT_BLE 1
 		modify_config ${SYS_CFG_FILE} CFG_WIFI_SENSOR 1
 		modify_config ${SYS_CFG_FILE} CFG_BK_AWARE    1
-		make_target="ip ble sensor bk_aware cal supplicant uart_debug rf_test rf_use"
+		make_target="ip ble sensor bk_aware cal supplicant uart_debug rf_test rf_use codec_helix bk_player"
 		;;
 	*)
 		echo "unsupported platform"

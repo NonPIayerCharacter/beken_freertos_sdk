@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "arm_arch.h"
 
@@ -41,13 +55,13 @@
 #define TVOICE_RXNODE_SIZE          TVOICE_RXNODE_SIZE_UDP
 #endif
 
-#define TVOICE_POOL_LEN             (TVOICE_RXNODE_SIZE * 3)  
+#define TVOICE_POOL_LEN             (TVOICE_RXNODE_SIZE * 3)
 #define TVOICE_MSG_WAIT_TIME        (50)  // 1460 * (1/8000/2) = 0.09175 = 90ms 
 
 typedef struct tvoice_hdr_st
 {
     UINT32 id;
-}TVO_HDR_ST, *TVO_HDR_PTR;
+} TVO_HDR_ST, *TVO_HDR_PTR;
 
 typedef struct tvoice_elem_st
 {
@@ -62,7 +76,7 @@ typedef struct tvoice_desc
     UINT8* pool;
     TVOICE_ELEM_ST elem[TVOICE_POOL_LEN / TVOICE_RXNODE_SIZE];
     struct co_list free;
-    struct co_list ready; 
+    struct co_list ready;
     int elem_len;
 
     video_transfer_send_func send_func;
@@ -78,13 +92,13 @@ TVOICE_DESC_ST tvoice_st;
 
 enum
 {
-	TVO_EXIT     = 0,
+    TVO_EXIT     = 0,
 };
 
-typedef struct tvoice_message 
+typedef struct tvoice_message
 {
-	UINT32 data;
-}TVO_MSG_T;
+    UINT32 data;
+} TVO_MSG_T;
 
 #define TVO_QITEM_COUNT      (2)
 xTaskHandle tvoice_thread_hdl = NULL;
@@ -92,18 +106,18 @@ beken_queue_t tvoice_msg_que = NULL;
 
 void tvoice_intfer_send_msg(UINT32 new_msg)
 {
-	OSStatus ret;
-	TVO_MSG_T msg;
+    OSStatus ret;
+    TVO_MSG_T msg;
 
-    if(tvoice_msg_que) 
+    if(tvoice_msg_que)
     {
-    	msg.data = new_msg;
-    	
-    	ret = rtos_push_to_queue(&tvoice_msg_que, &msg, BEKEN_NO_WAIT);
-    	if(kNoErr != ret)
-    	{
-    		//TVOICE_WPRT("tvoice send_msg failed\r\n");
-    	}
+        msg.data = new_msg;
+
+        ret = rtos_push_to_queue(&tvoice_msg_que, &msg, BEKEN_NO_WAIT);
+        if(kNoErr != ret)
+        {
+            //TVOICE_WPRT("tvoice send_msg failed\r\n");
+        }
     }
 }
 
@@ -120,7 +134,7 @@ static void tvoice_pool_init(void* data)
             ASSERT(1);
         }
     }
-    
+
     co_list_init(&tvoice_st.free);
     co_list_init(&tvoice_st.ready);
 
@@ -148,8 +162,8 @@ static void tvoice_send_audio_adc(void)
     UINT32 send_len;
     TVOICE_ELEM_PTR elem = NULL;
 
-    do{
-        elem = (TVOICE_ELEM_PTR)co_list_pick(&tvoice_st.ready);        
+    do {
+        elem = (TVOICE_ELEM_PTR)co_list_pick(&tvoice_st.ready);
         if(elem) {
             if(tvoice_st.send_func) {
                 send_len = tvoice_st.send_func(elem->buf_start, elem->buf_len);
@@ -157,7 +171,7 @@ static void tvoice_send_audio_adc(void)
                     break;
                 }
             }
-            
+
             co_list_pop_front(&tvoice_st.ready);
             co_list_push_back(&tvoice_st.free, (struct co_list_hdr *)&elem->hdr);
         }
@@ -172,7 +186,7 @@ static rt_size_t tvoice_sound_read(char *buffer, rt_size_t size)
     while (read_bytes < size)
     {
         rt_size_t rb = rt_device_read(tvoice_st.adc_device, 0,
-            (buffer + read_bytes), (size - read_bytes));
+                                      (buffer + read_bytes), (size - read_bytes));
 
         if (rb == 0)
             break;
@@ -189,14 +203,14 @@ static int tvoice_read_audio_adc(void)
     rt_size_t read_bytes = 0;
 
     elem = (TVOICE_ELEM_PTR)co_list_pick(&tvoice_st.free);
-    if(elem) 
-    {  
+    if(elem)
+    {
         /* read data from sound device */
-        if(tvoice_st.n_channel == 2) 
+        if(tvoice_st.n_channel == 2)
         {
             read_bytes = tvoice_sound_read(elem->buf_start, tvoice_st.elem_len);
-        } 
-        else if(tvoice_st.n_channel == 1) 
+        }
+        else if(tvoice_st.n_channel == 1)
         {
             read_bytes = tvoice_sound_read(elem->buf_start, tvoice_st.elem_len);
         }
@@ -205,7 +219,7 @@ static int tvoice_read_audio_adc(void)
         {
             elem->buf_len = read_bytes;
             co_list_pop_front(&tvoice_st.free);
-            co_list_push_back(&tvoice_st.ready, (struct co_list_hdr *)&elem->hdr);            
+            co_list_push_back(&tvoice_st.ready, (struct co_list_hdr *)&elem->hdr);
         }
     } else {
         TVOICE_WPRT("sound no node\r\n");
@@ -218,20 +232,20 @@ static int tvoice_init_audio_adc(void)
 {
     int sample_rate = 8000;
     int channel = 1;
-    
+
     tvoice_st.adc_device = rt_device_find("mic");
     if (!tvoice_st.adc_device)
     {
         TVOICE_FATAL("mic not found\n");
         return -1;
     }
-    
+
     tvoice_st.n_channel = channel;
-    rt_device_control(tvoice_st.adc_device, CODEC_CMD_SAMPLERATE, (void *)&sample_rate); 
-    rt_device_control(tvoice_st.adc_device, CODEC_CMD_SET_CHANNEL, (void *)&channel); 
+    rt_device_control(tvoice_st.adc_device, CODEC_CMD_SAMPLERATE, (void *)&sample_rate);
+    rt_device_control(tvoice_st.adc_device, CODEC_CMD_SET_CHANNEL, (void *)&channel);
 
     rt_device_open(tvoice_st.adc_device, RT_DEVICE_OFLAG_RDONLY);
-    
+
     return 0;
 }
 
@@ -248,7 +262,7 @@ static void tvoice_transfer_main( beken_thread_arg_t data )
 
     os_memset(&tvoice_st, 0, sizeof(TVOICE_DESC_ST));
     tvoice_pool_init(data);
-    
+
     if(tvoice_init_audio_adc())
         goto tvoice_exit;
 
@@ -258,14 +272,14 @@ static void tvoice_transfer_main( beken_thread_arg_t data )
         err = rtos_pop_from_queue(&tvoice_msg_que, &msg, TVOICE_MSG_WAIT_TIME);
         if(kNoErr == err)
         {
-        	switch(msg.data) 
-        	{ 
-                case TVO_EXIT:
-                    goto tvoice_exit;
-                    break;
-                    
-                default:
-                    break;
+            switch(msg.data)
+            {
+            case TVO_EXIT:
+                goto tvoice_exit;
+                break;
+
+            default:
+                break;
             }
         }
 
@@ -274,7 +288,7 @@ static void tvoice_transfer_main( beken_thread_arg_t data )
     }
 
     tvoice_deinit_audio_adc();
-    
+
 tvoice_exit:
     TVOICE_PRT("video_transfer_main exit\r\n");
 
@@ -284,7 +298,7 @@ tvoice_exit:
         tvoice_st.pool = NULL;
     }
     os_memset(&tvoice_st, 0, sizeof(TVOICE_DESC_ST));
-    
+
     rtos_deinit_queue(&tvoice_msg_que);
     tvoice_msg_que = NULL;
 
@@ -300,22 +314,22 @@ UINT32 tvoice_transfer_init(video_transfer_send_func send_func)
     if((!tvoice_thread_hdl) && (!tvoice_msg_que))
     {
 
-    	ret = rtos_init_queue(&tvoice_msg_que, 
-    							"tvoice_queue",
-    							sizeof(TVO_MSG_T),
-    							TVO_QITEM_COUNT);
-    	if (kNoErr != ret) 
-    	{
-    		TVOICE_FATAL("ceate queue failed\r\n");
+        ret = rtos_init_queue(&tvoice_msg_que,
+                              "tvoice_queue",
+                              sizeof(TVO_MSG_T),
+                              TVO_QITEM_COUNT);
+        if (kNoErr != ret)
+        {
+            TVOICE_FATAL("ceate queue failed\r\n");
             return kGeneralErr;
-    	}
-        
+        }
+
         ret = rtos_create_thread(&tvoice_thread_hdl,
-                                      4,
-                                      "tvoice_intf",
-                                      (beken_thread_function_t)tvoice_transfer_main,
-                                      1024,
-                                      (beken_thread_arg_t)send_func);
+                                 4,
+                                 "tvoice_intf",
+                                 (beken_thread_function_t)tvoice_transfer_main,
+                                 1024,
+                                 (beken_thread_arg_t)send_func);
         if (ret != kNoErr)
         {
             rtos_deinit_queue(&tvoice_msg_que);
@@ -332,7 +346,7 @@ UINT32 tvoice_transfer_init(video_transfer_send_func send_func)
 UINT32 tvoice_transfer_deinit(void)
 {
     TVOICE_PRT("tvoice deinit\r\n");
-    
+
     tvoice_intfer_send_msg(TVO_EXIT);
 
     while(tvoice_thread_hdl)

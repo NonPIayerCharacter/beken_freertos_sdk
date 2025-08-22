@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "atsvr_ble.h"
 #include "atsvr_cmd.h"
@@ -69,7 +83,7 @@ static void  at_bk_ble_svr_init(uint8_t srv_index)
         }
         srv_tmp=srv_tmp->next;
     }
-    if(!srv_tmp){
+    if(!srv_tmp) {
         bk_printf("ERROR: wrong srv_index\r\n");
         return;
     }
@@ -90,7 +104,7 @@ static void  at_bk_ble_svr_init(uint8_t srv_index)
 
     memcpy(&(ble_db_cfg.uuid[0]), srv_tmp->uuid, 16);
 
-    for(int i=0;i<srv_tmp->uuidLen/2;i++)
+    for(int i=0; i<srv_tmp->uuidLen/2; i++)
     {
         uint8_t tmp;
         tmp=ble_db_cfg.uuid[i];
@@ -98,8 +112,8 @@ static void  at_bk_ble_svr_init(uint8_t srv_index)
         ble_db_cfg.uuid[srv_tmp->uuidLen-1-i]=tmp;
     }
 
-#if 0
-    for(int i=0;i<ble_db_cfg.att_db_nb;i++)
+    #if 0
+    for(int i=0; i<ble_db_cfg.att_db_nb; i++)
     {
         ble_db_cfg.att_db[i].info = (ble_db_cfg.att_db[i].info>>8);
 
@@ -109,7 +123,7 @@ static void  at_bk_ble_svr_init(uint8_t srv_index)
         }
         bk_printf("info:0x%d,exinfo:0x%x\r\n",ble_db_cfg.att_db[i].info,ble_db_cfg.att_db[i].ext_info);
     }
-#endif
+    #endif
 
     svr_start_flag=0;
     bk_ble_create_db(&ble_db_cfg);
@@ -135,9 +149,9 @@ static void str_to_hex(uint8_t *data_buffer, uint8_t *str, uint16_t str_len )
     uint8_t h_bit=0,l_bit=0;
     uint8_t hexbit=0;
 
-    for(uint16_t i=0;i<str_len;i=i+3)
+    for(uint16_t i=0; i<str_len; i=i+3)
     {
-        for(uint8_t j=0;j<16;j++)
+        for(uint8_t j=0; j<16; j++)
         {
             if((all_char[j]==str[i]) || (all_char_A[j]==str[i]))
             {
@@ -146,7 +160,7 @@ static void str_to_hex(uint8_t *data_buffer, uint8_t *str, uint16_t str_len )
             }
         }
 
-        for(uint8_t j=0;j<16;j++)
+        for(uint8_t j=0; j<16; j++)
         {
             if((all_char[j]==str[i+1]) || (all_char_A[j]==str[i+1]))
             {
@@ -168,40 +182,40 @@ uint8_t appm_adv_data_decode(uint8_t len,const uint8_t *data,uint8_t *find_str,u
     {
         switch(data[index + 1])
         {
-            case GAP_AD_TYPE_FLAGS:
+        case GAP_AD_TYPE_FLAGS:
+        {
+            index +=(data[index] + 1);
+        }
+        break;
+        case GAP_AD_TYPE_SHORTENED_NAME:
+        case GAP_AD_TYPE_COMPLETE_NAME:
+        {
+            if(strncmp((char*)&data[index + 2],(const char *)find_str,str_len) == 0 )
             {
-                index +=(data[index] + 1);
+                find = 1;
             }
-            break;
-            case GAP_AD_TYPE_SHORTENED_NAME:
-            case GAP_AD_TYPE_COMPLETE_NAME:
+            index +=(data[index] + 1);
+        }
+        break;
+        case GAP_AD_TYPE_MORE_16_BIT_UUID:
+        {
+            index +=(data[index] + 1);
+        }
+        break;
+        case GAP_AD_TYPE_COMPLETE_LIST_16_BIT_UUID:
+        {
+            if( (data[index+2]==0x12) && (data[index+3]==0x18) )
             {
-                if(strncmp((char*)&data[index + 2],(const char *)find_str,str_len) == 0 )
-                {
-                    find = 1;
-                }
-                index +=(data[index] + 1);
-            }
-            break;
-            case GAP_AD_TYPE_MORE_16_BIT_UUID:
-            {
-                index +=(data[index] + 1);
-            }
-            break;
-            case GAP_AD_TYPE_COMPLETE_LIST_16_BIT_UUID:
-            {
-                if( (data[index+2]==0x12) && (data[index+3]==0x18) )
-                {
 
-                }
-                index +=(data[index] + 1);
             }
-            break;
-            default:
-            {
-                index +=(data[index] + 1);
-            }
-            break;
+            index +=(data[index] + 1);
+        }
+        break;
+        default:
+        {
+            index +=(data[index] + 1);
+        }
+        break;
         }
     }
     return find;
@@ -218,10 +232,10 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
     {
         write_req_t *w_req = (write_req_t *)param;
         bk_printf("write_cb:conn_idx:%d, prf_id:%d, add_id:%d, len:%d, data[0]:%02x\r\n",
-            w_req->conn_idx, w_req->prf_id, w_req->att_idx, w_req->len, w_req->value[0]);
+                  w_req->conn_idx, w_req->prf_id, w_req->att_idx, w_req->len, w_req->value[0]);
 
         rsp_len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+WRITE:%d,%d,%d,%d,%02x\r\n",
-                                    hal_ble_env.connidx,w_req->prf_id,w_req->att_idx,w_req->len,w_req->value[0]);
+                         hal_ble_env.connidx,w_req->prf_id,w_req->att_idx,w_req->len,w_req->value[0]);
         atsvr_output_msg(at_rsp_msg_buf,rsp_len);
         break;
     }
@@ -229,7 +243,7 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
     {
         read_req_t *r_req = (read_req_t *)param;
         bk_printf("read_cb:conn_idx:%d, prf_id:%d, add_id:%d\r\n",
-            r_req->conn_idx, r_req->prf_id, r_req->att_idx);
+                  r_req->conn_idx, r_req->prf_id, r_req->att_idx);
 
         uint16_t length = 3;
         r_req->value = kernel_malloc(length, KERNEL_MEM_KERNEL_MSG);
@@ -250,7 +264,7 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
         kernel_free(r_req->value);
 
         rsp_len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+READ:%d,%d,%d,%d,%02x\r\n",
-                                    hal_ble_env.connidx,r_req->prf_id,r_req->att_idx,r_req->length,r_req->value[0]);
+                         hal_ble_env.connidx,r_req->prf_id,r_req->att_idx,r_req->length,r_req->value[0]);
         atsvr_output_msg(at_rsp_msg_buf,rsp_len);
         break;
     }
@@ -267,7 +281,7 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
             {
                 break;
             }
-        }else if(scan.filter_type == 2)//name
+        } else if(scan.filter_type == 2)//name
         {
             if(appm_adv_data_decode(r_ind->data_len,r_ind->data,scan.filter_param,strlen((char*)scan.filter_param))==0)
             {
@@ -275,9 +289,9 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
             }
         }
         bk_printf("[%s]r_ind:actv_idx:%d,evt_type:%d adv_addr:%02x:%02x:%02x:%02x:%02x:%02x,rssi:%d\r\n",
-            ((r_ind->evt_type&0x7) == 3)?"scan-rsp":((r_ind->evt_type&0x7) == 1)?"adv":"unknow",
-            r_ind->actv_idx,r_ind->evt_type, r_ind->adv_addr[0], r_ind->adv_addr[1], r_ind->adv_addr[2],
-            r_ind->adv_addr[3], r_ind->adv_addr[4], r_ind->adv_addr[5],r_ind->rssi);
+                  ((r_ind->evt_type&0x7) == 3)?"scan-rsp":((r_ind->evt_type&0x7) == 1)?"adv":"unknow",
+                  r_ind->actv_idx,r_ind->evt_type, r_ind->adv_addr[0], r_ind->adv_addr[1], r_ind->adv_addr[2],
+                  r_ind->adv_addr[3], r_ind->adv_addr[4], r_ind->adv_addr[5],r_ind->rssi);
         break;
     }
     case BLE_5_MTU_CHANGE:
@@ -291,8 +305,8 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
         conn_ind_t *c_ind = (conn_ind_t *)param;
         hal_ble_env.connidx =c_ind->conn_idx;
         bk_printf("c_ind:conn_idx:%d, addr_type:%d, peer_addr:%02x:%02x:%02x:%02x:%02x:%02x\r\n",
-            c_ind->conn_idx, c_ind->peer_addr_type, c_ind->peer_addr[0], c_ind->peer_addr[1],
-            c_ind->peer_addr[2], c_ind->peer_addr[3], c_ind->peer_addr[4], c_ind->peer_addr[5]);
+                  c_ind->conn_idx, c_ind->peer_addr_type, c_ind->peer_addr[0], c_ind->peer_addr[1],
+                  c_ind->peer_addr[2], c_ind->peer_addr[3], c_ind->peer_addr[4], c_ind->peer_addr[5]);
         at_ble_connected_callback(c_ind->conn_idx,c_ind->peer_addr);
         break;
     }
@@ -328,8 +342,8 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
         sdp_discover_all_service(c_ind->conn_idx);
         #endif
         bk_printf("BLE_5_INIT_CONNECT_EVENT:conn_idx:%d, addr_type:%d, peer_addr:%02x:%02x:%02x:%02x:%02x:%02x\r\n",
-            c_ind->conn_idx, c_ind->peer_addr_type, c_ind->peer_addr[0], c_ind->peer_addr[1],
-            c_ind->peer_addr[2], c_ind->peer_addr[3], c_ind->peer_addr[4], c_ind->peer_addr[5]);
+                  c_ind->conn_idx, c_ind->peer_addr_type, c_ind->peer_addr[0], c_ind->peer_addr[1],
+                  c_ind->peer_addr[2], c_ind->peer_addr[3], c_ind->peer_addr[4], c_ind->peer_addr[5]);
 
         at_ble_connected_callback(c_ind->conn_idx,c_ind->peer_addr);
         break;
@@ -349,14 +363,14 @@ static void at_ble_notice_cb(ble_notice_t notice, void *param)
     {
         conn_param_req_t *d_ind = (conn_param_req_t *)param;
         bk_printf("BLE_5_INIT_CONN_PARAM_UPDATE_REQ_EVENT:conn_idx:%d,intv_min:%d,intv_max:%d,time_out:%d\r\n",d_ind->conn_idx,
-            d_ind->intv_min,d_ind->intv_max,d_ind->time_out);
+                  d_ind->intv_min,d_ind->intv_max,d_ind->time_out);
     }
     break;
     case BLE_5_INIT_CONN_PARAM_UPDATE_IND_EVENT:
     {
         conn_update_ind_t *d_ind = (conn_update_ind_t *)param;
         bk_printf("BLE_5_INIT_CONN_PARAM_UPDATE_IND_EVENT:conn_idx:%d,interval:%d,time_out:%d,latency\r\n",d_ind->conn_idx,
-            d_ind->interval,d_ind->time_out,d_ind->latency);
+                  d_ind->interval,d_ind->time_out,d_ind->latency);
         hal_ble_env.conn.con_interval = d_ind->interval;
         hal_ble_env.conn.con_latency = d_ind->latency;
         hal_ble_env.conn.sup_to = d_ind->time_out;
@@ -383,37 +397,37 @@ static void at_ble_cmd_cb(ble_cmd_t cmd, ble_cmd_param_t *param)
     bk_printf("cmd:%d idx:%d status:%d\r\n", cmd, param->cmd_idx, param->status);
 
     switch (cmd) {
-        case BLE_CREATE_ADV:
-            break;
-        case BLE_SET_ADV_DATA:
-            break;
-        case BLE_SET_RSP_DATA:
-            break;
-        case BLE_START_ADV:
-            break;
-        case BLE_STOP_ADV:
-            break;
-        case BLE_DELETE_ADV:
-            break;
-        case BLE_CREATE_SCAN:
-            break;
-        case BLE_START_SCAN:
-            break;
-        case BLE_STOP_SCAN:
-            break;
-        case BLE_DELETE_SCAN:
-            break;
-        case BLE_INIT_CREATE:
-            bk_printf("BLE_INIT_CREATE\r\n");
-            break;
-        case BLE_INIT_START_CONN:
-            bk_printf("BLE_INIT_START_CONN\r\n");
-            break;
-        case BLE_INIT_STOP_CONN:
-            bk_printf("BLE_INIT_STOP_CONN\r\n");
-            break;
-        default:
-            break;
+    case BLE_CREATE_ADV:
+        break;
+    case BLE_SET_ADV_DATA:
+        break;
+    case BLE_SET_RSP_DATA:
+        break;
+    case BLE_START_ADV:
+        break;
+    case BLE_STOP_ADV:
+        break;
+    case BLE_DELETE_ADV:
+        break;
+    case BLE_CREATE_SCAN:
+        break;
+    case BLE_START_SCAN:
+        break;
+    case BLE_STOP_SCAN:
+        break;
+    case BLE_DELETE_SCAN:
+        break;
+    case BLE_INIT_CREATE:
+        bk_printf("BLE_INIT_CREATE\r\n");
+        break;
+    case BLE_INIT_START_CONN:
+        bk_printf("BLE_INIT_START_CONN\r\n");
+        break;
+    case BLE_INIT_STOP_CONN:
+        bk_printf("BLE_INIT_STOP_CONN\r\n");
+        break;
+    default:
+        break;
     }
 }
 
@@ -437,195 +451,195 @@ static void at_ble_get_mode(int argc, char **argv)
 void at_sdp_discovery_cb(uint8_t con_idx,sdp_att_type_t notice, void *param)
 {
     bk_printf("notice:%d \r\n",notice);
-    switch (notice){
-        case SDP_ATT_GET_SVR_UUID_ALL:
-        {
-            struct db *p_svr=(struct db *)param;
-            uint8_t uuid_len;
-            char uuid_str[32+1];
-            char *buffer_ptr;
-            char ble_buf[200];
-            int ble_len=0;
-            uint8_t srv_idx;
-            struct sdp_env_tag * p_env = sdp_get_env_use_conidx(con_idx);
-            struct sdp_db *p_db = (struct sdp_db *)common_list_pick(&p_env->svr_list);
-            struct db *p_st;
+    switch (notice) {
+    case SDP_ATT_GET_SVR_UUID_ALL:
+    {
+        struct db *p_svr=(struct db *)param;
+        uint8_t uuid_len;
+        char uuid_str[32+1];
+        char *buffer_ptr;
+        char ble_buf[200];
+        int ble_len=0;
+        uint8_t srv_idx;
+        struct sdp_env_tag * p_env = sdp_get_env_use_conidx(con_idx);
+        struct sdp_db *p_db = (struct sdp_db *)common_list_pick(&p_env->svr_list);
+        struct db *p_st;
 
-            srv_idx=1;
-            while (p_db) {      // get svr_idx of this svr
-                p_st = &p_db->svr;
-                if(memcmp(p_st->svc.uuid,p_svr->svc.uuid,16)==0)
-                {
-                    break;
-                }
-                p_db = (struct sdp_db *)common_list_next(&p_db->hdr);
-                srv_idx++;
+        srv_idx=1;
+        while (p_db) {      // get svr_idx of this svr
+            p_st = &p_db->svr;
+            if(memcmp(p_st->svc.uuid,p_svr->svc.uuid,16)==0)
+            {
+                break;
             }
+            p_db = (struct sdp_db *)common_list_next(&p_db->hdr);
+            srv_idx++;
+        }
 
-            if(p_svr->svc.uuid_type == BK_PERM_RIGHT_UUID_128)
+        if(p_svr->svc.uuid_type == BK_PERM_RIGHT_UUID_128)
+        {
+            uuid_len = 16;
+        } else
+        {
+            uuid_len = 2;
+        }
+        memset(uuid_str,0,33);
+        buffer_ptr=uuid_str;
+        for(int i=0; i<uuid_len; i++)
+        {
+            buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",p_svr->svc.uuid[uuid_len-i-1]);
+        }
+        memset(ble_buf,0,sizeof(ble_buf));
+        ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTCPRIMSRV:%d,%d,0x%s,1\r\n",con_idx,srv_idx,uuid_str);
+        atsvr_output_msg(ble_buf,ble_len);
+        atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
+    }
+    break;
+    case SDP_ATT_SVR_ATT_BY_SVR_UUID:
+    {
+        struct db *p_svr=(struct db *)param;
+        uint8_t uuid_len;
+        char uuid_str[32+1];
+        char *buffer_ptr;
+        uint16_t hdl;
+        char ble_buf[200];
+        int ble_len=0;
+        uint8_t srv_idx;
+        uint8_t desc_index;
+        uint8_t char_end_hdl;
+        struct sdp_env_tag * p_env = sdp_get_env_use_conidx(con_idx);
+        struct sdp_db *p_db = (struct sdp_db *)common_list_pick(&p_env->svr_list);
+        struct db *p_st;
+
+        srv_idx=1;
+        while (p_db) {      // get svr_idx of this svr
+            p_st = &p_db->svr;
+            if(memcmp(p_st->svc.uuid,p_svr->svc.uuid,16)==0)
+            {
+                break;
+            }
+            p_db = (struct sdp_db *)common_list_next(&p_db->hdr);
+            srv_idx++;
+        }
+
+        for(int i=0; i<p_svr->chars_nb; i++)
+        {
+            desc_index = 0;
+            if(p_svr->chars[i].uuid_type == BK_PERM_RIGHT_UUID_128)
             {
                 uuid_len = 16;
-            }else
+            }
+            else
             {
                 uuid_len = 2;
             }
             memset(uuid_str,0,33);
             buffer_ptr=uuid_str;
-            for(int i=0;i<uuid_len;i++)
+
+            for(int j=0; j<uuid_len; j++)
             {
-                buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",p_svr->svc.uuid[uuid_len-i-1]);
+                buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",p_svr->chars[i].uuid[uuid_len-j-1]);
             }
             memset(ble_buf,0,sizeof(ble_buf));
-            ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTCPRIMSRV:%d,%d,0x%s,1\r\n",con_idx,srv_idx,uuid_str);
+            ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTCCHAR:\"char\",%d,%d,%d,0x%s,0x%x\r\n",con_idx,srv_idx,i+1,uuid_str,p_svr->chars[i].prop);
             atsvr_output_msg(ble_buf,ble_len);
-            atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
-        }
-            break;
-        case SDP_ATT_SVR_ATT_BY_SVR_UUID:
-        {
-            struct db *p_svr=(struct db *)param;
-            uint8_t uuid_len;
-            char uuid_str[32+1];
-            char *buffer_ptr;
-            uint16_t hdl;
-            char ble_buf[200];
-            int ble_len=0;
-            uint8_t srv_idx;
-            uint8_t desc_index;
-            uint8_t char_end_hdl;
-            struct sdp_env_tag * p_env = sdp_get_env_use_conidx(con_idx);
-            struct sdp_db *p_db = (struct sdp_db *)common_list_pick(&p_env->svr_list);
-            struct db *p_st;
 
-            srv_idx=1;
-            while (p_db) {      // get svr_idx of this svr
-                p_st = &p_db->svr;
-                if(memcmp(p_st->svc.uuid,p_svr->svc.uuid,16)==0)
-                {
-                    break;
-                }
-                p_db = (struct sdp_db *)common_list_next(&p_db->hdr);
-                srv_idx++;
-            }
-
-            for(int i=0;i<p_svr->chars_nb;i++)
+            hdl = p_svr->chars[i].val_hdl+1;
+            if (i==p_svr->chars_nb - 1)
             {
-                desc_index = 0;
-                if(p_svr->chars[i].uuid_type == BK_PERM_RIGHT_UUID_128)
+                char_end_hdl = p_svr->svc.end_hdl;
+            } else
+            {
+                char_end_hdl = p_svr->chars[i+1].val_hdl-2;
+            }
+            for(int desc_hdl=hdl; desc_hdl<=char_end_hdl; desc_hdl++)
+            {
+                for(int des_idx=0; des_idx<p_svr->descs_nb; des_idx++)
                 {
-                    uuid_len = 16;
-                }
-                else
-                {
-                    uuid_len = 2;
-                }
-                memset(uuid_str,0,33);
-                buffer_ptr=uuid_str;
-
-                for(int j=0;j<uuid_len;j++)
-                {
-                    buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",p_svr->chars[i].uuid[uuid_len-j-1]);
-                }
-                memset(ble_buf,0,sizeof(ble_buf));
-                ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTCCHAR:\"char\",%d,%d,%d,0x%s,0x%x\r\n",con_idx,srv_idx,i+1,uuid_str,p_svr->chars[i].prop);
-                atsvr_output_msg(ble_buf,ble_len);
-
-                hdl = p_svr->chars[i].val_hdl+1;
-                if (i==p_svr->chars_nb - 1)
-                {
-                    char_end_hdl = p_svr->svc.end_hdl;
-                } else
-                {
-                    char_end_hdl = p_svr->chars[i+1].val_hdl-2;
-                }
-                for(int desc_hdl=hdl;desc_hdl<=char_end_hdl;desc_hdl++)
-                {
-                    for(int des_idx=0;des_idx<p_svr->descs_nb;des_idx++)
+                    if(desc_hdl == p_svr->descs[des_idx].desc_hdl)
                     {
-                        if(desc_hdl == p_svr->descs[des_idx].desc_hdl)
+                        desc_index++;
+                        if(p_svr->descs[des_idx].uuid_type == BK_PERM_RIGHT_UUID_128)
                         {
-                            desc_index++;
-                            if(p_svr->descs[des_idx].uuid_type == BK_PERM_RIGHT_UUID_128)
-                            {
-                                uuid_len = 16;
-                            }else
-                            {
-                                uuid_len = 2;
-                            }
-                            memset(uuid_str,0,33);
-                            buffer_ptr=uuid_str;
-                            for(int j=0;j<uuid_len;j++)
-                            {
-                                buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",p_svr->descs[des_idx].uuid[uuid_len-j-1]);
-                            }
-
-                            memset(ble_buf,0,sizeof(ble_buf));
-                            ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTCCHAR:\"desc\",%d,%d,%d,%d,0x%s,0x%x\r\n",con_idx,srv_idx,i+1,desc_index,uuid_str,p_svr->descs[des_idx].prop);
-                            atsvr_output_msg(ble_buf,ble_len);
+                            uuid_len = 16;
+                        } else
+                        {
+                            uuid_len = 2;
                         }
+                        memset(uuid_str,0,33);
+                        buffer_ptr=uuid_str;
+                        for(int j=0; j<uuid_len; j++)
+                        {
+                            buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",p_svr->descs[des_idx].uuid[uuid_len-j-1]);
+                        }
+
+                        memset(ble_buf,0,sizeof(ble_buf));
+                        ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTCCHAR:\"desc\",%d,%d,%d,%d,0x%s,0x%x\r\n",con_idx,srv_idx,i+1,desc_index,uuid_str,p_svr->descs[des_idx].prop);
+                        atsvr_output_msg(ble_buf,ble_len);
                     }
                 }
-                atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
             }
+            atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
         }
-            break;
-        default:
-            break;
+    }
+    break;
+    default:
+        break;
     }
 }
 
 void at_sdp_event_cb(sdp_notice_t notice, void *param)
 {
     switch (notice) {
-        case SDP_CHARAC_NOTIFY_EVENT:
-            {
-                sdp_event_t *g_sdp = (sdp_event_t *)param;
-                char ble_buf[50];
-                int ble_len=0;
-                memset(ble_buf,0,sizeof(ble_buf));
-                ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTSNTFY:%d,%d",g_sdp->con_idx,g_sdp->value_length);
-                ble_len += snprintf(ble_buf+ble_len,sizeof(ble_buf),"\r\n");
-                atsvr_output_msg(ble_buf,ble_len);
-                atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
-            }
-            break;
-        case SDP_CHARAC_INDICATE_EVENT:
-            {
-                sdp_event_t *g_sdp = (sdp_event_t *)param;
-                char ble_buf[50];
-                int ble_len=0;
-                memset(ble_buf,0,sizeof(ble_buf));
-                ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTSIND:%d,%d",g_sdp->con_idx,g_sdp->value_length);
-                ble_len += snprintf(ble_buf+ble_len,sizeof(ble_buf),"\r\n");
-                atsvr_output_msg(ble_buf,ble_len);
-                atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
-            }
-            break;
-        case SDP_CHARAC_READ:
-            {
-                sdp_event_t *g_sdp = (sdp_event_t *)param;
-                char ble_buf[50];
-                int ble_len=0;
-                memset(ble_buf,0,sizeof(ble_buf));
-                ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTCRD:%d,%d",g_sdp->con_idx,g_sdp->value_length);
-                ble_len += snprintf(ble_buf+ble_len,sizeof(ble_buf),"\r\n");
-                atsvr_output_msg(ble_buf,ble_len);
-                atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
-            }
-            break;
-        case SDP_DISCOVER_SVR_DONE:
-            {
-                bk_printf("[SDP_DISCOVER_SVR_DONE]\r\n");
-            }
-            break;
-        case SDP_CHARAC_WRITE_DONE:
-            {
-                bk_printf("[SDP_CHARAC_WRITE_DONE]\r\n");
-            }
-            break;
-        default:
-            bk_printf("[%s]Event:%d\r\n",__func__,notice);
-            break;
+    case SDP_CHARAC_NOTIFY_EVENT:
+    {
+        sdp_event_t *g_sdp = (sdp_event_t *)param;
+        char ble_buf[50];
+        int ble_len=0;
+        memset(ble_buf,0,sizeof(ble_buf));
+        ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTSNTFY:%d,%d",g_sdp->con_idx,g_sdp->value_length);
+        ble_len += snprintf(ble_buf+ble_len,sizeof(ble_buf),"\r\n");
+        atsvr_output_msg(ble_buf,ble_len);
+        atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
+    }
+    break;
+    case SDP_CHARAC_INDICATE_EVENT:
+    {
+        sdp_event_t *g_sdp = (sdp_event_t *)param;
+        char ble_buf[50];
+        int ble_len=0;
+        memset(ble_buf,0,sizeof(ble_buf));
+        ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTSIND:%d,%d",g_sdp->con_idx,g_sdp->value_length);
+        ble_len += snprintf(ble_buf+ble_len,sizeof(ble_buf),"\r\n");
+        atsvr_output_msg(ble_buf,ble_len);
+        atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
+    }
+    break;
+    case SDP_CHARAC_READ:
+    {
+        sdp_event_t *g_sdp = (sdp_event_t *)param;
+        char ble_buf[50];
+        int ble_len=0;
+        memset(ble_buf,0,sizeof(ble_buf));
+        ble_len = snprintf(ble_buf,sizeof(ble_buf),"+BLEGATTCRD:%d,%d",g_sdp->con_idx,g_sdp->value_length);
+        ble_len += snprintf(ble_buf+ble_len,sizeof(ble_buf),"\r\n");
+        atsvr_output_msg(ble_buf,ble_len);
+        atsvr_output_msg("OK\r\n",strlen("OK\r\n"));
+    }
+    break;
+    case SDP_DISCOVER_SVR_DONE:
+    {
+        bk_printf("[SDP_DISCOVER_SVR_DONE]\r\n");
+    }
+    break;
+    case SDP_CHARAC_WRITE_DONE:
+    {
+        bk_printf("[SDP_CHARAC_WRITE_DONE]\r\n");
+    }
+    break;
+    default:
+        bk_printf("[%s]Event:%d\r\n",__func__,notice);
+        break;
     }
 }
 
@@ -663,7 +677,7 @@ static void at_ble_set_mode(int argc, char **argv)
 static void at_ble_get_mac(int argc, char **argv)
 {
     uint8_t len;
-    uint8_t mac[6]={0};
+    uint8_t mac[6]= {0};
 
     bk_ble_get_mac(mac);
     bk_printf("get ble mac: %02x:%02x:%02x:%02x:%02x:%02x\r\n",mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
@@ -731,11 +745,11 @@ static void at_ble_get_scan_param(int argc, char **argv)
     memset(at_rsp_msg_buf,0,sizeof(at_rsp_msg_buf));
 
     len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLESCANPARAM:%d,%d,%d,%d,%d\r\nOK\r\n",
-    hal_ble_env.scan.scan_type,
-    hal_ble_env.scan.own_addr_type,
-    hal_ble_env.scan.filter_policy,
-    hal_ble_env.scan.scan_intvl,
-    hal_ble_env.scan.scan_wd);
+                 hal_ble_env.scan.scan_type,
+                 hal_ble_env.scan.own_addr_type,
+                 hal_ble_env.scan.filter_policy,
+                 hal_ble_env.scan.scan_intvl,
+                 hal_ble_env.scan.scan_wd);
 
     atsvr_output_msg(at_rsp_msg_buf,len);
 }
@@ -753,8 +767,8 @@ static void at_ble_set_scan_param(int argc, char **argv)
     scan_intv = os_strtoul(argv[4], NULL, 10);
     scan_wd = os_strtoul(argv[5], NULL, 10);
     if (scan_intv < SCAN_INTERVAL_MIN || scan_intv > SCAN_INTERVAL_MAX ||
-        scan_wd < SCAN_WINDOW_MIN || scan_wd > SCAN_WINDOW_MAX ||
-        scan_intv < scan_wd)
+            scan_wd < SCAN_WINDOW_MIN || scan_wd > SCAN_WINDOW_MAX ||
+            scan_intv < scan_wd)
     {
         bk_printf("\nThe four/five param is wrong!\n");
         atsvr_output_msg("ERROR\r\n",strlen("ERROR"));
@@ -777,11 +791,11 @@ static void at_ble_set_scan_param(int argc, char **argv)
 
 
     bk_printf("scan param:%d,%d,%d,%d,%d\r\n",
-    hal_ble_env.scan.scan_type,
-    hal_ble_env.scan.own_addr_type,
-    hal_ble_env.scan.filter_policy,
-    hal_ble_env.scan.scan_intvl,
-    hal_ble_env.scan.scan_wd);
+              hal_ble_env.scan.scan_type,
+              hal_ble_env.scan.own_addr_type,
+              hal_ble_env.scan.filter_policy,
+              hal_ble_env.scan.scan_intvl,
+              hal_ble_env.scan.scan_wd);
 
     atsvr_output_msg("OK\r\n",4);
 
@@ -839,7 +853,7 @@ static void at_ble_enable_scan(int argc, char **argv)
 
         hal_ble_env.scan.scan_idx = app_ble_get_idle_actv_idx_handle(SCAN_ACTV);
         bk_printf("bk_ble_scan_start idx:%d,filter_type:%d,len:%d,%d,%d\r\n",hal_ble_env.scan.scan_idx,scan_info.filter_type,
-        len,scan_info.interval,scan_info.window);
+                  len,scan_info.interval,scan_info.window);
         ret = bk_ble_scan_start(hal_ble_env.scan.scan_idx,&scan_info,at_ble_cmd_cb);
         if(ret == ERR_SUCCESS)
             hal_ble_env.scan.scan_state = 1;
@@ -863,7 +877,7 @@ static void at_ble_enable_scan(int argc, char **argv)
 
 static void at_ble_server_create(int argc, char **argv)
 {
-    uint8_t header[4]={0};
+    uint8_t header[4]= {0};
     uint16_t data_len=0;
     uint8_t  *data_buf;
     uint8_t att_offset =0;
@@ -902,14 +916,14 @@ static void at_ble_server_create(int argc, char **argv)
     bk_flash_read(BK_PARTITION_BLE_SVR_CONFIG,4,data_buf,data_len);
 
     bk_printf("ble server data: ");
-    for(int i=0;i<data_len;i++)
+    for(int i=0; i<data_len; i++)
     {
         bk_printf("%c",data_buf[i]);
     }
     bk_printf("\r\n");
 
     cJSON *root = NULL,*service = NULL,*index=NULL,*server_list=NULL,
-    *uuid=NULL,*uuid_len=NULL,*val_max_len=NULL,*value=NULL,*perm=NULL,*val_cur_len=NULL;
+           *uuid=NULL,*uuid_len=NULL,*val_max_len=NULL,*value=NULL,*perm=NULL,*val_cur_len=NULL;
 
     root = cJSON_Parse((const char *)data_buf);
     service = cJSON_GetObjectItem(root, "Service");
@@ -1014,7 +1028,7 @@ static void at_ble_server_create(int argc, char **argv)
 
             hexstr2bin(uuid->valuestring,srv_tmp->att_db[att_offset++].uuid,uuid_len->valueint>>3);
 
-            for(int i=0;i<uuid_len->valueint>>4;i++)
+            for(int i=0; i<uuid_len->valueint>>4; i++)
             {
                 bk_printf("1uuid[%d]:%02x,uuid[%d]:%02x\r\n",i,srv_tmp->att_db[att_offset-1].uuid[i],(uuid_len->valueint>>3)-1-i,srv_tmp->att_db[att_offset-1].uuid[(uuid_len->valueint>>3)-1-i]);
                 uint8_t tmp;
@@ -1028,10 +1042,10 @@ static void at_ble_server_create(int argc, char **argv)
     }
 
     srv_tmp=srv_db_list.srv;
-    for(int i=0;i<srv_db_list.srv_num;i++)
+    for(int i=0; i<srv_db_list.srv_num; i++)
     {
         bk_printf("server[%d]:\r\n",i);
-        for(int j=0;j<srv_tmp->max_att_handle;j++)
+        for(int j=0; j<srv_tmp->max_att_handle; j++)
         {
             bk_printf("perm:%d,ext_perm:%d,uuid:%x:%x\r\n",srv_tmp->att_db[j].info,srv_tmp->att_db[j].ext_info,srv_tmp->att_db[j].uuid[0],srv_tmp->att_db[j].uuid[1]);
         }
@@ -1050,9 +1064,9 @@ static void at_ble_server_start(int argc, char **argv)
     if(srv_index)
     {
         at_bk_ble_svr_init(srv_index);
-    }else
+    } else
     {
-        for(int i=1;i<=srv_db_list.srv_num;i++)
+        for(int i=1; i<=srv_db_list.srv_num; i++)
         {
             at_bk_ble_svr_init(i);
         }
@@ -1077,17 +1091,17 @@ static void at_ble_server_read(int argc, char **argv)
 
     srv_tmp=srv_db_list.srv;
 
-    for(int index=0;index<srv_db_list.srv_num;index++)
+    for(int index=0; index<srv_db_list.srv_num; index++)
     {
         buffer_ptr=uuid_str;
 
-        for(int i=0;i<srv_tmp->uuidLen;i++)
+        for(int i=0; i<srv_tmp->uuidLen; i++)
         {
             buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",srv_tmp->uuid[i]);
         }
 
         len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEGATTSSRV:%d,%d,0x%s,1\r\n",
-                                                    (srv_tmp->service_id),srv_tmp->start,uuid_str);
+                     (srv_tmp->service_id),srv_tmp->start,uuid_str);
         atsvr_output_msg(at_rsp_msg_buf,len);
         srv_tmp=srv_tmp->next;
     }
@@ -1108,11 +1122,11 @@ static void at_ble_character_read(int argc, char **argv)
 
     srv_tmp=srv_db_list.srv;
 
-    for(int i=0;i<srv_db_list.srv_num;i++)
+    for(int i=0; i<srv_db_list.srv_num; i++)
     {
         att_index=0;
         char_index=0;
-        while(att_index<srv_tmp->max_att_handle){
+        while(att_index<srv_tmp->max_att_handle) {
             if (srv_tmp->att_db[att_index].uuid[0]==0x03 && srv_tmp->att_db[att_index].uuid[1]==0x28)
             {
                 char_index++;
@@ -1125,22 +1139,22 @@ static void at_ble_character_read(int argc, char **argv)
                     uuidLen=2;
 
                 buffer_ptr=uuid_str;
-                for(int i=0;i<uuidLen;i++)
+                for(int i=0; i<uuidLen; i++)
                 {
                     buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",srv_tmp->att_db[att_index].uuid[i]);
                 }
 
                 len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEGATTSCHAR:\"char\",%d,%d,0x%s,0x%x\r\n",
-                                                    srv_tmp->service_id,char_index,uuid_str,srv_tmp->att_db[att_index].info);
+                             srv_tmp->service_id,char_index,uuid_str,srv_tmp->att_db[att_index].info);
                 atsvr_output_msg(at_rsp_msg_buf,len);
 
-            }else if(srv_tmp->att_db[att_index].uuid[0]<=0x05 && srv_tmp->att_db[att_index].uuid[1]==0x29)
+            } else if(srv_tmp->att_db[att_index].uuid[0]<=0x05 && srv_tmp->att_db[att_index].uuid[1]==0x29)
             {
                 desc_index++;
                 len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEGATTSCHAR:\"desc\",%d,%d,%d\r\n",
-                                                    srv_tmp->service_id,char_index,desc_index);
+                             srv_tmp->service_id,char_index,desc_index);
                 atsvr_output_msg(at_rsp_msg_buf,len);
-            }else
+            } else
             {
                 bk_printf("att_uuid:%02x %02x\r\n",srv_tmp->att_db[att_index].uuid[0],srv_tmp->att_db[att_index].uuid[1]);
             }
@@ -1226,7 +1240,7 @@ static void at_ble_set_advdata_ex(int argc, char **argv)
 
     bk_printf("adv_info.advDataLen:%d\r\n",adv_info.advDataLen);
     bk_printf("advData:");
-    for(int i=0;i<adv_info.advDataLen;i++)
+    for(int i=0; i<adv_info.advDataLen; i++)
     {
         bk_printf("%02x ",adv_info.advData[i]);
     }
@@ -1252,23 +1266,23 @@ static void at_ble_get_advdata_ex(int argc, char **argv)
     char manufacturer_data_str[32];
 
     buffer_ptr=uuid_str;
-    for(int i=0;i<hal_ble_env.adv.uuid_len;i++)
+    for(int i=0; i<hal_ble_env.adv.uuid_len; i++)
     {
         buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",hal_ble_env.adv.uuid[i]);
     }
 
     buffer_ptr=manufacturer_data_str;
-    for(int i=0;i<hal_ble_env.adv.manufacturer_data_len;i++)
+    for(int i=0; i<hal_ble_env.adv.manufacturer_data_len; i++)
     {
         buffer_ptr+=snprintf(buffer_ptr,sizeof(manufacturer_data_str)-(buffer_ptr-manufacturer_data_str),"%02x",hal_ble_env.adv.manufacturer_data[i]);
     }
     bk_printf("dev_name:%s,uuid:%s,manufacturer_data:%s,include_power:%d\r\n",hal_ble_env.adv.adv_name,uuid_str,manufacturer_data_str,hal_ble_env.adv.include_power);
 
     len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEADVDATAEX:\"%s\",\"%s\",\"%s\",%d\r\nOK\r\n",
-    hal_ble_env.adv.adv_name,
-    uuid_str,
-    manufacturer_data_str,
-    hal_ble_env.adv.include_power);
+                 hal_ble_env.adv.adv_name,
+                 uuid_str,
+                 manufacturer_data_str,
+                 hal_ble_env.adv.include_power);
 
     atsvr_output_msg(at_rsp_msg_buf,len);
 }
@@ -1340,10 +1354,10 @@ static void at_ble_get_adv_param(int argc, char **argv)
     uint16_t len;
 
     len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEADVPARAM:%d,%d,%d,%d\r\nOK\r\n",
-    hal_ble_env.adv.interval_min,
-    hal_ble_env.adv.interval_max,
-    hal_ble_env.adv.adv_type,
-    hal_ble_env.adv.channel_map);
+                 hal_ble_env.adv.interval_min,
+                 hal_ble_env.adv.interval_max,
+                 hal_ble_env.adv.adv_type,
+                 hal_ble_env.adv.channel_map);
 
     atsvr_output_msg(at_rsp_msg_buf,len);
 }
@@ -1366,10 +1380,10 @@ static void at_ble_start_adv(int argc, char **argv)
     if(app_ble_actv_state_find(ACTV_ADV_STARTED)!=UNKNOW_ACT_IDX)
     {
         bk_printf("adv started\n");
-    }else if(app_ble_actv_state_find(ACTV_ADV_CREATED)!=UNKNOW_ACT_IDX)
+    } else if(app_ble_actv_state_find(ACTV_ADV_CREATED)!=UNKNOW_ACT_IDX)
     {
         bk_ble_start_advertising(app_ble_actv_state_find(ACTV_ADV_CREATED),0,at_ble_cmd_cb);
-    }else
+    } else
     {
         hal_ble_env.adv.adv_idx = app_ble_get_idle_actv_idx_handle(ADV_ACTV);
         bk_ble_adv_start(hal_ble_env.adv.adv_idx, &adv_info, at_ble_cmd_cb);
@@ -1395,12 +1409,12 @@ static void at_ble_get_con_param(int argc, char **argv)
     }
 
     len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLECONNPARAM:%d,%d,%d,%d,%d,%d\r\nOK\r\n",
-    hal_ble_env.sdp_conn_idx,
-    hal_ble_env.conn.con_interval,
-    hal_ble_env.conn.con_interval,
-    hal_ble_env.conn.con_interval,
-    hal_ble_env.conn.con_latency,
-    hal_ble_env.conn.sup_to);
+                 hal_ble_env.sdp_conn_idx,
+                 hal_ble_env.conn.con_interval,
+                 hal_ble_env.conn.con_interval,
+                 hal_ble_env.conn.con_interval,
+                 hal_ble_env.conn.con_latency,
+                 hal_ble_env.conn.sup_to);
 
     atsvr_output_msg(at_rsp_msg_buf,len);
 }
@@ -1441,95 +1455,95 @@ void at_sdp_comm_callback(MASTER_COMMON_TYPE type, uint8 conidx, void *param)
     char *buffer_ptr;
 
     switch (type) {
-        case MST_TYPE_ATTC_SVR_UUID:
-            bk_printf("MST_TYPE_ATTC_SVR_UUID\r\n");
-            struct mst_sdp_svc_ind *svr=(struct mst_sdp_svc_ind *)param;
+    case MST_TYPE_ATTC_SVR_UUID:
+        bk_printf("MST_TYPE_ATTC_SVR_UUID\r\n");
+        struct mst_sdp_svc_ind *svr=(struct mst_sdp_svc_ind *)param;
 
-            buffer_ptr=uuid_str;
-            for(int i=0;i<svr->uuid_len;i++)
-            {
-                buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",svr->uuid[svr->uuid_len-1-i]);
-            }
+        buffer_ptr=uuid_str;
+        for(int i=0; i<svr->uuid_len; i++)
+        {
+            buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",svr->uuid[svr->uuid_len-1-i]);
+        }
 
-            len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEGATTCPRIMSRV:%d,%d,0x%s,1\r\n",
-                                                        hal_ble_env.sdp_conn_idx,svr->svr_id,uuid_str);
-            atsvr_output_msg(at_rsp_msg_buf,len);
+        len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEGATTCPRIMSRV:%d,%d,0x%s,1\r\n",
+                     hal_ble_env.sdp_conn_idx,svr->svr_id,uuid_str);
+        atsvr_output_msg(at_rsp_msg_buf,len);
 
-            bk_printf("svrid:%d,handle:%d-%d,uuid_len:%d,uuid:%02x %02x\r\n",svr->svr_id,svr->start_hdl,svr->end_hdl,svr->uuid_len,svr->uuid[0],svr->uuid[1]);
+        bk_printf("svrid:%d,handle:%d-%d,uuid_len:%d,uuid:%02x %02x\r\n",svr->svr_id,svr->start_hdl,svr->end_hdl,svr->uuid_len,svr->uuid[0],svr->uuid[1]);
 
-            break;
+        break;
 
-        case MST_TYPE_ATTC_ATT_UUID:
+    case MST_TYPE_ATTC_ATT_UUID:
 
-            bk_printf("MST_TYPE_ATTC_ATT_UUID\r\n");
-            struct mst_sdp_char_inf *att=(struct mst_sdp_char_inf *)param;
+        bk_printf("MST_TYPE_ATTC_ATT_UUID\r\n");
+        struct mst_sdp_char_inf *att=(struct mst_sdp_char_inf *)param;
 
-            buffer_ptr=uuid_str;
-            for(int i=0;i<att->uuid_len;i++)
-            {
-                buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",att->uuid[att->uuid_len-1-i]);
-            }
+        buffer_ptr=uuid_str;
+        for(int i=0; i<att->uuid_len; i++)
+        {
+            buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",att->uuid[att->uuid_len-1-i]);
+        }
 
-            len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEGATTCCHAR:\"char\",%d,%d,%d,0x%s,0x%x\r\n",
-                                                                        hal_ble_env.sdp_conn_idx,att->svr_id,
-                                                                        att->val_hdl,uuid_str,att->prop);
+        len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEGATTCCHAR:\"char\",%d,%d,%d,0x%s,0x%x\r\n",
+                     hal_ble_env.sdp_conn_idx,att->svr_id,
+                     att->val_hdl,uuid_str,att->prop);
 
-            atsvr_output_msg(at_rsp_msg_buf,len);
-            bk_printf("svrid:%d,handle:%d-%d,uuid_len:%d,uuid:%02x %02x\r\n",att->svr_id,att->char_hdl,att->val_hdl,att->uuid_len,att->uuid[0],att->uuid[1]);
-            break;
+        atsvr_output_msg(at_rsp_msg_buf,len);
+        bk_printf("svrid:%d,handle:%d-%d,uuid_len:%d,uuid:%02x %02x\r\n",att->svr_id,att->char_hdl,att->val_hdl,att->uuid_len,att->uuid[0],att->uuid[1]);
+        break;
 
-        case MST_TYPE_ATTC_ATT_DESC:
-            bk_printf("MST_TYPE_ATTC_ATT_DESC\r\n");
-            struct mst_sdp_char_desc_inf *desc=(struct mst_sdp_char_desc_inf *)param;
+    case MST_TYPE_ATTC_ATT_DESC:
+        bk_printf("MST_TYPE_ATTC_ATT_DESC\r\n");
+        struct mst_sdp_char_desc_inf *desc=(struct mst_sdp_char_desc_inf *)param;
 
-            buffer_ptr=uuid_str;
-            for(int i=0;i<desc->uuid_len;i++)
-            {
-                buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",desc->uuid[desc->uuid_len-1-i]);
-            }
+        buffer_ptr=uuid_str;
+        for(int i=0; i<desc->uuid_len; i++)
+        {
+            buffer_ptr+=snprintf(buffer_ptr,sizeof(uuid_str)-(buffer_ptr-uuid_str),"%02x",desc->uuid[desc->uuid_len-1-i]);
+        }
 
-            len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEGATTCCHAR:\"desc\",%d,%d,%d,%d,0x%s\r\n",
-                                                                        hal_ble_env.sdp_conn_idx,desc->svr_id,
-                                                                        desc->desc_hdl,desc->desc_hdl,uuid_str);
+        len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEGATTCCHAR:\"desc\",%d,%d,%d,%d,0x%s\r\n",
+                     hal_ble_env.sdp_conn_idx,desc->svr_id,
+                     desc->desc_hdl,desc->desc_hdl,uuid_str);
 
-            atsvr_output_msg(at_rsp_msg_buf,len);
+        atsvr_output_msg(at_rsp_msg_buf,len);
 
-            bk_printf("svrid:%d,handle:%d-%d,uuid_len:%d,uuid:%02x %02x\r\n",desc->svr_id,desc->char_code,desc->desc_hdl,desc->uuid_len,desc->uuid[0],desc->uuid[1]);
-            break;
+        bk_printf("svrid:%d,handle:%d-%d,uuid_len:%d,uuid:%02x %02x\r\n",desc->svr_id,desc->char_code,desc->desc_hdl,desc->uuid_len,desc->uuid[0],desc->uuid[1]);
+        break;
 
-        case MST_TYPE_ATTC_END:
-            bk_printf("MST_TYPE_ATTC_END\r\n");
-            if(hal_ble_env.sdp_svr_ing)
-            {
-                atsvr_output_msg("OK\r\n",4);
-                hal_ble_env.sdp_svr_ing=0;
-            }
+    case MST_TYPE_ATTC_END:
+        bk_printf("MST_TYPE_ATTC_END\r\n");
+        if(hal_ble_env.sdp_svr_ing)
+        {
+            atsvr_output_msg("OK\r\n",4);
+            hal_ble_env.sdp_svr_ing=0;
+        }
 
-            if(hal_ble_env.sdp_char_ing)
-            {
-                atsvr_output_msg("OK\r\n",4);
-                hal_ble_env.sdp_char_ing=0;
-            }
-            break;
+        if(hal_ble_env.sdp_char_ing)
+        {
+            atsvr_output_msg("OK\r\n",4);
+            hal_ble_env.sdp_char_ing=0;
+        }
+        break;
 
-        case MST_TYPE_MTU_EXC:
-            bk_printf("MST_TYPE_MTU_EXC\r\n");
-            break;
+    case MST_TYPE_MTU_EXC:
+        bk_printf("MST_TYPE_MTU_EXC\r\n");
+        break;
 
-        case MST_TYPE_MTU_EXC_DONE:
-            bk_printf("MST_TYPE_MTU_EXC_DONE\r\n");
-            break;
+    case MST_TYPE_MTU_EXC_DONE:
+        bk_printf("MST_TYPE_MTU_EXC_DONE\r\n");
+        break;
 
-        case MST_TYPE_UPP_ASK:
-            bk_printf("MST_TYPE_UPP_ASK\r\n");
-            break;
+    case MST_TYPE_UPP_ASK:
+        bk_printf("MST_TYPE_UPP_ASK\r\n");
+        break;
 
-        case MST_TYPE_INIT_CREATE_OK:
-            bk_printf("MST_TYPE_INIT_CREATE_OK\r\n");
-            break;
+    case MST_TYPE_INIT_CREATE_OK:
+        bk_printf("MST_TYPE_INIT_CREATE_OK\r\n");
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 }
 
@@ -1538,9 +1552,9 @@ static void at_ble_connected_callback(uint8_t conn_idx, uint8_t *remote_address)
     uint16_t len;
 
     len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLECONN:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\r\nOK\r\n",
-    conn_idx,
-    remote_address[0], remote_address[1], remote_address[2],
-    remote_address[3], remote_address[4], remote_address[5]);
+                 conn_idx,
+                 remote_address[0], remote_address[1], remote_address[2],
+                 remote_address[3], remote_address[4], remote_address[5]);
 
     memcpy(hal_ble_env.remote_address,remote_address,6);
     hal_ble_env.conn.con_state = 1;
@@ -1595,9 +1609,9 @@ static void at_ble_get_con_info(int argc, char **argv)
         return;
     }
     len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLECONN:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\r\nOK\r\n",
-    hal_ble_env.sdp_conn_idx,
-    hal_ble_env.remote_address[0], hal_ble_env.remote_address[1], hal_ble_env.remote_address[2],
-    hal_ble_env.remote_address[3], hal_ble_env.remote_address[4], hal_ble_env.remote_address[5]);
+                 hal_ble_env.sdp_conn_idx,
+                 hal_ble_env.remote_address[0], hal_ble_env.remote_address[1], hal_ble_env.remote_address[2],
+                 hal_ble_env.remote_address[3], hal_ble_env.remote_address[4], hal_ble_env.remote_address[5]);
 
     atsvr_output_msg(at_rsp_msg_buf,len);
 }
@@ -1607,9 +1621,9 @@ static void at_ble_disconnect_callback(uint8_t conn_idx)
     uint16_t len;
 
     len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLEDISCONN:%d,\"%02x:%02x:%02x:%02x:%02x:%02x\r\n",
-    conn_idx,
-    hal_ble_env.remote_address[0],hal_ble_env. remote_address[1], hal_ble_env.remote_address[2],
-    hal_ble_env.remote_address[3], hal_ble_env.remote_address[4], hal_ble_env.remote_address[5]);
+                 conn_idx,
+                 hal_ble_env.remote_address[0],hal_ble_env. remote_address[1], hal_ble_env.remote_address[2],
+                 hal_ble_env.remote_address[3], hal_ble_env.remote_address[4], hal_ble_env.remote_address[5]);
     hal_ble_env.conn.con_state = 0;
 
     atsvr_output_msg(at_rsp_msg_buf,len);
@@ -1648,7 +1662,7 @@ static void at_ble_set_pkt_size(int argc, char **argv)
 static void at_ble_get_con_mtu(int argc, char **argv)
 {
     uint8_t len=0;
-    uint16_t mtu[1]={0};
+    uint16_t mtu[1]= {0};
     uint8_t conn_index=hal_ble_env.sdp_conn_idx;
 
     if(hal_ble_env.sdp_conn_idx==0xff)
@@ -1661,7 +1675,7 @@ static void at_ble_get_con_mtu(int argc, char **argv)
     bk_ble_get_con_mtu(conn_index,mtu);
 
     len=snprintf(at_rsp_msg_buf,sizeof(at_rsp_msg_buf),"+BLECFGMTU:%d,%d\r\nOK\r\n",
-    hal_ble_env.sdp_conn_idx,mtu[0]);
+                 hal_ble_env.sdp_conn_idx,mtu[0]);
 
     atsvr_output_msg(at_rsp_msg_buf,len);
 
@@ -1693,17 +1707,17 @@ uint8_t at_ble_get_att_index_of_char_value(uint8_t srv_index, uint8_t char_index
     uint8_t att_idx=0;
 
     srv_tmp=srv_db_list.srv;
-    for(int i=0;i<srv_db_list.srv_num;i++)
+    for(int i=0; i<srv_db_list.srv_num; i++)
     {
         if(srv_tmp->service_id == srv_index)
         {
             char_idx = 0;
-            for(int j=0;j<srv_tmp->max_att_handle;j++)
+            for(int j=0; j<srv_tmp->max_att_handle; j++)
             {
                 if (srv_tmp->att_db[j].uuid[0]==0x03 && srv_tmp->att_db[j].uuid[1]==0x28)
                 {
                     char_idx++;
-                    if(char_idx == char_index){
+                    if(char_idx == char_index) {
                         att_idx = j+1;//char value declaration after char declaration
                         break;
                     }
@@ -1749,7 +1763,7 @@ static void at_ble_send_notofy(int argc, char **argv)
     atsvr_output_msg(">",1);
     read_len=atsvr_input_msg_get(data,length);
 
-    for(int i=0;i<read_len;i++)
+    for(int i=0; i<read_len; i++)
     {
         bk_printf("%02x",data[i]);
     }
@@ -1802,7 +1816,7 @@ static void at_ble_send_indicate(int argc, char **argv)
     atsvr_output_msg(">",1);
     read_len=atsvr_input_msg_get((char *)data,length);
 
-    for(int i=0;i<read_len;i++)
+    for(int i=0; i<read_len; i++)
     {
         bk_printf("%02x",data[i]);
     }
@@ -1953,7 +1967,7 @@ static void at_ble_gattc_set_value(int argc, char **argv)
     atsvr_output_msg(">",1);
     read_len=atsvr_input_msg_get((char *)data,data_len);
 
-    for(int i=0;i<read_len;i++)
+    for(int i=0; i<read_len; i++)
     {
         bk_printf("%02x",data[i]);
     }
@@ -2094,13 +2108,13 @@ static void at_ble_param_debug_printf(void)
         bk_printf("sup_to:%d\r\n",g_env_param.ble_param.sup_to);
 
         bk_printf("advData:");
-        for(int i=0;i<hal_ble_env.adv.advDataLen;i++)
+        for(int i=0; i<hal_ble_env.adv.advDataLen; i++)
         {
             bk_printf("%02x",hal_ble_env.adv.advData[i]);
         }
         bk_printf("\r\n");
         bk_printf("respData:");
-        for(int i=0;i<hal_ble_env.adv.respDataLen;i++)
+        for(int i=0; i<hal_ble_env.adv.respDataLen; i++)
         {
             bk_printf("%02x",hal_ble_env.adv.respData[i]);
         }

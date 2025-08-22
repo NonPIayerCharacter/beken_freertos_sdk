@@ -415,7 +415,7 @@ enum gap_auth_mask
     GAP_AUTH_KEY_NOTIF = (1 << 4)
 };
 
-/// Security Link Level
+/// Security Link Level, LE security mode 1
 enum gap_lk_sec_lvl
 {
     /// No authentication
@@ -424,7 +424,7 @@ enum gap_lk_sec_lvl
     GAP_LK_UNAUTH,
     /// Authenticated link
     GAP_LK_AUTH,
-    /// Secure Connection link
+    /// Authenticated Secure Connection link
     GAP_LK_SEC_CON,
 };
 
@@ -432,17 +432,23 @@ enum gap_lk_sec_lvl
 enum gap_auth
 {
     /// No MITM No Bonding
-    GAP_AUTH_REQ_NO_MITM_NO_BOND  = (GAP_AUTH_NONE),
+    GAP_AUTH_REQ_NO_MITM_NO_BOND            = (GAP_AUTH_NONE),
     /// No MITM Bonding
-    GAP_AUTH_REQ_NO_MITM_BOND     = (GAP_AUTH_BOND),
+    GAP_AUTH_REQ_NO_MITM_BOND               = (GAP_AUTH_BOND),
     /// MITM No Bonding
-    GAP_AUTH_REQ_MITM_NO_BOND     = (GAP_AUTH_MITM),
+    GAP_AUTH_REQ_MITM_NO_BOND               = (GAP_AUTH_MITM),
     /// MITM and Bonding
-    GAP_AUTH_REQ_MITM_BOND        = (GAP_AUTH_MITM | GAP_AUTH_BOND),
+    GAP_AUTH_REQ_MITM_BOND                  = (GAP_AUTH_MITM | GAP_AUTH_BOND),
+
+    /// SEC_CON no MITM and No Bonding
+    GAP_AUTH_REQ_SEC_CON_NO_MITM_NO_BOND    = (GAP_AUTH_SEC_CON),
+    /// SEC_CON no MITM and Bonding
+    GAP_AUTH_REQ_SEC_CON_NO_MITM_BOND       = (GAP_AUTH_SEC_CON | GAP_AUTH_BOND),
+
     /// SEC_CON and No Bonding
-    GAP_AUTH_REQ_SEC_CON_NO_BOND  = (GAP_AUTH_SEC_CON | GAP_AUTH_MITM),
+    GAP_AUTH_REQ_SEC_CON_MITM_NO_BOND       = (GAP_AUTH_SEC_CON | GAP_AUTH_MITM),
     /// SEC_CON and Bonding
-    GAP_AUTH_REQ_SEC_CON_BOND     = (GAP_AUTH_SEC_CON | GAP_AUTH_MITM | GAP_AUTH_BOND),
+    GAP_AUTH_REQ_SEC_CON_MITM_BOND          = (GAP_AUTH_SEC_CON | GAP_AUTH_MITM | GAP_AUTH_BOND),
 
     GAP_AUTH_REQ_LAST,
 
@@ -476,12 +482,12 @@ enum gap_sec_req
     GAP_SEC1_NOAUTH_PAIR_ENC,
     /// Authenticated pairing with encryption
     GAP_SEC1_AUTH_PAIR_ENC,
+    /// Secure Connection pairing with encryption
+    GAP_SEC1_SEC_CON_PAIR_ENC,
     /// Unauthenticated pairing with data signing
     GAP_SEC2_NOAUTH_DATA_SGN,
     /// Authentication pairing with data signing
     GAP_SEC2_AUTH_DATA_SGN,
-    /// Secure Connection pairing with encryption
-    GAP_SEC1_SEC_CON_PAIR_ENC,
 };
 
 /// Bit field use to select the preferred TX or RX LE PHY. 0 means no preferences

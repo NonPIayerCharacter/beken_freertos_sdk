@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _GPIO_PUB_H_
 #define _GPIO_PUB_H_
 
@@ -9,9 +23,9 @@
 #define GPIO_SUCCESS                (0)
 
 enum {
-	GPIO_DIR_INPUT = 0,
-	GPIO_DIR_OUTPUT,
-	GPIO_DIR_OTHER
+    GPIO_DIR_INPUT = 0,
+    GPIO_DIR_OUTPUT,
+    GPIO_DIR_OTHER
 };
 
 #define GPIO_DEV_NAME                ((char*)"gpio")
@@ -71,8 +85,8 @@ enum
 #define GPIO_CAPACITY_MASK              (0x3)
 #define GPIO_CAPACITY_POSI              (8)
 
-#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238) && (CFG_SOC_NAME != SOC_BK7252N)
-typedef enum 
+#if (CFG_SOC_NAME != SOC_BK7231N) && (CFG_SOC_NAME != SOC_BK7238)
+typedef enum
 {
     GPIO0 = 0,
     GPIO1,
@@ -113,14 +127,20 @@ typedef enum
     GPIO36,
     GPIO37,
     GPIO38,
-    GPIO39,    
+    GPIO39,
     GPIONUM
 } GPIO_INDEX ;
 #else
-typedef enum 
+typedef enum
 {
     GPIO0 = 0,
     GPIO1,
+    #if (CFG_SOC_NAME == SOC_BK7252N)
+    GPIO2,
+    GPIO3,
+    GPIO4,
+    GPIO5,
+    #endif
     GPIO6 = 6,
     GPIO7,
     GPIO8,
@@ -139,7 +159,7 @@ typedef enum
     GPIO25,
     GPIO26 = 26,
     GPIO28 = 28,
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     GPIO29,
     GPIO30,
     GPIO31,
@@ -151,7 +171,7 @@ typedef enum
     GPIO37,
     GPIO38,
     GPIO39,
-#endif
+    #endif
     GPIONUM,
 } GPIO_INDEX ;
 #endif
@@ -202,14 +222,14 @@ enum
     GFUNC_MODE_IRDA,
     GFUNC_MODE_TXEN,
     GFUNC_MODE_RXEN,
-#if (CFG_SOC_NAME == SOC_BK7252N)
+    #if (CFG_SOC_NAME == SOC_BK7252N)
     GFUNC_MODE_UART3,
     GFUNC_MODE_I2S_GPIO_21,
     GFUNC_MODE_MLCK,
     GFUNC_MODE_HSYNC_VSYNC,
     GFUNC_MODE_DVP_DATA,
     GFUNC_MODE_PCLK
-#endif
+    #endif
 };
 
 enum
@@ -222,23 +242,23 @@ enum
 
 typedef struct gpio_int_st
 {
-	UINT32 id;
-	UINT32 mode;
-	void *phandler;
-}GPIO_INT_ST;
+    UINT32 id;
+    UINT32 mode;
+    void *phandler;
+} GPIO_INT_ST;
 
 __inline static void bk_gpio_config_input(GPIO_INDEX id)
 {
     UINT32 ret;
     UINT32 param;
-    
+
     param = GPIO_CFG_PARAM(id, GMODE_INPUT);
     ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
 
-	if(ret !=0 )
-		os_printf("gpio config fail\r\n");
+    if(ret !=0 )
+        os_printf("gpio config fail\r\n");
 }
-								
+
 __inline static void bk_gpio_config_input_pup(GPIO_INDEX id)
 {
     UINT32 ret;
@@ -247,64 +267,76 @@ __inline static void bk_gpio_config_input_pup(GPIO_INDEX id)
     param = GPIO_CFG_PARAM(id, GMODE_INPUT_PULLUP);
     ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
 
-	if(ret !=0 )
-		os_printf("gpio config fail\r\n");
+    if(ret !=0 )
+        os_printf("gpio config fail\r\n");
 
 }
 
 __inline static void bk_gpio_config_input_pdwn(GPIO_INDEX id)
 {
     UINT32 ret;
-	UINT32 param;
+    UINT32 param;
 
-	param = GPIO_CFG_PARAM(id, GMODE_INPUT_PULLDOWN);
-	ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
+    param = GPIO_CFG_PARAM(id, GMODE_INPUT_PULLDOWN);
+    ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
 
-	if(ret !=0 )
-		os_printf("gpio config fail\r\n");
+    if(ret !=0 )
+        os_printf("gpio config fail\r\n");
 
 }
 
 __inline static uint32_t bk_gpio_input(GPIO_INDEX id)
 {
-    UINT32 ret;                      
+    UINT32 ret;
     UINT32 param = id;
-    
-    ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_INPUT, &param); 
-    
+
+    ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_INPUT, &param);
+
     return ret;
 }
 
 __inline static void bk_gpio_config_output(GPIO_INDEX id)
 {
     UINT32 ret;
-    
-	UINT32 param;
-    
-	param = GPIO_CFG_PARAM(id, GMODE_OUTPUT);
-	ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
-	ASSERT(GPIO_SUCCESS == ret);  
+
+    UINT32 param;
+
+    param = GPIO_CFG_PARAM(id, GMODE_OUTPUT);
+    ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
+    ASSERT(GPIO_SUCCESS == ret);
 }
 
 __inline static void bk_gpio_output(GPIO_INDEX id,UINT32 val)
 {
-    UINT32 ret;                                           
+    UINT32 ret;
     UINT32 param;
-    
+
     param = GPIO_OUTPUT_PARAM(id, val);
     ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT, &param);
-    ASSERT(GPIO_SUCCESS == ret);           
+    ASSERT(GPIO_SUCCESS == ret);
 }
 
 __inline static void bk_gpio_output_reverse(GPIO_INDEX id)
 {
     UINT32 ret;
     UINT32 param = id;
-    
+
     ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_OUTPUT_REVERSE, &param);
-    ASSERT(GPIO_SUCCESS == ret);            
+    ASSERT(GPIO_SUCCESS == ret);
 }
-		
+
+__inline static void bk_gpio_config_mode(GPIO_INDEX id, UINT8 mode)
+{
+    UINT32 ret;
+    UINT32 param;
+
+    param = GPIO_CFG_PARAM(id, mode);
+    ret = sddev_control(GPIO_DEV_NAME, CMD_GPIO_CFG, &param);
+
+    if(ret !=0 )
+        os_printf("gpio config mode fail\r\n");
+}
+
 #if ((SOC_BK7231U == CFG_SOC_NAME) || (SOC_BK7221U == CFG_SOC_NAME))
 #define GPIO_USB_DP_PIN               GPIO25
 #define GPIO_USB_DN_PIN               GPIO28
@@ -321,7 +353,7 @@ typedef void (*usb_plug_inout_handler)(void *usr_data, UINT32 event);
 typedef struct usb_plug_inout {
     usb_plug_inout_handler handler;
     void *usr_data;
-}USB_PLUG_INOUT_ST;
+} USB_PLUG_INOUT_ST;
 
 extern USB_PLUG_INOUT_ST usb_plug;
 void usb_plug_inout_isr(void);

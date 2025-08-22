@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _EDDYSTONE_CORE_H_
 #define _EDDYSTONE_CORE_H_
 #include "bk_err.h"
@@ -18,32 +32,32 @@
 //EDDYSTONE SERVICE
 enum
 {
-	EDDYSTONE_SVC,
-	EDDYSTONE_BRDCST_CAP_CHAR,
-	EDDYSTONE_BRDCST_CAP_VALUE,
-	EDDYSTONE_ACTIVE_SLOT_CHAR,
-	EDDYSTONE_ACTIVE_SLOT_VALUE,
-	EDDYSTONE_ADV_INTRVL_CHAR,
-	EDDYSTONE_ADV_INTRVL_VALUE,
-	EDDYSTONE_RADIO_TX_PWR_CHAR,
-	EDDYSTONE_RADIO_TX_PWR_VALUE,
-	EDDYSTONE_ADV_TX_PWR_CHAR,
-	EDDYSTONE_ADV_TX_PWR_VALUE,
-	EDDYSTONE_LOCK_STATE_CHAR,
-	EDDYSTONE_LOCK_STATE_VALUE,
-	EDDYSTONE_UNLOCK_CHAR,
-	EDDYSTONE_UNLOCK_VALUE,
-	EDDYSTONE_PUBLIC_ECDH_KEY_CHAR,
-	EDDYSTONE_PUBLIC_ECDH_KEY_VALUE,
-	EDDYSTONE_EID_ID_KEY_CHAR,
-	EDDYSTONE_EID_ID_KEY_VALUE,
-	EDDYSTONE_RW_ADV_SLOT_CHAR,
-	EDDYSTONE_RW_ADV_SLOT_VALUE,
-	EDDYSTONE_FAC_RESET_CHAR,
-	EDDYSTONE_FAC_RESET_VALUE,
-	EDDYSTONE_REMAIN_CONN_CHAR,
-	EDDYSTONE_REMAIN_CONN_VALUE,
-	EDDYSTONE_IDX_NB,
+    EDDYSTONE_SVC,
+    EDDYSTONE_BRDCST_CAP_CHAR,
+    EDDYSTONE_BRDCST_CAP_VALUE,
+    EDDYSTONE_ACTIVE_SLOT_CHAR,
+    EDDYSTONE_ACTIVE_SLOT_VALUE,
+    EDDYSTONE_ADV_INTRVL_CHAR,
+    EDDYSTONE_ADV_INTRVL_VALUE,
+    EDDYSTONE_RADIO_TX_PWR_CHAR,
+    EDDYSTONE_RADIO_TX_PWR_VALUE,
+    EDDYSTONE_ADV_TX_PWR_CHAR,
+    EDDYSTONE_ADV_TX_PWR_VALUE,
+    EDDYSTONE_LOCK_STATE_CHAR,
+    EDDYSTONE_LOCK_STATE_VALUE,
+    EDDYSTONE_UNLOCK_CHAR,
+    EDDYSTONE_UNLOCK_VALUE,
+    EDDYSTONE_PUBLIC_ECDH_KEY_CHAR,
+    EDDYSTONE_PUBLIC_ECDH_KEY_VALUE,
+    EDDYSTONE_EID_ID_KEY_CHAR,
+    EDDYSTONE_EID_ID_KEY_VALUE,
+    EDDYSTONE_RW_ADV_SLOT_CHAR,
+    EDDYSTONE_RW_ADV_SLOT_VALUE,
+    EDDYSTONE_FAC_RESET_CHAR,
+    EDDYSTONE_FAC_RESET_VALUE,
+    EDDYSTONE_REMAIN_CONN_CHAR,
+    EDDYSTONE_REMAIN_CONN_VALUE,
+    EDDYSTONE_IDX_NB,
 };
 
 //EDDYSTONE CONFIGS
@@ -124,25 +138,25 @@ extern uint8_t eddystone_uuid[16];
 extern uint8_t eddystone_default_data[];
 
 typedef enum {
-	EDDYSTONE_FRAME_TYPE_UID = 0x00,
-	EDDYSTONE_FRAME_TYPE_URL = 0x10,
-	EDDYSTONE_FRAME_TYPE_TLM = 0x20,
-	EDDYSTONE_FRAME_TYPE_EID = 0x30,
+    EDDYSTONE_FRAME_TYPE_UID = 0x00,
+    EDDYSTONE_FRAME_TYPE_URL = 0x10,
+    EDDYSTONE_FRAME_TYPE_TLM = 0x20,
+    EDDYSTONE_FRAME_TYPE_EID = 0x30,
 } eddystone_frame_type_t;
 
 enum lock_state_read {
-	BLE_ECS_LOCK_STATE_LOCKED     = 0x00,
-	BLE_ECS_LOCK_STATE_UNLOCKED     = 0x01,
-	BLE_ECS_LOCK_STATE_UNLOCKED_AUTO_RELOCK_DISABLED     = 0x02,
+    BLE_ECS_LOCK_STATE_LOCKED     = 0x00,
+    BLE_ECS_LOCK_STATE_UNLOCKED     = 0x01,
+    BLE_ECS_LOCK_STATE_UNLOCKED_AUTO_RELOCK_DISABLED     = 0x02,
 };
 
 typedef struct ble_ecs_brdcst_cap_t {
-	uint8_t version_byte;
-	uint8_t max_supp_total_slots;
-	uint8_t max_supp_eid_slots;
-	uint8_t cap_bitfield;
-	uint16_t supp_frame_types;
-	int8_t supp_radio_tx_power[ECS_NUM_OF_SUPORTED_TX_POWER];
+    uint8_t version_byte;
+    uint8_t max_supp_total_slots;
+    uint8_t max_supp_eid_slots;
+    uint8_t cap_bitfield;
+    uint16_t supp_frame_types;
+    int8_t supp_radio_tx_power[ECS_NUM_OF_SUPORTED_TX_POWER];
 } ble_ecs_brdcst_cap_t;
 
 typedef uint8_t ble_ecs_active_slot_t;
@@ -152,47 +166,47 @@ typedef uint8_t ble_ecs_adv_tx_pwr_t;
 typedef uint8_t ble_ecs_lock_state_read_t;
 
 typedef struct ble_ecs_lock_state_write_t {
-	uint8_t lock_byte;
-	uint8_t lock_key[ECS_KEY_SIZE];
+    uint8_t lock_byte;
+    uint8_t lock_key[ECS_KEY_SIZE];
 } ble_ecs_lock_state_write_t;
 
 typedef struct ble_ecs_lock_state_t {
-	ble_ecs_lock_state_read_t read;
-	ble_ecs_lock_state_write_t write;
+    ble_ecs_lock_state_read_t read;
+    ble_ecs_lock_state_write_t write;
 } ble_ecs_lock_state_t;
 
 typedef struct ble_ecs_unlock_t {
-	uint8_t lock[ECS_KEY_SIZE];
+    uint8_t lock[ECS_KEY_SIZE];
 } ble_ecs_unlock_t;
 
 typedef struct ble_ecs_rw_adv_slot_t {
-	uint8_t frame_type;
-	uint8_t *p_data;
-	uint8_t char_length;
+    uint8_t frame_type;
+    uint8_t *p_data;
+    uint8_t char_length;
 } ble_ecs_rw_adv_slot_t;
 
 typedef uint8_t ble_ecs_fac_reset_t;
 typedef uint8_t ble_ecs_remain_conn_t;
 
 typedef struct {
-	uint16_t msg_id;
-	void *data;
+    uint16_t msg_id;
+    void *data;
 } EDDYSTONE_MSG_T;
 typedef bk_err_t (*eddystone_api_handle_t)(void *param, uint32_t len);
 typedef struct {
-	uint32_t msg;
-	eddystone_api_handle_t handle;
+    uint32_t msg;
+    eddystone_api_handle_t handle;
 } ble_eddystone_msg_api_handle_t;
 
 #define BK_ERR_BLE_SUCCESS               BK_OK                      /**< success */
 #define BK_ERR_BLE_FAIL                  BK_FAIL                    /**< fail        */
 
 typedef enum {
-	EDDYSTONE_WRITE_EVENT,
-	EDDYSTONE_CONNECT_EVENT,
-	EDDYSTONE_DISCONNECT_EVENT,
-	EDDYSTONE_INIT_CONN_PARAM_UPDATE_REQ_EVENT,
-	EDDYSTONE_ADV_EVENT,
+    EDDYSTONE_WRITE_EVENT,
+    EDDYSTONE_CONNECT_EVENT,
+    EDDYSTONE_DISCONNECT_EVENT,
+    EDDYSTONE_INIT_CONN_PARAM_UPDATE_REQ_EVENT,
+    EDDYSTONE_ADV_EVENT,
 } eddystone_notice_t;
 
 extern void eddystone_services_init(void);

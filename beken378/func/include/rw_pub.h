@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _RW_PUB_H_
 #define _RW_PUB_H_
 
@@ -31,15 +45,15 @@ typedef struct cfg80211_connect_params
 {
     uint32_t flags;
     uint32_t vif_idx;
-	uint8_t auth_type;
+    uint8_t auth_type;
     struct mac_addr bssid;
     struct mac_ssid ssid;
     struct scan_chan_tag chan;
-#if CFG_WLAN_FAST_CONNECT_WITHOUT_SCAN
+    #if CFG_WLAN_FAST_CONNECT_WITHOUT_SCAN
     int8_t rssi;
     uint16_t cap_info;
     uint16_t beacon_period;
-#endif
+    #endif
     uint16_t ie_len;
     uint32_t ie_buf[64];
     uint16_t bcn_len;
@@ -49,14 +63,14 @@ typedef struct cfg80211_connect_params
 typedef struct cfg80211_auth_params
 {
     uint32_t vif_idx;
-	uint8_t auth_type;
+    uint8_t auth_type;
     struct mac_addr bssid;
     struct mac_ssid ssid;
     struct scan_chan_tag chan;
     uint16_t ie_len;
     uint8_t ie_buf[128];
-	uint16_t sae_data_len;
-	uint8_t sae_data[0];
+    uint16_t sae_data_len;
+    uint8_t sae_data[0];
 } AUTH_PARAM_T;
 
 typedef struct cfg80211_external_auth_params
@@ -66,16 +80,16 @@ typedef struct cfg80211_external_auth_params
 } EXTERNAL_AUTH_PARAM_T;
 
 typedef struct cfg80211_associate_params {
-	uint32_t flags;
-	uint32_t vif_idx;
-	uint8_t auth_type;
-	struct mac_addr bssid;
-	struct mac_ssid ssid;
-	struct scan_chan_tag chan;
-	uint16_t ie_len;
-	uint32_t ie_buf[64];
-	uint16_t bcn_len;
-	uint32_t bcn_buf[0];
+    uint32_t flags;
+    uint32_t vif_idx;
+    uint8_t auth_type;
+    struct mac_addr bssid;
+    struct mac_ssid ssid;
+    struct scan_chan_tag chan;
+    uint16_t ie_len;
+    uint32_t ie_buf[64];
+    uint16_t bcn_len;
+    uint32_t bcn_buf[0];
 } ASSOC_PARAM_T;
 
 typedef struct cfg80211_scan_params
@@ -85,9 +99,9 @@ typedef struct cfg80211_scan_params
     uint8_t flag;
     struct mac_ssid ssids[SCAN_SSID_MAX];
     struct mac_addr bssid;
-	int freqs[14];	//FIXME: 5G
-	uint16_t extra_ies_len;
-	uint8_t extra_ies[0];
+    int freqs[14];	//FIXME: 5G
+    uint16_t extra_ies_len;
+    uint8_t extra_ies[0];
 } SCAN_PARAM_T;
 
 typedef struct cfg80211_fast_scan_params
@@ -99,40 +113,40 @@ typedef struct cfg80211_fast_scan_params
     uint16_t min_ch_time;
     uint16_t max_ch_time;
     uint16_t ch_num;
-}FAST_SCAN_PARAM_T;
+} FAST_SCAN_PARAM_T;
 
 typedef struct cfg80211_disconnect_params
 {
     uint16_t reason_code;
     uint8_t vif_idx;
-}DISCONNECT_PARAM_T;
+} DISCONNECT_PARAM_T;
 
 typedef struct cfg80211_set_operate_params
 {
     uint32_t flags;
     uint32_t vif_idx;
-	int state;
+    int state;
 } SET_OPERATE_PARAM_T;
 
 typedef struct
 {
     char ssid[MAC_SSID_LEN];
     char ap_power;
-}AP_INFO_T;
+} AP_INFO_T;
 
 typedef  struct
 {
-	uint16_t ap_num;
-	uint16_t ap_max;
+    uint16_t ap_num;
+    uint16_t ap_max;
 
-   AP_INFO_T *ap_list;
+    AP_INFO_T *ap_list;
 } SCAN_RESULT_SET;
 
 typedef struct
 {
-	FUNC_2PARAM_PTR cb;
-	void *ctxt_arg;
-}IND_CALLBACK_T;
+    FUNC_2PARAM_PTR cb;
+    void *ctxt_arg;
+} IND_CALLBACK_T;
 
 typedef struct
 {
@@ -140,34 +154,34 @@ typedef struct
     uint8_t ssid[32];
     uint8_t bssid[6];
     uint16_t freq;
-}BSS_INFO_T;
+} BSS_INFO_T;
 
 typedef struct {
-	u32 frequency;
-	int chanwidth;
-	int sec_channel;
-	int center_frq1;
-	int center_frq2;
-	u8 seg1_idx;
+    u32 frequency;
+    int chanwidth;
+    int sec_channel;
+    int center_frq1;
+    int center_frq2;
+    u8 seg1_idx;
 } PHY_CHAN_INFO_T;
 
 enum nl80211_iftype {
-	NL80211_IFTYPE_UNSPECIFIED,
-	NL80211_IFTYPE_ADHOC,
-	NL80211_IFTYPE_STATION,
-	NL80211_IFTYPE_AP,
-	NL80211_IFTYPE_AP_VLAN,
-	NL80211_IFTYPE_WDS,
-	NL80211_IFTYPE_MONITOR,
-	NL80211_IFTYPE_MESH_POINT,
-	NL80211_IFTYPE_P2P_CLIENT,
-	NL80211_IFTYPE_P2P_GO,
-	NL80211_IFTYPE_P2P_DEVICE,
-	NL80211_IFTYPE_OCB,
+    NL80211_IFTYPE_UNSPECIFIED,
+    NL80211_IFTYPE_ADHOC,
+    NL80211_IFTYPE_STATION,
+    NL80211_IFTYPE_AP,
+    NL80211_IFTYPE_AP_VLAN,
+    NL80211_IFTYPE_WDS,
+    NL80211_IFTYPE_MONITOR,
+    NL80211_IFTYPE_MESH_POINT,
+    NL80211_IFTYPE_P2P_CLIENT,
+    NL80211_IFTYPE_P2P_GO,
+    NL80211_IFTYPE_P2P_DEVICE,
+    NL80211_IFTYPE_OCB,
 
-	/* keep last */
-	NUM_NL80211_IFTYPES,
-	NL80211_IFTYPE_MAX = NUM_NL80211_IFTYPES - 1
+    /* keep last */
+    NUM_NL80211_IFTYPES,
+    NL80211_IFTYPE_MAX = NUM_NL80211_IFTYPES - 1
 };
 
 typedef int (*rw_event_handler)(rw_evt_type evt_type, void *data);
@@ -178,10 +192,10 @@ struct rw_evt_payload
 };
 
 struct add_sta_st {
-	u16 aid;
-	u16 capability;
+    u16 aid;
+    u16 capability;
     void *sta_addr;
-	u8 tx_supp_rates;
+    u8 tx_supp_rates;
     u8 ap_vif_idx;
 } ;
 
@@ -202,7 +216,7 @@ typedef struct msg_send_node
     void *cfm;
     beken_semaphore_t semaphore;
     uint16_t reqid;
-}MSG_SND_NODE_ST, *MSG_SND_NODE_PTR;
+} MSG_SND_NODE_ST, *MSG_SND_NODE_PTR;
 
 typedef struct bcn_param_st {
     u32 *bcn_ptr;
@@ -248,16 +262,16 @@ extern int rw_msg_send_start(void);
 extern int rw_msg_send_me_config_req(void);
 extern int rw_msg_send_me_chan_config_req(void);
 extern int rw_msg_send_add_if(const unsigned char *mac,
-                     enum nl80211_iftype iftype, bool p2p, struct mm_add_if_cfm *cfm);
+                              enum nl80211_iftype iftype, bool p2p, struct mm_add_if_cfm *cfm);
 extern int rw_msg_send_remove_if(u8 vif_index);
 extern int rw_msg_send_roc(u8 vif_index, unsigned int freq, uint32_t duration);
 extern int rw_msg_send_cancel_roc(u8 vif_index);
 extern int rw_msg_send_apm_start_req(u8 vif_index, u8 channel,
-                     struct apm_start_cfm *cfm);
+                                     struct apm_start_cfm *cfm);
 extern int rw_msg_send_bcn_change(void *bcn_param);
 extern int rw_msg_send_apm_start_done_ind(bool);
 extern int rw_msg_send_me_sta_add(struct add_sta_st *param,
-                     struct me_sta_add_cfm *cfm);
+                                  struct me_sta_add_cfm *cfm);
 extern int rw_msg_send_me_sta_del(u8 sta_idx, bool tdls_sta);
 extern int rw_msg_me_set_control_port_req(bool opened, u8 sta_idx);
 extern int rw_msg_send_key_add(KEY_PARAM_T *param, struct mm_key_add_cfm *cfm);

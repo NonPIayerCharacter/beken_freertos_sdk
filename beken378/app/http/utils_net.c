@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <string.h>
 #include "include.h"
 #include "utils_net.h"
@@ -58,8 +72,8 @@ ES_RETRY:
         rc = 0;
     }
 
-    if (0 == rc){
-        if(conn_retry --){
+    if (0 == rc) {
+        if(conn_retry --) {
             goto ES_RETRY;
         }
         else
@@ -120,7 +134,7 @@ int32_t HAL_TCP_Write(uintptr_t fd, const char *buf, uint32_t len, uint32_t time
 
             ret = select(fd + 1, NULL, &sets, NULL, &timeout);
             if (ret > 0) {
-               if (0 == FD_ISSET(fd, &sets)) {
+                if (0 == FD_ISSET(fd, &sets)) {
                     log_err("Should NOT arrive");
                     //If timeout in next loop, it will not sent any data
                     ret = 0;
@@ -178,7 +192,7 @@ int32_t HAL_TCP_Read(uintptr_t fd, char *buf, uint32_t len, uint32_t timeout_ms)
     do {
         t_left = utils_time_left(t_end, utils_time_get_ms());
 
-        if (0 == t_left){
+        if (0 == t_left) {
             return ERROR_HTTP_CONN;
         }
         FD_ZERO( &sets );
@@ -194,14 +208,14 @@ int32_t HAL_TCP_Read(uintptr_t fd, char *buf, uint32_t len, uint32_t timeout_ms)
                 ret = recv(fd, buf, len, 0);
                 if (ret > 0) {
                     if(ret < len)
-                        {
+                    {
                         data_over = 1;
                     }
                     if(bk_http_ptr->do_data == 1)
-                        {
+                    {
                         http_data_process(buf,ret);
                     }
-                   
+
                     len_recv += ret;
                 } else if (0 == ret) {
                     log_err("connection is closed");
@@ -220,18 +234,18 @@ int32_t HAL_TCP_Read(uintptr_t fd, char *buf, uint32_t len, uint32_t timeout_ms)
                 break;
             } else {
                 if (EINTR == errno) {
-                log_err("EINTR be caught-------\r\n");
-                //continue;
+                    log_err("EINTR be caught-------\r\n");
+                    //continue;
                 }
                 log_err("select-recv fail");
                 err_code = -2;
                 break;
             }
-       }
-       else
-       {
-       }
-    }while((bk_http_ptr->do_data == 1 && len_recv < bk_http_ptr->http_total) || ((len_recv < len) && (0 == data_over)));
+        }
+        else
+        {
+        }
+    } while((bk_http_ptr->do_data == 1 && len_recv < bk_http_ptr->http_total) || ((len_recv < len) && (0 == data_over)));
 
     //priority to return data bytes if any data be received from TCP connection.
     //It will get error code on next calling

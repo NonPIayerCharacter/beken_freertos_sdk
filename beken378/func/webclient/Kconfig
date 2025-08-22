@@ -1,0 +1,9 @@
+menu "Webclient"
+	config WEBCLIENT
+		bool "Enable Webclient"
+		default n
+	config DYNAMIC_LOAD_WEBCLIENT
+		depends on DYNAMIC_LOAD && WEBCLIENT
+		bool "Enable Dynamic Load Application Test"
+		default n
+endmenu

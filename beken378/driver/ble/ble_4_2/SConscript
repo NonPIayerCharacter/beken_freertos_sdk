@@ -94,7 +94,7 @@ if ((GetLocalDepend(options, 'CFG_SUPPORT_BLE') == 1)
     src_lib += ["beken_ble_sdk/sys/src/nvds/nvds.c"]
     
     if (GetLocalDepend(options, 'CFG_SUPPORT_BLE_MESH') == 1):
-        print 'CFG_CFG_SUPPORT_BLE_MESH'
+        print('CFG_CFG_SUPPORT_BLE_MESH')
         src_lib += ["beken_ble_sdk/mesh/src/aes/aes.c"]
         src_lib += ["beken_ble_sdk/mesh/src/aes/aes_ccm.c"]
         src_lib += ["beken_ble_sdk/mesh/src/aes/aes_cmac.c"]
@@ -250,7 +250,7 @@ libpath = [cwd + '/']
 cppdefines = ['WIFI_BLE_COEXIST']
 
 if (platform_match == 'yes') and (GetLocalDepend(options, 'CFG_SUPPORT_BLE') == 1):
-    print 'using ble: lib' + ble_lib_name + '.a'
+    print('using ble: lib' + ble_lib_name + '.a')
     group_use_lib = DefineGroup('beken_ble_pub', src_pub, CPPDEFINES = cppdefines, depend = [], CPPPATH = path, LIBS = libs, LIBPATH = libpath)
     group_build_lib = DefineGroup('beken_ble', src_lib, CPPDEFINES = cppdefines, depend = ['BUILD_LIB'], CPPPATH = path, LIBS = libs, LIBPATH = libpath, LIBNAME = 'lib' + ble_lib_name + '.a')
     group = group_use_lib + group_build_lib

@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _RW_MSG_PUB_H_
 #define _RW_MSG_PUB_H_
 
@@ -27,7 +41,7 @@ typedef enum {
     RW_EVT_AP_CONNECT_FAILED, /* a client association failed */
     RW_EVT_AP_GOT_IP,
     RW_EVT_MAX
-}rw_evt_type;
+} rw_evt_type;
 
 typedef enum {
     RW_STG_STA_IDLE = 0,
@@ -38,14 +52,14 @@ typedef enum {
     RW_STG_STA_KEY_HANDSHARK,
     RW_STG_STA_GET_IP,
     RW_STG_STA_COMPLETE
-}rw_stage_type;
+} rw_stage_type;
 
 typedef struct wlan_status_s {
     rw_evt_type evt_type;
     uint8_t mac[6];
     uint16_t reason_code;
     uint32_t ipaddr;
-}wlan_status_t;
+} wlan_status_t;
 
 /** @brief Structure describing WiFi country-based regional restrictions. */
 typedef struct {
@@ -60,23 +74,23 @@ typedef struct sta_scan_res
 {
     UINT8 bssid[6];
     char ssid[32];  /**< The SSID of an access point. */
-    char on_channel; // 1: ds IE channel=center_freq, 0: !=   
+    char on_channel; // 1: ds IE channel=center_freq, 0: !=
     char channel;
     UINT16 beacon_int;
     UINT16 caps;
     int level;
-	int security; // security type
+    int security; // security type
     UINT8 tsf[8];
     UINT32 ie_len;
     /* Followed by ie_len of IE data */
-}SCAN_RST_ITEM_T, *SCAN_RST_ITEM_PTR;
+} SCAN_RST_ITEM_T, *SCAN_RST_ITEM_PTR;
 
 typedef struct scanu_rst_upload
 {
     UINT16 ref;
     UINT16 scanu_num;
     struct sta_scan_res **res;
-}SCAN_RST_UPLOAD_T, *SCAN_RST_UPLOAD_PTR;
+} SCAN_RST_UPLOAD_T, *SCAN_RST_UPLOAD_PTR;
 
 extern void mhdr_set_station_status(rw_evt_type val);
 extern rw_evt_type mhdr_get_station_status(void);

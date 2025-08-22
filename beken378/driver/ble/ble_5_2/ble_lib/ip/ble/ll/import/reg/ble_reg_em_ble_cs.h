@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef _REG_EM_BLE_CS_H_
 #define _REG_EM_BLE_CS_H_
 
@@ -4221,7 +4235,7 @@ __INLINE void em_ble_hopptr_hop_seq_ptr_setf(int elt_idx, uint16_t hopseqptr)
 
 __INLINE uint16_t em_ble_txpowerl_get(int elt_idx)
 {
-   return EM_BLE_RD(EM_BLE_TXPOWERL_ADDR + elt_idx * REG_EM_BLE_CS_SIZE);
+    return EM_BLE_RD(EM_BLE_TXPOWERL_ADDR + elt_idx * REG_EM_BLE_CS_SIZE);
 }
 
 __INLINE void em_ble_txpowerl_set(int elt_idx, uint16_t value)
@@ -4235,7 +4249,7 @@ __INLINE void em_ble_txpowerl_set(int elt_idx, uint16_t value)
 
 __INLINE uint16_t em_ble_txpowerh_get(int elt_idx)
 {
-   return EM_BLE_RD(EM_BLE_TXPOWERH_ADDR + elt_idx * REG_EM_BLE_CS_SIZE);
+    return EM_BLE_RD(EM_BLE_TXPOWERH_ADDR + elt_idx * REG_EM_BLE_CS_SIZE);
 }
 
 __INLINE void em_ble_txpowerh_set(int elt_idx, uint16_t value)

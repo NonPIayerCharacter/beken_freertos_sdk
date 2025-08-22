@@ -1,3 +1,17 @@
+// Copyright 2015-2024 Beken
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "include.h"
 #include "icu_pub.h"
 #include "pwm_pub.h"
@@ -81,13 +95,13 @@ void tuya_pwm_stop(uint8 channel_num_1, uint8 channel_num_2)
 
 // dead_band_2 = end_value - duty_cycle_1 - duty_cycle_2 - dead_band_1 > 0
 void tuya_pwm_reset_duty_cycle(uint8 channel_num_1, uint8 channel_num_2,
-                                           uint32 duty_cycle_1, uint32 duty_cycle_2,
-                                           uint32 end_value, uint32 dead_band_1)
+                               uint32 duty_cycle_1, uint32 duty_cycle_2,
+                               uint32 end_value, uint32 dead_band_1)
 {
     UINT32 ret;
     UINT32 i_time_out1, i_time_out2;
 
-    TPWM_PRT("tuya_pwm_reset_duty_cycle: %d %d %ld %ld %ld %ld\r\n", 
+    TPWM_PRT("tuya_pwm_reset_duty_cycle: %d %d %ld %ld %ld %ld\r\n",
              channel_num_1, channel_num_2, duty_cycle_1, duty_cycle_2, end_value, dead_band_1);
 
     if ((channel_num_1 >= PWM_COUNT) || (channel_num_2 >= PWM_COUNT))
@@ -104,7 +118,7 @@ void tuya_pwm_reset_duty_cycle(uint8 channel_num_1, uint8 channel_num_2,
 
     // disable PWM 1/2 channel
     *(volatile unsigned long *) (0x00802A80) &= (~((1 << (channel_num_1 * 4))
-                                                | (1 << (channel_num_2 * 4))));
+            | (1 << (channel_num_2 * 4))));
 
     // set PWM 1/2 end value
     *(volatile unsigned long *) (0x00802A80 + 0x08 + (channel_num_1 * 3 * 4)) = end_value;
@@ -116,7 +130,7 @@ void tuya_pwm_reset_duty_cycle(uint8 channel_num_1, uint8 channel_num_2,
 
     // disable global interrupt
     *(volatile unsigned long *) (0x00802000 + 0x11 * 4) = 0x00;
-    
+
     // cache tuya_pwm_set_duty_cycle function
     do
     {
@@ -174,7 +188,7 @@ void tuya_pwm_reset_duty_cycle(uint8 channel_num_1, uint8 channel_num_2,
             }
         }
     }
-	
+
     // enable PWM channel 1
     *(volatile unsigned long *) (0x00802A80) |= (1 << (channel_num_1 * 4));
 
@@ -225,7 +239,7 @@ void tuya_pwm_reset_duty_cycle(uint8 channel_num_1, uint8 channel_num_2,
 
     // enable PWM channel 1/2
     *(volatile unsigned long *) (0x00802A80) |= (1 << (channel_num_1 * 4))
-                                            | (1 << (channel_num_2 * 4));
+            | (1 << (channel_num_2 * 4));
 
     // enable global interrupt
     *(volatile unsigned long *) (0x00802000 + 0x11 * 4) = 0x03;
