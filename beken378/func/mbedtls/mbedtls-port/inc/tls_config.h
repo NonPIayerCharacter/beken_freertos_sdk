@@ -49,7 +49,7 @@ extern void tls_mbedtls_mem_free(void *ptr);
 #define MBEDTLS_HAVE_ASM
 //#define MBEDTLS_HAVE_TIME
 #define MBEDTLS_ASN1_PARSE_C
-#define MBEDTLS_ASN1_WRITE_C
+//#define MBEDTLS_ASN1_WRITE_C
 #define MBEDTLS_BIGNUM_C
 #define MBEDTLS_CIPHER_C
 #define MBEDTLS_AES_C
@@ -64,7 +64,9 @@ extern void tls_mbedtls_mem_free(void *ptr);
 #define MBEDTLS_PK_C
 #define MBEDTLS_PK_PARSE_C
 #define MBEDTLS_SHA256_C
-#define MBEDTLS_SHA512_C
+#define MBEDTLS_SHA256_SMALLER
+//#define MBEDTLS_SHA512_C
+//#define MBEDTLS_SHA512_NO_SHA384
 #define MBEDTLS_SSL_CLI_C
 // #define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TLS_C
@@ -73,7 +75,8 @@ extern void tls_mbedtls_mem_free(void *ptr);
 #define MBEDTLS_BASE64_C
 // #define MBEDTLS_CERTS_C
 #define MBEDTLS_PEM_PARSE_C
-#define MBEDTLS_AES_ROM_TABLES
+//#define MBEDTLS_AES_ROM_TABLES
+#define MBEDTLS_AES_FEWER_TABLES
 #define MBEDTLS_MPI_MAX_SIZE         384
 #define MBEDTLS_MPI_WINDOW_SIZE        2
 #define MBEDTLS_ECP_MAX_BITS         384
@@ -98,9 +101,10 @@ extern void tls_mbedtls_mem_free(void *ptr);
 #define MBEDTLS_SHA1_C
 #define MBEDTLS_TIMING_C
 #define MBEDTLS_ENTROPY_HARDWARE_ALT
+#define MBEDTLS_ENTROPY_FORCE_SHA256
 #define MBEDTLS_TIMING_ALT
 // #define MBEDTLS_DEBUG_C
-#define MBEDTLS_MD5_C
+//#define MBEDTLS_MD5_C
 // #define MBEDTLS_HAVE_TIME_DATE
 #define MBEDTLS_CIPHER_MODE_CBC
 // #define MBEDTLS_CIPHER_MODE_CFB
@@ -110,6 +114,7 @@ extern void tls_mbedtls_mem_free(void *ptr);
 // #define MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 // #define MBEDTLS_CIPHER_PADDING_ZEROS
 #define MBEDTLS_REMOVE_ARC4_CIPHERSUITES
+#define MBEDTLS_REMOVE_3DES_CIPHERSUITES
 // #define MBEDTLS_ECP_DP_SECP192R1_ENABLED
 // #define MBEDTLS_ECP_DP_SECP224R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
@@ -149,8 +154,8 @@ extern void tls_mbedtls_mem_free(void *ptr);
 // #define MBEDTLS_SSL_CBC_RECORD_SPLITTING
 // #define MBEDTLS_SSL_RENEGOTIATION
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-#define MBEDTLS_SSL_PROTO_TLS1
-#define MBEDTLS_SSL_PROTO_TLS1_1
+//#define MBEDTLS_SSL_PROTO_TLS1
+//#define MBEDTLS_SSL_PROTO_TLS1_1
 #define MBEDTLS_SSL_PROTO_TLS1_2
 // #define MBEDTLS_SSL_ALPN
 // #define MBEDTLS_SSL_PROTO_DTLS
