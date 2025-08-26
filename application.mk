@@ -689,9 +689,9 @@ endif
 ifeq ($(CFG_SOC_NAME), 3)
 	$(Q)rm $(BIN_DIR)/bk7231_bsp.bin
 	$(Q)cp $(BIN_DIR)/bsp_enc.bin $(BIN_DIR)/bk7231_bsp.bin
-	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK $(CFG_SOC_NAME_STR)_Tuya$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE); else python ./beken_packager_wrapper -i $(CFG_SOC_NAME) -s $(CFG_FLASH_SELECTION_TYPE); fi)
-	$(Q)mv $(BIN_DIR)/$(CFG_SOC_NAME_STR)_2M.1220.bin $(BIN_DIR)/$(CFG_SOC_NAME_STR)_Tuya_QIO.bin
-	$(Q)mv $(BIN_DIR)/$(CFG_SOC_NAME_STR)_bsp_uart_2M.1220.bin $(BIN_DIR)/$(CFG_SOC_NAME_STR)_Tuya_UA.bin
+	$(Q)(cd ./tools/beken_packager; $(ECHO) "  $(GREEN)PACK $(CFG_SOC_NAME_STR)_Tuya$(NC)"; if [ "$(Q)" = "@" ]; then python ./beken_packager_wrapper -i 10 -s $(CFG_FLASH_SELECTION_TYPE); else python ./beken_packager_wrapper -i 10 -s $(CFG_FLASH_SELECTION_TYPE); fi)
+	$(Q)mv $(BIN_DIR)/bk7252_tuya_2M.1220.bin $(BIN_DIR)/$(CFG_SOC_NAME_STR)_Tuya_QIO.bin
+	$(Q)mv $(BIN_DIR)/bk7252_tuya_bsp_uart_2M.1220.bin $(BIN_DIR)/$(CFG_SOC_NAME_STR)_Tuya_UA.bin
 endif
 
 

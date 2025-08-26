@@ -105,7 +105,8 @@ chip_index = {
     6: 'bk7236',
     7: 'bk7238',
     8: 'bk7252n',
-    9: 'bk7231m'
+    9: 'bk7231m',
+    10: 'bk7252_tuya'
 }
 
 default_info = {
@@ -119,6 +120,7 @@ default_info = {
     'bk7238':  {'boot': 'bootloader_bk7238_uart1_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7252n': {'boot': 'bootloader_bk7252n_uart1_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7253': {'boot': 'bootloader_bk7253_uart2_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    'bk7252_tuya':  {'boot': 'bootloader_bk7251_uart2_v1.0.15_enc.bin', 'firmware': '../../out/bk7231_bsp.bin'},
 }
 
 # parse commandline arguments
@@ -132,7 +134,7 @@ def parse_args():
     parser.add_argument('-i', '--index', type=int,
                         default=-1,
                         choices=chip_index.keys(),
-                        help="chip index: 1: bk7231, 2: bk7231u, 3: bk7251, 4: bk7271, 5: bk7231n, 6:bk7236, 7:bk7238, 8:bk7252n, 9:bk7231m")
+                        help="chip index: 1: bk7231, 2: bk7231u, 3: bk7251, 4: bk7271, 5: bk7231n, 6:bk7236, 7:bk7238, 8:bk7252n, 9:bk7231m, 10:bk7252_tuya")
     parser.add_argument('-b', '--boot',
                         help='specify boot file')
     parser.add_argument('-f', '--firmware',
