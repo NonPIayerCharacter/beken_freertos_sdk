@@ -67,9 +67,9 @@ extern void tls_mbedtls_mem_free(void *ptr);
 #define MBEDTLS_SHA256_SMALLER
 //#define MBEDTLS_SHA512_C
 //#define MBEDTLS_SHA512_NO_SHA384
-#define MBEDTLS_SSL_CLI_C
+//#define MBEDTLS_SSL_CLI_C
 // #define MBEDTLS_SSL_SRV_C
-#define MBEDTLS_SSL_TLS_C
+//#define MBEDTLS_SSL_TLS_C
 #define MBEDTLS_X509_CRT_PARSE_C
 #define MBEDTLS_X509_USE_C
 #define MBEDTLS_BASE64_C
@@ -93,6 +93,10 @@ extern void tls_mbedtls_mem_free(void *ptr);
 #define MBEDTLS_SSL_CIPHERSUITES                        \
     MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA256
 #endif
+
+// for 2.27
+#define MBEDTLS_ECDH_LEGACY_CONTEXT
+#undef MBEDTLS_ECP_ALT
 
 // #define MBEDTLS_SSL_MAX_CONTENT_LEN             3584
 #define MBEDTLS_NO_PLATFORM_ENTROPY
@@ -156,7 +160,7 @@ extern void tls_mbedtls_mem_free(void *ptr);
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 //#define MBEDTLS_SSL_PROTO_TLS1
 //#define MBEDTLS_SSL_PROTO_TLS1_1
-#define MBEDTLS_SSL_PROTO_TLS1_2
+//#define MBEDTLS_SSL_PROTO_TLS1_2
 // #define MBEDTLS_SSL_ALPN
 // #define MBEDTLS_SSL_PROTO_DTLS
 // #define MBEDTLS_SSL_DTLS_ANTI_REPLAY

@@ -342,7 +342,8 @@ INCLUDES += -I$(ROOT_DIR)/beken378/driver/usb/src/uvc
 
 ifeq ("${CFG_MBEDTLS}", "1")
 #CFG_DEFINE_INCLUDE += MBEDTLS_CONFIG_FILE=\"tls_config.h\"
-ifeq ($(CFG_SUPPORT_MATTER), 1)
+#ifeq ($(CFG_SUPPORT_MATTER), 1)
+ifeq (1, 1)
 INCLUDES += -I$(ROOT_DIR)/beken378/func/mbedtls/mbedtls-2.27.0/include
 else
 INCLUDES += -I$(ROOT_DIR)/beken378/func/mbedtls/mbedtls/include
@@ -802,9 +803,11 @@ ifeq ("${CFG_MBEDTLS}", "1")
 
 SRC_MBEDTLS_C += ./beken378/func/mbedtls/mbedtls-port/src/tls_hardware.c
 SRC_MBEDTLS_C += ./beken378/func/mbedtls/mbedtls-port/src/tls_mem.c
-ifeq ($(CFG_SUPPORT_MATTER), 1)
+#ifeq ($(CFG_SUPPORT_MATTER), 1)
+ifeq (1, 1)
 MBEDTLS_LIB_DIRS += ./beken378/func/mbedtls/mbedtls-2.27.0/library
 SRC_MBEDTLS_C += $(foreach dir, $(MBEDTLS_LIB_DIRS), $(wildcard $(dir)/*.c))
+SRC_MBEDTLS_C += ./beken378/func/mbedtls/mbedtls-port/src/timing_alt.c
 else
 SRC_MBEDTLS_C += ./beken378/func/mbedtls/mbedtls-port/src/ecp_curves_alt.c
 SRC_MBEDTLS_C += ./beken378/func/mbedtls/mbedtls-port/src/ecp_alt.c
