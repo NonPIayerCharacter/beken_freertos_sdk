@@ -492,12 +492,12 @@ CCFLAGS += -Wno-discarded-qualifiers
 endif
 
 
-CCFLAGS += -g0 -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os
+CCFLAGS += -g0 -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Oz
 CCFLAGS += -ffunction-sections -Wall -Wno-format -Wno-unknown-pragmas -fsigned-char -fdata-sections -nostdlib -fno-strict-aliasing
 
 CXXFLAGS = $(CCFLAGS)
 CXXFLAGS += -std=gnu++11 -MMD -fno-exceptions -fno-rtti -Wno-literal-suffix -Wno-attributes
-CXXFLAGS += -g0 -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -ffunction-sections -Wno-format -fsigned-char -fdata-sections -fno-strict-aliasing
+CXXFLAGS += -g0 -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Oz -ffunction-sections -Wno-format -fsigned-char -fdata-sections -fno-strict-aliasing
 
 CFLAGS += $(CCFLAGS)
 CFLAGS += -std=c99 -Wunknown-pragmas -nostdlib -Wall
@@ -534,7 +534,7 @@ SDK_COMMIT := $(shell cd beken378 && git rev-parse --short HEAD)
 endif
 CFLAGS += -DSDK_COMMIT_ID=\"$(SDK_COMMIT)\"
 
-OSFLAGS += -flto -g0 -marm -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -std=c99 -ffunction-sections -Wall -fsigned-char -fdata-sections -Wunknown-pragmas
+OSFLAGS += -g0 -marm -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Oz -std=c99 -ffunction-sections -Wall -fsigned-char -fdata-sections -Wunknown-pragmas
 
 ifeq ($(OHOS), 1)
 	CFLAGS += -DCFG_SUPPORT_OHOS=1
@@ -544,7 +544,7 @@ endif
 ASMFLAGS =
 ASMFLAGS += -g0 -marm -mthumb-interwork -mcpu=arm968e-s -march=armv5te -x assembler-with-cpp
 
-LFLAGS = -flto
+LFLAGS =
 ifeq ($(CFG_SUPPORT_MATTER), 0)
 LFLAGS += -g0 -Wl,--gc-sections -marm -mcpu=arm968e-s -mthumb-interwork -nostdlib  -Xlinker -Map=beken.map
 else
