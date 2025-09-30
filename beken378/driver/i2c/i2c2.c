@@ -363,7 +363,7 @@ static void i2c2_isr(void)
     {
         if (i2c2_stat & I2C2_SCL_TIMEOUT)				// SCL low level over time interrupt
         {
-            I2C2_EPRT("i\r\n");
+            I2C2_DEBUG_PRINTF("i\r\n");
             i2c2_set_smbus_en(0);						// must close-->open when SCL Low
             i2c2_set_smbus_en(1);
         }

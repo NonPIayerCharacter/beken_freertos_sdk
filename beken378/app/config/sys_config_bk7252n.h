@@ -253,7 +253,7 @@
 #define CFG_USE_SPIDMA                             0
 #if CFG_USE_CAMERA_INTF
 #define CFG_USE_I2C1                               1
-#define CFG_USE_I2C2                               0
+#define CFG_USE_I2C2                               1
 #else
 #define CFG_USE_I2C1                               1
 #define CFG_USE_I2C2                               1

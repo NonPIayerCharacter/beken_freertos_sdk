@@ -72,6 +72,7 @@
 
 UINT8 tvideo_rxbuf[TVIDEO_RXBUF_LEN];
 TVIDEO_DESC_ST tvideo_st;
+camera_sensor_t* camera_sensor = NULLPTR;
 
 typedef struct tvideo_elem_st
 {
@@ -437,7 +438,12 @@ static void video_transfer_main(beken_thread_arg_t data)
         }
         else //if(tvideo_pool.open_type == TVIDEO_OPEN_SCCB)
         {
-            if(camera_intfer_init(&tvideo_st) != 1)
+            camera_sensor = camera_detect();
+            if(camera_sensor != NULLPTR)
+            {
+                camera_intfer_init(&tvideo_st, camera_sensor);
+            }
+            else
             {
                 goto tvideo_exit;
             }
@@ -471,6 +477,7 @@ static void video_transfer_main(beken_thread_arg_t data)
                 break;
             }
         }
+        taskYIELD();
     }
     tvideo_pool.status = TVIDEO_STATUS_EXIT;
 
@@ -496,7 +503,10 @@ tvideo_exit:
     }
     else //if(tvideo_pool.open_type == TVIDEO_OPEN_SCCB)
     {
-        camera_intfer_deinit();
+        if(camera_sensor != NULLPTR)
+        {
+            camera_intfer_deinit(camera_sensor);
+        }
     }
 
     rtos_deinit_queue(&tvideo_msg_que);
@@ -602,7 +612,8 @@ int video_transfer_deinit(void)
 UINT32 video_transfer_set_video_param(UINT32 ppi, UINT32 fps)
 {
     #if CFG_USE_CAMERA_INTF
-    return camera_intfer_set_video_param(ppi, fps);
+    //return camera_intfer_set_video_param(ppi, fps);
+    return 0;
     #endif // CFG_USE_CAMERA_INTF
 }
 #endif  // (CFG_USE_SPIDMA || CFG_USE_CAMERA_INTF)

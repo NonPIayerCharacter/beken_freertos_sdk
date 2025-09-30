@@ -379,11 +379,11 @@ SRC_C += ./beken378/app/ate_app.c
 SRC_C += ./beken378/app/config/param_config.c
 SRC_C += ./beken378/app/standalone-ap/sa_ap.c
 SRC_C += ./beken378/app/standalone-station/sa_station.c
-#SRC_C += ./beken378/app/video_work/video_transfer_tcp.c
-#SRC_C += ./beken378/app/video_work/video_transfer_udp.c
-#SRC_C += ./beken378/app/video_work/video_buffer.c
-#SRC_C += ./beken378/app/video_work/video_upd_spd.c
-#SRC_C += ./beken378/app/video_work/video_upd_spd_pub.c
+SRC_C += ./beken378/app/video_work/video_transfer_tcp.c
+SRC_C += ./beken378/app/video_work/video_transfer_udp.c
+SRC_C += ./beken378/app/video_work/video_buffer.c
+SRC_C += ./beken378/app/video_work/video_upd_spd.c
+SRC_C += ./beken378/app/video_work/video_upd_spd_pub.c
 #SRC_C += ./beken378/app/net_work/video_demo_main.c
 #SRC_C += ./beken378/app/net_work/video_demo_station.c
 #SRC_C += ./beken378/app/net_work/video_demo_softap.c
@@ -625,9 +625,18 @@ SRC_FUNC_C += ./beken378/func/wlan_ui/bk_peripheral_test.c
 SRC_FUNC_C += ./beken378/func/utf8/conv_utf8.c
 
 # video / jpeg
-ifeq ($CFG_USE_CAMERA_INTF), 1)
+ifeq ($(CFG_USE_CAMERA_INTF), 1)
 SRC_FUNC_C += ./beken378/func/camera_intf/camera_intf.c
-SRC_FUNC_C += ./beken378/func/camera_intf/camera_intf_gc2145.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/gc0310.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/gc0310_regs.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/gc0311.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/gc0311_regs.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/gc0328c.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/gc0328c_regs.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/gc0329c.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/gc0329c_regs.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/hi704.c
+SRC_FUNC_C += ./beken378/func/camera_intf/sensors/hi704_regs.c
 SRC_FUNC_C += ./beken378/func/video_transfer/video_transfer.c
 endif
 

@@ -32,7 +32,7 @@
 #define JPEG_BITRATE_MAX_SIZE_320_240           (20 * 1024)
 #define JPEG_BITRATE_MIN_SIZE_320_240           (5 * 1024)
 
-#define JPEG_BITRATE_MAX_SIZE_640_480           (35 * 1024)
+#define JPEG_BITRATE_MAX_SIZE_640_480           (25 * 1024)
 #define JPEG_BITRATE_MIN_SIZE_640_480           (20 * 1024)
 
 #define JPEG_BITRATE_MAX_SIZE_1280_720          (50 * 1024)
@@ -491,12 +491,12 @@ static UINT32 ejpeg_open(UINT32 op_flag)
 
     ejpeg_set_target_high_byte(JPEG_BITRATE_MAX_SIZE);
     ejpeg_set_target_low_byte(JPEG_BITRATE_MIN_SIZE);
-    #if (CFG_SOC_NAME == SOC_BK7271) || (CFG_SOC_NAME == SOC_BK7236)
-    ejpeg_set_bitrate_step(3);
-    #else
+    //#if (CFG_SOC_NAME == SOC_BK7271) || (CFG_SOC_NAME == SOC_BK7236)
+    //ejpeg_set_bitrate_step(3);
+    //#else
     ejpeg_set_bitrate_step(7);
-    #endif
-    //ejpeg_enable_bitrate_ctrl(1);
+    //#endif
+    ejpeg_enable_bitrate_ctrl(1);
 
     ejpeg_enable_interrupt();
 

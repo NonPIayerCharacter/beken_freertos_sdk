@@ -414,8 +414,8 @@
 #define DUMP_STACK_WHEN_TASK_WDG_TIGGERED          1
 
 /*section 29 -----  peripheral interface open  */
-#define CFG_USE_I2C1                               0
-#define CFG_USE_I2C2                               0
+#define CFG_USE_I2C1                               1
+#define CFG_USE_I2C2                               1
 
 #define CFG_USE_SPI                                1
 //#define CFG_USE_SPI_MASTER                         1

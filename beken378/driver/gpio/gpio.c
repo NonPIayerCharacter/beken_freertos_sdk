@@ -1656,7 +1656,7 @@ static void gpio_disable_jtag(void)
 
     for(id = GPIO20; id <= GPIO23; id ++)
     {
-        //gpio_config(id, GMODE_OUTPUT);
+        gpio_config(id, GMODE_OUTPUT);
     }
     #endif
 }

@@ -245,13 +245,13 @@
 #define CFG_USE_TEMPERATURE_DETECT                 0
 
 /*section 12-----for video transfer*/
-#define CFG_USE_APP_DEMO_VIDEO_TRANSFER            0
+#define CFG_USE_APP_DEMO_VIDEO_TRANSFER            1
 #define CFG_USE_HSLAVE_SPI                         0
 #define CFG_USE_SPIDMA                             0
 #define CFG_USE_CAMERA_INTF                        1
 #if CFG_USE_CAMERA_INTF
 #define CFG_USE_I2C1                               1
-#define CFG_USE_I2C2                               0
+#define CFG_USE_I2C2                               1
 #endif
 /*section 13-----for GENERRAL DMA */
 #define CFG_GENERAL_DMA                            1

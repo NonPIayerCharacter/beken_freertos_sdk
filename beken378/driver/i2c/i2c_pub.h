@@ -160,7 +160,7 @@ typedef struct i2c1_msg
 #define I2C_BAUD_100KHZ      100000
 #define I2C_BAUD_400KHZ      400000
 #define I2C_BAUD_4MHZ        4000000
-#define I2C_DEFAULT_BAUD     I2C_BAUD_400KHZ
+#define I2C_DEFAULT_BAUD     I2C_BAUD_100KHZ
 #define I2C_CLK_DIVID(rate)  (NUM_ROUND_UP(NUM_ROUND_UP(I2C1_DEFAULT_CLK, rate) - 6, 3) - 1)
 #define I2C_DEF_DIV          0x16
 
@@ -174,8 +174,8 @@ typedef struct i2c1_msg
 #define I2C2_MSG_WORK_MODE_AL_BIT        (1<<2)      /* 0:7bit address, 1:10bit address */
 #define I2C2_MSG_WORK_MODE_IA_BIT        (1<<3)      /* 0:without inner address, 1: with inner address */
 
-#define I2C_READ_WAIT_TIMEOUT            (2000)        /* ms */
-#define I2C_WRITE_WAIT_TIMEOUT           (2000)        /* ms */
+#define I2C_READ_WAIT_TIMEOUT            (200)        /* ms */
+#define I2C_WRITE_WAIT_TIMEOUT           (200)        /* ms */
 
 void i2c1_init(void);
 void i2c1_exit(void);

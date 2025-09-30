@@ -39,11 +39,11 @@
 #include "uart1_tcp_server_demo.h"
 #endif
 
-//#if (CFG_SOC_NAME == SOC_BK7231N) || (CFG_SOC_NAME == SOC_BK7238) || (CFG_SOC_NAME == SOC_BK7252N && CFG_SOC_NAME_VARIANT == 0)
-//int uart_print_port = UART1_PORT;
-//#else
+#if (CFG_SOC_NAME == SOC_BK7252N) || (CFG_SOC_NAME == SOC_BK7221U)
+int uart_print_port = UART1_PORT;
+#else
 int uart_print_port = UART2_PORT;
-//#endif
+#endif
 
 #ifndef FALSE
 #define FALSE    0
