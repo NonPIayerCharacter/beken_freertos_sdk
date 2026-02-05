@@ -44,7 +44,7 @@ int os_memcmp_const(const void *a, const void *b, size_t len)
 {
     return memcmp(a, b, len);
 }
-
+#define FIX_REALLOC_ISSUE
 #if CFG_OS_FREERTOS
 void *os_realloc(void *ptr, size_t size)
 {
