@@ -4,9 +4,9 @@
 # example:
 # generate_beken_lib.sh bk7231u [SDK_path]
 
-source ./tools/scripts/build_include.sh
+. ./tools/scripts/build_include.sh
 
-if [ "$2" == "" ]; then
+if [ "$2" = "" ]; then
 	BEKEN_SDK_DIR=./beken378
 else
 	BEKEN_SDK_DIR=$2
@@ -51,6 +51,11 @@ case $1 in
 		modify_config ${SYS_CFG_FILE} CFG_SUPPORT_BLE 1
 		modify_config ${SYS_CFG_FILE} CFG_WIFI_SENSOR 1
 		modify_config ${SYS_CFG_FILE} CFG_BK_AWARE    1
+		if [ "${OBK_BK7231N_BLE51}" = "1" ]; then
+			# BLE_VERSION_5_1 is 2 in sys_config_bk7231n.h.
+			modify_config ${SYS_CFG_FILE} CFG_BLE_VERSION 2
+			echo "forcing bk7231n libs to BLE 5.1 (CFG_BLE_VERSION=2)"
+		fi
 		make_target="ip ble sensor bk_aware  cal supplicant uart_debug rf_test rf_use"
 		;;
 	bk7251)

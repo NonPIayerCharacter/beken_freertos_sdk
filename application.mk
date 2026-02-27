@@ -617,7 +617,10 @@ LIBFLAGS += -L./beken378/lib -lrf_test
 LIBFLAGS += -L./beken378/lib -lrf_use
 LIBFLAGS += -L./beken378/lib -lbk_player
 LIBFLAGS += -L./beken378/lib -lcodec_helix
-#LIBFLAGS += -L./ -lble_pub
+# BLE 5.x APIs (ble_entry/ble_set_notice_cb/bk_ble_scan_*) are built into libble_pub.a.
+ifneq ($(CFG_BLE_VERSION),$(BLE_VERSION_4_2))
+LIBFLAGS += -L./ -lble_pub
+endif
 #LIBFLAGS += -L./ -lwolfssl
 LIBFLAGS += -L./ -los -llwip -lmbedtls -ldriver -lfunc -lmisc -lsrc_s
 
