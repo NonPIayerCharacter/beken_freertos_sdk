@@ -336,7 +336,7 @@
 #define BLE_VERSION_5_1                            2
 #define BLE_VERSION_5_2                            3
 
-#define CFG_BLE_VERSION                            BLE_VERSION_4_2
+#define CFG_BLE_VERSION                            BLE_VERSION_5_2
 
 #define WIFI_DEFAULT_BLE_REQUEST                   1
 #define BLE_DEFAULT_WIFI_REQUEST                   2
@@ -453,5 +453,17 @@
 #endif // (AT_SERVICE_CFG)
 
 #define CFG_DEFAULT_ADC_HIGH_BITS                  0x84
+
+#if 0//BTPROXY
+#undef CFG_SUPPORT_BLE
+#define CFG_SUPPORT_BLE                            1
+#define CFG_BLE_HOST_RW                            1
+#define CFG_BLE_INIT_NUM                           1
+#define CFG_BLE_ADV_NUM                            1
+#define CFG_BLE_SCAN_NUM                           1
+#define CFG_BLE_USE_DYN_RAM                        1
+#define CFG_BLE_CONN_NUM                           1
+#define CFG_BLE_DIAGNOSTIC_PORT                    0
+#endif
 
 #endif // _SYS_CONFIG_H_

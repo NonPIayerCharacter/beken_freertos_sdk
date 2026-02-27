@@ -349,7 +349,7 @@
 #define CFG_SUPPORT_BLE                            0
 #define CFG_BLE_USE_CLI                            0
 #define CFG_SUPPORT_BLE_MESH                       0
-#define CFG_USE_PTA                                0
+#define CFG_USE_PTA                                1
 
 #if ((0 == CFG_SUPPORT_BLE) && (CFG_USE_BLE_PS))
 #error "check the ble macro, thx!"
@@ -359,7 +359,7 @@
 #define BLE_VERSION_5_1                            2
 #define BLE_VERSION_5_2                            3
 
-#define CFG_BLE_VERSION                            BLE_VERSION_4_2
+#define CFG_BLE_VERSION                            BLE_VERSION_5_1
 
 #define WIFI_DEFAULT_BLE_REQUEST                   1
 #define BLE_DEFAULT_WIFI_REQUEST                   2
@@ -436,4 +436,10 @@
 #define CFG_BK_NX_GET_WIFI_SNR                     0
 
 #define CFG_WRAP_LIBC                              1
+
+#if 0//BTPROXY
+#undef CFG_SUPPORT_BLE
+#define CFG_SUPPORT_BLE                            1
+#define CFG_BLE_USE_DYN_RAM                        1
+#endif
 #endif // _SYS_CONFIG_H_
