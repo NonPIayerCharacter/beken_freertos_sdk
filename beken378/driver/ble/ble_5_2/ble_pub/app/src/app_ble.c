@@ -704,6 +704,10 @@ ble_err_t app_ble_start_scaning(uint8_t actv_idx, uint16_t scan_intv, uint16_t s
 
 			p_cmd->u_param.scan_param.type = GAPM_SCAN_TYPE_OBSERVER;//GAPM_SCAN_TYPE_GEN_DISC;//GAPM_SCAN_TYPE_OBSERVER;//;
 			p_cmd->u_param.scan_param.prop = GAPM_SCAN_PROP_PHY_1M_BIT ;//| GAPM_SCAN_PROP_ACTIVE_1M_BIT;
+			if(app_ble_env.actvs[actv_idx].param.scan.active)
+			{
+				p_cmd->u_param.scan_param.prop |= GAPM_SCAN_PROP_ACTIVE_1M_BIT;
+			}
 			p_cmd->u_param.scan_param.scan_param_1m.scan_intv = scan_intv;
 			p_cmd->u_param.scan_param.scan_param_1m.scan_wd = scan_wd;
 			p_cmd->u_param.scan_param.dup_filt_pol = 0;

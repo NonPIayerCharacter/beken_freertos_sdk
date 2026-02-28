@@ -665,6 +665,7 @@ struct scan_param {
     uint8_t  channel_map;
     uint16_t interval;
     uint16_t window;
+    uint8_t  active; // 0 = passive, 1 = active
     uint8_t filter_type;
     uint8_t filter_param[32];
 };
