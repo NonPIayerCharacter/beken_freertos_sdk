@@ -703,13 +703,15 @@ ble_err_t app_ble_start_scaning(uint8_t actv_idx, uint16_t scan_intv, uint16_t s
 			p_cmd->operation = GAPM_START_ACTIVITY;
 
 			p_cmd->u_param.scan_param.type = GAPM_SCAN_TYPE_OBSERVER;//GAPM_SCAN_TYPE_GEN_DISC;//GAPM_SCAN_TYPE_OBSERVER;//;
-			p_cmd->u_param.scan_param.prop = GAPM_SCAN_PROP_PHY_1M_BIT ;//| GAPM_SCAN_PROP_ACTIVE_1M_BIT;
+			p_cmd->u_param.scan_param.prop = GAPM_SCAN_PROP_PHY_1M_BIT | GAPM_SCAN_PROP_PHY_CODED_BIT;//| GAPM_SCAN_PROP_ACTIVE_1M_BIT;
 			if(app_ble_env.actvs[actv_idx].param.scan.active)
 			{
-				p_cmd->u_param.scan_param.prop |= GAPM_SCAN_PROP_ACTIVE_1M_BIT;
+				p_cmd->u_param.scan_param.prop |= GAPM_SCAN_PROP_ACTIVE_1M_BIT | GAPM_SCAN_PROP_ACTIVE_CODED_BIT;
 			}
 			p_cmd->u_param.scan_param.scan_param_1m.scan_intv = scan_intv;
 			p_cmd->u_param.scan_param.scan_param_1m.scan_wd = scan_wd;
+			p_cmd->u_param.scan_param.scan_param_coded.scan_intv = scan_intv;
+			p_cmd->u_param.scan_param.scan_param_coded.scan_wd = scan_wd;
 			p_cmd->u_param.scan_param.dup_filt_pol = 0;
 			p_cmd->u_param.scan_param.duration = 0;
 			p_cmd->u_param.scan_param.period = 10;
@@ -1802,8 +1804,9 @@ void appm_init( void )
 	// Reset the application manager environment
 	memset(&app_ble_env, 0, sizeof(struct app_env_tag));
 #if BLE_CENTRAL
-	app_ble_env.init_conn_par.phy_mask = GAPM_INIT_PROP_1M_BIT;
+	app_ble_env.init_conn_par.phy_mask = GAPM_INIT_PROP_1M_BIT | GAPM_INIT_PROP_CODED_BIT;
 	memcpy(&app_ble_env.init_conn_par.conn_param_1m, &default_init_par, sizeof(struct appm_create_conn_param));
+	memcpy(&app_ble_env.init_conn_par.conn_param_coded, &default_init_par, sizeof(struct appm_create_conn_param));
 #endif
 
 	for (int i = 0; i < BLE_CONNECTION_MAX; i++) {

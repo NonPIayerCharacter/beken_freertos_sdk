@@ -571,7 +571,7 @@ static void set_flash_protect(PROTECT_TYPE type, bool isvolatile)
         value &= ~(1 << flash_current_config->cmp_post);
         value |= ((cmp & 0x01) << flash_current_config->cmp_post);
 
-        os_printf("--write status reg:%x,%x--\r\n", value, flash_current_config->sr_size);
+        //os_printf("--write status reg:%x,%x--\r\n", value, flash_current_config->sr_size);
         flash_write_sr(flash_current_config->sr_size, value, isvolatile);
     }
 }
