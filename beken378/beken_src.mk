@@ -589,6 +589,7 @@ SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/http/httpd.c
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/http/fs.c
 endif
 SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/mqtt/mqtt.c
+SRC_LWIP_C += ./beken378/func/lwip_intf/$(LWIP_VERSION)/src/apps/mdns/mdns.c
 
 SRC_FUNC_C += ./beken378/func/misc/fake_clock.c
 SRC_FUNC_C += ./beken378/func/misc/pseudo_random.c

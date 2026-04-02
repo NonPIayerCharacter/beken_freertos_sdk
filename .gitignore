@@ -5,3 +5,4 @@ beken378/lib/*.a
 .platform
 *.a
 build/bk72xx*
+toolchain/arm-none-eabi

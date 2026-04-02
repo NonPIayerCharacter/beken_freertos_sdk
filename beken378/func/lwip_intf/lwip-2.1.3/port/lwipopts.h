@@ -351,6 +351,8 @@
    * LWIP_IGMP==1: Turn on IGMP module.
    */
 #define LWIP_IGMP                       1
+#define LWIP_NUM_NETIF_CLIENT_DATA      1
+#define LWIP_MDNS_RESPONDER             1
 
    /**
 	* LWIP_SO_SNDTIMEO==1: Enable send timeout for sockets/netconns and

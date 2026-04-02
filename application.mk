@@ -2,7 +2,7 @@
 # -------------------------------------------------------------------
 #ARM_GCC_TOOLCHAIN = toolchain/gcc-arm-none-eabi-4_9-2015q1/bin/
 
-ARM_GCC_TOOLCHAIN = ${FREERTOS_EXEC_PATH}
+#ARM_GCC_TOOLCHAIN = ${FREERTOS_EXEC_PATH}
 CROSS_COMPILE = $(ARM_GCC_TOOLCHAIN)arm-none-eabi-
 
 # Compilation tools
@@ -495,7 +495,7 @@ endif
 CCFLAGS += -g0 -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os
 CCFLAGS += -ffunction-sections -Wall -Wno-format -Wno-unknown-pragmas -fsigned-char -fdata-sections -nostdlib -fno-strict-aliasing
 
-CXXFLAGS = $(CCFLAGS)
+CXXFLAGS = -flto=auto $(CCFLAGS)
 CXXFLAGS += -std=gnu++11 -MMD -fno-exceptions -fno-rtti -Wno-literal-suffix -Wno-attributes
 CXXFLAGS += -g0 -mthumb -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -ffunction-sections -Wno-format -fsigned-char -fdata-sections -fno-strict-aliasing
 
@@ -534,7 +534,7 @@ SDK_COMMIT := $(shell cd beken378 && git rev-parse --short HEAD)
 endif
 CFLAGS += -DSDK_COMMIT_ID=\"$(SDK_COMMIT)\"
 
-OSFLAGS += -flto -g0 -marm -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -std=c99 -ffunction-sections -Wall -fsigned-char -fdata-sections -Wunknown-pragmas
+OSFLAGS += -flto=auto -ffat-lto-objects -g0 -marm -mcpu=arm968e-s -march=armv5te -mthumb-interwork -mlittle-endian -Os -std=c99 -ffunction-sections -Wall -fsigned-char -fdata-sections -Wunknown-pragmas
 
 ifeq ($(OHOS), 1)
 	CFLAGS += -DCFG_SUPPORT_OHOS=1
@@ -558,7 +558,7 @@ LFLAGS += -Wl,-wrap,printf -Wl,-wrap,vsnprintf -Wl,-wrap,snprintf -Wl,-wrap,spri
 ifeq ($(CFG_WRAP_LIBC),1)
 LFLAGS += -Wl,-wrap,strtod -Wl,-wrap,qsort
 LFLAGS += -Wl,-wrap,sscanf
-LFLAGS += -Wl,-wrap,__errno
+#LFLAGS += -Wl,-wrap,__errno
 LFLAGS += -Wl,-wrap,rand -Wl,-wrap,srand
 LFLAGS += -Wl,-wrap,strtol -Wl,-wrap,strtoul
 LFLAGS += -Wl,-wrap,strtoll -Wl,-wrap,strtoull
@@ -644,9 +644,9 @@ endif
 #	$(Q)$(CC) -E -x c -P ./beken378/func/user_driver/BkFlashPartition.h -o ./tools/beken_packager/flash_partition.o -I ./config
 
 ifeq  ($(CFG_SUPPORT_MATTER), 1)
-	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_ELF) -Wl,--start-group $(LIBFLAGS) -lg_nano -Wl,--end-group -T./build/$(SOC_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_MAP)
+	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_ELF) -Wl,--start-group $(LIBFLAGS) -Wl,--end-group -T./build/$(SOC_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_MAP)
 else
-	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_ELF) -Wl,--start-group $(LIBFLAGS) -lg_nano -Wl,--end-group -T./build/$(SOC_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_MAP)
+	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_ELF) -Wl,--start-group $(LIBFLAGS) -Wl,--end-group -T./build/$(SOC_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_MAP)
 endif
 	$(Q)$(OBJCOPY) -O binary $(BIN_DIR)/$(SOC_NAME_ELF) $(BIN_DIR)/$(SOC_NAME_BIN)
 #	$(OBJDUMP) -d $(BIN_DIR)/$(SOC_NAME_ELF) >> $(BIN_DIR)/bk7231.asm
@@ -654,9 +654,9 @@ endif
 	@$(ECHO) "  $(GREEN)CRC  $(BIN_DIR)/$(SOC_NAME_BIN)$(NC)"
 
 ifeq ($(CFG_SUPPORT_MATTER), 1)
-	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_BSP_ELF) -Wl,--start-group $(LIBFLAGS) -lg_nano -Wl,--end-group -T./build/$(SOC_BSP_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_BSP_MAP)
+	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_BSP_ELF) -Wl,--start-group $(LIBFLAGS) -Wl,--end-group -T./build/$(SOC_BSP_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_BSP_MAP)
 else
-	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_BSP_ELF) -Wl,--start-group $(LIBFLAGS) -lg_nano -Wl,--end-group -T./build/$(SOC_BSP_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_BSP_MAP)
+	$(Q)$(LD) $(LFLAGS) -o $(BIN_DIR)/$(SOC_NAME_BSP_ELF) -Wl,--start-group $(LIBFLAGS) -Wl,--end-group -T./build/$(SOC_BSP_LDS) -Xlinker -Map=$(BIN_DIR)/$(SOC_NAME_BSP_MAP)
 endif
 	$(Q)$(OBJCOPY) -O binary $(BIN_DIR)/$(SOC_NAME_BSP_ELF) $(BIN_DIR)/$(SOC_NAME_BSP_BIN)
 	$(ENCRYPT) $(BIN_DIR)/$(SOC_NAME_BSP_BIN) $(ENCRYPT_ARGS)

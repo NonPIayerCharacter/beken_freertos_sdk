@@ -3,7 +3,7 @@
 # example: 
 # generate_sys_config bk7231u config/sys_config.h
 
-ARM_GCC_TOOLCHAIN=${FREERTOS_EXEC_PATH}
+#ARM_GCC_TOOLCHAIN=${FREERTOS_EXEC_PATH}
 
 if [ -z "${ECHO}" ]; then
 ECHO=echo
