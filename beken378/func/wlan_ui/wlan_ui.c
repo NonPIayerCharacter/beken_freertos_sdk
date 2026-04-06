@@ -1245,7 +1245,7 @@ OSStatus bk_wlan_start_sta(network_InitTypeDef_st *inNetworkInitPara)
         }
     }
     #else
-    inNetworkInitPara->dhcp_mode = DHCP_CLIENT;
+    //inNetworkInitPara->dhcp_mode = DHCP_CLIENT;
     #if CFG_WLAN_SUPPORT_FAST_DHCP
     net_info = &fci.net_info;
     /*For fast dhcp, set previous offered ip address*/
