@@ -466,6 +466,6 @@
 #define CFG_USE_SOFT_RTC                           1
 #endif // (AT_SERVICE_CFG)
 
-#define CFG_USE_CHARGE_DEV                         0
+#define CFG_USE_CHARGE_DEV                         1
 
 #endif // _SYS_CONFIG_H_
