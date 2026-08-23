@@ -581,10 +581,14 @@ static void gpio_enable_second_function(UINT32 func_mode)
             regist = REG_GPIO_FUNC_CFG_2;
             shift = (i - 16) * 2;
         }
-        reg = REG_READ(regist);
-
-        reg = (reg & ~(0x3u << shift)) | ((pmode & 0x3u) << shift);
-        REG_WRITE(regist, reg);
+        {
+            GLOBAL_INT_DECLARATION();
+            GLOBAL_INT_DISABLE();
+            reg = REG_READ(regist);
+            reg = (reg & ~(0x3u << shift)) | ((pmode & 0x3u) << shift);
+            REG_WRITE(regist, reg);
+            GLOBAL_INT_RESTORE();
+        }
 
         gpio_config(i, config_mode);
     }
@@ -1029,9 +1033,14 @@ static void gpio_enable_second_function(UINT32 func_mode)
             shift = (i - 32) * 2;
         }
 
-        reg = REG_READ(regist);
-        reg = (reg & ~(0x3u << shift)) | ((pmode & 0x3u) << shift);
-        REG_WRITE(regist, reg);
+        {
+            GLOBAL_INT_DECLARATION();
+            GLOBAL_INT_DISABLE();
+            reg = REG_READ(regist);
+            reg = (reg & ~(0x3u << shift)) | ((pmode & 0x3u) << shift);
+            REG_WRITE(regist, reg);
+            GLOBAL_INT_RESTORE();
+        }
 
         gpio_config_ex(i, config_mode, capacity);
     }
@@ -1423,10 +1432,14 @@ static void gpio_enable_second_function(UINT32 func_mode)
             regist = REG_GPIO_FUNC_CFG_3;
             shift = (i - 32) * 2;
         }
-        reg = REG_READ(regist);
-
-        reg = (reg & ~(0x3u << shift)) | ((pmode & 0x3u) << shift);
-        REG_WRITE(regist, reg);
+        {
+            GLOBAL_INT_DECLARATION();
+            GLOBAL_INT_DISABLE();
+            reg = REG_READ(regist);
+            reg = (reg & ~(0x3u << shift)) | ((pmode & 0x3u) << shift);
+            REG_WRITE(regist, reg);
+            GLOBAL_INT_RESTORE();
+        }
         #elif (SOC_BK7231N == CFG_SOC_NAME)
         if(i < GPIO16) {
             regist = REG_GPIO_FUNC_CFG;
@@ -1436,10 +1449,14 @@ static void gpio_enable_second_function(UINT32 func_mode)
             regist = REG_GPIO_FUNC_CFG_2;
             shift = (i - 16) * 2;
         }
-        reg = REG_READ(regist);
-
-        reg = (reg & ~(0x3u << shift)) | ((pmode & 0x3u) << shift);
-        REG_WRITE(regist, reg);
+        {
+            GLOBAL_INT_DECLARATION();
+            GLOBAL_INT_DISABLE();
+            reg = REG_READ(regist);
+            reg = (reg & ~(0x3u << shift)) | ((pmode & 0x3u) << shift);
+            REG_WRITE(regist, reg);
+            GLOBAL_INT_RESTORE();
+        }
         #else
         reg = REG_READ(REG_GPIO_FUNC_CFG);
         if(PERIAL_MODE_1 == pmode)
