@@ -15,7 +15,7 @@
 #include "include.h"
 #include "arm_arch.h"
 
-#if ((CFG_USE_AUDIO) && (CFG_SOC_NAME == SOC_BK7221U || CFG_SOC_NAME == SOC_BK7252N))
+#if ((CFG_USE_AUDIO) && (CFG_USE_AUD_DAC) && (CFG_SOC_NAME == SOC_BK7221U || CFG_SOC_NAME == SOC_BK7252N))
 #include "audio_pub.h"
 
 #include "mem_pub.h"

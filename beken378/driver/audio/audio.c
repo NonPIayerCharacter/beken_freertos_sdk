@@ -130,10 +130,12 @@ void audio_hardware_init(void)
     val = REG_READ(AUD_AD_FIFO_STATUS);
     REG_WRITE_PROTECT(AUD_AD_FIFO_STATUS, val);
 
+    #if CFG_USE_AUD_DAC
     #if(CFG_AUD_DAC_USE_PORT_SET == CFG_AUD_DAC_SINGLE_PORT)
     audio_dac_volume_use_single_port();
     #else
     audio_dac_volume_diff_port();
+    #endif
     #endif
 }
 

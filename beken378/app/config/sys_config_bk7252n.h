@@ -332,9 +332,9 @@
 #endif
 
 /*section 25 ----- use audio*/
-#define CFG_USE_AUDIO                              0
+#define CFG_USE_AUDIO                              1
 #define CFG_USE_AUD_DAC                            0
-#define CFG_USE_AUD_ADC                            0
+#define CFG_USE_AUD_ADC                            1
 
 /*section 25 ----- use tick time calibrate*/
 #define CFG_USE_TICK_CAL                           1
