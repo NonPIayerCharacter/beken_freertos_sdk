@@ -355,6 +355,7 @@ static void i2c1_isr(void)
     volatile UINT8 data_num = 0;
     UINT8 i, uctemp, remain_data_cnt;
 
+    (void)REG_READ(REG_I2C1_STA);
     i2c1_stat = REG_READ(REG_I2C1_STA);
     si = i2c1_stat & I2C1_SMBUS_SI;
 
