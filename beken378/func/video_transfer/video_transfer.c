@@ -507,6 +507,7 @@ tvideo_exit:
 }
 
 TVIDEO_SETUP_DESC_ST video_transfer_setup_bak = {0};
+int video_transfer_deinit(void);
 int video_transfer_init(TVIDEO_SETUP_DESC_PTR setup_cfg)
 {
     int ret;
@@ -564,16 +565,7 @@ int video_transfer_init(TVIDEO_SETUP_DESC_PTR setup_cfg)
 
         if(init_ret != kNoErr)
         {
-            if(tvideo_msg_que)
-            {
-                rtos_deinit_queue(&tvideo_msg_que);
-                tvideo_msg_que = NULL;
-            }
-            if(tvideo_thread_hdl)
-            {
-                TVIDEO_FATAL("Error: thread hal still exist\r\n");
-            }
-            tvideo_thread_hdl = NULL;
+            video_transfer_deinit();
             TVIDEO_FATAL("Error: Failed to video transfer init\r\n");
         }
 
