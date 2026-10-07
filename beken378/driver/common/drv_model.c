@@ -133,6 +133,7 @@ DD_HANDLE ddev_open(char *dev_name, UINT32 *status, UINT32 op_flag)
             if(DD_STATE_OPENED == dev_ptr->state)
             {
                 handle = ddev_make_handle(i);
+                *status = DRV_SUCCESS;
             }
             else if(DD_STATE_CLOSED == dev_ptr->state)
             {
@@ -182,10 +183,13 @@ UINT32 ddev_close(DD_HANDLE handle)
     dev_ptr = &drv_dev_tbl[id];
 
     GLOBAL_INT_DISABLE();
-    dev_ptr->use_cnt --;
+    if(dev_ptr->use_cnt)
+    {
+        dev_ptr->use_cnt --;
+    }
     GLOBAL_INT_RESTORE();
 
-    if(0 == dev_ptr->use_cnt)
+    if((0 == dev_ptr->use_cnt) && (DD_STATE_OPENED == dev_ptr->state))
     {
         operation = dev_ptr->op;
         if(operation && (operation->close))
