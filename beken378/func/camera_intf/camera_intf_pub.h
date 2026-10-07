@@ -17,6 +17,7 @@
 
 void camera_flip(UINT8 n);
 int camera_intfer_init(void *data);
+int camera_intf_config_senser(void);
 void camera_intfer_deinit(void);
 UINT32 camera_intfer_set_video_param(UINT32 ppi_type, UINT32 pfs_type);
 

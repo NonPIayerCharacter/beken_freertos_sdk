@@ -485,7 +485,19 @@ static void camera_inf_cfg_fps(UINT32 fps_type)
 }
 #endif
 
-static int camera_intf_config_senser(void)
+#if (USE_CAMERA == GC0310_DEV)
+static int camera_inf_cfg_gc0310_ppi(UINT32 ppi_type)
+{
+    if (ppi_type != VGA_640_480)
+    {
+        CAMERA_INTF_WPRT("GC0310 supports VGA_640_480 only, got %d\r\n", ppi_type);
+        return -1;
+    }
+    return 0;
+}
+#endif
+
+int camera_intf_config_senser(void)
 {
     UINT32 i, size;
     UINT8 addr, data;
@@ -594,6 +606,29 @@ static int camera_intf_config_senser(void)
     camera_inf_cfg_gc0328c_fps(CMPARAM_GET_FPS(ejpeg_cfg.sener_cfg));
 
     CAMERA_INTF_WPRT("GC0328C init finish\r\n");
+    #elif (USE_CAMERA == GC0310_DEV)
+    i2c_operater.salve_id = GC0310_DEV_ID;
+
+    size = sizeof(gc0310_init_talbe) / 2;
+
+    for (i = 0; i < size; i++)
+    {
+        addr = gc0310_init_talbe[i][0];
+        data = gc0310_init_talbe[i][1];
+        if(camera_intf_sccb_write(addr, data))
+        {
+            ret = 1;
+            goto config_exit;
+        }
+    }
+
+    if(camera_inf_cfg_gc0310_ppi(CMPARAM_GET_PPI(ejpeg_cfg.sener_cfg)))
+    {
+        ret = 1;
+        goto config_exit;
+    }
+
+    CAMERA_INTF_WPRT("GC0310 init finish\r\n");
     #elif (USE_CAMERA == BF_2013_DEV)
     i2c_operater.salve_id = BF_2013_DEV_ID;
 
