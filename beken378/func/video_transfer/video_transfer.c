@@ -534,7 +534,7 @@ int video_transfer_init(TVIDEO_SETUP_DESC_PTR setup_cfg)
                                  2,
                                  "video_intf",
                                  (beken_thread_function_t)video_transfer_main,
-                                 1024,
+                                 2048,
                                  (beken_thread_arg_t)&video_transfer_setup_bak);
         if (ret != kNoErr)
         {
