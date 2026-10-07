@@ -901,10 +901,15 @@ static UINT32 i2c1_open(UINT32 op_flag)
 
     if (reg & I2C1_ENSMB)
     {
-        reg1 |=  I2C1_SMBUS_STOP;
-        reg   = 0;
+        UINT32 guard = 0;
+
+        REG_WRITE(REG_I2C1_STA, (reg1 & I2C1_INT_MODE_MASK) | I2C1_SMBUS_SI | I2C1_SMBUS_STOP);
+        while ((REG_READ(REG_I2C1_STA) & I2C1_BUSY) && guard < 20000)
+            guard++;
+        reg  = 0;
     }
 
+    reg1 = REG_READ(REG_I2C1_STA) & I2C1_INT_MODE_MASK;
     REG_WRITE(REG_I2C1_CONFIG, reg);
     REG_WRITE(REG_I2C1_STA, reg1);
 
