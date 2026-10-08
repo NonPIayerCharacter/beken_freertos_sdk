@@ -488,10 +488,32 @@ static void camera_inf_cfg_fps(UINT32 fps_type)
 #if (USE_CAMERA == GC0310_DEV)
 static int camera_inf_cfg_gc0310_ppi(UINT32 ppi_type)
 {
-    if (ppi_type != VGA_640_480)
+    const UINT8 (*tbl)[2];
+    UINT32 i, size;
+
+    switch (ppi_type)
     {
-        CAMERA_INTF_WPRT("GC0310 supports VGA_640_480 only, got %d\r\n", ppi_type);
+    case QVGA_320_240:
+        tbl = gc0310_QVGA_320_240_talbe;
+        size = sizeof(gc0310_QVGA_320_240_talbe) / 2;
+        break;
+
+    case VGA_640_480:
+        tbl = gc0310_VGA_640_480_talbe;
+        size = sizeof(gc0310_VGA_640_480_talbe) / 2;
+        break;
+
+    default:
+        CAMERA_INTF_WPRT("GC0310 supports QVGA_320_240 and VGA_640_480, got %d\r\n", ppi_type);
         return -1;
+    }
+
+    for (i = 0; i < size; i++)
+    {
+        if (camera_intf_sccb_write(tbl[i][0], tbl[i][1]))
+        {
+            return -1;
+        }
     }
     return 0;
 }
