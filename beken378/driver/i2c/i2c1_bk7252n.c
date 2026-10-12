@@ -42,6 +42,7 @@ static DD_OPERATIONS i2c1_op =
 __maybe_unused static void i2c1_set_slave_addr(UINT32 addr);
 __maybe_unused static void i2c1_clk_source_set_26M(void);
 static volatile I2C1_MSG_ST *gi2c1 ;
+static beken_mutex_t i2c1_bus_mutex;
 
 static void i2c1_set_idle_cr(UINT32 idle_cr)
 {
@@ -872,6 +873,8 @@ void i2c1_init(void)
     gi2c1 = os_malloc(sizeof(I2C1_MSG_ST));
     os_memset((unsigned char *)gi2c1, 0, sizeof(I2C1_MSG_ST));
 
+    rtos_init_mutex(&i2c1_bus_mutex);
+
     i2c1_software_init();
     i2c1_hardware_init();
 }
@@ -901,10 +904,15 @@ static UINT32 i2c1_open(UINT32 op_flag)
 
     if (reg & I2C1_ENSMB)
     {
-        reg1 |=  I2C1_SMBUS_STOP;
-        reg   = 0;
+        UINT32 guard = 0;
+
+        REG_WRITE(REG_I2C1_STA, (reg1 & I2C1_INT_MODE_MASK) | I2C1_SMBUS_SI | I2C1_SMBUS_STOP);
+        while ((REG_READ(REG_I2C1_STA) & I2C1_BUSY) && guard < 20000)
+            guard++;
+        reg  = 0;
     }
 
+    reg1 = REG_READ(REG_I2C1_STA) & I2C1_INT_MODE_MASK;
     REG_WRITE(REG_I2C1_CONFIG, reg);
     REG_WRITE(REG_I2C1_STA, reg1);
 
@@ -950,6 +958,17 @@ static UINT32 i2c1_close(void)
     return I2C1_SUCCESS;
 }
 
+static void i2c1_bus_recover(void)
+{
+    GLOBAL_INT_DECLARATION();
+
+    i2c1_open(gi2c1->WkMode & 0x0F);
+
+    GLOBAL_INT_DISABLE();
+    gi2c1->TransDone = 0;
+    GLOBAL_INT_RESTORE();
+}
+
 static UINT32 i2c1_read(char *user_buf, UINT32 count, UINT32 op_flag)
 {
     UINT32 reg, start_tick, cur_tick;
@@ -958,8 +977,11 @@ static UINT32 i2c1_read(char *user_buf, UINT32 count, UINT32 op_flag)
 
     i2c_op = (I2C_OP_PTR)op_flag;
 
+    rtos_lock_mutex(&i2c1_bus_mutex);
+
     if (gi2c1->TransDone != 0)
     {
+        rtos_unlock_mutex(&i2c1_bus_mutex);
         return 0;
     }
 
@@ -999,6 +1021,14 @@ static UINT32 i2c1_read(char *user_buf, UINT32 count, UINT32 op_flag)
     reg = REG_READ(REG_I2C1_STA);
     I2C1_PRT("i2c1_stat= %lx\r\n", reg);
 
+    if (reg & I2C1_BUSY)
+    {
+        GLOBAL_INT_RESTORE();
+        rtos_unlock_mutex(&i2c1_bus_mutex);
+        gi2c1->ErrorNO = 2;
+        return gi2c1->ErrorNO;
+    }
+
     i2c1_send_start();
     GLOBAL_INT_RESTORE();
 
@@ -1027,6 +1057,8 @@ static UINT32 i2c1_read(char *user_buf, UINT32 count, UINT32 op_flag)
     gi2c1->TransDone = 0;
     GLOBAL_INT_RESTORE();
 
+    rtos_unlock_mutex(&i2c1_bus_mutex);
+
     return gi2c1->ErrorNO;
 }
 
@@ -1036,8 +1068,11 @@ static UINT32 i2c1_write(char *user_buf, UINT32 count, UINT32 op_flag)
     I2C_OP_PTR i2c_op;
     GLOBAL_INT_DECLARATION();
 
+    rtos_lock_mutex(&i2c1_bus_mutex);
+
     if (gi2c1->TransDone != 0)
     {
+        rtos_unlock_mutex(&i2c1_bus_mutex);
         return 0;
     }
 
@@ -1070,6 +1105,14 @@ static UINT32 i2c1_write(char *user_buf, UINT32 count, UINT32 op_flag)
     // salve address---as slave
     i2c1_set_slave_addr(gi2c1->Slave_addr);
 
+    if (REG_READ(REG_I2C1_STA) & I2C1_BUSY)
+    {
+        GLOBAL_INT_RESTORE();
+        rtos_unlock_mutex(&i2c1_bus_mutex);
+        gi2c1->ErrorNO = 2;
+        return gi2c1->ErrorNO;
+    }
+
     i2c1_send_start();
     GLOBAL_INT_RESTORE();
 
@@ -1097,6 +1140,8 @@ static UINT32 i2c1_write(char *user_buf, UINT32 count, UINT32 op_flag)
     GLOBAL_INT_DISABLE();
     gi2c1->TransDone = 0;
     GLOBAL_INT_RESTORE();
+
+    rtos_unlock_mutex(&i2c1_bus_mutex);
 
     return gi2c1->ErrorNO;
 }
@@ -1142,6 +1187,15 @@ static UINT32 i2c1_ctrl(UINT32 cmd, void *param)
         break;
     case I2C1_CMD_SET_IO_OUTPUT:
         i2c1_set_io_output(*((UINT32 *)param));
+        break;
+    case I2C1_CMD_BUS_RESET:
+        i2c1_bus_recover();
+        break;
+    case I2C1_CMD_LOCK:
+        rtos_lock_mutex(&i2c1_bus_mutex);
+        break;
+    case I2C1_CMD_UNLOCK:
+        rtos_unlock_mutex(&i2c1_bus_mutex);
         break;
     default:
         ret = I2C1_FAILURE;
