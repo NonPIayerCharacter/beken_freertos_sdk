@@ -396,6 +396,7 @@
 #define CFG_LWIP_MEM_POLICY                        LWIP_DEFAULT_MEM_POLICY
 /* enable hw ip checksum */
 #define CFG_LWIP_HW_CSUM                           1
+#define MQTT_OUTPUT_RINGBUF_SIZE                   (52 * 1024)
 
 #define FLASH_SELECTION_TYPE_DYNAMIC               0 //select with flashID runtime
 #define FLASH_SELECTION_TYPE_1M                    0x100000 //1MBytes
