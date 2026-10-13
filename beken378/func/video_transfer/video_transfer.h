@@ -104,6 +104,7 @@ void tvideo_intfer_send_msg(UINT32 new_msg);
 int video_transfer_init(TVIDEO_SETUP_DESC_PTR setup_cfg);
 int video_transfer_deinit(void);
 UINT32 video_transfer_set_video_param(UINT32 ppi, UINT32 fps);
+void tvideo_set_sensor(UINT32 ppi, UINT32 fps);
 
 int video_buffer_open(void);
 int video_buffer_close(void);

@@ -252,6 +252,7 @@
 #define CFG_USE_HSLAVE_SPI                         0
 #define CFG_USE_SPIDMA                             0
 #if CFG_USE_CAMERA_INTF
+#define USE_CAMERA                                 GC0310_DEV
 #define CFG_USE_I2C1                               1
 #define CFG_USE_I2C2                               0
 #else
