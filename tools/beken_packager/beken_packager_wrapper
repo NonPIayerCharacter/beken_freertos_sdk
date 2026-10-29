@@ -69,7 +69,7 @@ out_json_4M = {
             "version": "4M.1220",
             "partition": "app",
             "start_addr": "0x00011000",
-            "size": "2890K"
+            "size": "2516K"
         }
     ]
 }
@@ -117,7 +117,8 @@ default_info = {
     'bk7251':  {'boot': 'bootloader_bk7251_uart2_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7271':  {'boot': 'bootloader_bk7271_uart2_v1.0.11.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7236':  {'boot': 'bootloader_bk7236_uart2_v1.0.11.bin', 'firmware': '../../out/bk7231_bsp.bin'},
-    'bk7238':  {'boot': 'bootloader_bk7238_uart1_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
+    # boot_4M: the same bootloader with the 4 MB partition table in its tail (see make_bootloader_4m.py)
+    'bk7238':  {'boot': 'bootloader_bk7238_uart1_v1.0.15.bin', 'boot_4M': 'bootloader_bk7238_uart1_v1.0.15_4M.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7252n': {'boot': 'bootloader_bk7252n_uart1_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7253': {'boot': 'bootloader_bk7253_uart2_v1.0.15.bin', 'firmware': '../../out/bk7231_bsp.bin'},
     'bk7252_tuya':  {'boot': 'bootloader_bk7251_uart2_v1.0.15_enc.bin', 'firmware': '../../out/bk7231_bsp.bin'},
@@ -156,6 +157,16 @@ if args.size.startswith("0x"):
     args.size = int(args.size.replace("0x", ""),16)
 else:
     args.size = int(args.size)
+# a chip's bootloader carries its own partition table, so a 4 MB image needs the
+# 4 MB one: the shipped bootloader with the 4 MB table in its tail, made here
+# from it when it is not there yet (make_bootloader_4m.py)
+if not args.boot and args.size >= 0x400000 and 'boot_4M' in default_info[chip]:
+    bootloader_str = default_info[chip]['boot_4M']
+    if not os.path.exists(bootloader_str):
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import make_bootloader_4m
+        make_bootloader_4m.convert(default_info[chip]['boot'], bootloader_str)
+
 #select json with flash size
 if args.size >= 0x800000:
     out_json = out_json_8M
